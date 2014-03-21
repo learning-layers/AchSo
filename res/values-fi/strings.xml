@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Ach So</string>
+    <string name="title_item_detail">Tiedot</string>
+    <string name="my_videos">Omat videot</string>
+    <string name="loading">Ladataan</string>
+    <string name="record">Tee uusi video</string>
+    <string name="read_qr_code">Hae QR-koodilla</string>
+    <string name="title_activity_genre_selection">Valitse videon lajityyppi</string>
+    <string name="title_activity_information">Videon tiedot</string>
+    <string name="action_settings">Asetukset</string>
+    <string name="select_genre">Millainen video tämä oli?</string>
+
+    <string name="good_work_genre">Hyvää työtä</string>
+    <string name="problem_genre">Ongelma</string>
+    <string name="site_overview_genre">Yleiskatsaus</string>
+    <string name="trick_of_trade_genre">Ammattilaisen niksi</string>
+
+    <string name="delete">Poista</string>
+    <string name="upload">Lähetä palvelimelle</string>
+    <string name="qr_to_video">Liitä QR-koodiin</string>
+    <string name="deletion_title">Videoiden poisto</string>
+    <string name="deletion_question">Haluatko poistaa valitut videot ja merkinnät?</string>
+
+    <string name="first_page">Kaikki videot</string>
+    <string name="storage_error">Tallennusvirhe laitteessa</string>
+    <string name="detailed_storage_error">Tallennusmuistiin ei saatu yhteyttä. Onko SD-muistikortti laitteessa?</string>
+
+    <string name="login_description">Kirjaudu palvelimelle</string>
+    <string name="user">Käyttäjänimi</string>
+    <string name="pass">Salasana</string>
+    <string name="login">Kirjaudu</string>
+    <string name="login_nag_text">Väärä käyttäjänimi tai salasana.</string>
+    <string name="title_activity_login">Kirjaudu palvelimelle</string>
+
+    <string name="not_loggedin_nag_title">Et ole kirjautunut</string>
+    <string name="not_loggedin_nag_text">Sinun täytyy olla kirjautunut voidaksesi lähettää videoita.</string>
+
+    <string name="location_not_enabled">Paikannuspalvelut suljettu</string>
+    <string name="location_not_enabled_text">Paikannuspalvelut on kytketty pois päältä. Haluatko laittaa ne päälle?</string>
+
+    <string name="ok">Ok</string>
+    <string name="cancel">Peru</string>
+    <string name="keep">Tallenna</string>
+    
+    <string name="edit_text">Muokkaa</string>
+
+    <!-- SemanticVideo data -->
+    <string name="semanticvideo_title">Nimi</string>
+    <string name="semanticvideo_creator">Tekijä</string>
+    <string name="semanticvideo_qrcode">QR-koodi</string>
+    <string name="semanticvideo_createdat">Luotu</string>
+    <string name="semanticvideo_uri">Tiedostonimi</string>
+    <string name="semanticvideo_genre">Lajityyppi</string>
+    <string name="semanticvideo_uploaded">Lähetetty</string>
+    <string name="semanticvideo_latitude">Leveysaste</string>
+    <string name="semanticvideo_longitude">Pituusaste</string>
+    <string name="semanticvideo_accuracy">Paikannuksen tarkkuus</string>
+    <string name="semanticvideo_unknown_creator">Tuntematon tekijä</string>
+    <string name="semanticvideo_unknown_location">Tuntematon sijainti</string>
+    <string name="semanticvideo_no_qr">Ei QR-koodia</string>
+    <!-- /SemanticVideo data -->
+
+    <string name="search_hint">Hae videoita</string>
+    <string name="title_activity_search">Hae</string>
+
+    <string name="remote_video_separator">Videot palvelimella</string>
+
+    <!-- ENGLISH GENRES BEGIN -->
+    <string name="good_work_genre_english">Good work</string>           <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
+    <string name="problem_genre_english">Problem</string>               <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
+    <string name="site_overview_genre_english">Site overview</string>   <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
+    <string name="trick_of_trade_genre_english">Trick of trade</string> <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
+    <!-- ENGLISH GENRES END -->
+
+</resources>

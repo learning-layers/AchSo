@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/subtitle"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_alignParentBottom="true"
+    android:layout_alignParentEnd="false"
+    android:layout_alignParentStart="false"
+    android:layout_centerHorizontal="true"
+    android:paddingBottom="5dp"
+    android:shadowColor="#000000"
+    android:shadowDx="0"
+    android:shadowDy="0"
+    android:shadowRadius="4.0"
+    android:textAppearance="?android:attr/textAppearanceLarge"
+    android:textColor="#f0e030"
+    android:gravity="center_horizontal"
+    android:textSize="18sp"
+    android:translationY="-30dp" />

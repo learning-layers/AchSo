@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+    <color name="upload_icon_uploading">#66FF00</color>
+    <color name="upload_icon_pending">#66FFFF</color>
+
+    <color name="achso_red">#DB7E69</color>
+    <color name="achso_green">#638D6F</color>
+    <color name="achso_yellow">#FFD084</color>
+    <color name="achso_blue">#ff7561be</color>
+    <color name="holo_blue_bright">#00ddff</color>
+</resources>

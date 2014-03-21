@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Ach So</string>
+    <string name="title_item_detail">Item Detail</string>
+    <string name="my_videos">My videos</string>
+    <string name="loading">Loading</string>
+    <string name="record">Record new video</string>
+    <string name="read_qr_code">Search by QR code</string>
+    <string name="title_activity_genre_selection">Select a type for a video</string>
+    <string name="title_activity_information">Video information</string>
+    <string name="action_settings">Settings</string>
+    <string name="select_genre">What kind of video this was?</string>
+
+    <string name="good_work_genre">Good work</string>
+    <string name="problem_genre">Problem</string>
+    <string name="site_overview_genre">Site overview</string>
+    <string name="trick_of_trade_genre">Trick of trade</string>
+
+    <string name="delete">Delete</string>
+    <string name="upload">Upload</string>
+    <string name="qr_to_video">Add QR code</string>
+    <string name="deletion_title">Video deletion</string>
+    <string name="deletion_question">Do you want to delete selected video(s) and annotation(s)?</string>
+
+    <string name="first_page">All videos</string>
+    <string name="storage_error">Media storage error</string>
+    <string name="detailed_storage_error">Error accessing the video storage. Is SD card inserted into the device?</string>
+
+    <string name="login_description">Login to server</string>
+    <string name="user">Username</string>
+    <string name="pass">Password</string>
+    <string name="login">Login</string>
+    <string name="autologin">Keep me logged in</string>
+    <string name="login_nag_text">Invalid username or password.</string>
+    <string name="title_activity_login">Login to server</string>
+
+    <string name="not_loggedin_nag_title">Not logged in</string>
+    <string name="not_loggedin_nag_text">You need to be logged in to upload videos.</string>
+
+    <string name="location_not_enabled">Location services disabled</string>
+    <string name="location_not_enabled_text">Location services aren\'t enabled. Do you want to enable them now?</string>
+
+    <string name="ok">Ok</string>
+    <string name="cancel">Cancel</string>
+    <string name="keep">Keep</string>
+    
+    <string name="edit_text">Edit text</string>
+
+    <!-- SemanticVideo data -->
+    <string name="semanticvideo_title">Title</string>
+    <string name="semanticvideo_creator">Creator</string>
+    <string name="semanticvideo_qrcode">QR code</string>
+    <string name="semanticvideo_createdat">Created at</string>
+    <string name="semanticvideo_uri">File name on device</string>
+    <string name="semanticvideo_genre">Genre</string>
+    <string name="semanticvideo_uploaded">Uploaded</string>
+    <string name="semanticvideo_latitude">Latitude</string>
+    <string name="semanticvideo_longitude">Longitude</string>
+    <string name="semanticvideo_accuracy">Location accuracy</string>
+    <string name="semanticvideo_unknown_creator">Unknown creator</string>
+    <string name="semanticvideo_unknown_location">Unknown location</string>
+    <string name="semanticvideo_no_qr">No QR code read</string>
+    <!-- /SemanticVideo data -->
+
+    <string name="search_hint">Search for videos</string>
+    <string name="title_activity_search">Search</string>
+
+    <string name="remote_video_separator">Remote videos</string>
+
+    <!-- ENGLISH GENRES BEGIN -->
+    <string name="good_work_genre_english">Good work</string>           <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
+    <string name="problem_genre_english">Problem</string>               <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
+    <string name="site_overview_genre_english">Site overview</string>   <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
+    <string name="trick_of_trade_genre_english">Trick of trade</string> <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
+    <!-- ENGLISH GENRES END -->
+
+</resources>
