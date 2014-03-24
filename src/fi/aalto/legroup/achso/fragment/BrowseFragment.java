@@ -35,6 +35,7 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
+import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -241,6 +242,12 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
                 mList.setMultiChoiceModeListener(this);
             }
         }
+        if (view != null) {
+            mSearchProgress = (ProgressBar) view.findViewById(R.id.search_progress);
+            LinearLayout urlArea = (LinearLayout) view.findViewById(R.id.url_found_area);
+            urlArea.setVisibility(LinearLayout.GONE);
+        }
+
         return view;
     }
 
@@ -294,6 +301,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
 
             }
         }
+
     }
 
     @Override

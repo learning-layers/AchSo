@@ -185,11 +185,11 @@ public class MainMenuActivity extends ActionbarActivity implements BrowseFragmen
 
         handleIntent(getIntent());
 
-        final LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        if (!(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager
-                .isProviderEnabled(LocationManager.NETWORK_PROVIDER))) {
+        //final LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        //if (!(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager
+        //        .isProviderEnabled(LocationManager.NETWORK_PROVIDER))) {
             //getLocationNotEnabledDialog().show();
-        }
+        //}
 
     }
 
@@ -258,6 +258,7 @@ public class MainMenuActivity extends ActionbarActivity implements BrowseFragmen
                             mQuery = scanResult.getContents();
                             SearchResultCache.clearLastSearch();
                         }
+                        // last argument in next line is 'isItTitleQuery'. false means qr-query.
                         mPagerAdapter = new SearchPagerAdapter(this, getSupportFragmentManager(), mQuery, false);
                         mViewPager.setAdapter(mPagerAdapter);
                         mPagerAdapter.notifyDataSetChanged();
@@ -359,10 +360,6 @@ public class MainMenuActivity extends ActionbarActivity implements BrowseFragmen
             mPagerAdapter = new SearchPagerAdapter(this, getSupportFragmentManager(), mQuery, true);
             mViewPager.setAdapter(mPagerAdapter);
             mViewPager.getAdapter().notifyDataSetChanged();
-            if (mViewPager.getAdapter() != mPagerAdapter) {
-                Log.e("MainMenuActivity", "set and get adapter differ");
-            }
-
         }
     }
 

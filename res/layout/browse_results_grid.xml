@@ -8,19 +8,7 @@
     android:focusableInTouchMode="true"
     android:orientation="vertical" >
 
-    <!--
-    <Button
-	    android:layout_height="wrap_content"
-	    android:layout_width="match_parent"
-	    android:text="@string/record"
-	    android:onClick="launchRecording" />
-
-    <Button
-        android:layout_height="wrap_content"
-        android:layout_width="match_parent"
-        android:text="@string/read_qr_code"
-        android:onClick="launchQrReading" />
-    -->
+    <include layout="@layout/url_to_open" />
 
     <GridView
         android:id="@+id/main_menu_grid"

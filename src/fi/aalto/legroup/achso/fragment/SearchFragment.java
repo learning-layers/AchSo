@@ -24,8 +24,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -46,6 +50,9 @@ public class SearchFragment extends BrowseFragment {
     private ExpandableGridView mRemoteGrid;
     private AsyncTask<String, Double, ArrayList<SemanticVideo>> mFetchTask;
     private int mSeparatorPosition;
+    private TextView mUrl;
+    private LinearLayout mUrlArea;
+    private TextView mUrlLabel;
 
 
     public SearchFragment() {
@@ -71,10 +78,6 @@ public class SearchFragment extends BrowseFragment {
                 ImageAdapter local_adapter = new ImageAdapter(getActivity(), query(mQuery));
                 mGrid.setAdapter(local_adapter);
                 ((ArrayAdapter) mGrid.getAdapter()).notifyDataSetChanged();
-                //local_adapter.notifyDataSetChanged();
-                if (mGrid.getAdapter() != local_adapter) {
-                    Log.e("SearchGridFragment", "set and get adapter differ");
-                }
 
                 ImageAdapter remote_adapter;
                 if (SearchResultCache.getLastSearch() != null) {
@@ -124,6 +127,19 @@ public class SearchFragment extends BrowseFragment {
             }
         }
 
+
+        if (mQueryType == QR_QUERY) {
+            mUrlArea.setVisibility(LinearLayout.VISIBLE);
+            mUrl.setText(mQuery);
+            try {
+                URL url = new URL(mQuery);
+                mUrlLabel.setText(R.string.url_found_label);
+            } catch (MalformedURLException e) {
+                mUrlLabel.setText(R.string.code_found_label);
+            }
+        }
+
+
     }
 
     @Override
@@ -167,6 +183,10 @@ public class SearchFragment extends BrowseFragment {
         }
         if (view != null) {
             mSearchProgress = (ProgressBar) view.findViewById(R.id.search_progress);
+            mUrl = (TextView) view.findViewById(R.id.url_found);
+            mUrlArea = (LinearLayout) view.findViewById(R.id.url_found_area);
+            mUrlLabel = (TextView) view.findViewById(R.id.url_found_label);
+            mUrlArea.setVisibility(LinearLayout.GONE);
         }
         return view;
     }

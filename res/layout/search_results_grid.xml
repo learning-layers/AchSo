@@ -8,23 +8,9 @@
     android:focusableInTouchMode="true"
     android:orientation="vertical" >
 
-    <!--
-    <Button
-	    android:layout_height="wrap_content"
-	    android:layout_width="match_parent"
-	    android:text="@string/record"
-	    android:onClick="launchRecording" />
-
-    <Button
-        android:layout_height="wrap_content"
-        android:layout_width="match_parent"
-        android:text="@string/read_qr_code"
-        android:onClick="launchQrReading" />
-    -->
-
     <ScrollView
         android:id="@+id/scrollView"
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_height="fill_parent" >
 
         <LinearLayout
@@ -33,9 +19,11 @@
             android:isScrollContainer="true"
             android:orientation="vertical" >
 
+            <include layout="@layout/url_to_open" />
+
             <fi.aalto.legroup.achso.view.ExpandableGridView
                 android:id="@+id/main_menu_grid"
-                android:layout_width="match_parent"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:clickable="true"
                 android:drawSelectorOnTop="false"

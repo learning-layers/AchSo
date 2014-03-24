@@ -41,6 +41,10 @@
     <string name="location_not_enabled">Location services disabled</string>
     <string name="location_not_enabled_text">Location services aren\'t enabled. Do you want to enable them now?</string>
 
+    <string name="url_found_label">Found link:</string>
+    <string name="code_found_label">Found code:</string>
+    <string name="open_in_browser">Open in browser</string>
+
     <string name="ok">Ok</string>
     <string name="cancel">Cancel</string>
     <string name="keep">Keep</string>
@@ -72,7 +76,8 @@
     <string name="good_work_genre_english">Good work</string>           <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
     <string name="problem_genre_english">Problem</string>               <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
     <string name="site_overview_genre_english">Site overview</string>   <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
-    <string name="trick_of_trade_genre_english">Trick of trade</string> <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
+    <string name="trick_of_trade_genre_english">Trick of trade</string>
+    <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
     <!-- ENGLISH GENRES END -->
 
 </resources>
