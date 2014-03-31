@@ -16,7 +16,12 @@
 
 package fi.aalto.legroup.achso.database;
 
+import android.content.ContentResolver;
+import android.content.Context;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Log;
 
 import java.io.File;
@@ -40,7 +45,58 @@ public class LocalVideos {
     }
     public static File getVideoStorage() {
         if(android.os.Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED)) {
-            return new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "AnnotatedVideos");
+            return new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES), "AnnotatedVideos");
         } else return null;
     }
+
+    public static String getRealPathFromURI(Context context, Uri contentUri) {
+        ContentResolver cr = context.getContentResolver();
+
+        String data = MediaStore.Images.Media.DATA;
+        String[] da = {data};
+        Cursor cursor = cr.query(contentUri, da, null, null, null);
+        if (cursor == null) {
+            data = MediaStore.Video.Media.DATA;
+            String[] da2 = {data};
+            cursor = cr.query(contentUri, da2, null, null, null);
+        }
+        if (cursor != null) {
+            int column_index = cursor.getColumnIndexOrThrow(data);
+            cursor.moveToFirst();
+            String path = cursor.getString(column_index);
+            cursor.close();
+            return path;
+        } else {
+            return null;
+        }
+    }
+
+
+    public static String getLatestVideo(Context context) {
+        ContentResolver cr = context.getContentResolver();
+        String data = MediaStore.Video.Media.DATA;
+        String date_taken = MediaStore.Video.Media.DATE_TAKEN;
+        Uri video_store = Uri.parse("content://media/external/video/media");
+        String[] da = {data, date_taken};
+        //Log.i("App", "looking for latest video:"+ data );
+        Cursor cursor = cr.query(video_store, da, null, null, date_taken);
+        if (cursor != null) {
+            cursor.moveToLast();
+            //Log.i("App", "Has columns:" + cursor.getColumnNames().toString());
+            //Log.i("App", "DATA (0):" + cursor.getString(0));
+            //Log.i("App", "DATE_TAKEN (1):" + cursor.getString(1));
+            Date now = new Date();
+            while (now.getTime() < cursor.getLong(1)) {
+                // ignore videos in storage that have odd timestamps: timestamps in future
+                Log.i("LocalVideos", "Skipped to previous video. now:" + now.getTime() + ", video: " + cursor.getLong(1));
+                cursor.moveToPrevious();
+            }
+            String path = cursor.getString(0);
+            cursor.close();
+            return path;
+        } else {
+            return null;
+        }
+    }
+
 }

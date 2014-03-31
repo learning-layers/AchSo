@@ -478,7 +478,7 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TBL_ANNOTATION);
         onCreate(db);
     }
-
+    /*
     static {
         dump();
     }
@@ -512,4 +512,5 @@ public class VideoDBHelper extends SQLiteOpenHelper {
             catch(IOException ioe) {}
         }
     }
+    */
 }

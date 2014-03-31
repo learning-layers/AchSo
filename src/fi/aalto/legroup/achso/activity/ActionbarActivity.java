@@ -63,6 +63,8 @@ public class ActionbarActivity extends FragmentActivity {
     public static final int REQUEST_QR_CODE_READ = 4;
     public static final int REQUEST_QR_CODE_FOR_EXISTING_VIDEO = 5;
     public static final int REQUEST_LOGIN = 7;
+    public static final int API_VERSION= android.os.Build.VERSION.SDK_INT;
+
     protected Menu mMenu;
     private Uri mVideoUri;
 
@@ -187,6 +189,16 @@ public class ActionbarActivity extends FragmentActivity {
             // The only way around it is that hack in AnViAnno, to let ACTION_VIDEO_CAPTURE to record where it wants by default and
             // then get the file and write it to correct place.
 
+            // In this solution the problem is that some devices return null from ACTION_VIDEO_CAPTURE intent
+            // where they should return the path. This is reported Android 4.3.1 bug. So let them try the MediaStore.EXTRA_OUTPUT-way
+
+
+            if (API_VERSION >= 18) {
+                mVideoUri = Uri.fromFile(output_file);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, mVideoUri); //mVideoUri.toString()); // Set output location
+            }
+
+
             // Old code goes here:
             /*
             mVideoUri = Uri.fromFile(output_file);
@@ -199,7 +211,7 @@ public class ActionbarActivity extends FragmentActivity {
             */
 
             // Intent without EXTRA_OUTPUT
-            Log.i("ActionBarActivity", "Storing video through prefs: " + output_file.getAbsolutePath());
+            //Log.i("ActionBarActivity", "Storing video through prefs: " + output_file.getAbsolutePath());
             intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1); // High video quality
             appendLog("Starting recording.");
             startActivityForResult(intent, REQUEST_VIDEO_CAPTURE);
@@ -220,80 +232,68 @@ public class ActionbarActivity extends FragmentActivity {
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         switch (requestCode) {
             case REQUEST_VIDEO_CAPTURE:
-                Log.d("ActionBarActivity", "REQUEST_VIDEO_CAPTURE returned " + resultCode);
+                //Log.d("ActionBarActivity", "REQUEST_VIDEO_CAPTURE returned " + resultCode);
 
                 if (resultCode == RESULT_OK) {
                     // Got video from camera. Starting genre selection activity
                     finishActivity(REQUEST_VIDEO_CAPTURE);
                     appendLog("Finished recording.");
                     String videoPath = getSharedPreferences("AchSoPrefs", 0).getString("videoUri", null);
-                    Log.d("ActionBarActivity", "AchSoPrefs says that videoUri is " + videoPath);
-                    mVideoUri = Uri.parse(videoPath);
+                    //Log.d("ActionBarActivity", "AchSoPrefs says that videoUri is " + videoPath);
 
-                    // Version 3. find out the real path and do rename.
-                    // This works, but not widely tested. 
-                    String given_path = App.getRealPathFromURI(this, intent.getData());
-                    Log.i("ActionBarAction", "Found real path: " + given_path);
-                    File source = new File(given_path);
-                    File target = new File(videoPath);
-                    source.renameTo(target);
-                    mVideoUri = Uri.fromFile(target);
+                    if (API_VERSION < 18) {
+                        // Version 3. find out the real path and do rename.
+                        // This works, but not widely tested.
+                        mVideoUri = Uri.parse(videoPath);
 
-
-                    // Version 2. write file data
-                    // Avoiding EXTRA_OUTPUT: intent saves to its own place, we need to get the file and write it to proper place
-                    // This proved to be too slow for >100mB videos.
-                    /*
-                    Uri temp_video_uri = intent.getData();
-                    if(temp_video_uri != null) {
-                        try {
-                            Log.i("ActionbarActivity", "Starting to move video... ");
-                            AssetFileDescriptor videoAsset = getContentResolver().openAssetFileDescriptor(temp_video_uri, "r");
-                            //... do something with the AssetFileDescriptor
-                            // to read the file, create an inputStream
-                            FileInputStream fis = videoAsset.createInputStream();
-                            File video_file = new File(videoPath);
-                            FileOutputStream fos = new FileOutputStream(video_file);
-
-                            byte[] buf = new byte[1024];
-                            int len;
-                            while ((len = fis.read(buf)) > 0) {
-                                fos.write(buf, 0, len);
-                            }
-                            fis.close();
-                            fos.close();
-                            Log.i("ActionbarActivity", "...Finished moving video");
-                            int rows = getContentResolver().delete(temp_video_uri, null, null);
-                            if (rows >= 0) {
-                                Log.i("ActionbarActivity", "Deleted tmp video at " + temp_video_uri);
+                        Uri saved_to = intent.getData();
+                        String received_path;
+                        File source;
+                        if (saved_to == null) {
+                            received_path = LocalVideos.getLatestVideo(this);
+                            source = new File(received_path);
+                            int tries = 0;
+                            while (!source.isFile() && tries < 100) {
+                                tries++;
+                                received_path = LocalVideos.getLatestVideo(this);
+                                source = new File(received_path);
+                                Log.i("ActionBarAction", "File was not ready yet, trying again: " + tries);
                             }
 
-                        } catch (FileNotFoundException e) {
-                            Toast.makeText(getBaseContext(), "Could not find Video file" + Toast.LENGTH_LONG, 1).show();
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                        } else {
+                            received_path = LocalVideos.getRealPathFromURI(this, saved_to);
+                            Log.i("ActionBarAction", "Found real path: " + received_path);
+                            source = new File(received_path);
+                        }
+                        Log.i("ActionBarAction", "Is it file: " + source.isFile());
+                        File target = new File(videoPath);
+                        source.renameTo(target);
+                        mVideoUri = Uri.fromFile(target);
+
+
+                        // Version 2. write file data
+                        // Avoiding EXTRA_OUTPUT: intent saves to its own place, we need to get the file and write it to proper place
+                        // This proved to be too slow for >100mB videos.
+
+                    } else {
+                        // Version 1: intent wrote file to correct place at once.
+                        if (intent == null && videoPath.isEmpty()) {
+                            Toast.makeText(this, "Failed to save video.", Toast.LENGTH_LONG).show();
+                            super.onBackPressed();
+                        } else if (intent != null && !intent.getDataString().isEmpty()) {
+                            Log.d("ActionBarActivity", "Found better from intent: " + intent.getData());
+                            mVideoUri = intent.getData();
+                        } else {
+                            mVideoUri = Uri.parse(videoPath);
+                            getSharedPreferences("AchSoPrefs", 0).edit().putString("videoUri", null).commit();
                         }
                     }
-                    */
-                    // Version 1: if intent wrote file to correct place at once.
-                    /*
-                    if (intent == null && videoPath.isEmpty()) {
-                        Toast.makeText(this, "Failed to save video.", Toast.LENGTH_LONG).show();
-                        super.onBackPressed();
-                    } else if (intent != null && !intent.getDataString().isEmpty()) {
-                        Log.d("ActionBarActivity", "Found better from intent: " + intent.getData());
-                        mVideoUri = intent.getData();
-                    } else {
-                        mVideoUri = Uri.parse(videoPath);
-                        getSharedPreferences("AchSoPrefs", 0).edit().putString("videoUri", null).commit();
-                    }
-                    */
 
                     // Verify that the file exists
                     File does_it = new File(mVideoUri.getPath());
                     Log.i("ActionBarActivity","Saved file at "+mVideoUri.getPath()+ " exists: " + does_it.exists());
 
-                    Toast.makeText(this, "Video saved to: " + mVideoUri, Toast.LENGTH_LONG).show();
+                    //Toast.makeText(this, "Video saved to: " + mVideoUri, Toast.LENGTH_LONG).show();
                     Intent i = new Intent(this, GenreSelectionActivity.class);
                     i.putExtra("videoUri", mVideoUri.getPath()); //mVideoUri.toString());
                     startActivityForResult(i, REQUEST_SEMANTIC_VIDEO_GENRE);
