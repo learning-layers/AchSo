@@ -21,7 +21,6 @@
         android:label="@string/app_name"
         android:theme="@style/AppBaseTheme"
         android:name="fi.aalto.legroup.achso.util.App"
-        android:debuggable="false"
         >
         <activity
             android:name=".activity.MainMenuActivity"

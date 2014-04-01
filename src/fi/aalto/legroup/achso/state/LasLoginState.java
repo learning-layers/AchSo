@@ -32,7 +32,7 @@ import fi.aalto.legroup.achso.util.LasConnection;
 
 import static fi.aalto.legroup.achso.util.App.appendLog;
 
-public class LoginState {
+public class LasLoginState {
     public static final int LOGGED_OUT = 0;
     private int mIn = LOGGED_OUT;
     public static final int TRYING_TO_LOG_IN = 1;
@@ -42,7 +42,7 @@ public class LoginState {
     private Activity mHost;
     private boolean disable_autologin_for_session = false;
 
-    public LoginState(Context ctx) {
+    public LasLoginState(Context ctx) {
         this.ctx = ctx;
     }
 
@@ -218,20 +218,4 @@ public class LoginState {
             }
         }
     }
-    //  private String SHA512(String str) {
-    //  try {
-    //      MessageDigest md=MessageDigest.getInstance("SHA-512");
-    //      md.update(str.getBytes());
-    //      byte[] digest=md.digest();
-    //      StringBuffer hex=new StringBuffer();
-    //      for(byte b : digest) {
-    //          String hexstr=Integer.toHexString(b&0xFF);
-    //          if(hexstr.length() == 1) hex.append('0');
-    //          hex.append(hexstr);
-    //      }
-    //      return hex.toString();
-    //  } catch(NoSuchAlgorithmException e) {
-    //      return null;
-    //  }
-    //}
 }

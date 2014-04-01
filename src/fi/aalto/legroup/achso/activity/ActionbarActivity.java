@@ -45,7 +45,6 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.database.LocalVideos;
 import fi.aalto.legroup.achso.state.AppState;
 import fi.aalto.legroup.achso.state.IntentDataHolder;
-import fi.aalto.legroup.achso.state.LoginState;
 import fi.aalto.legroup.achso.util.App;
 import fi.google.zxing.integration.android.IntentIntegrator;
 
@@ -124,17 +123,17 @@ public class ActionbarActivity extends FragmentActivity {
                 logoutItem.setVisible(false);
                 loadingItem.setVisible(false);
                 offlineItem.setVisible(true);
-            } else if (App.login_state.getState() == LoginState.LOGGED_IN) {
+            } else if (App.login_state.isIn()) {
                 loginItem.setVisible(false);
                 logoutItem.setVisible(true);
                 loadingItem.setVisible(false);
                 offlineItem.setVisible(false);
-            } else if (App.login_state.getState() == LoginState.LOGGED_OUT) {
+            } else if (App.login_state.isOut()) {
                 loginItem.setVisible(true);
                 logoutItem.setVisible(false);
                 loadingItem.setVisible(false);
                 offlineItem.setVisible(false);
-            } else if (App.login_state.getState() == LoginState.TRYING_TO_LOG_IN) {
+            } else if (App.login_state.isTrying()) {
                 loginItem.setVisible(false);
                 logoutItem.setVisible(false);
                 loadingItem.setVisible(true);

@@ -67,98 +67,110 @@ public class UploaderService extends IntentService {
         long id = intent.getLongExtra(PARAM_IN, -1);
 
         Log.i("UploaderService", "Received intent to upload");
-        final LocalBroadcastManager broadcast_manager = LocalBroadcastManager.getInstance(this);
-        final Context context = this;
-        String server_url = "http://merian.informatik.rwth-aachen.de:5080/ClViTra/FileUploadServlet";
 
         if (id != -1) {
             SemanticVideo sem_video = VideoDBHelper.getById(id);
-            Intent startIntent = new Intent();
-            startIntent.setAction(MainMenuActivity.UploaderBroadcastReceiver.UPLOAD_START_ACTION);
-            startIntent.addCategory(Intent.CATEGORY_DEFAULT);
-            startIntent.putExtra(PARAM_OUT, sem_video.getId());
-            startIntent.putExtra(PARAM_WHAT, UPLOAD_START);
-            broadcast_manager.sendBroadcast(startIntent);
-            //give an unique name to the video and xml files stored on server 
-            String filename = new String(UUID.randomUUID() + "");
-            sem_video.setUploading(true);
-            sem_video.setUploaded(false);
-            sem_video.setUploadPending(false);
-            HttpClient httpclient = new DefaultHttpClient();
-            //added source and file id to the http post
-            HttpPost httppost = new HttpPost(server_url + "?source=achso&uid=" + filename);
-            LasConnection las = LasConnection.getConnection();
-            String username = las.getClient().getUser();
-            String pass = new String(Base64.encode(las.getPass().getBytes(), 0));
-            appendLog(String.format("Uploading video %d to %s as file %s", id, server_url, filename));
-            //String pass = las.getSessionId();
-            String userData = username + ":" + pass;
+            uploadToClViTra(sem_video);
+        }
+    }
 
-            sem_video.setCreator(userData);
+    private void uploadToClViTra2Service(SemanticVideo sem_video) {
+        // This is new uploader using the i5Cloud services
 
-            MultipartEntityBuilder multipartEntity = MultipartEntityBuilder.create();
-            multipartEntity.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-            multipartEntity.addPart(userData, new FileBody(new File(sem_video.getUri().getPath())));
-            //multipartEntity.addTextBody("source", "achso");
-            multipartEntity.addBinaryBody("xml", XmlConverter.toXML(context, sem_video));
 
-            PollableHttpEntity pollable_entity = new PollableHttpEntity(multipartEntity.build(), new PollableHttpEntity.ProgressListener() {
-                @Override
-                public void transferred(long bytes, SemanticVideo sem_video) {
-                    Intent progressIntent = new Intent();
-                    progressIntent.setAction(MainMenuActivity.UploaderBroadcastReceiver.UPLOAD_PROGRESS_ACTION);
-                    progressIntent.addCategory(Intent.CATEGORY_DEFAULT);
-                    progressIntent.putExtra(PARAM_OUT, sem_video.getId());
-                    progressIntent.putExtra(PARAM_WHAT, UPLOAD_PROGRESS);
-                    int percentage = (int) (((double) bytes / mFileSize) * 100.0);
-                    progressIntent.putExtra(PARAM_ARG, percentage);
-                    broadcast_manager.sendBroadcast(progressIntent);
+    }
 
-                    if (percentage == 100) {
-                        Intent endIntent = new Intent();
-                        endIntent.setAction(MainMenuActivity.UploaderBroadcastReceiver.UPLOAD_END_ACTION);
-                        endIntent.addCategory(Intent.CATEGORY_DEFAULT);
-                        endIntent.putExtra(PARAM_OUT, sem_video.getId());
-                        endIntent.putExtra(PARAM_WHAT, UPLOAD_END);
-                        broadcast_manager.sendBroadcast(endIntent);
-                    }
+    private void uploadToClViTra(SemanticVideo sem_video) {
+        final LocalBroadcastManager broadcast_manager = LocalBroadcastManager.getInstance(this);
+        final Context context = this;
+
+        String server_url = "http://merian.informatik.rwth-aachen.de:5080/ClViTra/FileUploadServlet";
+        Intent startIntent = new Intent();
+        startIntent.setAction(MainMenuActivity.UploaderBroadcastReceiver.UPLOAD_START_ACTION);
+        startIntent.addCategory(Intent.CATEGORY_DEFAULT);
+        startIntent.putExtra(PARAM_OUT, sem_video.getId());
+        startIntent.putExtra(PARAM_WHAT, UPLOAD_START);
+        broadcast_manager.sendBroadcast(startIntent);
+        //give an unique name to the video and xml files stored on server
+        String filename = new String(UUID.randomUUID() + "");
+        sem_video.setUploading(true);
+        sem_video.setUploaded(false);
+        sem_video.setUploadPending(false);
+        HttpClient httpclient = new DefaultHttpClient();
+        //added source and file id to the http post
+        HttpPost httppost = new HttpPost(server_url + "?source=achso&uid=" + filename);
+        LasConnection las = LasConnection.getConnection();
+        String username = las.getClient().getUser();
+        String pass = new String(Base64.encode(las.getPass().getBytes(), 0));
+        appendLog(String.format("Uploading video %d to %s as file %s", sem_video.getId(), server_url, filename));
+        //String pass = las.getSessionId();
+        String userData = username + ":" + pass;
+
+        sem_video.setCreator(userData);
+
+        MultipartEntityBuilder multipartEntity = MultipartEntityBuilder.create();
+        multipartEntity.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+        multipartEntity.addPart(userData, new FileBody(new File(sem_video.getUri().getPath())));
+        //multipartEntity.addTextBody("source", "achso");
+        multipartEntity.addBinaryBody("xml", XmlConverter.toXML(context, sem_video));
+
+        PollableHttpEntity pollable_entity = new PollableHttpEntity(multipartEntity.build(), new PollableHttpEntity.ProgressListener() {
+            @Override
+            public void transferred(long bytes, SemanticVideo sem_video) {
+                Intent progressIntent = new Intent();
+                progressIntent.setAction(MainMenuActivity.UploaderBroadcastReceiver.UPLOAD_PROGRESS_ACTION);
+                progressIntent.addCategory(Intent.CATEGORY_DEFAULT);
+                progressIntent.putExtra(PARAM_OUT, sem_video.getId());
+                progressIntent.putExtra(PARAM_WHAT, UPLOAD_PROGRESS);
+                int percentage = (int) (((double) bytes / mFileSize) * 100.0);
+                progressIntent.putExtra(PARAM_ARG, percentage);
+                broadcast_manager.sendBroadcast(progressIntent);
+
+                if (percentage == 100) {
+                    Intent endIntent = new Intent();
+                    endIntent.setAction(MainMenuActivity.UploaderBroadcastReceiver.UPLOAD_END_ACTION);
+                    endIntent.addCategory(Intent.CATEGORY_DEFAULT);
+                    endIntent.putExtra(PARAM_OUT, sem_video.getId());
+                    endIntent.putExtra(PARAM_WHAT, UPLOAD_END);
+                    broadcast_manager.sendBroadcast(endIntent);
                 }
-            }, sem_video);
-            httppost.setEntity(pollable_entity);
-            mFileSize = pollable_entity.getContentLength();
-            boolean success = false;
-            String errmsg = null;
-            try {
-                Log.i("UploaderService", "sending POST to " + server_url);
-                HttpResponse response = httpclient.execute(httppost);
-                Log.i("UploaderService", "response:" + response.getStatusLine().toString());
-                appendLog("response:" + response.getStatusLine().toString());
-                success = true;
-            } catch (ClientProtocolException e) {
-                errmsg = "Sorry, error in transfer.";
-                Log.i("UploaderService", "ClientProtocolException caught");
-                appendLog("ClientProtocolException caught");
-            } catch (IOException e) {
-                errmsg = "Sorry, couldn't connect to server.";
-                Log.i("UploaderService", "IOException caught:" + e.getMessage());
-                appendLog("IOException caught:" + e.getMessage());
-            } catch (IllegalStateException e) {
-                errmsg = "Bad or missing server name.";
-                Log.i("UploaderService", "IllegalStateException caught:" + e.getMessage());
-                appendLog("IllegalStateException caught:" + e.getMessage());
-                e.printStackTrace();
             }
+        }, sem_video);
+        httppost.setEntity(pollable_entity);
+        mFileSize = pollable_entity.getContentLength();
+        boolean success = false;
+        String errmsg = null;
+        try {
+            Log.i("UploaderService", "sending POST to " + server_url);
+            HttpResponse response = httpclient.execute(httppost);
+            Log.i("UploaderService", "response:" + response.getStatusLine().toString());
+            appendLog("response:" + response.getStatusLine().toString());
+            success = true;
+        } catch (ClientProtocolException e) {
+            errmsg = "Sorry, error in transfer.";
+            Log.i("UploaderService", "ClientProtocolException caught");
+            appendLog("ClientProtocolException caught");
+        } catch (IOException e) {
+            errmsg = "Sorry, couldn't connect to server.";
+            Log.i("UploaderService", "IOException caught:" + e.getMessage());
+            appendLog("IOException caught:" + e.getMessage());
+        } catch (IllegalStateException e) {
+            errmsg = "Bad or missing server name.";
+            Log.i("UploaderService", "IllegalStateException caught:" + e.getMessage());
+            appendLog("IllegalStateException caught:" + e.getMessage());
+            e.printStackTrace();
+        }
 
-            if (!success) {
-                Intent endIntent = new Intent();
-                endIntent.setAction(MainMenuActivity.UploaderBroadcastReceiver.UPLOAD_ERROR_ACTION);
-                endIntent.addCategory(Intent.CATEGORY_DEFAULT);
-                endIntent.putExtra(PARAM_OUT, sem_video.getId());
-                endIntent.putExtra(PARAM_WHAT, UPLOAD_ERROR);
-                endIntent.putExtra(PARAM_ARG, errmsg);
-                broadcast_manager.sendBroadcast(endIntent);
-            }
+        if (!success) {
+            Intent endIntent = new Intent();
+            endIntent.setAction(MainMenuActivity.UploaderBroadcastReceiver.UPLOAD_ERROR_ACTION);
+            endIntent.addCategory(Intent.CATEGORY_DEFAULT);
+            endIntent.putExtra(PARAM_OUT, sem_video.getId());
+            endIntent.putExtra(PARAM_WHAT, UPLOAD_ERROR);
+            endIntent.putExtra(PARAM_ARG, errmsg);
+            broadcast_manager.sendBroadcast(endIntent);
         }
     }
 }
+
 

@@ -13,12 +13,12 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import fi.aalto.legroup.achso.state.LoginState;
+import fi.aalto.legroup.achso.state.i5LoginState;
 
 public class App extends Application {
 
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    public static LoginState login_state;
+    public static i5LoginState login_state;
     private static Context mContext;
     private static File mLogFile;
 
@@ -59,7 +59,7 @@ public class App extends Application {
             }
         }
 
-        login_state = new LoginState(mContext);
+        login_state = new i5LoginState(mContext);
         appendLog("Starting Ach so! -app on device " + android.os.Build.MODEL);
         Log.i("App", "Starting Ach so! -app on device " + android.os.Build.MODEL);
 
