@@ -17,7 +17,9 @@
 package fi.aalto.legroup.achso.state;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
@@ -40,13 +42,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.activity.ActionbarActivity;
 import fi.aalto.legroup.achso.util.App;
 import fi.aalto.legroup.achso.util.LasConnection;
 
 import static fi.aalto.legroup.achso.util.App.appendLog;
+import static fi.aalto.legroup.achso.util.App.getContext;
 
 public class i5LoginState {
+    public static String LOGIN_SUCCESS = "fi.aalto.legroup.achso.login_success";
+    public static String LOGIN_FAILED = "fi.aalto.legroup.achso.login_failed";
     public static final int LOGGED_OUT = 0;
     private int mIn = LOGGED_OUT;
     public static final int TRYING_TO_LOG_IN = 1;
@@ -90,24 +96,6 @@ public class i5LoginState {
 
     // Internal stuff, mostly:
 
-    public int getLoginStatus() {
-        return mIn;
-    }
-
-
-    private void asynchronousLogin(String user, String pass) {
-        setState(LOGGED_OUT);
-        mUser = user;
-        if (user.isEmpty() || pass.isEmpty()) {
-            return;
-        } else {
-            AsyncTask<String, Void, String> task = new LoginTask();
-            setState(TRYING_TO_LOG_IN);
-            task.execute(user, pass);
-            // LoginTask will set login state variables if it succeeds.
-        }
-    }
-
     public void setHostActivity(Activity host) {
         mHost = host;
     }
@@ -117,49 +105,81 @@ public class i5LoginState {
             if (mIn == LOGGED_OUT && App.hasConnection()) {
                 SharedPreferences prefs = ctx.getSharedPreferences("AchSoPrefs", 0);
                 boolean allowed = prefs.getBoolean("autologin", false);
-                String login = prefs.getString("login", "");
-                String pwd = prefs.getString("pwd", "");
+                String user = prefs.getString("login", "");
+                String pass = prefs.getString("pwd", "");
                 appendLog(String.format("Doing autologin as %s", mUser));
 
-                if (allowed && !login.isEmpty() && !pwd.isEmpty()) {
-                    asynchronousLogin(login, pwd);
+                if (allowed && !user.isEmpty() && !pass.isEmpty()) {
+                    new LoginTask() {
+                        // this is run in main thread: it has access to UI
+                        @Override public void onPostExecute(String[] result_array) {
+                            handle_login_result(result_array, true);
+                        }
+                    }.execute(user, pass);
                     Log.i("LoginState", "autologin launched async login.");
                 }
 
             }
         }
     }
-
-    public boolean login(String user, String pass) {
-        setState(LOGGED_OUT);
-        appendLog(String.format("Doing manual login as %s", user));
-
-        if (user != null && pass != null) {
-            setState(TRYING_TO_LOG_IN);
-            AsyncTask<String, Void, String> task_result = new LoginTask().execute(user, pass);
-            // LoginTask will set login state variables if it succeeds.
+    private boolean handle_login_result(String[] result_array, boolean silent) {
+        // result_array: { result, status, user, password }
+        if (result_array[1].equals("200")) {
             try {
-                if (task_result.get() != null) {
+                JSONObject json_data = new JSONObject(result_array[0]);
+                mPublicUrl = json_data.getString("swift-url");
+                mAuthToken = json_data.getString("X-Auth-Token");
+                mExpires = json_data.getString("expires");
+                mTenantId = json_data.getString("tenant-id");
+                setState(LOGGED_IN);
+                if (!silent) {
+                    Toast.makeText(ctx, "Logged in as " + mUser, Toast.LENGTH_SHORT).show();
                     SharedPreferences prefs = ctx.getSharedPreferences("AchSoPrefs", 0);
                     if (prefs.getBoolean("autologin", false)) {
                         Editor edit = prefs.edit();
-                        edit.putString("login", user);
-                        edit.putString("pwd", pass);
+                        edit.putString("login", result_array[2]);
+                        edit.putString("pwd", result_array[3]);
                         edit.apply();
                     }
-                    return true;
                 }
-            } catch (InterruptedException e) {
-                Log.e("LoginState", "Login failed, catched InterruptedException");
-                e.printStackTrace();
+                return true;
+
+            } catch (JSONException e) {
+                if (!silent) {
+                    Toast.makeText(ctx, "Received broken response from server.", Toast.LENGTH_LONG).show();
+                }
                 setState(LOGGED_OUT);
-            } catch (ExecutionException e) {
-                Log.e("LoginState", "Login failed, catched ExecutionException");
                 e.printStackTrace();
-                setState(LOGGED_OUT);
+                return false;
             }
         }
+        if (!silent) {
+            Toast.makeText(ctx, "Received status code " + result_array[1] + " in response: " + result_array[0], Toast.LENGTH_LONG).show();
+            /**
+             new AlertDialog.Builder(ctx)
+             .setTitle(ctx.getResources().getString(R.string.login))
+             .setMessage(ctx.getResources().getString(R.string.login_nag_text))
+             .setPositiveButton(R.string.ok, null)
+             .create().show();
+             */
+        }
+        setState(LOGGED_OUT);
         return false;
+    }
+
+    public void login(String user, String pass) {
+        setState(LOGGED_OUT);
+        appendLog(String.format("Doing login as %s", user));
+
+        if (user != null && pass != null) {
+            setState(TRYING_TO_LOG_IN);
+            new LoginTask() {
+                // this is run in main thread: it has access to UI
+                @Override public void onPostExecute(String[] result_array) {
+                    handle_login_result(result_array, false);
+                }
+            }.execute(user, pass);
+        }
     }
 
     public String getUser() {
@@ -174,9 +194,17 @@ public class i5LoginState {
         if (state == LOGGED_OUT) {
             mUser = null;
         } else if (state == LOGGED_IN && state != mIn) {
-            Toast.makeText(ctx, "Logged in as " + mUser, Toast.LENGTH_SHORT).show();
             disable_autologin_for_session = true;
         }
+        Intent intent = new Intent();
+        if (state == LOGGED_OUT) {
+            intent.setAction(LOGIN_FAILED);
+            ctx.sendBroadcast(intent);
+        } else if (state == LOGGED_IN) {
+            intent.setAction(LOGIN_SUCCESS);
+            ctx.sendBroadcast(intent);
+        }
+
         mIn = state;
         Log.i("LoginState", "state set to " + state + ". Should update the icon next. ");
         ((ActionbarActivity) mHost).updateLoginMenuItem();
@@ -188,10 +216,13 @@ public class i5LoginState {
         setState(LOGGED_OUT);
     }
 
-    private class LoginTask extends AsyncTask<String, Void, String> {
+    private class LoginTask extends AsyncTask<String, Void, String[]> {
 
         @Override
-        protected String doInBackground(String... arg) {
+        protected String[] doInBackground(String... arg) {
+            // this is run in its own thread: cannot access to UI,
+            // deliver response and let onPostExecute handle it in main thread
+
             if (arg.length < 2) {
                 return null;
             }
@@ -209,6 +240,7 @@ public class i5LoginState {
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
+            String[] result_array = {"","0", arg[0], arg[1]};
             post.setHeader("Content-type", "application/json");
             try {
                 HttpResponse response = httpclient.execute(post);
@@ -217,29 +249,21 @@ public class i5LoginState {
                 if (status == 200) {
                     HttpEntity e = response.getEntity();
                     String data = EntityUtils.toString(e);
-                    Log.i("LoginTask", "Received logging in response: " + data);
-                    JSONObject json_data = new JSONObject(data);
-                    mPublicUrl = json_data.getString("swift-url");
-                    mAuthToken = json_data.getString("X-Auth-Token");
-                    mExpires = json_data.getString("expires");
-                    mTenantId = json_data.getString("tenant-id");
                     mUser = arg[0];
-                    setState(LOGGED_IN);
-                    return data;
+                    Log.i("LoginTask", "Received logging in response: " + data);
+                    //setState(LOGGED_IN);
+                    result_array[0] = data;
+                    result_array[1] = "200";
                 } else {
                     Log.i("LoginTask", "Received status code " + status + " in response: " + response.getStatusLine().getReasonPhrase());
-                    //Toast.makeText(ctx, "Received status code " + status + " in response: " + response.getStatusLine().getReasonPhrase(), Toast.LENGTH_LONG).show();
-                    setState(LOGGED_OUT);
-                    return null;
+                    result_array[0] = "Error";
+                    result_array[1] = String.valueOf(status);
                 }
             } catch (IOException e) {
-                setState(LOGGED_OUT);
                 e.printStackTrace();
-            } catch (JSONException e) {
-                setState(LOGGED_OUT);
-                e.printStackTrace();
+                result_array[0] = "IOException";
             }
-            return null;
+            return result_array;
         }
     }
 }

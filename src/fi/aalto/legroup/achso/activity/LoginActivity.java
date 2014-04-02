@@ -16,11 +16,16 @@
 
 package fi.aalto.legroup.achso.activity;
 
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -29,8 +34,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import fi.aalto.legroup.achso.R;
+import fi.aalto.legroup.achso.state.i5LoginState;
 import fi.aalto.legroup.achso.util.App;
 
 public class LoginActivity extends ActionbarActivity {
@@ -38,9 +45,10 @@ public class LoginActivity extends ActionbarActivity {
     private final Context ctx = this;
     private EditText mUserName;
     private EditText mPassword;
-    private Button mLoginButton;
-    private CheckBox mAutoLoginCheckBox;
-    private View.OnClickListener mLoginButtonClickListener = new View.OnClickListener() {
+    private BroadcastReceiver mReceiver = null;
+    private IntentFilter mFilter = null;
+    private
+    View.OnClickListener mLoginButtonClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             CharSequence username_cs = mUserName.getText();
@@ -54,18 +62,10 @@ public class LoginActivity extends ActionbarActivity {
                 password = password_cs.toString();
             }
 
-            if (App.login_state.login(username, password)) {
-                setResult(RESULT_OK);
-                finish();
-            } else {
-                new AlertDialog.Builder(ctx)
-                        .setTitle(ctx.getResources().getString(R.string.login))
-                        .setMessage(ctx.getResources().getString(R.string.login_nag_text))
-                        .setPositiveButton(R.string.ok, null)
-                        .create().show();
-            }
+            App.login_state.login(username, password);
         }
     };
+
     private View.OnClickListener mAutoLoginCheckBoxListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -109,6 +109,11 @@ public class LoginActivity extends ActionbarActivity {
         }
     }
 
+    private void close_this(String intentdata) {
+        Toast.makeText(ctx, "received" + intentdata, Toast.LENGTH_LONG).show();
+        setResult(RESULT_OK);
+        finish();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,6 +123,20 @@ public class LoginActivity extends ActionbarActivity {
         SharedPreferences prefs = ctx.getSharedPreferences("AchSoPrefs", 0);
         boolean autologin = prefs.getBoolean("autologin", false);
 
+        if (mFilter == null && mReceiver == null) {
+            mFilter = new IntentFilter();
+            mFilter.addAction(i5LoginState.LOGIN_SUCCESS);
+            mFilter.addAction(i5LoginState.LOGIN_FAILED);
+            mReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    close_this(intent.getAction());
+                }
+            };
+        };
+        this.registerReceiver(mReceiver, mFilter);
+        //LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, mFilter);
+
         mUserName = (EditText) findViewById(R.id.username_field);
         mPassword = (EditText) findViewById(R.id.password_field);
 
@@ -125,13 +144,25 @@ public class LoginActivity extends ActionbarActivity {
             mUserName.setText(prefs.getString("login", ""));
             mPassword.setText(prefs.getString("pwd", ""));
         }
-        mLoginButton = (Button) findViewById(R.id.login_button);
-        mLoginButton.setOnClickListener(mLoginButtonClickListener);
+        Button loginButton = (Button) findViewById(R.id.login_button);
+        loginButton.setOnClickListener(mLoginButtonClickListener);
 
-        mAutoLoginCheckBox = (CheckBox) findViewById(R.id.autologin_checkbox);
-        mAutoLoginCheckBox.setOnClickListener(mAutoLoginCheckBoxListener);
-        mAutoLoginCheckBox.setChecked(autologin);
+        CheckBox autoLoginCheckBox = (CheckBox) findViewById(R.id.autologin_checkbox);
+        autoLoginCheckBox.setOnClickListener(mAutoLoginCheckBoxListener);
+        autoLoginCheckBox.setChecked(autologin);
 
+    }
+
+    @Override
+    protected void onResume() {
+        this.registerReceiver(mReceiver, mFilter);
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        this.unregisterReceiver(mReceiver);
+        super.onPause();
     }
 
     @Override
