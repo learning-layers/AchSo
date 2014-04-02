@@ -40,6 +40,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.database.LocalVideos;
@@ -315,6 +317,13 @@ public class ActionbarActivity extends FragmentActivity {
     public void launchQrReading() {
         IntentIntegrator integrator = new IntentIntegrator(this);
         IntentDataHolder.From = ActionbarActivity.class;
+        // propose the free version first, by default IntentIntegrator would propose paid one
+        List<String> target_applications = Arrays.asList(
+                "com.google.zxing.client.android",  // Barcode Scanner
+                "com.srowen.bs.android.simple", // Barcode Scanner+ Simple
+                "com.srowen.bs.android"             // Barcode Scanner+
+                );
+        integrator.setTargetApplications(target_applications);
         integrator.initiateScan(IntentIntegrator.ALL_CODE_TYPES);
         appendLog("Launched Qr Reading.");
     }
