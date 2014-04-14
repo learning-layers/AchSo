@@ -44,7 +44,7 @@ import java.util.HashMap;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.activity.LoginActivity;
-import fi.aalto.legroup.achso.activity.MainMenuActivity;
+import fi.aalto.legroup.achso.activity.VideoBrowserActivity;
 import fi.aalto.legroup.achso.adapter.ImageAdapter;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
@@ -148,7 +148,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
                 }
                 return true;
             case R.id.action_qr_to_video:
-                ((MainMenuActivity) getActivity()).setSelectedVideosForQrCode(mSelectedVideos);
+                ((VideoBrowserActivity) getActivity()).setSelectedVideosForQrCode(mSelectedVideos);
                 IntentIntegrator integrator = new IntentIntegrator(getActivity());
                 IntentDataHolder.From = SemanticVideoPlayerFragment.class;
                 integrator.initiateScan(IntentIntegrator.ALL_CODE_TYPES);

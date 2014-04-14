@@ -53,8 +53,9 @@ import fi.google.zxing.integration.android.IntentIntegrator;
 import static fi.aalto.legroup.achso.util.App.appendLog;
 
 /**
- * This activity is used to present the same actionbar buttons for every activity
- * Extend this class instead of FragmentActivity to inherit the same actionbar for your activity
+ * This activity is used to present the same actionbar buttons for every activity.
+ * Extend this class instead of FragmentActivity to inherit the same actionbar for your activity.
+ * This is never used by itself and so it doesn't have onCreate or intent filters defined.
  */
 
 public class ActionbarActivity extends FragmentActivity {
@@ -112,12 +113,16 @@ public class ActionbarActivity extends FragmentActivity {
     }
 
     public void updateLoginMenuItem() {
+        if (mMenu == null) {
+            //Log.i("ActionBarActivity", "Skipping icon update -- menu is null.");
+            return;
+        }
         MenuItem loginItem = mMenu.findItem(R.id.action_login);
         MenuItem logoutItem = mMenu.findItem(R.id.action_logout);
         MenuItem loadingItem = mMenu.findItem(R.id.menu_refresh);
         MenuItem offlineItem = mMenu.findItem(R.id.action_offline);
 
-        if (mMenu == null || loginItem == null || logoutItem == null || loadingItem == null || offlineItem == null) {
+        if (loginItem == null || logoutItem == null || loadingItem == null || offlineItem == null) {
             Log.i("ActionBarActivity", "Skipping icon update -- they are not present. ");
         } else {
             if (!App.hasConnection()) {

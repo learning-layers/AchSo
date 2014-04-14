@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import fi.aalto.legroup.achso.R;
-import fi.aalto.legroup.achso.activity.MainMenuActivity;
+import fi.aalto.legroup.achso.activity.VideoBrowserActivity;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 
 public class ImageAdapter extends ArrayAdapter<SemanticVideo> {
@@ -62,7 +62,7 @@ public class ImageAdapter extends ArrayAdapter<SemanticVideo> {
         ViewHolder vh;
         LayoutInflater i = (LayoutInflater) mContext
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        boolean isTablet = MainMenuActivity.isTablet(getContext());
+        boolean isTablet = VideoBrowserActivity.isTablet(getContext());
         boolean isSeparator = getItemViewType(position) == ITEM_TYPE_SEPARATOR;
         Resources res = getContext().getResources();
         if (isSeparator) {

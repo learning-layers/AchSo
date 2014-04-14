@@ -22,7 +22,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
-import fi.aalto.legroup.achso.activity.MainMenuActivity;
+import fi.aalto.legroup.achso.activity.VideoBrowserActivity;
 import fi.aalto.legroup.achso.fragment.BrowseFragment;
 import fi.aalto.legroup.achso.fragment.SearchFragment;
 
@@ -50,7 +50,7 @@ public class SearchPagerAdapter extends FragmentStatePagerAdapter {
             args.putInt("page", -1);
             args.putString("query", mQuery);
             args.putInt("query_type", (mIsTitleQuery) ? SearchFragment.TITLE_QUERY : SearchFragment.QR_QUERY);
-            args.putBoolean("usesGrid", MainMenuActivity.isTablet(mContext));
+            args.putBoolean("usesGrid", VideoBrowserActivity.isTablet(mContext));
             ret.setArguments(args);
             mFragments[i] = ret;
         }

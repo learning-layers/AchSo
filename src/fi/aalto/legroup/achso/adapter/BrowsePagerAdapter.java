@@ -23,7 +23,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
 import fi.aalto.legroup.achso.R;
-import fi.aalto.legroup.achso.activity.MainMenuActivity;
+import fi.aalto.legroup.achso.activity.VideoBrowserActivity;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.fragment.BrowseFragment;
 import fi.aalto.legroup.achso.fragment.SearchFragment;
@@ -48,7 +48,7 @@ public class BrowsePagerAdapter extends FragmentStatePagerAdapter {
             args.putInt("page", i);
             args.putString("query", "");
             args.putInt("query_type", SearchFragment.TITLE_QUERY);
-            args.putBoolean("usesGrid", MainMenuActivity.isTablet(mContext));
+            args.putBoolean("usesGrid", VideoBrowserActivity.isTablet(mContext));
             ret.setArguments(args);
             mFragments[i] = ret;
         }

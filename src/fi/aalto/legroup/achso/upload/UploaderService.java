@@ -36,7 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 
-import fi.aalto.legroup.achso.activity.MainMenuActivity;
+import fi.aalto.legroup.achso.activity.VideoBrowserActivity;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.util.LasConnection;
@@ -86,7 +86,7 @@ public class UploaderService extends IntentService {
 
         String server_url = "http://merian.informatik.rwth-aachen.de:5080/ClViTra/FileUploadServlet";
         Intent startIntent = new Intent();
-        startIntent.setAction(MainMenuActivity.UploaderBroadcastReceiver.UPLOAD_START_ACTION);
+        startIntent.setAction(VideoBrowserActivity.UploaderBroadcastReceiver.UPLOAD_START_ACTION);
         startIntent.addCategory(Intent.CATEGORY_DEFAULT);
         startIntent.putExtra(PARAM_OUT, sem_video.getId());
         startIntent.putExtra(PARAM_WHAT, UPLOAD_START);
@@ -118,7 +118,7 @@ public class UploaderService extends IntentService {
             @Override
             public void transferred(long bytes, SemanticVideo sem_video) {
                 Intent progressIntent = new Intent();
-                progressIntent.setAction(MainMenuActivity.UploaderBroadcastReceiver.UPLOAD_PROGRESS_ACTION);
+                progressIntent.setAction(VideoBrowserActivity.UploaderBroadcastReceiver.UPLOAD_PROGRESS_ACTION);
                 progressIntent.addCategory(Intent.CATEGORY_DEFAULT);
                 progressIntent.putExtra(PARAM_OUT, sem_video.getId());
                 progressIntent.putExtra(PARAM_WHAT, UPLOAD_PROGRESS);
@@ -128,7 +128,7 @@ public class UploaderService extends IntentService {
 
                 if (percentage == 100) {
                     Intent endIntent = new Intent();
-                    endIntent.setAction(MainMenuActivity.UploaderBroadcastReceiver.UPLOAD_END_ACTION);
+                    endIntent.setAction(VideoBrowserActivity.UploaderBroadcastReceiver.UPLOAD_END_ACTION);
                     endIntent.addCategory(Intent.CATEGORY_DEFAULT);
                     endIntent.putExtra(PARAM_OUT, sem_video.getId());
                     endIntent.putExtra(PARAM_WHAT, UPLOAD_END);
@@ -163,7 +163,7 @@ public class UploaderService extends IntentService {
 
         if (!success) {
             Intent endIntent = new Intent();
-            endIntent.setAction(MainMenuActivity.UploaderBroadcastReceiver.UPLOAD_ERROR_ACTION);
+            endIntent.setAction(VideoBrowserActivity.UploaderBroadcastReceiver.UPLOAD_ERROR_ACTION);
             endIntent.addCategory(Intent.CATEGORY_DEFAULT);
             endIntent.putExtra(PARAM_OUT, sem_video.getId());
             endIntent.putExtra(PARAM_WHAT, UPLOAD_ERROR);

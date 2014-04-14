@@ -23,7 +23,7 @@
         android:name="fi.aalto.legroup.achso.util.App"
         >
         <activity
-            android:name=".activity.MainMenuActivity"
+            android:name=".activity.VideoBrowserActivity"
             android:label="@string/app_name"
             android:windowSoftInputMode="adjustNothing"
             android:launchMode="singleTop"
@@ -44,7 +44,7 @@
             android:theme="@style/FloatingActionBarTheme"
             android:name=".activity.VideoViewerActivity"
             android:label="@string/title_item_detail"
-            android:parentActivityName=".activity.MainMenuActivity"
+            android:parentActivityName=".activity.VideoBrowserActivity"
             android:windowSoftInputMode="stateHidden|adjustNothing"
             >
         </activity>

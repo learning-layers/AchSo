@@ -16,7 +16,11 @@
 
 package fi.aalto.legroup.achso.activity;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -25,6 +29,7 @@ import android.widget.Toast;
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.fragment.SemanticVideoPlayerFragment;
 import fi.aalto.legroup.achso.fragment.VideoViewerFragment;
+import fi.aalto.legroup.achso.state.i5LoginState;
 
 import static fi.aalto.legroup.achso.util.App.appendLog;
 
@@ -33,6 +38,8 @@ public class VideoViewerActivity extends ActionbarActivity {
     public static final int REQUEST_VIDEO_INFORMATION = 6;
     private long mVideoId;
     private int mVideoPositionInSearchCache;
+    private IntentFilter mFilter;
+    private BroadcastReceiver mReceiver;
 
 
     @Override
@@ -59,6 +66,19 @@ public class VideoViewerActivity extends ActionbarActivity {
             }
             modifyCurrentFragments(false);
         }
+        if (mFilter == null && mReceiver == null) {
+            mFilter = new IntentFilter();
+            mFilter.addAction(i5LoginState.LOGIN_SUCCESS);
+            mFilter.addAction(i5LoginState.LOGIN_FAILED);
+            mFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+            mReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    updateLoginMenuItem();
+                }
+            };
+        }
+
     }
 
     void modifyCurrentFragments(boolean replace) {
@@ -101,7 +121,7 @@ public class VideoViewerActivity extends ActionbarActivity {
         switch (item.getItemId()) {
             case android.R.id.home:
                 finish();
-                //NavUtils.navigateUpTo(this, new Intent(this, MainMenuActivity.class));
+                //NavUtils.navigateUpTo(this, new Intent(this, VideoBrowserActivity.class));
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -112,6 +132,18 @@ public class VideoViewerActivity extends ActionbarActivity {
         // not sure if something should be done to videoFragment here
         super.onDestroy();
     }
+
+    @Override
+    public  void onResume() {
+        super.onResume();
+        this.registerReceiver(mReceiver, mFilter);
+    }
+    @Override
+    public  void onPause() {
+        super.onPause();
+        this.unregisterReceiver(mReceiver);
+    }
+
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {

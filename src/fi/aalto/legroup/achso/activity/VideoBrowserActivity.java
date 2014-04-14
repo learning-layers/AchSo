@@ -27,6 +27,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -61,13 +62,14 @@ import fi.aalto.legroup.achso.fragment.BrowseFragment;
 import fi.aalto.legroup.achso.fragment.SemanticVideoPlayerFragment;
 import fi.aalto.legroup.achso.fragment.VideoViewerFragment;
 import fi.aalto.legroup.achso.state.IntentDataHolder;
+import fi.aalto.legroup.achso.state.i5LoginState;
 import fi.aalto.legroup.achso.upload.UploaderService;
 import fi.aalto.legroup.achso.util.App;
 import fi.aalto.legroup.achso.util.SearchResultCache;
 import fi.google.zxing.integration.android.IntentIntegrator;
 import fi.google.zxing.integration.android.IntentResult;
 
-public class MainMenuActivity extends ActionbarActivity implements BrowseFragment.Callbacks,
+public class VideoBrowserActivity extends ActionbarActivity implements BrowseFragment.Callbacks,
         ViewPager.OnPageChangeListener {
 
     private static int REQUEST_LOCATION_SERVICES = 3;
@@ -94,7 +96,7 @@ public class MainMenuActivity extends ActionbarActivity implements BrowseFragmen
     @Override
     @SuppressLint("NewApi")
     public boolean onCreateOptionsMenu(Menu menu) {
-        Log.i("MainMenuActivity", "Inflating options menu - MainMenuActivity");
+        Log.i("VideoBrowserActivity", "Inflating options menu - VideoBrowserActivity");
         mMenu = menu;
         App.login_state.setHostActivity(this);
         App.login_state.autologinIfAllowed();
@@ -164,15 +166,18 @@ public class MainMenuActivity extends ActionbarActivity implements BrowseFragmen
 
         setContentView(R.layout.activity_mainmenu);
 
-        if (mFilter == null && mReceiver == null) {
+        if (mFilter == null || mReceiver == null) {
             mFilter = new IntentFilter();
             mFilter.addAction(UploaderBroadcastReceiver.UPLOAD_START_ACTION);
             mFilter.addAction(UploaderBroadcastReceiver.UPLOAD_PROGRESS_ACTION);
             mFilter.addAction(UploaderBroadcastReceiver.UPLOAD_END_ACTION);
-            mFilter.addCategory(Intent.CATEGORY_DEFAULT);
+            mFilter.addAction(i5LoginState.LOGIN_SUCCESS);
+            mFilter.addAction(i5LoginState.LOGIN_FAILED);
+            mFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+            //mFilter.addCategory(Intent.CATEGORY_DEFAULT);
             mReceiver = new UploaderBroadcastReceiver();
         }
-        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, mFilter);
+
 
         if (mQuery == null) {
             mViewPager = (ViewPager) findViewById(R.id.pager);
@@ -276,9 +281,16 @@ public class MainMenuActivity extends ActionbarActivity implements BrowseFragmen
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+        this.unregisterReceiver(mReceiver);
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         invalidateOptionsMenu();
+        this.registerReceiver(mReceiver, mFilter);
         if (mQuery != null) {
             mSearchView.setQuery(mQuery, false);
             mSearchView.clearFocus();
@@ -371,7 +383,7 @@ public class MainMenuActivity extends ActionbarActivity implements BrowseFragmen
                 mViewPager.setAdapter(mPagerAdapter);
                 mViewPager.getAdapter().notifyDataSetChanged();
                 if (mViewPager.getAdapter() != mPagerAdapter) {
-                    Log.e("MainMenuActivity", "set and get adapter differ");
+                    Log.e("VideoBrowserActivity", "set and get adapter differ");
                 }
                 mQuery = null;
                 getActionBar().setDisplayHomeAsUpEnabled(false); // Disable back
@@ -397,6 +409,13 @@ public class MainMenuActivity extends ActionbarActivity implements BrowseFragmen
 
         @Override
         public void onReceive(Context context, Intent intent) {
+            if (intent.getAction() != null &&
+                    (intent.getAction().equals(i5LoginState.LOGIN_SUCCESS) ||
+                     intent.getAction().equals(i5LoginState.LOGIN_FAILED) ||
+                     intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION))) {
+                updateLoginMenuItem();
+                return;
+            }
             long id = intent.getLongExtra(UploaderService.PARAM_OUT, -1);
             if (id != -1) {
                 SemanticVideo sv = VideoDBHelper.getById(id);

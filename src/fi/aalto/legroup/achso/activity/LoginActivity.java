@@ -24,6 +24,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -90,25 +91,6 @@ public class LoginActivity extends ActionbarActivity {
         return true;
     }
 
-    @Override
-    public void updateLoginMenuItem() {
-        // Remove login/logout options from ActionBar
-        // to prevent cyclic starting of this activity
-        MenuItem loginItem = mMenu.findItem(R.id.action_login);
-        MenuItem logoutItem = mMenu.findItem(R.id.action_logout);
-        MenuItem loadingItem = mMenu.findItem(R.id.menu_refresh);
-        MenuItem offlineItem = mMenu.findItem(R.id.action_offline);
-
-        if (mMenu == null || loginItem == null || logoutItem == null || loadingItem == null || offlineItem == null) {
-            Log.i("LoginBarActivity", "Skipping icon update -- they are not present. Menu size:" + mMenu.size());
-        } else {
-            loginItem.setVisible(false);
-            logoutItem.setVisible(false);
-            loadingItem.setVisible(false);
-            offlineItem.setVisible(false);
-        }
-    }
-
     private void close_this(String intentdata) {
         Toast.makeText(ctx, "received" + intentdata, Toast.LENGTH_LONG).show();
         setResult(RESULT_OK);
@@ -127,15 +109,17 @@ public class LoginActivity extends ActionbarActivity {
             mFilter = new IntentFilter();
             mFilter.addAction(i5LoginState.LOGIN_SUCCESS);
             mFilter.addAction(i5LoginState.LOGIN_FAILED);
+            mFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
             mReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
-                    close_this(intent.getAction());
+                    updateLoginMenuItem();
+                    if (intent.getAction() != null && intent.getAction().equals(i5LoginState.LOGIN_SUCCESS)) {
+                        close_this(intent.getAction());
+                    }
                 }
             };
-        };
-        this.registerReceiver(mReceiver, mFilter);
-        //LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, mFilter);
+        }
 
         mUserName = (EditText) findViewById(R.id.username_field);
         mPassword = (EditText) findViewById(R.id.password_field);
@@ -155,14 +139,14 @@ public class LoginActivity extends ActionbarActivity {
 
     @Override
     protected void onResume() {
-        this.registerReceiver(mReceiver, mFilter);
         super.onResume();
+        this.registerReceiver(mReceiver, mFilter);
     }
 
     @Override
     protected void onPause() {
-        this.unregisterReceiver(mReceiver);
         super.onPause();
+        this.unregisterReceiver(mReceiver);
     }
 
     @Override
