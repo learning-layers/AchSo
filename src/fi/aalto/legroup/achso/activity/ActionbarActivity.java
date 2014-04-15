@@ -34,11 +34,16 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.database.LocalVideos;
+import fi.aalto.legroup.achso.database.SemanticVideo;
+import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.state.IntentDataHolder;
 import fi.aalto.legroup.achso.state.i5LoginState;
 import fi.aalto.legroup.achso.util.App;
@@ -108,10 +113,6 @@ public class ActionbarActivity extends FragmentActivity {
         mMenu = menu;
         MenuInflater mi = getMenuInflater();
         mi.inflate(R.menu.main_menubar, menu);
-        Log.i("ActionbarActivity", "show_login:" + show_login());
-        Log.i("ActionbarActivity", "show_qr:" + show_qr());
-        Log.i("ActionbarActivity", "show_search:" + show_search());
-        Log.i("ActionbarActivity", "show_record:" + show_record());
         if (show_login()) {
             updateLoginMenuItem();
         } else {
@@ -273,7 +274,25 @@ public class ActionbarActivity extends FragmentActivity {
     }
 
 
-        /**
+    protected long createSemanticVideo(Uri video_uri) {
+        VideoDBHelper vdb = new VideoDBHelper(this);
+        int count = vdb.getNumberOfVideosToday();
+        String dayname = new SimpleDateFormat("EEEE", Locale.ENGLISH).format(new Date());
+        String creator = null;
+        if (App.login_state.isIn()) {
+            creator = App.login_state.getUser();
+        }
+        String vid_name = ordinal(count + 1) + " video of " + dayname;
+        SemanticVideo newvideo = new SemanticVideo(vid_name, video_uri,
+                SemanticVideo.Genre.values()[0], creator);
+        vdb.insert(newvideo);
+        vdb.close();
+        appendLog(String.format("Created video %s to uri %s", vid_name, video_uri.toString()));
+        return newvideo.getId();
+    }
+
+
+    /**
          * Handle responses from launched activities
          *
          * @param requestCode
@@ -342,12 +361,15 @@ public class ActionbarActivity extends FragmentActivity {
                     }
 
                     // Verify that the file exists
-                    File does_it = new File(mVideoUri.getPath());
-                    Log.i("ActionBarActivity", "Saved file at " + mVideoUri.getPath() + " exists: " + does_it.exists());
+                    //File does_it = new File(mVideoUri.getPath());
+                    //Log.i("ActionBarActivity", "Saved file at " + mVideoUri.getPath() + " " +
+                    //        "exists: " + does_it.exists());
 
                     //Toast.makeText(this, "Video saved to: " + mVideoUri, Toast.LENGTH_LONG).show();
+                    long video_id = createSemanticVideo(mVideoUri);
+
                     Intent i = new Intent(this, GenreSelectionActivity.class);
-                    i.putExtra("videoUri", mVideoUri.getPath()); //mVideoUri.toString());
+                    i.putExtra("videoId", video_id);
                     startActivityForResult(i, REQUEST_SEMANTIC_VIDEO_GENRE);
                 } else if (resultCode == RESULT_CANCELED) {
                     Log.d("CANCEL", "Camera canceled");
@@ -366,6 +388,20 @@ public class ActionbarActivity extends FragmentActivity {
                 invalidateOptionsMenu();
                 Toast.makeText(this, "Login successful", Toast.LENGTH_LONG).show();
                 break;
+
+        }
+    }
+
+
+    private static String ordinal(int i) {
+        String[] suffixes = new String[]{"th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th"};
+        switch (i % 100) {
+            case 11:
+            case 12:
+            case 13:
+                return i + "th";
+            default:
+                return i + suffixes[i % 10];
 
         }
     }

@@ -188,7 +188,9 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
         mViewPager.setAdapter(mPagerAdapter);
         mViewPager.setOnPageChangeListener(this);
 
-        handleIntent(getIntent());
+        if (getIntent() != null) {
+            onNewIntent(getIntent());
+        }
 
         App.getLocation();
         //final LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
@@ -322,7 +324,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
         ProgressBar pb = (ProgressBar) v.findViewById(R.id.upload_progress);
         ImageView uploadIcon = (ImageView) v.findViewById(R.id.upload_icon);
 
-        return new Pair(pb, uploadIcon);
+        return new Pair<ProgressBar, ImageView>(pb, uploadIcon);
     }
 
     @Override
@@ -349,18 +351,34 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
 
     @Override
     protected void onNewIntent(Intent i) {
-        handleIntent(i);
+        String action = i.getAction();
+        if (action != null && action.equals(Intent.ACTION_SEARCH)) {
+            switchToSearchPage(i);
+        }
     }
 
-    private void handleIntent(Intent intent) {
-        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
-            if (!intent.getStringExtra(SearchManager.QUERY).equals(mQuery)) {
-                mQuery = intent.getStringExtra(SearchManager.QUERY);
-                SearchResultCache.clearLastSearch();
-            }
-            mPagerAdapter = new SearchPagerAdapter(this, getSupportFragmentManager(), mQuery, true);
-            mViewPager.setAdapter(mPagerAdapter);
-            mViewPager.getAdapter().notifyDataSetChanged();
+    private void switchToSearchPage(Intent intent) {
+        String query = intent.getStringExtra(SearchManager.QUERY);
+        if (query != null && !query.equals(mQuery)) {
+            mQuery = intent.getStringExtra(SearchManager.QUERY);
+            SearchResultCache.clearLastSearch();
+        }
+        mPagerAdapter = new SearchPagerAdapter(this, getSupportFragmentManager(), mQuery, true);
+        mViewPager.setAdapter(mPagerAdapter);
+        mViewPager.getAdapter().notifyDataSetChanged();
+    }
+
+    /**
+     * Remove search query or other browse -related data and return to 'front page'
+     */
+    private void cleanBrowsePage() {
+        mPagerAdapter = new BrowsePagerAdapter(getApplicationContext(), getSupportFragmentManager());
+        mViewPager.setAdapter(mPagerAdapter);
+        mViewPager.getAdapter().notifyDataSetChanged();
+        mQuery = null;
+        ActionBar ab = getActionBar();
+        if (ab != null) {
+            ab.setDisplayHomeAsUpEnabled(false); // Disable back
         }
     }
 
@@ -368,17 +386,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                mPagerAdapter = new BrowsePagerAdapter(getApplicationContext(), getSupportFragmentManager());
-                mViewPager.setAdapter(mPagerAdapter);
-                mViewPager.getAdapter().notifyDataSetChanged();
-                if (mViewPager.getAdapter() != mPagerAdapter) {
-                    Log.e("VideoBrowserActivity", "set and get adapter differ");
-                }
-                mQuery = null;
-                getActionBar().setDisplayHomeAsUpEnabled(false); // Disable back
-                // button after
-                // reverting
-                // from search
+                cleanBrowsePage();
                 return true;
         }
         return super.onOptionsItemSelected(item);
