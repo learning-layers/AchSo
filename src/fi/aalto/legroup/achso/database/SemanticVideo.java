@@ -30,7 +30,6 @@ import android.util.Pair;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.annotation.Annotation;
-import fi.aalto.legroup.achso.state.AppState;
 import fi.aalto.legroup.achso.util.App;
 import fi.aalto.legroup.achso.util.TextSettable;
 import fi.aalto.legroup.achso.util.xml.XmlConverter;
@@ -114,7 +113,7 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
 		this.mTitle = title != null ? title : "Untitled";
 		this.mGenre = genre;
 		this.mUploaded = false;
-		this.mLocation = AppState.get().last_location;
+		this.mLocation = App.last_location;
 		this.mQrCode = null;
 		this.mCreator = creator;
         this.mDuration = null;

@@ -17,12 +17,12 @@
 package fi.aalto.legroup.achso.activity;
 
 import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -33,6 +33,9 @@ import fi.aalto.legroup.achso.state.i5LoginState;
 
 import static fi.aalto.legroup.achso.util.App.appendLog;
 
+/**
+ * This is the activity that hosts the actual video viewer/editor
+ */
 public class VideoViewerActivity extends ActionbarActivity {
 
     public static final int REQUEST_VIDEO_INFORMATION = 6;
@@ -40,6 +43,10 @@ public class VideoViewerActivity extends ActionbarActivity {
     private int mVideoPositionInSearchCache;
     private IntentFilter mFilter;
     private BroadcastReceiver mReceiver;
+    protected boolean show_record() {return true;}
+    protected boolean show_login() {return false;}
+    protected boolean show_qr() {return false;}
+    protected boolean show_search() {return false;}
 
 
     @Override
@@ -71,15 +78,17 @@ public class VideoViewerActivity extends ActionbarActivity {
             mFilter.addAction(i5LoginState.LOGIN_SUCCESS);
             mFilter.addAction(i5LoginState.LOGIN_FAILED);
             mFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-            mReceiver = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    updateLoginMenuItem();
-                }
-            };
+            mReceiver = new AchSoBroadcastReceiver();
         }
 
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        initMenu(menu);
+        return true;
+    }
+
 
     void modifyCurrentFragments(boolean replace) {
         // Clear saved SemanticVideoPlayerFragment data

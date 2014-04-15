@@ -18,26 +18,20 @@ package fi.aalto.legroup.achso.activity;
 
 import android.annotation.SuppressLint;
 import android.app.ActionBar;
-import android.app.AlertDialog;
 import android.app.SearchManager;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
-import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.util.Pair;
 import android.view.ActionMode;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -59,7 +53,6 @@ import fi.aalto.legroup.achso.adapter.SearchPagerAdapter;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.fragment.BrowseFragment;
-import fi.aalto.legroup.achso.fragment.SemanticVideoPlayerFragment;
 import fi.aalto.legroup.achso.fragment.VideoViewerFragment;
 import fi.aalto.legroup.achso.state.IntentDataHolder;
 import fi.aalto.legroup.achso.state.i5LoginState;
@@ -72,7 +65,6 @@ import fi.google.zxing.integration.android.IntentResult;
 public class VideoBrowserActivity extends ActionbarActivity implements BrowseFragment.Callbacks,
         ViewPager.OnPageChangeListener {
 
-    private static int REQUEST_LOCATION_SERVICES = 3;
     private List<SemanticVideo> mSelectedVideosForQrCode;
     private UploaderBroadcastReceiver mReceiver = null;
     private IntentFilter mFilter = null;
@@ -81,6 +73,10 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
     private FragmentStatePagerAdapter mPagerAdapter;
     private ViewPager mViewPager;
     private SearchView mSearchView;
+    protected boolean show_record() {return true;}
+    protected boolean show_login() {return true;}
+    protected boolean show_qr() {return true;}
+    protected boolean show_search() {return true;}
 
     public static boolean isTablet(Context ctx) {
         return (ctx.getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_LARGE;
@@ -93,25 +89,25 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
         }
     }
 
+    /**
+     * Creates browsing top menu and does all other initialization for browsing/search views.
+     * @param menu
+     * @return
+     */
     @Override
     @SuppressLint("NewApi")
     public boolean onCreateOptionsMenu(Menu menu) {
         Log.i("VideoBrowserActivity", "Inflating options menu - VideoBrowserActivity");
-        mMenu = menu;
-        App.login_state.setHostActivity(this);
         App.login_state.autologinIfAllowed();
-        MenuInflater mi = getMenuInflater();
-        mi.inflate(R.menu.main_menubar, menu);
-        updateLoginMenuItem();
+        initMenu(menu);
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        MenuItem search_item = menu.findItem(R.id.action_search);
-        assert (search_item != null);
-        mSearchView = (SearchView) search_item.getActionView();
+        final MenuItem si = menu.findItem(R.id.action_search);
+        assert (si != null);
+        mSearchView = (SearchView) si.getActionView();
         mSearchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
         mSearchView.setIconifiedByDefault(true);
         final Context ctx = this;
         final SearchView sv = mSearchView;
-        final MenuItem si = menu.findItem(R.id.action_search);
 
         mSearchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
@@ -124,7 +120,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
             }
         });
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH && si != null) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
             si.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
                 @Override
                 public boolean onMenuItemActionExpand(MenuItem item) {
@@ -160,6 +156,11 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
         super.onSaveInstanceState(outState);
     }
 
+    /**
+     * Main concern here is to set up filters so that the browse page can react to background
+     * processes and system events.
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -178,7 +179,6 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
             mReceiver = new UploaderBroadcastReceiver();
         }
 
-
         if (mQuery == null) {
             mViewPager = (ViewPager) findViewById(R.id.pager);
             mPagerAdapter = new BrowsePagerAdapter(this, getSupportFragmentManager());
@@ -190,6 +190,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
 
         handleIntent(getIntent());
 
+        App.getLocation();
         //final LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         //if (!(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager
         //        .isProviderEnabled(LocationManager.NETWORK_PROVIDER))) {
@@ -198,21 +199,6 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
 
     }
 
-    private AlertDialog getLocationNotEnabledDialog() {
-        return new AlertDialog.Builder(this).setTitle(R.string.location_not_enabled)
-                .setMessage(R.string.location_not_enabled_text)
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        startActivityForResult(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS),
-                                REQUEST_LOCATION_SERVICES);
-                    }
-                }).setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                }).create();
-    }
 
     @Override
     public void onItemSelected(long id) {
@@ -230,53 +216,56 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        // ActionbarActivity handles REQUEST_VIDEO_CAPTURE,
+        // REQUEST_LOGIN and REQUEST_LOCATION_SERVICES.
+        // The ones handled here affect the search results. (Note that the actual searching and
+        // browsing is not done by calling activities/ using intents,
+        // they are more about manipulating fragments here.
         super.onActivityResult(requestCode, resultCode, intent);
-        if (requestCode == REQUEST_LOCATION_SERVICES) {
-            final LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-            if (!(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager
-                    .isProviderEnabled(LocationManager.NETWORK_PROVIDER))) {
-                getLocationNotEnabledDialog().show();
-            }
-        } else if (resultCode == RESULT_OK) {
-            // Last activity was genre selection
-            if (requestCode == ActionbarActivity.REQUEST_SEMANTIC_VIDEO_GENRE) {
-                // Update the list view as we have more data
-                VideoDBHelper vdb = new VideoDBHelper(this);
-                vdb.updateVideoCache();
-                vdb.close();
-
-                if (intent == null) {
-                    Log.i("itemListActivity", "something failed: camera resulted an empty intent.");
-                } else {
-                    Toast.makeText(this, "Created SemanticVideo with id: " + intent.getLongExtra("video_id", -1),
-                            Toast.LENGTH_LONG).show();
-                }
-            } else if (requestCode == ActionbarActivity.REQUEST_LOGIN) {
-                invalidateOptionsMenu();
-                Toast.makeText(this, "Login successful", Toast.LENGTH_LONG).show();
-            } else {
-                IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
-                if (scanResult != null) {
-                    if (requestCode != ActionbarActivity.REQUEST_VIDEO_CAPTURE
-                            && IntentDataHolder.From == ActionbarActivity.class) {
-                        if (!scanResult.getContents().equals(mQuery)) {
-                            mQuery = scanResult.getContents();
-                            SearchResultCache.clearLastSearch();
+            switch (requestCode) {
+                // Last activity was genre selection
+                case REQUEST_SEMANTIC_VIDEO_GENRE:
+                    if (resultCode == RESULT_OK) {
+                        // Update the list view as we have more data
+                        VideoDBHelper vdb = new VideoDBHelper(this);
+                        vdb.updateVideoCache();
+                        vdb.close();
+                        if (intent == null) {
+                            Log.i("itemListActivity", "something failed: camera resulted an empty intent.");
+                        } else {
+                            Toast.makeText(this, "Created SemanticVideo with id: " + intent.getLongExtra("video_id", -1), Toast.LENGTH_LONG).show();
                         }
-                        // last argument in next line is 'isItTitleQuery'. false means qr-query.
-                        mPagerAdapter = new SearchPagerAdapter(this, getSupportFragmentManager(), mQuery, false);
-                        mViewPager.setAdapter(mPagerAdapter);
-                        mPagerAdapter.notifyDataSetChanged();
-                        ActionBar bar = getActionBar();
-                        if (bar != null) {
-                            bar.setDisplayHomeAsUpEnabled(true); // Enable back button
-                        }
-                    } else if (scanResult.getContents() != null
-                            && IntentDataHolder.From == SemanticVideoPlayerFragment.class) {
-                        mQrResult = scanResult.getContents();
+                    } else {
+                        // Go back to video recording if we got back from genre selection.
+                        launchRecording();
                     }
-                }
-            }
+                    break;
+                case IntentIntegrator.REQUEST_CODE:
+                    IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
+                    if (scanResult != null) {
+                        if (IntentDataHolder.From == ActionbarActivity.class) {
+                            if (!scanResult.getContents().equals(mQuery)) {
+                                mQuery = scanResult.getContents();
+                                SearchResultCache.clearLastSearch();
+                            }
+                            // switch the page to show search results
+                            // last argument in next line is 'isItTitleQuery'. false means qr-query.
+                            mPagerAdapter = new SearchPagerAdapter(this, getSupportFragmentManager(), mQuery, false);
+                            mViewPager.setAdapter(mPagerAdapter);
+                            mPagerAdapter.notifyDataSetChanged();
+                            ActionBar bar = getActionBar();
+                            if (bar != null) {
+                                bar.setDisplayHomeAsUpEnabled(true); // Enable back button
+                            }
+                        }
+                        /** not used currently, but keep the code if we need to do this
+                         *
+                         * else if (scanResult.getContents() != null
+                                && IntentDataHolder.From == SemanticVideoPlayerFragment.class) {
+                            mQrResult = scanResult.getContents();
+                        }
+                         */
+                    }
         }
     }
 
@@ -401,7 +390,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
         super.onDestroy();
     }
 
-    public class UploaderBroadcastReceiver extends BroadcastReceiver {
+    public class UploaderBroadcastReceiver extends AchSoBroadcastReceiver {
         public static final String UPLOAD_START_ACTION = "fi.aalto.legroup.achso.intent.action.UPLOAD_START";
         public static final String UPLOAD_PROGRESS_ACTION = "fi.aalto.legroup.achso.intent.action.UPLOAD_PROGRESS";
         public static final String UPLOAD_END_ACTION = "fi.aalto.legroup.achso.intent.action.UPLOAD_END";
@@ -409,54 +398,53 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction() != null &&
-                    (intent.getAction().equals(i5LoginState.LOGIN_SUCCESS) ||
-                     intent.getAction().equals(i5LoginState.LOGIN_FAILED) ||
-                     intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION))) {
-                updateLoginMenuItem();
-                return;
-            }
-            long id = intent.getLongExtra(UploaderService.PARAM_OUT, -1);
-            if (id != -1) {
-                SemanticVideo sv = VideoDBHelper.getById(id);
-                Pair<ProgressBar, ImageView> ui = getViewsForUploadUi(sv);
-                if (ui == null)
-                    return;
-                int what = intent.getIntExtra(UploaderService.PARAM_WHAT, -1);
-                switch (what) {
-                    case UploaderService.UPLOAD_START:
-                        sv.setUploaded(false);
-                        sv.setUploading(true);
-                        ui.first.setVisibility(View.VISIBLE);
-                        ui.second.setColorFilter(getResources().getColor(R.color.upload_icon_uploading));
-                        break;
-                    case UploaderService.UPLOAD_PROGRESS:
-                        int percentage = intent.getIntExtra(UploaderService.PARAM_ARG, 0);
-                        ui.first.setProgress(percentage);
-                        break;
-                    case UploaderService.UPLOAD_END:
-                        sv.setUploaded(true);
-                        sv.setUploading(false);
-                        sv.setUploadPending(false);
+            super.onReceive(context, intent);
+            String action = intent.getAction();
+            if (action != null && (action.equals(UPLOAD_START_ACTION) || action.equals(UPLOAD_START_ACTION) ||
+                action.equals(UPLOAD_START_ACTION) || action.equals(UPLOAD_START_ACTION))) {
 
-                        VideoDBHelper vdb = new VideoDBHelper(context);
-                        vdb.update(sv);
-                        vdb.close();
+                long id = intent.getLongExtra(UploaderService.PARAM_OUT, -1);
+                if (id != -1) {
+                    SemanticVideo sv = VideoDBHelper.getById(id);
+                    Pair<ProgressBar, ImageView> ui = getViewsForUploadUi(sv);
+                    if (ui == null)
+                        return;
+                    int what = intent.getIntExtra(UploaderService.PARAM_WHAT, -1);
+                    switch (what) {
+                        case UploaderService.UPLOAD_START:
+                            sv.setUploaded(false);
+                            sv.setUploading(true);
+                            ui.first.setVisibility(View.VISIBLE);
+                            ui.second.setColorFilter(getResources().getColor(R.color.upload_icon_uploading));
+                            break;
+                        case UploaderService.UPLOAD_PROGRESS:
+                            int percentage = intent.getIntExtra(UploaderService.PARAM_ARG, 0);
+                            ui.first.setProgress(percentage);
+                            break;
+                        case UploaderService.UPLOAD_END:
+                            sv.setUploaded(true);
+                            sv.setUploading(false);
+                            sv.setUploadPending(false);
 
-                        ui.first.setVisibility(View.GONE);
-                        ui.second.setVisibility(View.GONE);
+                            VideoDBHelper vdb = new VideoDBHelper(context);
+                            vdb.update(sv);
+                            vdb.close();
 
-                        Toast.makeText(getApplicationContext(), "Upload successful.", Toast.LENGTH_LONG).show();
-                        break;
-                    case UploaderService.UPLOAD_ERROR:
-                        sv.setUploaded(false);
-                        sv.setUploading(false);
-                        sv.setUploadPending(false);
-                        ui.first.setVisibility(View.GONE);
-                        ui.second.setVisibility(View.GONE);
-                        String errmsg = intent.getStringExtra(UploaderService.PARAM_ARG);
-                        Toast.makeText(getApplicationContext(), errmsg, Toast.LENGTH_LONG).show();
-                        break;
+                            ui.first.setVisibility(View.GONE);
+                            ui.second.setVisibility(View.GONE);
+
+                            Toast.makeText(getApplicationContext(), "Upload successful.", Toast.LENGTH_LONG).show();
+                            break;
+                        case UploaderService.UPLOAD_ERROR:
+                            sv.setUploaded(false);
+                            sv.setUploading(false);
+                            sv.setUploadPending(false);
+                            ui.first.setVisibility(View.GONE);
+                            ui.second.setVisibility(View.GONE);
+                            String errmsg = intent.getStringExtra(UploaderService.PARAM_ARG);
+                            Toast.makeText(getApplicationContext(), errmsg, Toast.LENGTH_LONG).show();
+                            break;
+                    }
                 }
             }
         }

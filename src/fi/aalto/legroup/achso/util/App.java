@@ -2,9 +2,14 @@ package fi.aalto.legroup.achso.util;
 
 import android.app.Application;
 import android.content.Context;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -21,6 +26,10 @@ public class App extends Application {
     public static i5LoginState login_state;
     private static Context mContext;
     private static File mLogFile;
+    public static Location last_location;
+    public String last_qr_code;
+    public Date last_qr_code_timestamp;
+
 
     public static Context getContext() {
         return mContext;
@@ -64,6 +73,43 @@ public class App extends Application {
         Log.i("App", "Starting Ach so! -app on device " + android.os.Build.MODEL);
 
     }
+
+    public static void getLocation() {
+        // NOTE: There's a small possibility that the location could not be retrieved before the
+        // video recording is finished. Is this acceptable or is there a need for a waiting dialog?
+
+        final LocationManager locationManager = (LocationManager) mContext.getSystemService(Context
+                .LOCATION_SERVICE);
+
+        // Define a listener that responds to location updates
+        LocationListener locationListener = new LocationListener() {
+            public void onLocationChanged(Location location) {
+                // Called when a new location is found by the network location provider.
+                last_location = location;
+                //Log.i("LocationListener", "Found location: " + location.toString());
+                Toast.makeText(mContext, "Found location: " + location.toString(), Toast.LENGTH_LONG).show();
+                // take location only once
+                locationManager.removeUpdates(this);
+            }
+
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+            }
+
+            public void onProviderEnabled(String provider) {
+            }
+
+            public void onProviderDisabled(String provider) {
+            }
+        };
+
+        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+        } else if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+        }
+
+    }
+
 
 }
 

@@ -16,8 +16,6 @@
 
 package fi.aalto.legroup.achso.activity;
 
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -26,10 +24,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -44,10 +39,17 @@ import fi.aalto.legroup.achso.util.App;
 public class LoginActivity extends ActionbarActivity {
 
     private final Context ctx = this;
+
     private EditText mUserName;
     private EditText mPassword;
     private BroadcastReceiver mReceiver = null;
     private IntentFilter mFilter = null;
+
+    protected boolean show_record() {return false;}
+    protected boolean show_login() {return false;}
+    protected boolean show_qr() {return false;}
+    protected boolean show_search() {return false;}
+
     private
     View.OnClickListener mLoginButtonClickListener = new View.OnClickListener() {
         @Override
@@ -80,14 +82,7 @@ public class LoginActivity extends ActionbarActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        Log.i("LoginActivity", "Inflating options menu - LoginActivity");
-        mMenu = menu;
-        App.login_state.setHostActivity(this);
-        MenuInflater mi = getMenuInflater();
-        mi.inflate(R.menu.main_menubar, menu);
-        // Remove search as it does not make sense here
-        menu.removeItem(R.id.action_search);
-        updateLoginMenuItem();
+        initMenu(menu);
         return true;
     }
 
@@ -110,15 +105,7 @@ public class LoginActivity extends ActionbarActivity {
             mFilter.addAction(i5LoginState.LOGIN_SUCCESS);
             mFilter.addAction(i5LoginState.LOGIN_FAILED);
             mFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-            mReceiver = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    updateLoginMenuItem();
-                    if (intent.getAction() != null && intent.getAction().equals(i5LoginState.LOGIN_SUCCESS)) {
-                        close_this(intent.getAction());
-                    }
-                }
-            };
+            mReceiver = new LoginBroadcastReceiver();
         }
 
         mUserName = (EditText) findViewById(R.id.username_field);
@@ -157,5 +144,15 @@ public class LoginActivity extends ActionbarActivity {
                 finish();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public class LoginBroadcastReceiver extends AchSoBroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            super.onReceive(context, intent);
+            if (intent.getAction() != null && intent.getAction().equals(i5LoginState.LOGIN_SUCCESS)) {
+                close_this(intent.getAction());
+            }
+        }
     }
 }

@@ -39,7 +39,6 @@ public class LasLoginState {
     public static final int LOGGED_IN = 2;
     private String mUser = null;
     private Context ctx;
-    private Activity mHost;
     private boolean disable_autologin_for_session = false;
 
     public LasLoginState(Context ctx) {
@@ -61,10 +60,6 @@ public class LasLoginState {
             setState(TRYING_TO_LOG_IN);
         }
 
-    }
-
-    public void setHostActivity(Activity host) {
-        mHost = host;
     }
 
     public void autologinIfAllowed() {
@@ -166,7 +161,6 @@ public class LasLoginState {
         }
         mIn = state;
         Log.i("LoginState", "state set to " + state + ". Should update the icon next. ");
-        ((ActionbarActivity) mHost).updateLoginMenuItem();
     }
 
     public boolean isIn() {

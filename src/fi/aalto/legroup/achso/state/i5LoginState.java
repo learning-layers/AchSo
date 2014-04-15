@@ -17,7 +17,6 @@
 package fi.aalto.legroup.achso.state;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -39,24 +38,19 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
-import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.activity.ActionbarActivity;
 import fi.aalto.legroup.achso.util.App;
-import fi.aalto.legroup.achso.util.LasConnection;
 
 import static fi.aalto.legroup.achso.util.App.appendLog;
-import static fi.aalto.legroup.achso.util.App.getContext;
 
 public class i5LoginState {
-    public static String LOGIN_SUCCESS = "fi.aalto.legroup.achso.login_success";
-    public static String LOGIN_FAILED = "fi.aalto.legroup.achso.login_failed";
     public static final int LOGGED_OUT = 0;
     private int mIn = LOGGED_OUT;
     public static final int TRYING_TO_LOG_IN = 1;
     public static final int LOGGED_IN = 2;
+    public static String LOGIN_SUCCESS = "fi.aalto.legroup.achso.login_success";
+    public static String LOGIN_FAILED = "fi.aalto.legroup.achso.login_failed";
     private final String loginUrl = "http://137.226.58.11:8081/i5Cloud/services/3/auth";
     private String mUser;
     private String mAuthToken;
@@ -64,14 +58,11 @@ public class i5LoginState {
     private String mExpires;
     private String mTenantId;
     private Context ctx;
-    private Activity mHost;
     private boolean disable_autologin_for_session = false;
 
     public i5LoginState(Context ctx) {
         this.ctx = ctx;
     }
-
-
 
     // auth token and swift-url are the keys that we need for api calls, these will be asked often
     public String getAuthToken() {
@@ -82,23 +73,34 @@ public class i5LoginState {
         return mPublicUrl;
     }
 
-    // it is safer to ask first if we are logged in at all
+    // it is easier to ask first if we are logged in at all
 
     public boolean isIn() {
         return (mIn == LOGGED_IN);
     }
+
     public boolean isOut() {
         return (mIn == LOGGED_OUT);
     }
+
     public boolean isTrying() {
         return (mIn == TRYING_TO_LOG_IN);
     }
 
-    // Internal stuff, mostly:
-
-    public void setHostActivity(Activity host) {
-        mHost = host;
+    public String getUser() {
+        return mUser;
     }
+
+    public int getState() {
+        return mIn;
+    }
+
+    public void logout() {
+        mUser = null;
+        setState(LOGGED_OUT);
+    }
+
+    // Internal stuff, mostly:
 
     public void autologinIfAllowed() {
         if (!disable_autologin_for_session) {
@@ -112,7 +114,8 @@ public class i5LoginState {
                 if (allowed && !user.isEmpty() && !pass.isEmpty()) {
                     new LoginTask() {
                         // this is run in main thread: it has access to UI
-                        @Override public void onPostExecute(String[] result_array) {
+                        @Override
+                        public void onPostExecute(String[] result_array) {
                             handle_login_result(result_array, true);
                         }
                     }.execute(user, pass);
@@ -122,6 +125,26 @@ public class i5LoginState {
             }
         }
     }
+
+    private void setState(int state) {
+        if (state == LOGGED_OUT) {
+            mUser = null;
+        } else if (state == LOGGED_IN && state != mIn) {
+            disable_autologin_for_session = true;
+        }
+        Intent intent = new Intent();
+        if (state == LOGGED_OUT) {
+            intent.setAction(LOGIN_FAILED);
+            ctx.sendBroadcast(intent);
+        } else if (state == LOGGED_IN) {
+            intent.setAction(LOGIN_SUCCESS);
+            ctx.sendBroadcast(intent);
+        }
+
+        mIn = state;
+        Log.i("LoginState", "state set to " + state + ". Should update the icon next. ");
+    }
+
     private boolean handle_login_result(String[] result_array, boolean silent) {
         // result_array: { result, status, user, password }
         if (result_array[1].equals("200")) {
@@ -175,46 +198,14 @@ public class i5LoginState {
             setState(TRYING_TO_LOG_IN);
             new LoginTask() {
                 // this is run in main thread: it has access to UI
-                @Override public void onPostExecute(String[] result_array) {
+                @Override
+                public void onPostExecute(String[] result_array) {
                     handle_login_result(result_array, false);
                 }
             }.execute(user, pass);
         }
     }
 
-    public String getUser() {
-        return mUser;
-    }
-
-    public int getState() {
-        return mIn;
-    }
-
-    private void setState(int state) {
-        if (state == LOGGED_OUT) {
-            mUser = null;
-        } else if (state == LOGGED_IN && state != mIn) {
-            disable_autologin_for_session = true;
-        }
-        Intent intent = new Intent();
-        if (state == LOGGED_OUT) {
-            intent.setAction(LOGIN_FAILED);
-            ctx.sendBroadcast(intent);
-        } else if (state == LOGGED_IN) {
-            intent.setAction(LOGIN_SUCCESS);
-            ctx.sendBroadcast(intent);
-        }
-
-        mIn = state;
-        Log.i("LoginState", "state set to " + state + ". Should update the icon next. ");
-        ((ActionbarActivity) mHost).updateLoginMenuItem();
-    }
-
-
-    public void logout() {
-        mUser = null;
-        setState(LOGGED_OUT);
-    }
 
     private class LoginTask extends AsyncTask<String, Void, String[]> {
 
@@ -240,7 +231,7 @@ public class i5LoginState {
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
-            String[] result_array = {"","0", arg[0], arg[1]};
+            String[] result_array = {"", "0", arg[0], arg[1]};
             post.setHeader("Content-type", "application/json");
             try {
                 HttpResponse response = httpclient.execute(post);

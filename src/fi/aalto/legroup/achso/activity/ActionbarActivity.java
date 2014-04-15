@@ -17,16 +17,14 @@
 package fi.aalto.legroup.achso.activity;
 
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.AssetFileDescriptor;
-import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
 import android.net.Uri;
-import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
@@ -36,17 +34,13 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.database.LocalVideos;
-import fi.aalto.legroup.achso.state.AppState;
 import fi.aalto.legroup.achso.state.IntentDataHolder;
+import fi.aalto.legroup.achso.state.i5LoginState;
 import fi.aalto.legroup.achso.util.App;
 import fi.google.zxing.integration.android.IntentIntegrator;
 
@@ -62,16 +56,30 @@ public class ActionbarActivity extends FragmentActivity {
 
     public static final int REQUEST_VIDEO_CAPTURE = 1;
     public static final int REQUEST_SEMANTIC_VIDEO_GENRE = 2;
+    public static final int REQUEST_LOCATION_SERVICES = 3;
     public static final int REQUEST_QR_CODE_READ = 4;
     public static final int REQUEST_QR_CODE_FOR_EXISTING_VIDEO = 5;
     public static final int REQUEST_LOGIN = 7;
-    public static final int API_VERSION= android.os.Build.VERSION.SDK_INT;
+    public static final int API_VERSION = android.os.Build.VERSION.SDK_INT;
 
     protected Menu mMenu;
     private Uri mVideoUri;
 
+    protected boolean show_record() {return true;}
+    protected boolean show_login() {return true;}
+    protected boolean show_qr() {return true;}
+    protected boolean show_search() {return true;}
+
+    /**
+     * These are the top row menu items -- all of the main activities inherit the same menu item group, though some may not be visible for all.
+     *
+     * @param item
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        /**
+         */
         switch (item.getItemId()) {
             case R.id.action_newvideo:
                 launchRecording();
@@ -91,29 +99,60 @@ public class ActionbarActivity extends FragmentActivity {
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        Log.i("ActionBarActivity", "Inflating options menu - ActionBarActivity");
+
+    /**
+     *
+     */
+
+    protected void initMenu(Menu menu) {
         mMenu = menu;
-        App.login_state.setHostActivity(this);
-        App.login_state.autologinIfAllowed();
         MenuInflater mi = getMenuInflater();
         mi.inflate(R.menu.main_menubar, menu);
-        menu.removeItem(R.id.action_search);
-        menu.removeItem(R.id.action_readqrcode);
-        return super.onCreateOptionsMenu(menu);
+        Log.i("ActionbarActivity", "show_login:" + show_login());
+        Log.i("ActionbarActivity", "show_qr:" + show_qr());
+        Log.i("ActionbarActivity", "show_search:" + show_search());
+        Log.i("ActionbarActivity", "show_record:" + show_record());
+        if (show_login()) {
+            updateLoginMenuItem();
+        } else {
+            menu.removeItem(R.id.action_login);
+            menu.removeItem(R.id.action_logout);
+            menu.removeItem(R.id.action_offline);
+            menu.removeItem(R.id.menu_refresh);
+        }
+        if (!show_qr()) {
+            menu.removeItem(R.id.action_readqrcode);
+        }
+        if (!show_search()) {
+            menu.removeItem(R.id.action_search);
+        }
+        if (!show_record()) {
+            menu.removeItem(R.id.action_newvideo);
+        }
     }
+
+    /**
+     * Each subclass has its own onCreateOptionsMenu that limits what is displayed in menu bar.
+     * Most of them have login/logout/offline -area visible and this method makes sure it is set up correctly.
+     *
+     * @param menu
+     * @return
+     */
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        Log.i("ActionBarActivity", "Preparing options menu - ActionBarActivity");
         mMenu = menu;
-        updateLoginMenuItem();
+        if (show_login()) {
+            updateLoginMenuItem();
+        }
         return super.onPrepareOptionsMenu(menu);
     }
 
-    public void updateLoginMenuItem() {
-        if (mMenu == null) {
+    /**
+     * Call this manually in resume/prepare methods to update correct mode to top right corner login buttons
+     */
+    private void updateLoginMenuItem() {
+        if (mMenu == null || !show_login()) {
             //Log.i("ActionBarActivity", "Skipping icon update -- menu is null.");
             return;
         }
@@ -149,43 +188,13 @@ public class ActionbarActivity extends FragmentActivity {
         }
     }
 
-
+    /**
+     * A new recording can be started in most activities.
+     */
     public void launchRecording() {
         File output_file = LocalVideos.getNewOutputFile();
         if (output_file != null) {
-            // NOTE: There's a small possibility that the location could not be retrieved before the
-            // video recording is finished. Is this acceptable or is there a need for a waiting dialog?
-
-            final LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-            // Define a listener that responds to location updates
-            LocationListener locationListener = new LocationListener() {
-                public void onLocationChanged(Location location) {
-                    // Called when a new location is found by the network location provider.
-                    AppState.get().last_location = location;
-                    //Log.i("LocationListener", "Found location: " + location.toString());
-                    Toast.makeText(getBaseContext(), "Found location: " + location.toString(), Toast.LENGTH_LONG).show();
-                    // take location only once
-                    locationManager.removeUpdates(this);
-                }
-
-                public void onStatusChanged(String provider, int status, Bundle extras) {
-                }
-
-                public void onProviderEnabled(String provider) {
-                }
-
-                public void onProviderDisabled(String provider) {
-                }
-            };
-
-            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-            } else if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
-            }
-
-            // Register the listener with the Location Manager to receive location updates
+            App.getLocation();
             Intent intent = new Intent(android.provider.MediaStore.ACTION_VIDEO_CAPTURE);
             SharedPreferences.Editor e = getSharedPreferences("AchSoPrefs", 0).edit();
             e.putString("videoUri", output_file.getAbsolutePath());
@@ -223,17 +232,54 @@ public class ActionbarActivity extends FragmentActivity {
             startActivityForResult(intent, REQUEST_VIDEO_CAPTURE);
 
         } else {
-            new AlertDialog.Builder(this)
-                    .setTitle(getApplicationContext().getResources().getString(R.string.storage_error))
-                    .setMessage(getApplicationContext().getResources().getString(R.string.detailed_storage_error))
-                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                        }
-                    }).create().show();
+            new AlertDialog.Builder(this).setTitle(getApplicationContext().getResources().getString(R.string.storage_error)).setMessage(getApplicationContext().getResources().getString(R.string.detailed_storage_error)).setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                }
+            }).create().show();
         }
     }
 
+    /**
+     * Qr-reading can also be started from many activities.
+     */
+    public void launchQrReading() {
+        IntentIntegrator integrator = new IntentIntegrator(this);
+        IntentDataHolder.From = ActionbarActivity.class;
+        // propose the free version first, by default IntentIntegrator would propose paid one
+        List<String> target_applications = Arrays.asList("com.google.zxing.client.android",  // Barcode Scanner
+                "com.srowen.bs.android.simple", // Barcode Scanner+ Simple
+                "com.srowen.bs.android"             // Barcode Scanner+
+        );
+        integrator.setTargetApplications(target_applications);
+        integrator.initiateScan(IntentIntegrator.ALL_CODE_TYPES);
+        appendLog("Launched Qr Reading.");
+    }
+
+    private AlertDialog getLocationNotEnabledDialog() {
+        return new AlertDialog.Builder(this).setTitle(R.string.location_not_enabled)
+                .setMessage(R.string.location_not_enabled_text)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        startActivityForResult(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS),
+                                REQUEST_LOCATION_SERVICES);
+                    }
+                }).setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                }).create();
+    }
+
+
+        /**
+         * Handle responses from launched activities
+         *
+         * @param requestCode
+         * @param resultCode
+         * @param intent
+         */
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         switch (requestCode) {
@@ -297,7 +343,7 @@ public class ActionbarActivity extends FragmentActivity {
 
                     // Verify that the file exists
                     File does_it = new File(mVideoUri.getPath());
-                    Log.i("ActionBarActivity","Saved file at "+mVideoUri.getPath()+ " exists: " + does_it.exists());
+                    Log.i("ActionBarActivity", "Saved file at " + mVideoUri.getPath() + " exists: " + does_it.exists());
 
                     //Toast.makeText(this, "Video saved to: " + mVideoUri, Toast.LENGTH_LONG).show();
                     Intent i = new Intent(this, GenreSelectionActivity.class);
@@ -309,27 +355,40 @@ public class ActionbarActivity extends FragmentActivity {
                     Log.i("ActionBarActivity", "Video capture failed.");
                 }
                 break;
-            case REQUEST_SEMANTIC_VIDEO_GENRE:
-                // Go back to video recording if we got back from genre selection.
-                if (resultCode != RESULT_OK) launchRecording();
+            case REQUEST_LOCATION_SERVICES:
+                final LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+                if (!(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager
+                        .isProviderEnabled(LocationManager.NETWORK_PROVIDER))) {
+                    getLocationNotEnabledDialog().show();
+                }
                 break;
-            default:
-                Log.i("ActionBarActivity", "unknown requestCode");
+            case REQUEST_LOGIN:
+                invalidateOptionsMenu();
+                Toast.makeText(this, "Login successful", Toast.LENGTH_LONG).show();
                 break;
+
         }
     }
 
-    public void launchQrReading() {
-        IntentIntegrator integrator = new IntentIntegrator(this);
-        IntentDataHolder.From = ActionbarActivity.class;
-        // propose the free version first, by default IntentIntegrator would propose paid one
-        List<String> target_applications = Arrays.asList(
-                "com.google.zxing.client.android",  // Barcode Scanner
-                "com.srowen.bs.android.simple", // Barcode Scanner+ Simple
-                "com.srowen.bs.android"             // Barcode Scanner+
-                );
-        integrator.setTargetApplications(target_applications);
-        integrator.initiateScan(IntentIntegrator.ALL_CODE_TYPES);
-        appendLog("Launched Qr Reading.");
+    /**
+     * Receive changes in login state, other activities may add more intents that they recognize.
+     */
+    public class AchSoBroadcastReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action != null) {
+                if (action.equals(i5LoginState.LOGIN_SUCCESS)) {
+                    updateLoginMenuItem();
+                } else if (action.equals(i5LoginState.LOGIN_FAILED)) {
+                    updateLoginMenuItem();
+                } else if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+                    updateLoginMenuItem();
+                }
+            }
+        }
     }
+
+
 }
