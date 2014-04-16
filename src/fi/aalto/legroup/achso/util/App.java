@@ -74,6 +74,10 @@ public class App extends Application {
 
     }
 
+    /**
+     * Location should be asked when starting the app and when starting recording. It can be
+     * battery-consuming operation, so don't do it too often.
+     */
     public static void getLocation() {
         // NOTE: There's a small possibility that the location could not be retrieved before the
         // video recording is finished. Is this acceptable or is there a need for a waiting dialog?
@@ -86,8 +90,9 @@ public class App extends Application {
             public void onLocationChanged(Location location) {
                 // Called when a new location is found by the network location provider.
                 last_location = location;
-                //Log.i("LocationListener", "Found location: " + location.toString());
-                Toast.makeText(mContext, "Found location: " + location.toString(), Toast.LENGTH_LONG).show();
+                Log.i("LocationListener", "Found location: " + location.toString());
+                //Toast.makeText(mContext, "Found location: " + location.toString(),
+                //        Toast.LENGTH_LONG).show();
                 // take location only once
                 locationManager.removeUpdates(this);
             }

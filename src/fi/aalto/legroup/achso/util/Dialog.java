@@ -114,12 +114,14 @@ public class Dialog {
         return ret;
     }
 
-    public static AlertDialog getGenreDialog(Context ctx, DialogInterface.OnClickListener onGenreClick) {
+    public static AlertDialog getGenreDialog(Context ctx, DialogInterface.OnClickListener
+            onGenreClick, DialogInterface.OnCancelListener onGenreCancel ) {
         Collection<String> values = SemanticVideo.genreStrings.values();
         CharSequence[] cs = values.toArray(new CharSequence[values.size()]);
         return new AlertDialog.Builder(ctx)
                 .setTitle(R.string.select_genre)
                 .setItems(cs, onGenreClick)
+                .setOnCancelListener(onGenreCancel)
                 .create();
     }
 }

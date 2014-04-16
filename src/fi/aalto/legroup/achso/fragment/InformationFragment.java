@@ -120,6 +120,12 @@ public class InformationFragment extends ListFragment {
 
                     dialog.dismiss();
                 }
+            }, new DialogInterface.OnCancelListener() {
+                @Override
+                public void onCancel(DialogInterface dialogInterface) {
+                    // default behavior is fine -- OnCancelListener is required here,
+                    // but it's abstract class and cannot be used without overriding something.
+                }
             });
         } else return null;
     }

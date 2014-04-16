@@ -22,6 +22,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 
 import fi.aalto.legroup.achso.R;
@@ -48,7 +49,22 @@ public class GenreSelectionActivity extends Activity {
             finish();
         }
     };
+    private DialogInterface.OnCancelListener mGenreCancel = new DialogInterface.OnCancelListener() {
+        @Override
+        public void onCancel(DialogInterface dialog) {
+            Intent result = new Intent();
+            setResult(RESULT_CANCELED, result);
+            finish();
+        }
+    };
 
+
+    @Override
+    public void onBackPressed() {
+        Intent result = new Intent();
+        setResult(RESULT_CANCELED, result);
+        finish();
+    }
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,7 +74,7 @@ public class GenreSelectionActivity extends Activity {
             ab.setDisplayHomeAsUpEnabled(true);
         }
         mVideoId = getIntent().getLongExtra("videoId", -1);
-        Dialog.getGenreDialog(this, mGenreClick).show();
+        Dialog.getGenreDialog(this, mGenreClick, mGenreCancel).show();
     }
 
     @Override

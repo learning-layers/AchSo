@@ -238,8 +238,8 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
                             Toast.makeText(this, "Created SemanticVideo with id: " + intent.getLongExtra("video_id", -1), Toast.LENGTH_LONG).show();
                         }
                     } else {
-                        // Go back to video recording if we got back from genre selection.
-                        launchRecording();
+                        Log.d("BACK", "Genre selection canceled");
+                        // Stay in video browser action -- do nothing?
                     }
                     break;
                 case IntentIntegrator.REQUEST_CODE:
