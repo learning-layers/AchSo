@@ -22,7 +22,6 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -35,10 +34,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.ListAdapter;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
 import android.widget.Toast;
@@ -49,7 +45,6 @@ import java.util.List;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.adapter.BrowsePagerAdapter;
-import fi.aalto.legroup.achso.adapter.SearchPagerAdapter;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.fragment.BrowseFragment;
@@ -58,7 +53,7 @@ import fi.aalto.legroup.achso.state.IntentDataHolder;
 import fi.aalto.legroup.achso.state.i5LoginState;
 import fi.aalto.legroup.achso.upload.UploaderService;
 import fi.aalto.legroup.achso.util.App;
-import fi.aalto.legroup.achso.util.SearchResultCache;
+import fi.aalto.legroup.achso.remote.RemoteResultCache;
 import fi.google.zxing.integration.android.IntentIntegrator;
 import fi.google.zxing.integration.android.IntentResult;
 
@@ -73,14 +68,16 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
     private FragmentStatePagerAdapter mPagerAdapter;
     private ViewPager mViewPager;
     private SearchView mSearchView;
+    private int mQueryType;
+
     protected boolean show_record() {return true;}
     protected boolean show_login() {return true;}
     protected boolean show_qr() {return true;}
     protected boolean show_search() {return true;}
 
-    public static boolean isTablet(Context ctx) {
-        return (ctx.getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_LARGE;
-    }
+    public static final int TITLE_QUERY = 1;
+    public static final int QR_QUERY = 2;
+
 
     public void setSelectedVideosForQrCode(HashMap<Integer, SemanticVideo> videos) {
         mSelectedVideosForQrCode = new ArrayList<SemanticVideo>();
@@ -103,6 +100,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         final MenuItem si = menu.findItem(R.id.action_search);
         assert (si != null);
+        // search view is just the search box on top of the screen
         mSearchView = (SearchView) si.getActionView();
         mSearchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
         mSearchView.setIconifiedByDefault(true);
@@ -129,8 +127,10 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
 
                 @Override
                 public boolean onMenuItemActionCollapse(MenuItem item) {
+                    Log.i("VideoBrowserActivity", "MenuItem collapsed. Doing stuff with browse " +
+                            "pager adapter");
                     mPagerAdapter = new BrowsePagerAdapter(ctx, getSupportFragmentManager());
-                    mViewPager.setAdapter(mPagerAdapter); // with pagerAdapter the set and getadapters should be same
+                    mViewPager.setAdapter(mPagerAdapter);
                     mPagerAdapter.notifyDataSetChanged();
                     mQuery = null;
                     return true;
@@ -140,6 +140,8 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
             mSearchView.setOnCloseListener(new SearchView.OnCloseListener() {
                 @Override
                 public boolean onClose() {
+                    Log.i("VideoBrowserActivity", "MenuItem closed. Doing stuff with browse " +
+                            "pager adapter");
                     mPagerAdapter = new BrowsePagerAdapter(ctx, getSupportFragmentManager());
                     mViewPager.setAdapter(mPagerAdapter);
                     mPagerAdapter.notifyDataSetChanged();
@@ -179,12 +181,9 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
             mReceiver = new UploaderBroadcastReceiver();
         }
 
-        if (mQuery == null) {
-            mViewPager = (ViewPager) findViewById(R.id.pager);
-            mPagerAdapter = new BrowsePagerAdapter(this, getSupportFragmentManager());
-        } else {
-            mPagerAdapter = new SearchPagerAdapter(this, getSupportFragmentManager(), mQuery, true);
-        }
+        mViewPager = (ViewPager) findViewById(R.id.pager);
+        mPagerAdapter = new BrowsePagerAdapter(this, getSupportFragmentManager(), mQuery,
+                mQueryType);
         mViewPager.setAdapter(mPagerAdapter);
         mViewPager.setOnPageChangeListener(this);
 
@@ -193,17 +192,11 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
         }
 
         App.getLocation();
-        //final LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        //if (!(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager
-        //        .isProviderEnabled(LocationManager.NETWORK_PROVIDER))) {
-            //getLocationNotEnabledDialog().show();
-        //}
-
     }
 
 
     @Override
-    public void onItemSelected(long id) {
+    public void onLocalItemSelected(long id) {
         Intent detailIntent = new Intent(this, VideoViewerActivity.class);
         detailIntent.putExtra(VideoViewerFragment.ARG_ITEM_ID, id);
         startActivity(detailIntent);
@@ -248,13 +241,10 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
                         if (IntentDataHolder.From == ActionbarActivity.class) {
                             if (!scanResult.getContents().equals(mQuery)) {
                                 mQuery = scanResult.getContents();
-                                SearchResultCache.clearLastSearch();
+                                mQueryType = QR_QUERY;
+                                RemoteResultCache.clearCache(mViewPager.getCurrentItem());
                             }
-                            // switch the page to show search results
                             // last argument in next line is 'isItTitleQuery'. false means qr-query.
-                            mPagerAdapter = new SearchPagerAdapter(this, getSupportFragmentManager(), mQuery, false);
-                            mViewPager.setAdapter(mPagerAdapter);
-                            mPagerAdapter.notifyDataSetChanged();
                             ActionBar bar = getActionBar();
                             if (bar != null) {
                                 bar.setDisplayHomeAsUpEnabled(true); // Enable back button
@@ -301,30 +291,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
 
     private Pair<ProgressBar, ImageView> getViewsForUploadUi(SemanticVideo sv) {
         BrowseFragment f = (BrowseFragment) mPagerAdapter.getItem(mViewPager.getCurrentItem());
-
-        if (f == null || !f.isAdded())
-            return null;
-        ListAdapter la = f.getListAdapter();
-        int listitemcount = la.getCount();
-        int pos = 0;
-        for (int i = 0; i < listitemcount; ++i) {
-            if (la.getItem(i) == sv) {
-                pos = i;
-                break;
-            }
-        }
-        View v;
-        if (isTablet(this)) {
-            v = ((GridView) f.getView().findViewById(R.id.main_menu_grid)).getChildAt(pos);
-        } else {
-            v = ((ListView) f.getView().findViewById(R.id.browse_list)).getChildAt(pos);
-        }
-        if (v == null)
-            return null;
-        ProgressBar pb = (ProgressBar) v.findViewById(R.id.upload_progress);
-        ImageView uploadIcon = (ImageView) v.findViewById(R.id.upload_icon);
-
-        return new Pair<ProgressBar, ImageView>(pb, uploadIcon);
+        return f.getUiElementsFor(sv);
     }
 
     @Override
@@ -361,19 +328,15 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
         String query = intent.getStringExtra(SearchManager.QUERY);
         if (query != null && !query.equals(mQuery)) {
             mQuery = intent.getStringExtra(SearchManager.QUERY);
-            SearchResultCache.clearLastSearch();
+            mQueryType = TITLE_QUERY;
+            RemoteResultCache.clearCache(mViewPager.getCurrentItem());
         }
-        mPagerAdapter = new SearchPagerAdapter(this, getSupportFragmentManager(), mQuery, true);
-        mViewPager.setAdapter(mPagerAdapter);
-        mViewPager.getAdapter().notifyDataSetChanged();
     }
 
     /**
      * Remove search query or other browse -related data and return to 'front page'
      */
     private void cleanBrowsePage() {
-        mPagerAdapter = new BrowsePagerAdapter(getApplicationContext(), getSupportFragmentManager());
-        mViewPager.setAdapter(mPagerAdapter);
         mViewPager.getAdapter().notifyDataSetChanged();
         mQuery = null;
         ActionBar ab = getActionBar();

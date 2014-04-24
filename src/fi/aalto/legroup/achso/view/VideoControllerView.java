@@ -867,6 +867,13 @@ public class VideoControllerView extends FrameLayout {
         return mAnnotationPauseEnabled;
     }
 
+    public void addAnnotationToPlace() {
+        if (mPlayer.isPlaying()) {
+            return;
+        }
+        enableAnnotationMode(true);
+    }
+
     private void enableAnnotationMode(boolean createNew) {
         mAnnotationModeWasEnabled = mAnnotationModeEnabled;
         mAnnotationModeEnabled = true;

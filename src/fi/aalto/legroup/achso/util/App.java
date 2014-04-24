@@ -2,6 +2,7 @@ package fi.aalto.legroup.achso.util;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -24,6 +25,7 @@ public class App extends Application {
 
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     public static i5LoginState login_state;
+    public static i5Connection connection;
     private static Context mContext;
     private static File mLogFile;
     public static Location last_location;
@@ -52,6 +54,11 @@ public class App extends Application {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+    }
+
+    public static boolean isTablet() {
+        return (mContext.getResources().getConfiguration().screenLayout & Configuration
+                .SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_LARGE;
     }
 
     @Override

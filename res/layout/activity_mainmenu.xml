@@ -5,8 +5,9 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:clickable="true"
-    android:focusable="true"
+    android:focusable="false"
     android:focusableInTouchMode="true"
+
     android:orientation="vertical" >
 
     <android.support.v4.view.PagerTitleStrip

@@ -21,9 +21,12 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
+import android.util.Pair;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -33,25 +36,33 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.GridView;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.activity.LoginActivity;
 import fi.aalto.legroup.achso.activity.VideoBrowserActivity;
-import fi.aalto.legroup.achso.adapter.ImageAdapter;
+import fi.aalto.legroup.achso.adapter.BrowsePagerAdapter;
+import fi.aalto.legroup.achso.adapter.VideoThumbAdapter;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.state.IntentDataHolder;
 import fi.aalto.legroup.achso.upload.UploaderService;
 import fi.aalto.legroup.achso.util.App;
+import fi.aalto.legroup.achso.remote.RemoteFetchTask;
+import fi.aalto.legroup.achso.remote.RemoteResultCache;
 import fi.google.zxing.integration.android.IntentIntegrator;
+
 
 public class BrowseFragment extends Fragment implements AdapterView.OnItemClickListener,
         AdapterView.OnItemLongClickListener, ActionMode.Callback, AbsListView.MultiChoiceModeListener {
@@ -59,27 +70,35 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
     protected static final String CONTAINER_STATE = "containerState";
     private static Callbacks sDummyCallbacks = new Callbacks() {
         @Override
-        public void onItemSelected(long id) {
+        public void onLocalItemSelected(long id) {
         }
 
         public void onRemoteItemSelected(int positionInCache) {
         }
     };
     Callbacks mCallbacks = sDummyCallbacks;
-    protected ProgressBar mSearchProgress;
+    protected ProgressBar mRemoteProgress;
     protected Parcelable mContainerState;
     protected String mSortBy;
-    protected GridView mGrid;
-    protected ListView mList;
+    protected GridView mVideoGrid;
+    protected ListView mVideoList;
     protected boolean mUsesGrid;
     int mPage = -1;
     String mQuery = "";
     int mQueryType = 0;
     private HashMap<Integer, SemanticVideo> mSelectedVideos;
     private ActionMode mActionMode = null;
+    private AsyncTask<String, Double, ArrayList<SemanticVideo>> mFetchTask;
+    private int mSeparatorPosition;
+    private TextView mUrl;
+    private LinearLayout mUrlArea;
+    private TextView mUrlLabel;
+    private TextView mNoConnectionMessage;
 
     public BrowseFragment() {
+
         mSortBy = VideoDBHelper.KEY_CREATED_AT;
+        mFetchTask = null;
     }
 
     @Override
@@ -110,7 +129,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
                                 }
                                 vdb.close();
                                 mSelectedVideos.clear();
-                                refresh();
+                                refreshLocalVideos();
                             }
                         }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
@@ -142,7 +161,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
                         uploadIntent.putExtra(UploaderService.PARAM_IN, sv.getId());
                         getActivity().startService(uploadIntent);
                     }
-                    refresh();
+                    refreshLocalVideos();
                     mSelectedVideos.clear();
                     mode.finish();
                 }
@@ -163,7 +182,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
     @Override
     public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
         mActionMode = mode;
-        SemanticVideo sv = (SemanticVideo) getListAdapter().getItem(position);
+        SemanticVideo sv = (SemanticVideo) getVideoAdapter().getItem(position);
         if (checked) {
             mSelectedVideos.put(position, sv);
         } else {
@@ -184,8 +203,14 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         view.setSelected(true);
-        mCallbacks.onItemSelected(VideoDBHelper.getByPosition(position).getId());
+        SemanticVideo sv = (SemanticVideo) getVideoAdapter().getItem(position);
+        if (sv.isLocal()) {
+            mCallbacks.onLocalItemSelected(sv.getId());
+        } else {
+            mCallbacks.onRemoteItemSelected(position);
+        }
     }
+
 
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
@@ -212,11 +237,13 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
         }
         if (getArguments() != null) {
             Bundle args = getArguments();
-            mPage = args.getInt("page");
+            mPage = args.getInt("page_id");
             mQuery = args.getString("query");
             mQueryType = args.getInt("query_type");
-            mUsesGrid = args.getBoolean("usesGrid");
         }
+        Log.i("BrowseFragment", "Created fragment:" + mPage + " query: " + mQuery + " " +
+                "query_type:" + mQueryType);
+        mUsesGrid = App.isTablet();
     }
 
     @Override
@@ -225,28 +252,31 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
         if (mUsesGrid) {
             view = inflater.inflate(R.layout.browse_results_grid, null);
             assert (view != null);
-            mGrid = (GridView) view.findViewById(R.id.main_menu_grid);
-            if (mGrid != null) {
-                mGrid.setOnItemClickListener(this);
-                mGrid.setOnItemLongClickListener(this);
-                mGrid.setChoiceMode(GridView.CHOICE_MODE_MULTIPLE_MODAL);
-                mGrid.setMultiChoiceModeListener(this);
+            mVideoGrid = (GridView) view.findViewById(R.id.video_grid);
+            if (mVideoGrid != null) {
+                mVideoGrid.setOnItemClickListener(this);
+                mVideoGrid.setOnItemLongClickListener(this);
+                mVideoGrid.setChoiceMode(GridView.CHOICE_MODE_MULTIPLE_MODAL);
+                mVideoGrid.setMultiChoiceModeListener(this);
             }
         } else {
             view = inflater.inflate(R.layout.browse_results_list, null);
             assert (view != null);
-            mList = (ListView) view.findViewById(R.id.browse_list);
-            if (mList != null) {
-                mList.setOnItemClickListener(this);
-                mList.setOnItemLongClickListener(this);
-                mList.setMultiChoiceModeListener(this);
+            mVideoList = (ListView) view.findViewById(R.id.local_video_list);
+            if (mVideoList != null) {
+                mVideoList.setOnItemClickListener(this);
+                mVideoList.setOnItemLongClickListener(this);
+                mVideoList.setMultiChoiceModeListener(this);
             }
         }
-        if (view != null) {
-            mSearchProgress = (ProgressBar) view.findViewById(R.id.search_progress);
-            LinearLayout urlArea = (LinearLayout) view.findViewById(R.id.url_found_area);
-            urlArea.setVisibility(LinearLayout.GONE);
-        }
+        mRemoteProgress = (ProgressBar) view.findViewById(R.id.remote_progress);
+        mRemoteProgress.setVisibility(LinearLayout.GONE);
+        mUrl = (TextView) view.findViewById(R.id.url_found);
+        mUrlArea = (LinearLayout) view.findViewById(R.id.url_found_area);
+        mUrlLabel = (TextView) view.findViewById(R.id.url_found_label);
+        mUrlArea.setVisibility(LinearLayout.GONE);
+        mNoConnectionMessage = (TextView) view.findViewById(R.id.no_connection_message);
+        mNoConnectionMessage.setVisibility(LinearLayout.GONE);
 
         return view;
     }
@@ -265,55 +295,160 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
     @Override
     public void onResume() {
         super.onResume();
-        refresh();
+        Log.i("BrowseFragment", "onResume called");
+        refreshLocalVideos();
+        refreshRemoteVideos();
         if (mContainerState != null) {
             if (mUsesGrid) {
-                mGrid.onRestoreInstanceState(mContainerState);
+                mVideoGrid.onRestoreInstanceState(mContainerState);
             } else {
-                mList.onRestoreInstanceState(mContainerState);
+                mVideoList.onRestoreInstanceState(mContainerState);
             }
         }
         mContainerState = null;
     }
 
-    public ListAdapter getListAdapter() {
-        if (mUsesGrid) {
-            return mGrid.getAdapter();
-        } else {
-            return mList.getAdapter();
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mFetchTask != null) {
+            mFetchTask.cancel(true);
+            mFetchTask = null;
         }
     }
 
-    public void refresh() {
+    public ListAdapter getVideoAdapter() {
         if (mUsesGrid) {
-            if (mGrid != null) {
-                mGrid.invalidateViews();
-                ImageAdapter adapter = new ImageAdapter(getActivity(), VideoDBHelper.getVideoCache(mPage));
-                mGrid.setAdapter(adapter);
-                ((ImageAdapter) mGrid.getAdapter()).notifyDataSetChanged();
-                adapter.notifyDataSetChanged();
-            }
+            return mVideoGrid.getAdapter();
         } else {
-            if (mList != null) {
-                mList.invalidateViews();
-                mList.setAdapter(new ImageAdapter(getActivity(), VideoDBHelper.getVideoCache(mPage)));
-                ((ArrayAdapter) mList.getAdapter()).notifyDataSetChanged();
-
-            }
+            return mVideoList.getAdapter();
         }
+    }
 
+    /**
+     * Clean adapter data and reload it -- depends on VideoDBHelper if the list is really up to
+     * date and not cached old list.
+     */
+    public void refreshLocalVideos() {
+        Log.i("BrowseFragment", "refreshLocalVideos called.");
+        VideoThumbAdapter va = (VideoThumbAdapter) getVideoAdapter();
+        if (va == null) {
+            va = new VideoThumbAdapter(getActivity(), new ArrayList<SemanticVideo>());
+            if (mUsesGrid) {
+                if (mVideoGrid != null) {
+                    mVideoGrid.invalidateViews();
+                    mVideoGrid.setAdapter(va);
+                }
+            } else {
+                if (mVideoList != null) {
+                    mVideoList.invalidateViews();
+                    mVideoList.setAdapter(va);
+                }
+            }
+        } else if (mUsesGrid && mVideoGrid != null) {
+                    mVideoGrid.invalidateViews();
+            } else if (mVideoList != null) {
+                    mVideoList.invalidateViews();
+            }
+        va.clear();
+        va.updateLocalVideos(getLocalVideos());
+        va.notifyDataSetChanged();
+    }
+
+    public void refreshRemoteVideos() {
+        Log.i("BrowseFragment", "refreshRemoteVideos called.");
+        VideoThumbAdapter va = (VideoThumbAdapter) getVideoAdapter();
+        if (va == null) {
+            va = new VideoThumbAdapter(getActivity(), new ArrayList<SemanticVideo>());
+            if (mUsesGrid) {
+                if (mVideoGrid != null) {
+                    mVideoGrid.invalidateViews();
+                    mVideoGrid.setAdapter(va);
+                }
+            } else {
+                if (mVideoList != null) {
+                    mVideoList.invalidateViews();
+                    mVideoList.setAdapter(va);
+                }
+            }
+        } else if (mUsesGrid && mVideoGrid != null) {
+            mVideoGrid.invalidateViews();
+        } else if (mVideoList != null) {
+            mVideoList.invalidateViews();
+        }
+        va.clear();
+        va.updateRemoteVideos(getRemoteVideos());
+        va.notifyDataSetChanged();
+    }
+
+    private List<SemanticVideo> getLocalVideos() {
+        switch (mQueryType) {
+            case BrowsePagerAdapter.QR_SEARCH:
+                return VideoDBHelper.getVideosByQrCode(mQuery);
+            case BrowsePagerAdapter.SEARCH:
+                return VideoDBHelper.queryVideoCacheByTitle(mQuery);
+            case BrowsePagerAdapter.MY_VIDEOS:
+                Log.i("BrowseFragment", "Getting local video cache");
+                return VideoDBHelper.getVideoCache();
+            case BrowsePagerAdapter.RECOMMENDED:
+                return Collections.<SemanticVideo>emptyList();
+            case BrowsePagerAdapter.LATEST:
+                return Collections.<SemanticVideo>emptyList();
+            case BrowsePagerAdapter.BROWSE_BY_GENRE:
+                return VideoDBHelper.getVideosByGenre(mQuery);
+            default:
+                Log.i("BrowseFragment", "Unknown query type");
+                return Collections.<SemanticVideo>emptyList();
+        }
+    }
+
+    private void startRemoteVideoFetch() {
+        if (App.hasConnection()) {
+            Log.i("BrowseGridFragment", "Has connection, trying remote search");
+            mNoConnectionMessage.setVisibility(LinearLayout.GONE);
+            mRemoteProgress.setVisibility(LinearLayout.VISIBLE);
+
+            if (mFetchTask != null) {
+                mFetchTask.cancel(true);
+            }
+            mFetchTask = new RemoteFetchTask(this, mRemoteProgress, mPage);
+            mFetchTask.execute(mQuery); // Fetch and populate remote grid
+        } else {
+            Log.i("SearchGridFragment", "No connection, showing empty list");
+            mNoConnectionMessage.setVisibility(LinearLayout.VISIBLE);
+
+            VideoThumbAdapter va = (VideoThumbAdapter) getVideoAdapter();
+
+            va.clearRemoteVideos();
+            va.notifyDataSetChanged();
+        }
+    }
+    public void finishRemoteVideoFetch(List<SemanticVideo> result_list) {
+        VideoThumbAdapter va = (VideoThumbAdapter) getVideoAdapter();
+        va.updateRemoteVideos(result_list);
+        va.notifyDataSetChanged();
+    }
+
+    private List<SemanticVideo> getRemoteVideos() {
+        List<SemanticVideo> list;
+        if (RemoteResultCache.hasCached(mPage)) {
+            list = RemoteResultCache.getCached(mPage);
+        } else {
+            startRemoteVideoFetch(); // remember to cache the result
+            list = Collections.<SemanticVideo>emptyList();
+        }
+        return list;
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         if (mUsesGrid) {
-            mContainerState = mGrid.onSaveInstanceState();
+            mContainerState = mVideoGrid.onSaveInstanceState();
         } else {
-            mContainerState = mList.onSaveInstanceState();
+            mContainerState = mVideoList.onSaveInstanceState();
         }
         outState.putParcelable(CONTAINER_STATE, mContainerState);
-
     }
 
     @Override
@@ -324,10 +459,270 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
         }
     }
 
+    public Pair<ProgressBar, ImageView> getUiElementsFor(SemanticVideo sv) {
+        if (!this.isAdded())
+            return null;
+        ListAdapter la = getVideoAdapter();
+        int listitemcount = la.getCount();
+        int pos = 0;
+        for (int i = 0; i < listitemcount; ++i) {
+            if (la.getItem(i) == sv) {
+                pos = i;
+                break;
+            }
+        }
+        View v;
+        if (App.isTablet()) {
+            v = mVideoGrid.getChildAt(pos);
+        } else {
+            v = mVideoList.getChildAt(pos);
+        }
+        if (v == null)
+            return null;
+        ProgressBar pb = (ProgressBar) v.findViewById(R.id.upload_progress);
+        ImageView uploadIcon = (ImageView) v.findViewById(R.id.upload_icon);
+
+        return new Pair<ProgressBar, ImageView>(pb, uploadIcon);
+    }
+
+    public String getQuery() {
+        return mQuery;
+    }
+
+    public int getQueryType() {
+        return mQueryType;
+    }
+
     public interface Callbacks {
-        public void onItemSelected(long id);
+        public void onLocalItemSelected(long id);
 
         public void onRemoteItemSelected(int positionInCache);
     }
 
 }
+
+
+
+
+/*
+    public List<SemanticVideo> query(String mQuery) {
+        List<SemanticVideo> result = null;
+        if (mQueryType == TITLE_QUERY) {
+            result = VideoDBHelper.queryVideoCacheByTitle(mQuery);
+        } else if (mQueryType == QR_QUERY) {
+            result = VideoDBHelper.getVideosByQrCode(mQuery);
+        }
+        return result;
+    }
+
+    public void refreshLocalVideos() {
+        Log.i("SearchGridFragment", "Refreshing search results");
+
+        if (mUsesGrid) {
+            if (mVideoGrid != null) {
+                mVideoGrid.invalidateViews();
+                ImageAdapter local_adapter = new ImageAdapter(getActivity(), query(mQuery));
+                mVideoGrid.setAdapter(local_adapter);
+                ((ArrayAdapter) mVideoGrid.getAdapter()).notifyDataSetChanged();
+
+                ImageAdapter remote_adapter;
+                if (SearchResultCache.getLastSearch() != null) {
+                    Log.i("SearchGridFragment", "Getting last results from cache");
+                    mRemoteProgress.setVisibility(View.GONE);
+                    remote_adapter = new ImageAdapter(getActivity(), SearchResultCache.getLastSearch());
+                    mRemoteGrid.setAdapter(remote_adapter);
+                    remote_adapter.notifyDataSetChanged();
+                } else if (App.hasConnection()) {
+                    Log.i("SearchGridFragment", "Has connection, trying remote search");
+                    if (mFetchTask != null) {
+                        mFetchTask.cancel(true);
+                    }
+                    mFetchTask = new MultimediaOperationsTask(getActivity(), mRemoteGrid, mRemoteProgress, true);
+                    mFetchTask.execute(mQuery); // Fetch and populate remote grid
+                } else {
+                    Log.i("SearchGridFragment", "No connection, showing empty list");
+                    remote_adapter = new ImageAdapter(getActivity(), Collections.<SemanticVideo>emptyList());
+                    mRemoteGrid.setAdapter(remote_adapter);
+                    remote_adapter.notifyDataSetChanged();
+                }
+            }
+        } else {
+            if (mVideoList != null) {
+                mVideoList.invalidateViews();
+                if (mPage != -1) {
+                    mVideoList.setAdapter(new ImageAdapter(getActivity(), VideoDBHelper.getVideoCache(mPage)));
+                } else {
+                    List<SemanticVideo> videos = query(mQuery);
+                    if (SearchResultCache.getLastSearch() == null) {
+                        videos.add(null);
+                        mSeparatorPosition = videos.size();
+
+                        if (mFetchTask != null) {
+                            mFetchTask.cancel(true);
+                        }
+                        if (App.hasConnection()) {
+                            mFetchTask = new MultimediaOperationsTask(getActivity(), mVideoList, mRemoteProgress, false);
+                            mFetchTask.execute(mQuery); // Fetch and populate remote grid
+                        }
+                    } else {
+                        mRemoteProgress.setVisibility(View.GONE);
+                    }
+                    mVideoList.setAdapter(new ImageAdapter(getActivity(), videos));
+                }
+                ((ArrayAdapter) mVideoList.getAdapter()).notifyDataSetChanged();
+            }
+        }
+
+
+        if (mQueryType == QR_QUERY) {
+            mUrlArea.setVisibility(LinearLayout.VISIBLE);
+            mUrl.setText(mQuery);
+            try {
+                URL url = new URL(mQuery);
+                mUrlLabel.setText(R.string.url_found_label);
+            } catch (MalformedURLException e) {
+                mUrlLabel.setText(R.string.code_found_label);
+            }
+        }
+
+
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        view.setSelected(true);
+        long video_id;
+        if (mUsesGrid) {
+            if (parent == mRemoteGrid) {
+                mCallbacks.onRemoteItemSelected(position);
+                return;
+            }
+            video_id = ((SemanticVideo) getLocalAdapter().getItem(position)).getId();
+        } else {
+            if (position >= mSeparatorPosition) {
+                mCallbacks.onRemoteItemSelected(position - 1); // Remove separator from position
+                return;
+            }
+            video_id = VideoDBHelper.getByPosition(position).getId();
+        }
+        mCallbacks.onLocalItemSelected(video_id);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view;
+        if (mUsesGrid) {
+            view = inflater.inflate(R.layout.browse_results_grid, null);
+            mRemoteGrid = (ExpandableGridView) view.findViewById(R.id.remote_video_grid);
+            mRemoteGrid.setExpanded(true);
+            mRemoteGrid.setOnItemClickListener(this);
+            ExpandableGridView mVideoGrid = (ExpandableGridView) view.findViewById(R.id.local_video_grid);
+            mVideoGrid.setExpanded(true);
+
+            this.mVideoGrid = mVideoGrid;
+            this.mVideoGrid.setOnItemClickListener(this);
+            this.mVideoGrid.setOnItemLongClickListener(this);
+            this.mVideoGrid.setMultiChoiceModeListener(this);
+        } else {
+            view = super.onCreateView(inflater, container, savedInstanceState);
+
+        }
+        if (view != null) {
+            mRemoteProgress = (ProgressBar) view.findViewById(R.id.search_progress);
+            mUrl = (TextView) view.findViewById(R.id.url_found);
+            mUrlArea = (LinearLayout) view.findViewById(R.id.url_found_area);
+            mUrlLabel = (TextView) view.findViewById(R.id.url_found_label);
+            mUrlArea.setVisibility(LinearLayout.GONE);
+        }
+        return view;
+    }
+
+    public void onPause() {
+        super.onPause();
+        if (mFetchTask != null) {
+            mFetchTask.cancel(true);
+            mFetchTask = null;
+        }
+    }
+}
+
+ */
+
+/*
+        ImageAdapter remote_adapter;
+        if (SearchResultCache.getLastSearch() != null) {
+            Log.i("SearchGridFragment", "Getting last results from cache");
+            mRemoteProgress.setVisibility(View.GONE);
+            remote_adapter = new ImageAdapter(getActivity(), SearchResultCache.getLastSearch());
+            mRemoteGrid.setAdapter(remote_adapter);
+            remote_adapter.notifyDataSetChanged();
+        } else if (App.hasConnection()) {
+            Log.i("SearchGridFragment", "Has connection, trying remote search");
+            if (mFetchTask != null) {
+                mFetchTask.cancel(true);
+            }
+            mFetchTask = new MultimediaOperationsTask(getActivity(), mRemoteGrid, mRemoteProgress, true);
+            mFetchTask.execute(mQuery); // Fetch and populate remote grid
+        } else {
+            Log.i("SearchGridFragment", "No connection, showing empty list");
+            remote_adapter = new ImageAdapter(getActivity(), Collections.<SemanticVideo>emptyList());
+            mRemoteGrid.setAdapter(remote_adapter);
+            remote_adapter.notifyDataSetChanged();
+        }
+
+
+    }
+
+        Log.i("SearchGridFragment", "Refreshing search results");
+
+        if (mUsesGrid) {
+            if (mVideoGrid != null) {
+                mVideoGrid.invalidateViews();
+                ImageAdapter local_adapter = new ImageAdapter(getActivity(), query(mQuery));
+                mVideoGrid.setAdapter(local_adapter);
+                ((ArrayAdapter) mVideoGrid.getAdapter()).notifyDataSetChanged();
+
+            }
+        } else {
+            if (mVideoList != null) {
+                mVideoList.invalidateViews();
+                if (mPage != -1) {
+                    mVideoList.setAdapter(new ImageAdapter(getActivity(), VideoDBHelper.getVideoCache(mPage)));
+                } else {
+                    List<SemanticVideo> videos = query(mQuery);
+                    if (SearchResultCache.getLastSearch() == null) {
+                        videos.add(null);
+                        mSeparatorPosition = videos.size();
+
+                        if (mFetchTask != null) {
+                            mFetchTask.cancel(true);
+                        }
+                        if (App.hasConnection()) {
+                            mFetchTask = new MultimediaOperationsTask(getActivity(), mVideoList, mRemoteProgress, false);
+                            mFetchTask.execute(mQuery); // Fetch and populate remote grid
+                        }
+                    } else {
+                        mRemoteProgress.setVisibility(View.GONE);
+                    }
+                    mVideoList.setAdapter(new ImageAdapter(getActivity(), videos));
+                }
+                ((ArrayAdapter) mVideoList.getAdapter()).notifyDataSetChanged();
+            }
+        }
+
+
+        if (mQueryType == QR_QUERY) {
+            mUrlArea.setVisibility(LinearLayout.VISIBLE);
+            mUrl.setText(mQuery);
+            try {
+                URL url = new URL(mQuery);
+                mUrlLabel.setText(R.string.url_found_label);
+            } catch (MalformedURLException e) {
+                mUrlLabel.setText(R.string.code_found_label);
+            }
+        }
+
+
+    }
+
+*/

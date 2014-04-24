@@ -29,7 +29,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -37,7 +36,6 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.TranslateAnimation;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -50,7 +48,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fi.aalto.legroup.achso.R;
-import fi.aalto.legroup.achso.activity.VideoViewerActivity;
 import fi.aalto.legroup.achso.annotation.Annotation;
 import fi.aalto.legroup.achso.annotation.AnnotationSurfaceHandler;
 import fi.aalto.legroup.achso.annotation.EditorListener;
@@ -60,11 +57,14 @@ import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.remote.RemoteSemanticVideo;
 import fi.aalto.legroup.achso.util.Dialog;
 import fi.aalto.legroup.achso.util.FloatPosition;
-import fi.aalto.legroup.achso.util.SearchResultCache;
+import fi.aalto.legroup.achso.remote.RemoteResultCache;
 import fi.aalto.legroup.achso.view.AnnotatedSeekBar;
 import fi.aalto.legroup.achso.view.VideoControllerView;
 
 import static fi.aalto.legroup.achso.util.App.appendLog;
+
+
+
 
 public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHolder.Callback,
         MediaPlayer.OnPreparedListener, VideoControllerView.MediaPlayerControl, View.OnTouchListener,
@@ -75,6 +75,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     private static final int NEW_ANNOTATION_MODE = 1;
     private static final int EDIT_ANNOTATION_MODE = 2;
     private static final int POLL_RATE_MILLISECONDS = 100;
+    private static final int ANNOTATION_ACTIVATION_DELAY = 500 ;
     private SurfaceView mAnnotationSurface;
     private SurfaceView mVideoSurface;
     private RelativeLayout mVideoSurfaceContainer;
@@ -87,7 +88,6 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     private int mBufferPercentage = 0;
     private AnnotationUpdateHandler mUpdateHandler = null;
     private long mVideoId;
-    private int mVideoPositionInSearchCache;
     private long mLastPos = 0;
     private Handler mPauseHandler;
     private SavedState mSavedState;
@@ -258,6 +258,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
 
     public void onPause() {
         super.onPause();
+        _longPressDetector.removeCallbacks(_longPressed);
         if (mMediaPlayer != null) {
             SharedPreferences.Editor e = getActivity().getSharedPreferences("AchSoPrefs", 0).edit();
             e.putBoolean("stateSaved", true);
@@ -329,9 +330,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
                 annotation_holder.setFormat(PixelFormat.TRANSPARENT);
             mAnnotationSurfaceHandler = new AnnotationSurfaceHandler(getActivity(), mAnnotationSurface, mVideoId);
             if (cached_video) {
-                mVideoPositionInSearchCache = args.getInt(VideoViewerFragment.ARG_ITEM_CACHE_POSITION);
-                RemoteSemanticVideo rsv = (RemoteSemanticVideo) SearchResultCache.getLastSearch().get(
-                        mVideoPositionInSearchCache);
+                RemoteSemanticVideo rsv = RemoteResultCache.getSelectedVideo();
                 mAnnotationSurfaceHandler.setAnnotations(rsv.getAnnotations(getActivity()));
             } else if (mSavedState != null) {
                 VideoDBHelper dbh = new VideoDBHelper(getActivity());
@@ -348,7 +347,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
 
             SemanticVideo semantic_video;
             if (cached_video) {
-                semantic_video = SearchResultCache.getLastSearch().get(mVideoPositionInSearchCache);
+                semantic_video = RemoteResultCache.getSelectedVideo();
             } else {
                 semantic_video = VideoDBHelper.getById(mVideoId);
             }
@@ -500,6 +499,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
         if (mMediaPlayer == null)
             return;
 
+        _longPressDetector.removeCallbacks(_longPressed);
         mMediaPlayer.start();
         mAnnotationSurfaceHandler.select(null);
         mAnnotationSurfaceHandler.draw();
@@ -589,6 +589,17 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     public void toggleFullScreen() {
     }
 
+
+    final Handler _longPressDetector = new Handler();
+    Runnable _longPressed = new Runnable() {
+        public void run() {
+            Log.i("info","LongPress");
+            mController.addAnnotationToPlace();
+
+        }
+    };
+
+
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         //Log.i("SemanticVideoPlayerFragment", "TouchEvent x: " + event.getX() + " y: " + event.getY());
@@ -623,6 +634,20 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
             if (a != null && !isPlaying() && !mController.isPausedForShowingAnnotation()) {
                 mController.enableAnnotationEditModeForAnnotation(a);
                 mController.hide();
+            } else {
+                switch(event.getAction()){
+                    case MotionEvent.ACTION_DOWN:
+                        _longPressDetector.postDelayed(_longPressed,
+                                ANNOTATION_ACTIVATION_DELAY);
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        _longPressDetector.removeCallbacks(_longPressed);
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        _longPressDetector.removeCallbacks(_longPressed);
+                        break;
+                }
+                return true;
             }
         }
         return true;

@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Locale;
 
 import fi.aalto.legroup.achso.R;
-import fi.aalto.legroup.achso.database.LocalVideos;
+import fi.aalto.legroup.achso.database.LocalRawVideos;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.state.IntentDataHolder;
@@ -193,7 +193,7 @@ public class ActionbarActivity extends FragmentActivity {
      * A new recording can be started in most activities.
      */
     public void launchRecording() {
-        File output_file = LocalVideos.getNewOutputFile();
+        File output_file = LocalRawVideos.getNewOutputFile();
         if (output_file != null) {
             App.getLocation();
             Intent intent = new Intent(android.provider.MediaStore.ACTION_VIDEO_CAPTURE);
@@ -321,18 +321,18 @@ public class ActionbarActivity extends FragmentActivity {
                         String received_path;
                         File source;
                         if (saved_to == null) {
-                            received_path = LocalVideos.getLatestVideo(this);
+                            received_path = LocalRawVideos.getLatestVideo(this);
                             source = new File(received_path);
                             int tries = 0;
                             while (!source.isFile() && tries < 100) {
                                 tries++;
-                                received_path = LocalVideos.getLatestVideo(this);
+                                received_path = LocalRawVideos.getLatestVideo(this);
                                 source = new File(received_path);
                                 Log.i("ActionBarAction", "File was not ready yet, trying again: " + tries);
                             }
 
                         } else {
-                            received_path = LocalVideos.getRealPathFromURI(this, saved_to);
+                            received_path = LocalRawVideos.getRealPathFromURI(this, saved_to);
                             Log.i("ActionBarAction", "Found real path: " + received_path);
                             source = new File(received_path);
                         }

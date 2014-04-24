@@ -26,16 +26,12 @@ import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.util.Pair;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -45,10 +41,7 @@ import java.util.Date;
 import java.util.List;
 
 import fi.aalto.legroup.achso.annotation.Annotation;
-import fi.aalto.legroup.achso.util.App;
 import fi.aalto.legroup.achso.util.FloatPosition;
-
-import static fi.aalto.legroup.achso.util.App.getContext;
 
 public class VideoDBHelper extends SQLiteOpenHelper {
     public static final String KEY_ID = "id";
@@ -77,7 +70,8 @@ public class VideoDBHelper extends SQLiteOpenHelper {
     private static final String TBL_GENRE = "genre";
     private static final String TBL_ANNOTATION = "annotation";
     private static final SimpleDateFormat mDateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); // Datetime format that sqlite3 uses
-    private static List<SemanticVideo> mVideoCache;
+    private static List<SemanticVideo> mLocalVideoCache;
+
     private Context mContext;
 
     public VideoDBHelper(Context c) {
@@ -85,44 +79,39 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         mContext = c;
     }
 
-    public static List<SemanticVideo> getVideoCache() {
-        return getVideoCache(0);
-    }
-
     public static List<SemanticVideo> queryVideoCacheByTitle(String query) {
         List<SemanticVideo> ret = new ArrayList<SemanticVideo>();
-        for (SemanticVideo v : mVideoCache) {
+        for (SemanticVideo v : mLocalVideoCache) {
             if (v.getTitle().toLowerCase().contains(query.toLowerCase())) ret.add(v);
         }
         return ret;
     }
 
-    public static List<SemanticVideo> queryVideoCacheByQrCode(String query) {
+    public static List<SemanticVideo> getVideosByQrCode(String query) {
         List<SemanticVideo> ret = new ArrayList<SemanticVideo>();
-        for (SemanticVideo v : mVideoCache) {
+        for (SemanticVideo v : mLocalVideoCache) {
             if (v.getQrCode() != null && v.getQrCode().equals(query)) ret.add(v);
         }
         return ret;
     }
 
-    public static List<SemanticVideo> getVideoCache(int page) {
-        List<SemanticVideo> ret;
-        switch (page) {
-            case 0:
-                return mVideoCache;
-            default:
-                ret = new ArrayList<SemanticVideo>();
-                for (SemanticVideo v : mVideoCache) {
-                    if (v.getGenreAsInt() == page - 1) {
-                        ret.add(v);
-                    }
-                }
-                return ret;
+    public static List<SemanticVideo> getVideosByGenre(String g) {
+        List<SemanticVideo> ret = new ArrayList<SemanticVideo>();
+        Log.i("VideoDBHelper", "Getting videos by genre: "+ g);
+        for (SemanticVideo v : mLocalVideoCache) {
+            if (v.getEnglishGenreText().equals(g)) {
+                ret.add(v);
+            }
         }
+        return ret;
+    }
+
+    public static List<SemanticVideo> getVideoCache() {
+        return mLocalVideoCache;
     }
 
     public static void sortVideoCache(final String sortBy, final boolean desc) {
-        Collections.sort(mVideoCache, new Comparator<SemanticVideo>() {
+        Collections.sort(mLocalVideoCache, new Comparator<SemanticVideo>() {
             @Override
             public int compare(SemanticVideo lhs, SemanticVideo rhs) {
                 if (sortBy.equals(KEY_GENRE)) {
@@ -140,20 +129,20 @@ public class VideoDBHelper extends SQLiteOpenHelper {
     }
 
     public static SemanticVideo getById(long id) {
-        if (mVideoCache == null) return null;
-        for (SemanticVideo v : mVideoCache) {
+        if (mLocalVideoCache == null) return null;
+        for (SemanticVideo v : mLocalVideoCache) {
             if (v.getId() == id) return v;
         }
         return null;
     }
 
     public static SemanticVideo getByPosition(int pos) {
-        return mVideoCache.get(pos);
+        return mLocalVideoCache.get(pos);
     }
 
     public static List<SemanticVideo> fakeListOfVideos(int amount) {
         List<SemanticVideo> ret = new ArrayList<SemanticVideo>();
-        SemanticVideo sv = mVideoCache.get(0);
+        SemanticVideo sv = mLocalVideoCache.get(0);
         if (sv != null) {
             for (int i = 0; i < amount; ++i) {
                 ret.add(sv);
@@ -258,7 +247,7 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         long id = db.insertOrThrow(TBL_VIDEO, null, cv);
         sv.setId(id);
         sv.setThumbnails(thumbs.first, thumbs.second);
-        mVideoCache.add(0, sv);
+        mLocalVideoCache.add(0, sv);
         db.close();
     }
 
@@ -298,7 +287,7 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         }
         File f = new File(sv.getUri().getPath());
         f.delete();
-        mVideoCache.remove(sv);
+        mLocalVideoCache.remove(sv);
         SQLiteDatabase db = this.getWritableDatabase();
         String[] whereargs = {Long.toString(sv.getId())};
         db.delete(TBL_VIDEO, KEY_ID + "=?", whereargs);
@@ -348,21 +337,23 @@ public class VideoDBHelper extends SQLiteOpenHelper {
     }
 
     public List<SemanticVideo> updateVideoCache() {
+        Log.i("VideoDBHelper", "Updating videoCache, no args given");
         return updateVideoCache(null, true);
     }
 
     public List<SemanticVideo> updateVideoCache(String sortBy, boolean desc) {
+        Log.i("VideoDBHelper", "Updating videoCache with args");
         if (sortBy == null) sortBy = KEY_CREATED_AT;
-        if (mVideoCache != null) { // Recycle existing bitmaps before loading them from the database.
-            for (SemanticVideo sv : mVideoCache) {
+        if (mLocalVideoCache != null) { // Recycle existing bitmaps before loading them from the database.
+            for (SemanticVideo sv : mLocalVideoCache) {
                 Bitmap micro = sv.getThumbnail(MediaStore.Images.Thumbnails.MICRO_KIND);
                 Bitmap mini = sv.getThumbnail(MediaStore.Images.Thumbnails.MINI_KIND);
                 if (micro != null) micro.recycle();
                 if (mini != null) mini.recycle();
             }
         }
-        mVideoCache = fetchVideosFromDB(sortBy, desc);
-        return mVideoCache;
+        mLocalVideoCache = fetchVideosFromDB(sortBy, desc);
+        return mLocalVideoCache;
     }
 
     private List<SemanticVideo> fetchVideosFromDB(String sortBy, boolean desc) {

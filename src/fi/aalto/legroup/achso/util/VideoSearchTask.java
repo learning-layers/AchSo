@@ -20,6 +20,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.GridView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
@@ -42,25 +43,28 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
-import fi.aalto.legroup.achso.adapter.ImageAdapter;
+import fi.aalto.legroup.achso.adapter.VideoThumbAdapter;
 import fi.aalto.legroup.achso.database.SemanticVideo;
+import fi.aalto.legroup.achso.remote.RemoteResultCache;
 import fi.aalto.legroup.achso.remote.RemoteSemanticVideoFactory;
 import fi.aalto.legroup.achso.util.xml.XmlConverter;
 import fi.aalto.legroup.achso.util.xml.XmlObject;
-import fi.aalto.legroup.achso.view.ExpandableGridView;
 
 public class VideoSearchTask extends AsyncTask<String, Double, ArrayList<SemanticVideo>> {
 
+    private final int mPage;
     private Context mCtx;
     private View mView;
     private ProgressBar mSearchProgress;
     private boolean mIsGrid;
 
-    public VideoSearchTask(Context ctx, View view, ProgressBar progress, boolean grid) {
+    public VideoSearchTask(Context ctx, View view, ProgressBar progress, boolean grid,
+                           int cache_page) {
         mCtx = ctx;
         mView = view;
         mSearchProgress = progress;
         mIsGrid = grid;
+        mPage = cache_page;
     }
 
     @Override
@@ -124,14 +128,14 @@ public class VideoSearchTask extends AsyncTask<String, Double, ArrayList<Semanti
     protected void onPostExecute(ArrayList<SemanticVideo> remoteVideos) {
         mSearchProgress.setVisibility(View.GONE);
 
-        SearchResultCache.lastSearch = remoteVideos;
+        RemoteResultCache.setCached(mPage, remoteVideos);
         if (mIsGrid) {
-            ExpandableGridView v = (ExpandableGridView) mView;
-            v.setAdapter(new ImageAdapter(mCtx, remoteVideos));
+            GridView v = (GridView) mView;
+            v.setAdapter(new VideoThumbAdapter(mCtx, remoteVideos));
             ((ArrayAdapter) v.getAdapter()).notifyDataSetChanged();
         } else {
             ListView v = (ListView) mView;
-            ((ImageAdapter) v.getAdapter()).addAll(remoteVideos);
+            ((VideoThumbAdapter) v.getAdapter()).addAll(remoteVideos);
             ((ArrayAdapter) v.getAdapter()).notifyDataSetChanged();
         }
     }

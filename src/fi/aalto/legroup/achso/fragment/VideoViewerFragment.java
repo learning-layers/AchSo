@@ -33,7 +33,7 @@ import fi.aalto.legroup.achso.activity.VideoViewerActivity;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.util.Dialog;
-import fi.aalto.legroup.achso.util.SearchResultCache;
+import fi.aalto.legroup.achso.remote.RemoteResultCache;
 
 public class VideoViewerFragment extends Fragment {
 
@@ -60,9 +60,9 @@ public class VideoViewerFragment extends Fragment {
         if (itemid != -1) {
             Log.i("VideoViewerFragment", "creating details, have ID " + itemid);
             selected_video = VideoDBHelper.getById(itemid);
-        } else if (getArguments().get(ARG_ITEM_CACHE_POSITION) != null) {
-            Log.i("VideoViewerFragment", "creating details, using CACHE_POSITION " + getArguments().get(ARG_ITEM_CACHE_POSITION));
-            selected_video = SearchResultCache.getLastSearch().get(getArguments().getInt(ARG_ITEM_CACHE_POSITION));
+        } else {
+            Log.i("VideoViewerFragment", "creating details, using cached remote video");
+            selected_video = RemoteResultCache.getSelectedVideo();
         }
     }
 

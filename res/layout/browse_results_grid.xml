@@ -8,20 +8,39 @@
     android:focusableInTouchMode="true"
     android:orientation="vertical" >
 
+
     <include layout="@layout/url_to_open" />
 
+    <TextView
+        android:id="@+id/no_connection_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|top"
+        android:text="@string/no_connection"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+
+    <ProgressBar
+        android:id="@+id/remote_progress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center" />
+
     <GridView
-        android:id="@+id/main_menu_grid"
+        android:id="@+id/video_grid"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:clickable="true"
         android:drawSelectorOnTop="false"
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:numColumns="2"
-        android:paddingBottom="50dp"
-        android:paddingLeft="25dp"
-        android:paddingRight="25dp"
-        android:paddingTop="50dp" />
+        android:paddingBottom="20dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingTop="10dp"
+        android:layout_gravity="top"/>
+
 
 </LinearLayout>

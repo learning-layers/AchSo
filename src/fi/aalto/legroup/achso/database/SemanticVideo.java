@@ -198,6 +198,10 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
 				+ mCreatedAt.toString();
 	}
 
+    public boolean isLocal() {
+        return true;
+    }
+
 	public Uri getUri() {
 		return this.mUri;
 	}

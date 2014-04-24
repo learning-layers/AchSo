@@ -35,26 +35,33 @@ import android.widget.TextView;
 
 import org.ocpsoft.prettytime.PrettyTime;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import fi.aalto.legroup.achso.R;
-import fi.aalto.legroup.achso.activity.VideoBrowserActivity;
 import fi.aalto.legroup.achso.database.SemanticVideo;
+import fi.aalto.legroup.achso.util.App;
 
-public class ImageAdapter extends ArrayAdapter<SemanticVideo> {
+public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
 
     private static final int ITEM_TYPE_VIDEO = 0;
     private static final int ITEM_TYPE_SEPARATOR = 1;
     private static final int ITEM_TYPE_COUNT = 2;
 
+    private List<SemanticVideo> mLocalVideos;
+    private List<SemanticVideo> mRemoteVideos;
+
     PrettyTime mPrettyTime;
     Context mContext;
 
-    public ImageAdapter(Context c, List<SemanticVideo> videos) {
+    public VideoThumbAdapter(Context c, List<SemanticVideo> videos) {
         super(c, 0, videos);
         mContext = c;
         mPrettyTime = new PrettyTime();
+        mLocalVideos = new ArrayList<SemanticVideo>();
+        mRemoteVideos = new ArrayList<SemanticVideo>();
     }
 
     @Override
@@ -62,7 +69,7 @@ public class ImageAdapter extends ArrayAdapter<SemanticVideo> {
         ViewHolder vh;
         LayoutInflater i = (LayoutInflater) mContext
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        boolean isTablet = VideoBrowserActivity.isTablet(getContext());
+        boolean isTablet = App.isTablet();
         boolean isSeparator = getItemViewType(position) == ITEM_TYPE_SEPARATOR;
         Resources res = getContext().getResources();
         if (isSeparator) {
@@ -203,6 +210,26 @@ public class ImageAdapter extends ArrayAdapter<SemanticVideo> {
     @Override
     public int getItemViewType(int position) {
         return getItem(position) == null ? ITEM_TYPE_SEPARATOR : ITEM_TYPE_VIDEO;
+    }
+
+    public void updateLocalVideos(List<SemanticVideo> localVideos) {
+        mLocalVideos = localVideos;
+        this.clear();
+        this.addAll(mLocalVideos);
+        this.addAll(mRemoteVideos);
+    }
+
+    public void updateRemoteVideos(List<SemanticVideo> remoteVideos) {
+        mRemoteVideos = remoteVideos;
+        this.clear();
+        this.addAll(mLocalVideos);
+        this.addAll(mRemoteVideos);
+    }
+
+    public void clearRemoteVideos() {
+        mRemoteVideos.clear();
+        this.clear();
+        this.addAll(mLocalVideos);
     }
 
     public static final class ViewHolder {

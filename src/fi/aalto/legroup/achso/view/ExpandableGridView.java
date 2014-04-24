@@ -44,8 +44,8 @@ public class ExpandableGridView extends GridView {
         mExpanded = expanded;
     }
 
-    @Override
-    public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+    //@Override
+    public void onlaaMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         if (isExpanded()) {
             // Calculate entire height by providing a very large height hint.
             // View.MEASURED_SIZE_MASK represents the largest height possible.

@@ -28,11 +28,15 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class LocalVideos {
+/**
+ * This class provides access to video files stored on device. These may vary on device and it
+ * can be expensive to move large files around, so let this class do its thing.
+ */
+public class LocalRawVideos {
 
     public static File getNewOutputFile() {
         // Files stored in this directory will not be removed when the program is uninstalled. This is the recommended location in Android SDK manuals.
-        File storagedir = LocalVideos.getVideoStorage();
+        File storagedir = LocalRawVideos.getVideoStorage();
         if(storagedir!=null && !storagedir.exists()) {
             if(!storagedir.mkdirs()) {
                 Log.e("AnnotatedVideos", "failed to create directory");
@@ -88,7 +92,7 @@ public class LocalVideos {
             Date now = new Date();
             while (now.getTime() < cursor.getLong(1)) {
                 // ignore videos in storage that have odd timestamps: timestamps in future
-                Log.i("LocalVideos", "Skipped to previous video. now:" + now.getTime() + ", video: " + cursor.getLong(1));
+                Log.i("LocalRawVideos", "Skipped to previous video. now:" + now.getTime() + ", video: " + cursor.getLong(1));
                 cursor.moveToPrevious();
             }
             String path = cursor.getString(0);

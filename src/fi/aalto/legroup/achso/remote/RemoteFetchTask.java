@@ -14,48 +14,56 @@
  * limitations under the License.
  */
 
-package fi.aalto.legroup.achso.util;
+package fi.aalto.legroup.achso.remote;
 
-import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
-import fi.aalto.legroup.achso.adapter.ImageAdapter;
 import fi.aalto.legroup.achso.database.SemanticVideo;
+import fi.aalto.legroup.achso.fragment.BrowseFragment;
+import fi.aalto.legroup.achso.remote.RemoteResultCache;
 import fi.aalto.legroup.achso.remote.RemoteSemanticVideoFactory;
+import fi.aalto.legroup.achso.util.i5Connection;
 import fi.aalto.legroup.achso.util.xml.XmlConverter;
 import fi.aalto.legroup.achso.util.xml.XmlObject;
-import fi.aalto.legroup.achso.view.ExpandableGridView;
 
-public class MultimediaOperationsTask extends AsyncTask<String, Double, ArrayList<SemanticVideo>> {
+public class RemoteFetchTask extends AsyncTask<String, Double, ArrayList<SemanticVideo>> {
 
-    private Context mCtx;
-    private View mView;
-    private ProgressBar mSearchProgress;
-    private boolean mIsGrid;
+    private final int mPage;
+    private WeakReference<BrowseFragment> mFragment;
+    private WeakReference<ProgressBar> mSearchProgress;
+    private String mQuery;
+    private int mQueryType;
 
-    public MultimediaOperationsTask(Context ctx, View view, ProgressBar progress, boolean grid) {
-        mCtx = ctx;
-        mView = view;
-        mSearchProgress = progress;
-        mIsGrid = grid;
+    public RemoteFetchTask(BrowseFragment fragment, ProgressBar progress, int cache_page) {
+        mFragment = new WeakReference<BrowseFragment>(fragment);
+        mSearchProgress = new WeakReference<ProgressBar>(progress);
+        mPage = cache_page;
+        mQuery = fragment.getQuery();
+        mQueryType = fragment.getQueryType();
     }
 
     @Override
     protected void onPreExecute() {
-        mSearchProgress.setVisibility(View.VISIBLE);
+        ProgressBar pb = mSearchProgress.get();
+        if (pb != null) {
+            pb.setVisibility(View.VISIBLE);
+        }
+
     }
 
     @Override
     protected ArrayList<SemanticVideo> doInBackground(String... arg0) {
         ArrayList<SemanticVideo> ret = new ArrayList<SemanticVideo>();
-        String videoInformations = LasConnection.getConnection().getVideoInformations();
+
+        String videoInformations = i5Connection.getVideos(mQueryType, mQuery);
+
+        Log.i("RemoteFetchTask", "Received response data: " + videoInformations);
         if (videoInformations == null)
             return ret;
         XmlObject xmlobj = XmlConverter.fromXml(videoInformations);
@@ -67,25 +75,25 @@ public class MultimediaOperationsTask extends AsyncTask<String, Double, ArrayLis
 
     @Override
     protected void onProgressUpdate(Double... progress) {
-        mSearchProgress.setProgress(progress[0].intValue());
+        ProgressBar pb = mSearchProgress.get();
+        if (pb != null) {
+            pb.setProgress(progress[0].intValue());
+        }
     }
 
     @Override
     protected void onPostExecute(ArrayList<SemanticVideo> remoteVideos) {
-        mSearchProgress.setVisibility(View.GONE);
+        ProgressBar pb = mSearchProgress.get();
+        if (pb != null) {
+            pb.setVisibility(View.GONE);
+        }
         Log.i("MultimediaOperationsTask", "Executed search, found " + remoteVideos.size()
                 + "videos.");
-        SearchResultCache.lastSearch = remoteVideos;
-
-        if (mIsGrid) {
-            ExpandableGridView v = (ExpandableGridView) mView;
-            ImageAdapter adapter = new ImageAdapter(mCtx, remoteVideos);
-            v.setAdapter(adapter);
-            adapter.notifyDataSetChanged();
-        } else {
-            ListView v = (ListView) mView;
-            ((ImageAdapter) v.getAdapter()).addAll(remoteVideos);
-            ((ArrayAdapter) v.getAdapter()).notifyDataSetChanged();
+        // lets do caching even if the page/fragment is disabled -- it is there for later use
+        RemoteResultCache.setCached(mPage, remoteVideos);
+        BrowseFragment f = mFragment.get();
+        if (f != null) {
+            f.finishRemoteVideoFetch(remoteVideos);
         }
     }
 
