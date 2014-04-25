@@ -23,10 +23,13 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Base64;
 import android.util.Log;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
@@ -34,6 +37,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.UUID;
 
 import fi.aalto.legroup.achso.activity.VideoBrowserActivity;
@@ -56,8 +60,6 @@ public class UploaderService extends IntentService {
     public static final int UPLOAD_END = 2;
     public static final int UPLOAD_ERROR = 3;
 
-    private long mFileSize;
-
     public UploaderService() {
         super("AchSoUploaderService");
     }
@@ -70,14 +72,114 @@ public class UploaderService extends IntentService {
 
         if (id != -1) {
             SemanticVideo sem_video = VideoDBHelper.getById(id);
-            uploadToClViTra(sem_video);
+            uploadToClViTra2Service(sem_video);
         }
+    }
+
+    /**
+     * Moved announcing upload start and progress to their own method,
+     * to avoid repeating them in different uploaders and to make the uploader code more readable.
+     *
+     * This takes the content of the upload, makes it a pollable entity and attaches necessary
+     * intents for broadcasting the progress of upload.
+     * @param entity
+     * @param transfer_id -- id (Long) of whatever file is being transferred. Broadcast receiver
+     *                    decides what to do with it.
+     * @return
+     */
+    private PollableHttpEntity enableProgressBroadcasting(HttpEntity entity, final Long transfer_id) {
+        // broadcast that the upload is starting
+        final LocalBroadcastManager broadcast_manager = LocalBroadcastManager.getInstance(this);
+        final Long transfer_size = entity.getContentLength();
+        Intent startUploadIntent = new Intent();
+        startUploadIntent.setAction(VideoBrowserActivity.UploaderBroadcastReceiver
+                .UPLOAD_START_ACTION);
+        startUploadIntent.addCategory(Intent.CATEGORY_DEFAULT);
+        startUploadIntent.putExtra(PARAM_OUT, transfer_id);
+        startUploadIntent.putExtra(PARAM_WHAT, UPLOAD_START);
+        broadcast_manager.sendBroadcast(startUploadIntent);
+        return new PollableHttpEntity(entity, new PollableHttpEntity.ProgressListener() {
+            // broadcast upload progress
+            @Override
+            public void transferred(long bytes) {
+                Intent progressIntent = new Intent();
+                progressIntent.setAction(VideoBrowserActivity.UploaderBroadcastReceiver.UPLOAD_PROGRESS_ACTION);
+                progressIntent.addCategory(Intent.CATEGORY_DEFAULT);
+                progressIntent.putExtra(PARAM_OUT, transfer_id);
+                progressIntent.putExtra(PARAM_WHAT, UPLOAD_PROGRESS);
+                int percentage = (int) (((double) bytes / transfer_size) * 100.0);
+                progressIntent.putExtra(PARAM_ARG, percentage);
+                broadcast_manager.sendBroadcast(progressIntent);
+
+                // broadcast upload finish
+                if (percentage == 100) {
+                    Intent endIntent = new Intent();
+                    endIntent.setAction(VideoBrowserActivity.UploaderBroadcastReceiver.UPLOAD_END_ACTION);
+                    endIntent.addCategory(Intent.CATEGORY_DEFAULT);
+                    endIntent.putExtra(PARAM_OUT, transfer_id);
+                    endIntent.putExtra(PARAM_WHAT, UPLOAD_END);
+                    broadcast_manager.sendBroadcast(endIntent);
+                }
+            }
+        });
+    }
+
+    /**
+     * Helper method to announce UI that something went wrong.
+     * @param errmsg
+     * @param traffic_id -- id of the file that is sent. BroadcastReceiver decides what to do
+     *                   with this info.
+     */
+    private void announceError(String errmsg, Long traffic_id) {
+        // broadcast upload error
+        final LocalBroadcastManager broadcast_manager = LocalBroadcastManager.getInstance(this);
+        Intent endIntent = new Intent();
+        endIntent.setAction(VideoBrowserActivity.UploaderBroadcastReceiver.UPLOAD_ERROR_ACTION);
+        endIntent.addCategory(Intent.CATEGORY_DEFAULT);
+        endIntent.putExtra(PARAM_OUT, traffic_id);
+        endIntent.putExtra(PARAM_WHAT, UPLOAD_ERROR);
+        endIntent.putExtra(PARAM_ARG, errmsg);
+        broadcast_manager.sendBroadcast(endIntent);
     }
 
     private void uploadToClViTra2Service(SemanticVideo sem_video) {
         // This is new uploader using the i5Cloud services
+        // Now implemented a simple stub that sends video file as a PUT to some url.
 
+        // prepare file for sending
+        Long traffic_id = sem_video.getId();
+        String url = "http://www.example.com/resource"; // replace this with something real
+        String token = ""; // replace this with something real
+        HttpClient client = new DefaultHttpClient();
+        HttpPut put= new HttpPut(url);
+        File file = new File(sem_video.getUri().getPath());
+        FileEntity fe = new FileEntity(file, "binary/octet-stream");
+        fe.setChunked(true);
+        PollableHttpEntity broadcasting_entity = enableProgressBroadcasting(fe, traffic_id);
+        put.setEntity(broadcasting_entity);
 
+        put.setHeader("X-Auth-Token", token);
+        put.setHeader("Content-type", "application/x-www-form-urlencoded");
+        try {
+            Log.i("UploaderService", "sending POST to " + url);
+            HttpResponse response = client.execute(put);
+            Log.i("UploaderService", "response:" + response.getStatusLine().toString());
+            appendLog("response:" + response.getStatusLine().toString());
+        } catch (ClientProtocolException e) {
+            announceError("Sorry, error in transfer.", traffic_id);
+            Log.i("UploaderService", "ClientProtocolException caught");
+            appendLog("ClientProtocolException caught");
+        } catch (IOException e) {
+            announceError("Sorry, couldn't connect to server.", traffic_id);
+            Log.i("UploaderService", "IOException caught:" + e.getMessage());
+            appendLog("IOException caught:" + e.getMessage());
+        } catch (IllegalStateException e) {
+            announceError("Bad or missing server name.", traffic_id);
+            Log.i("UploaderService", "IllegalStateException caught:" + e.getMessage());
+            appendLog("IllegalStateException caught:" + e.getMessage());
+            e.printStackTrace();
+        }
+        // hmm, what to do with the response?
     }
 
     private void uploadToClViTra(SemanticVideo sem_video) {
@@ -85,12 +187,6 @@ public class UploaderService extends IntentService {
         final Context context = this;
 
         String server_url = "http://merian.informatik.rwth-aachen.de:5080/ClViTra/FileUploadServlet";
-        Intent startIntent = new Intent();
-        startIntent.setAction(VideoBrowserActivity.UploaderBroadcastReceiver.UPLOAD_START_ACTION);
-        startIntent.addCategory(Intent.CATEGORY_DEFAULT);
-        startIntent.putExtra(PARAM_OUT, sem_video.getId());
-        startIntent.putExtra(PARAM_WHAT, UPLOAD_START);
-        broadcast_manager.sendBroadcast(startIntent);
         //give an unique name to the video and xml files stored on server
         String filename = new String(UUID.randomUUID() + "");
         sem_video.setUploading(true);
@@ -114,61 +210,28 @@ public class UploaderService extends IntentService {
         //multipartEntity.addTextBody("source", "achso");
         multipartEntity.addBinaryBody("xml", XmlConverter.toXML(context, sem_video));
 
-        PollableHttpEntity pollable_entity = new PollableHttpEntity(multipartEntity.build(), new PollableHttpEntity.ProgressListener() {
-            @Override
-            public void transferred(long bytes, SemanticVideo sem_video) {
-                Intent progressIntent = new Intent();
-                progressIntent.setAction(VideoBrowserActivity.UploaderBroadcastReceiver.UPLOAD_PROGRESS_ACTION);
-                progressIntent.addCategory(Intent.CATEGORY_DEFAULT);
-                progressIntent.putExtra(PARAM_OUT, sem_video.getId());
-                progressIntent.putExtra(PARAM_WHAT, UPLOAD_PROGRESS);
-                int percentage = (int) (((double) bytes / mFileSize) * 100.0);
-                progressIntent.putExtra(PARAM_ARG, percentage);
-                broadcast_manager.sendBroadcast(progressIntent);
+        PollableHttpEntity pollable_entity = enableProgressBroadcasting(multipartEntity.build(),
+                sem_video.getId());
 
-                if (percentage == 100) {
-                    Intent endIntent = new Intent();
-                    endIntent.setAction(VideoBrowserActivity.UploaderBroadcastReceiver.UPLOAD_END_ACTION);
-                    endIntent.addCategory(Intent.CATEGORY_DEFAULT);
-                    endIntent.putExtra(PARAM_OUT, sem_video.getId());
-                    endIntent.putExtra(PARAM_WHAT, UPLOAD_END);
-                    broadcast_manager.sendBroadcast(endIntent);
-                }
-            }
-        }, sem_video);
         httppost.setEntity(pollable_entity);
-        mFileSize = pollable_entity.getContentLength();
-        boolean success = false;
-        String errmsg = null;
         try {
             Log.i("UploaderService", "sending POST to " + server_url);
             HttpResponse response = httpclient.execute(httppost);
             Log.i("UploaderService", "response:" + response.getStatusLine().toString());
             appendLog("response:" + response.getStatusLine().toString());
-            success = true;
         } catch (ClientProtocolException e) {
-            errmsg = "Sorry, error in transfer.";
+            announceError("Sorry, error in transfer.", sem_video.getId());
             Log.i("UploaderService", "ClientProtocolException caught");
             appendLog("ClientProtocolException caught");
         } catch (IOException e) {
-            errmsg = "Sorry, couldn't connect to server.";
+            announceError("Sorry, couldn't connect to server.", sem_video.getId());
             Log.i("UploaderService", "IOException caught:" + e.getMessage());
             appendLog("IOException caught:" + e.getMessage());
         } catch (IllegalStateException e) {
-            errmsg = "Bad or missing server name.";
+            announceError("Bad or missing server name.", sem_video.getId());
             Log.i("UploaderService", "IllegalStateException caught:" + e.getMessage());
             appendLog("IllegalStateException caught:" + e.getMessage());
             e.printStackTrace();
-        }
-
-        if (!success) {
-            Intent endIntent = new Intent();
-            endIntent.setAction(VideoBrowserActivity.UploaderBroadcastReceiver.UPLOAD_ERROR_ACTION);
-            endIntent.addCategory(Intent.CATEGORY_DEFAULT);
-            endIntent.putExtra(PARAM_OUT, sem_video.getId());
-            endIntent.putExtra(PARAM_WHAT, UPLOAD_ERROR);
-            endIntent.putExtra(PARAM_ARG, errmsg);
-            broadcast_manager.sendBroadcast(endIntent);
         }
     }
 }

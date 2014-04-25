@@ -27,46 +27,42 @@ import fi.aalto.legroup.achso.database.SemanticVideo;
 
 public class PollableHttpEntity extends HttpEntityWrapper implements HttpEntity {
     private final ProgressListener mProgressListener;
-    private final SemanticVideo mVideo;
 
-    public PollableHttpEntity(HttpEntity wrapped, final ProgressListener listener, final SemanticVideo video) {
+    public PollableHttpEntity(HttpEntity wrapped, final ProgressListener listener) {
         super(wrapped);
         mProgressListener = listener;
-        mVideo = video;
     }
 
     @Override
     public void writeTo(OutputStream outstream) throws IOException {
-        super.writeTo(new CountingOutputStream(outstream, mProgressListener, mVideo));
+        super.writeTo(new CountingOutputStream(outstream, mProgressListener));
     }
 
     public static interface ProgressListener {
-        void transferred(long bytes, SemanticVideo sv);
+        void transferred(long bytes);
     }
 
     public static class CountingOutputStream extends FilterOutputStream {
 
         private final ProgressListener mProgressListener;
-        private final SemanticVideo mVideo;
         private long mTransferred;
 
-        public CountingOutputStream(final OutputStream out, final ProgressListener listener, final SemanticVideo video) {
+        public CountingOutputStream(final OutputStream out, final ProgressListener listener) {
             super(out);
             mProgressListener = listener;
             mTransferred = 0;
-            mVideo = video;
         }
 
         public void write(byte[] b, int off, int len) throws IOException {
             out.write(b, off, len);
             mTransferred += len;
-            mProgressListener.transferred(mTransferred, mVideo);
+            mProgressListener.transferred(mTransferred);
         }
 
         public void write(int b) throws IOException {
             out.write(b);
             mTransferred++;
-            mProgressListener.transferred(mTransferred, mVideo);
+            mProgressListener.transferred(mTransferred);
         }
     }
 
