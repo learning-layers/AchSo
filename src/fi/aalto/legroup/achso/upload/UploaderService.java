@@ -98,6 +98,7 @@ public class UploaderService extends IntentService {
         startUploadIntent.putExtra(PARAM_OUT, transfer_id);
         startUploadIntent.putExtra(PARAM_WHAT, UPLOAD_START);
         broadcast_manager.sendBroadcast(startUploadIntent);
+        Log.i("UploaderService", "Broadcasting intent UPLOAD_START_ACTION");
         return new PollableHttpEntity(entity, new PollableHttpEntity.ProgressListener() {
             // broadcast upload progress
             @Override
@@ -132,14 +133,14 @@ public class UploaderService extends IntentService {
      */
     private void announceError(String errmsg, Long traffic_id) {
         // broadcast upload error
-        final LocalBroadcastManager broadcast_manager = LocalBroadcastManager.getInstance(this);
         Intent endIntent = new Intent();
         endIntent.setAction(VideoBrowserActivity.UploaderBroadcastReceiver.UPLOAD_ERROR_ACTION);
         endIntent.addCategory(Intent.CATEGORY_DEFAULT);
         endIntent.putExtra(PARAM_OUT, traffic_id);
         endIntent.putExtra(PARAM_WHAT, UPLOAD_ERROR);
         endIntent.putExtra(PARAM_ARG, errmsg);
-        broadcast_manager.sendBroadcast(endIntent);
+        Log.i("UploaderService", "Broadcasting error message: "+ errmsg);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(endIntent);
     }
 
     private void uploadToClViTra2Service(SemanticVideo sem_video) {
@@ -161,7 +162,7 @@ public class UploaderService extends IntentService {
         put.setHeader("X-Auth-Token", token);
         put.setHeader("Content-type", "application/x-www-form-urlencoded");
         try {
-            Log.i("UploaderService", "sending POST to " + url);
+            Log.i("UploaderService", "sending PUT to " + url);
             HttpResponse response = client.execute(put);
             Log.i("UploaderService", "response:" + response.getStatusLine().toString());
             appendLog("response:" + response.getStatusLine().toString());

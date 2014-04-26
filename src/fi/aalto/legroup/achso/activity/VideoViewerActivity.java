@@ -19,7 +19,6 @@ package fi.aalto.legroup.achso.activity;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -29,7 +28,6 @@ import android.widget.Toast;
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.fragment.SemanticVideoPlayerFragment;
 import fi.aalto.legroup.achso.fragment.VideoViewerFragment;
-import fi.aalto.legroup.achso.state.i5LoginState;
 
 import static fi.aalto.legroup.achso.util.App.appendLog;
 
@@ -72,13 +70,6 @@ public class VideoViewerActivity extends ActionbarActivity {
                 mVideoPositionInSearchCache = getIntent().getIntExtra(VideoViewerFragment.ARG_ITEM_CACHE_POSITION, -1);
             }
             modifyCurrentFragments(false);
-        }
-        if (mFilter == null && mReceiver == null) {
-            mFilter = new IntentFilter();
-            mFilter.addAction(i5LoginState.LOGIN_SUCCESS);
-            mFilter.addAction(i5LoginState.LOGIN_FAILED);
-            mFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-            mReceiver = new AchSoBroadcastReceiver();
         }
 
     }
@@ -145,12 +136,12 @@ public class VideoViewerActivity extends ActionbarActivity {
     @Override
     public  void onResume() {
         super.onResume();
-        this.registerReceiver(mReceiver, mFilter);
+        startReceivingBroadcasts();
     }
     @Override
     public  void onPause() {
         super.onPause();
-        this.unregisterReceiver(mReceiver);
+        stopReceivingBroadcasts();
     }
 
 

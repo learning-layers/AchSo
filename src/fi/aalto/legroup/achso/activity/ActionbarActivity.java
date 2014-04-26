@@ -21,12 +21,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -57,7 +59,7 @@ import static fi.aalto.legroup.achso.util.App.appendLog;
  * This is never used by itself and so it doesn't have onCreate or intent filters defined.
  */
 
-public class ActionbarActivity extends FragmentActivity {
+public abstract class ActionbarActivity extends FragmentActivity {
 
     public static final int REQUEST_VIDEO_CAPTURE = 1;
     public static final int REQUEST_SEMANTIC_VIDEO_GENRE = 2;
@@ -69,6 +71,10 @@ public class ActionbarActivity extends FragmentActivity {
 
     protected Menu mMenu;
     private Uri mVideoUri;
+    protected IntentFilter mFilter;
+    protected AchSoBroadcastReceiver mReceiver;
+    protected IntentFilter mLocalFilter;
+    protected AchSoLocalBroadcastReceiver mLocalReceiver;
 
     protected boolean show_record() {return true;}
     protected boolean show_login() {return true;}
@@ -292,6 +298,43 @@ public class ActionbarActivity extends FragmentActivity {
     }
 
 
+    protected void startReceivingBroadcasts() {
+
+        // Start receiving system / inter app broadcasts
+        if (mFilter == null || mReceiver == null) {
+            mFilter = new IntentFilter();
+            mFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+            mReceiver = new AchSoBroadcastReceiver();
+        }
+        this.registerReceiver(mReceiver, mFilter);
+        // Start receiving local broadcasts
+        if (mLocalFilter == null || mLocalReceiver == null) {
+            mLocalFilter = new IntentFilter();
+            mLocalFilter.addAction(i5LoginState.LOGIN_SUCCESS);
+            mLocalFilter.addAction(i5LoginState.LOGIN_FAILED);
+            mLocalReceiver = new AchSoLocalBroadcastReceiver();
+        }
+        LocalBroadcastManager.getInstance(this).registerReceiver(mLocalReceiver, mLocalFilter);
+    }
+    protected void stopReceivingBroadcasts(){
+        this.unregisterReceiver(mReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mLocalReceiver);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        stopReceivingBroadcasts();
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        startReceivingBroadcasts();
+    }
+
+
     /**
          * Handle responses from launched activities
          *
@@ -414,12 +457,23 @@ public class ActionbarActivity extends FragmentActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
+            if (action != null && action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+                updateLoginMenuItem();
+            }
+        }
+    }
+    /**
+     * Receive changes in login state, other activities may add more intents that they recognize.
+     */
+    public class AchSoLocalBroadcastReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
             if (action != null) {
                 if (action.equals(i5LoginState.LOGIN_SUCCESS)) {
                     updateLoginMenuItem();
                 } else if (action.equals(i5LoginState.LOGIN_FAILED)) {
-                    updateLoginMenuItem();
-                } else if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
                     updateLoginMenuItem();
                 }
             }

@@ -24,6 +24,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -44,6 +45,7 @@ public class LoginActivity extends ActionbarActivity {
     private EditText mPassword;
     private BroadcastReceiver mReceiver = null;
     private IntentFilter mFilter = null;
+    private IntentFilter mLocalFilter;
 
     protected boolean show_record() {return false;}
     protected boolean show_login() {return false;}
@@ -100,14 +102,6 @@ public class LoginActivity extends ActionbarActivity {
         SharedPreferences prefs = ctx.getSharedPreferences("AchSoPrefs", 0);
         boolean autologin = prefs.getBoolean("autologin", false);
 
-        if (mFilter == null && mReceiver == null) {
-            mFilter = new IntentFilter();
-            mFilter.addAction(i5LoginState.LOGIN_SUCCESS);
-            mFilter.addAction(i5LoginState.LOGIN_FAILED);
-            mFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-            mReceiver = new LoginBroadcastReceiver();
-        }
-
         mUserName = (EditText) findViewById(R.id.username_field);
         mPassword = (EditText) findViewById(R.id.password_field);
 
@@ -125,15 +119,23 @@ public class LoginActivity extends ActionbarActivity {
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        this.registerReceiver(mReceiver, mFilter);
-    }
+    protected void startReceivingBroadcasts() {
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        this.unregisterReceiver(mReceiver);
+        // Start receiving system / inter app broadcasts
+        if (mFilter == null || mReceiver == null) {
+            mFilter = new IntentFilter();
+            mFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+            mReceiver = new AchSoBroadcastReceiver();
+        }
+        this.registerReceiver(mReceiver, mFilter);
+        // Start receiving local broadcasts
+        if (mLocalFilter == null || mLocalReceiver == null) {
+            mLocalFilter = new IntentFilter();
+            mLocalFilter.addAction(i5LoginState.LOGIN_SUCCESS);
+            mLocalFilter.addAction(i5LoginState.LOGIN_FAILED);
+            mLocalReceiver = new LoginBroadcastReceiver();
+        }
+        LocalBroadcastManager.getInstance(this).registerReceiver(mLocalReceiver, mLocalFilter);
     }
 
     @Override
@@ -146,7 +148,7 @@ public class LoginActivity extends ActionbarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public class LoginBroadcastReceiver extends AchSoBroadcastReceiver {
+    public class LoginBroadcastReceiver extends AchSoLocalBroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             super.onReceive(context, intent);

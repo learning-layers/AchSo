@@ -26,6 +26,7 @@ import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.util.Pair;
@@ -49,11 +50,11 @@ import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.fragment.BrowseFragment;
 import fi.aalto.legroup.achso.fragment.VideoViewerFragment;
+import fi.aalto.legroup.achso.remote.RemoteResultCache;
 import fi.aalto.legroup.achso.state.IntentDataHolder;
 import fi.aalto.legroup.achso.state.i5LoginState;
 import fi.aalto.legroup.achso.upload.UploaderService;
 import fi.aalto.legroup.achso.util.App;
-import fi.aalto.legroup.achso.remote.RemoteResultCache;
 import fi.google.zxing.integration.android.IntentIntegrator;
 import fi.google.zxing.integration.android.IntentResult;
 
@@ -61,7 +62,9 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
         ViewPager.OnPageChangeListener {
 
     private List<SemanticVideo> mSelectedVideosForQrCode;
-    private UploaderBroadcastReceiver mReceiver = null;
+    private UploaderBroadcastReceiver mLocalReceiver = null;
+    private IntentFilter mLocalFilter = null;
+    private AchSoBroadcastReceiver mReceiver = null;
     private IntentFilter mFilter = null;
     private String mQrResult = null;
     private String mQuery = null;
@@ -154,6 +157,38 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
     }
 
     @Override
+    protected void startReceivingBroadcasts() {
+        // Start receiving system / inter app broadcasts
+        if (mFilter == null || mReceiver == null) {
+            mFilter = new IntentFilter();
+            mFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+            mReceiver = new AchSoBroadcastReceiver();
+        }
+        this.registerReceiver(mReceiver, mFilter);
+        // Start receiving local broadcasts
+        if (mLocalFilter == null || mLocalReceiver == null) {
+            mLocalFilter = new IntentFilter();
+            mLocalFilter.addAction(UploaderBroadcastReceiver.UPLOAD_START_ACTION);
+            mLocalFilter.addAction(UploaderBroadcastReceiver.UPLOAD_PROGRESS_ACTION);
+            mLocalFilter.addAction(UploaderBroadcastReceiver.UPLOAD_END_ACTION);
+            mLocalFilter.addAction(UploaderBroadcastReceiver.UPLOAD_ERROR_ACTION);
+            mLocalFilter.addAction(i5LoginState.LOGIN_SUCCESS);
+            mLocalFilter.addAction(i5LoginState.LOGIN_FAILED);
+            mLocalFilter.addCategory(Intent.CATEGORY_DEFAULT);
+            mLocalReceiver = new UploaderBroadcastReceiver();
+        }
+        LocalBroadcastManager.getInstance(this).registerReceiver(mLocalReceiver, mLocalFilter);
+
+    }
+
+    @Override
+    protected void stopReceivingBroadcasts() {
+        this.unregisterReceiver(mReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mLocalReceiver);
+    }
+
+
+    @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
     }
@@ -168,18 +203,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_mainmenu);
-
-        if (mFilter == null || mReceiver == null) {
-            mFilter = new IntentFilter();
-            mFilter.addAction(UploaderBroadcastReceiver.UPLOAD_START_ACTION);
-            mFilter.addAction(UploaderBroadcastReceiver.UPLOAD_PROGRESS_ACTION);
-            mFilter.addAction(UploaderBroadcastReceiver.UPLOAD_END_ACTION);
-            mFilter.addAction(i5LoginState.LOGIN_SUCCESS);
-            mFilter.addAction(i5LoginState.LOGIN_FAILED);
-            mFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-            //mFilter.addCategory(Intent.CATEGORY_DEFAULT);
-            mReceiver = new UploaderBroadcastReceiver();
-        }
+        Log.i("VideoBrowserActivity", "Registering receivers in onCreate.");
 
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mPagerAdapter = new BrowsePagerAdapter(this, getSupportFragmentManager(), mQuery,
@@ -262,16 +286,10 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
-        this.unregisterReceiver(mReceiver);
-    }
-
-    @Override
     public void onResume() {
         super.onResume();
         invalidateOptionsMenu();
-        this.registerReceiver(mReceiver, mFilter);
+
         if (mQuery != null) {
             mSearchView.setQuery(mQuery, false);
             mSearchView.clearFocus();
@@ -361,61 +379,57 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
         super.onDestroy();
     }
 
-    public class UploaderBroadcastReceiver extends AchSoBroadcastReceiver {
+    public class UploaderBroadcastReceiver extends AchSoLocalBroadcastReceiver {
         public static final String UPLOAD_START_ACTION = "fi.aalto.legroup.achso.intent.action.UPLOAD_START";
         public static final String UPLOAD_PROGRESS_ACTION = "fi.aalto.legroup.achso.intent.action.UPLOAD_PROGRESS";
         public static final String UPLOAD_END_ACTION = "fi.aalto.legroup.achso.intent.action.UPLOAD_END";
-        public static final String UPLOAD_ERROR_ACTION = "fi.aalto.legroup.achso.intent.action.UPLOAD_END";
+        public static final String UPLOAD_ERROR_ACTION = "fi.aalto.legroup.achso.intent.action.UPLOAD_ERROR";
 
         @Override
         public void onReceive(Context context, Intent intent) {
             super.onReceive(context, intent);
             String action = intent.getAction();
-            if (action != null && (action.equals(UPLOAD_START_ACTION) || action.equals(UPLOAD_START_ACTION) ||
-                action.equals(UPLOAD_START_ACTION) || action.equals(UPLOAD_START_ACTION))) {
+            Log.i("UploaderBroadcastReceiver", "Received action " + action);
+            if (action != null && (action.equals(UPLOAD_START_ACTION) || action.equals
+                    (UPLOAD_PROGRESS_ACTION) ||
+                action.equals(UPLOAD_END_ACTION) || action.equals(UPLOAD_ERROR_ACTION))) {
 
                 long id = intent.getLongExtra(UploaderService.PARAM_OUT, -1);
-                if (id != -1) {
-                    SemanticVideo sv = VideoDBHelper.getById(id);
-                    Pair<ProgressBar, ImageView> ui = getViewsForUploadUi(sv);
-                    if (ui == null)
-                        return;
-                    int what = intent.getIntExtra(UploaderService.PARAM_WHAT, -1);
-                    switch (what) {
-                        case UploaderService.UPLOAD_START:
-                            sv.setUploaded(false);
-                            sv.setUploading(true);
-                            ui.first.setVisibility(View.VISIBLE);
-                            ui.second.setColorFilter(getResources().getColor(R.color.upload_icon_uploading));
-                            break;
-                        case UploaderService.UPLOAD_PROGRESS:
-                            int percentage = intent.getIntExtra(UploaderService.PARAM_ARG, 0);
-                            ui.first.setProgress(percentage);
-                            break;
-                        case UploaderService.UPLOAD_END:
-                            sv.setUploaded(true);
-                            sv.setUploading(false);
-                            sv.setUploadPending(false);
+                if (id == -1)
+                    return;
+                SemanticVideo sv = VideoDBHelper.getById(id);
+                Pair<ProgressBar, ImageView> ui = getViewsForUploadUi(sv);
+                if (ui == null)
+                    return;
+                if (action.equals(UPLOAD_START_ACTION)) {
+                    sv.setUploaded(false);
+                    sv.setUploading(true);
+                    ui.first.setVisibility(View.VISIBLE);
+                    ui.second.setColorFilter(getResources().getColor(R.color.upload_icon_uploading));
+                } else if (action.equals(UPLOAD_PROGRESS_ACTION)) {
+                    int percentage = intent.getIntExtra(UploaderService.PARAM_ARG, 0);
+                    ui.first.setProgress(percentage);
+                } else if (action.equals(UPLOAD_END_ACTION)) {
+                    sv.setUploaded(true);
+                    sv.setUploading(false);
+                    sv.setUploadPending(false);
 
-                            VideoDBHelper vdb = new VideoDBHelper(context);
-                            vdb.update(sv);
-                            vdb.close();
+                    VideoDBHelper vdb = new VideoDBHelper(context);
+                    vdb.update(sv);
+                    vdb.close();
 
-                            ui.first.setVisibility(View.GONE);
-                            ui.second.setVisibility(View.GONE);
+                    ui.first.setVisibility(View.GONE);
+                    ui.second.setVisibility(View.GONE);
 
-                            Toast.makeText(getApplicationContext(), "Upload successful.", Toast.LENGTH_LONG).show();
-                            break;
-                        case UploaderService.UPLOAD_ERROR:
-                            sv.setUploaded(false);
-                            sv.setUploading(false);
-                            sv.setUploadPending(false);
-                            ui.first.setVisibility(View.GONE);
-                            ui.second.setVisibility(View.GONE);
-                            String errmsg = intent.getStringExtra(UploaderService.PARAM_ARG);
-                            Toast.makeText(getApplicationContext(), errmsg, Toast.LENGTH_LONG).show();
-                            break;
-                    }
+                    Toast.makeText(context, "Upload successful.", Toast.LENGTH_LONG).show();
+                } else if (action.equals(UPLOAD_ERROR_ACTION)) {
+                        sv.setUploaded(false);
+                        sv.setUploading(false);
+                        sv.setUploadPending(false);
+                        ui.first.setVisibility(View.GONE);
+                        ui.second.setVisibility(View.GONE);
+                        String errmsg = intent.getStringExtra(UploaderService.PARAM_ARG);
+                        Toast.makeText(context, errmsg, Toast.LENGTH_LONG).show();
                 }
             }
         }
