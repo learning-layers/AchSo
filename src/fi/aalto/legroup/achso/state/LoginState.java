@@ -7,6 +7,8 @@ public interface LoginState {
     int LOGGED_OUT = 0;
     int TRYING_TO_LOG_IN = 1;
     int LOGGED_IN = 2;
+    String LOGIN_SUCCESS = "fi.aalto.legroup.achso.login_success";
+    String LOGIN_FAILED = "fi.aalto.legroup.achso.login_failed";
 
     String getPublicUrl();
 

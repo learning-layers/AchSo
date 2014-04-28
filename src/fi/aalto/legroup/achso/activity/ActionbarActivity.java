@@ -47,7 +47,7 @@ import fi.aalto.legroup.achso.database.LocalRawVideos;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.state.IntentDataHolder;
-import fi.aalto.legroup.achso.state.i5LoginState;
+import fi.aalto.legroup.achso.state.LoginState;
 import fi.aalto.legroup.achso.util.App;
 import fi.google.zxing.integration.android.IntentIntegrator;
 
@@ -314,8 +314,8 @@ public abstract class ActionbarActivity extends FragmentActivity {
         // Start receiving local broadcasts
         if (mLocalFilter == null || mLocalReceiver == null) {
             mLocalFilter = new IntentFilter();
-            mLocalFilter.addAction(i5LoginState.LOGIN_SUCCESS);
-            mLocalFilter.addAction(i5LoginState.LOGIN_FAILED);
+            mLocalFilter.addAction(LoginState.LOGIN_SUCCESS);
+            mLocalFilter.addAction(LoginState.LOGIN_FAILED);
             mLocalReceiver = new AchSoLocalBroadcastReceiver();
         }
         LocalBroadcastManager.getInstance(this).registerReceiver(mLocalReceiver, mLocalFilter);
@@ -475,9 +475,9 @@ public abstract class ActionbarActivity extends FragmentActivity {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (action != null) {
-                if (action.equals(i5LoginState.LOGIN_SUCCESS)) {
+                if (action.equals(LoginState.LOGIN_SUCCESS)) {
                     updateLoginMenuItem();
-                } else if (action.equals(i5LoginState.LOGIN_FAILED)) {
+                } else if (action.equals(LoginState.LOGIN_FAILED)) {
                     updateLoginMenuItem();
                 }
             }

@@ -52,7 +52,7 @@ import fi.aalto.legroup.achso.fragment.BrowseFragment;
 import fi.aalto.legroup.achso.fragment.VideoViewerFragment;
 import fi.aalto.legroup.achso.remote.RemoteResultCache;
 import fi.aalto.legroup.achso.state.IntentDataHolder;
-import fi.aalto.legroup.achso.state.i5LoginState;
+import fi.aalto.legroup.achso.state.LoginState;
 import fi.aalto.legroup.achso.upload.UploaderService;
 import fi.aalto.legroup.achso.util.App;
 import fi.google.zxing.integration.android.IntentIntegrator;
@@ -172,8 +172,8 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
             mLocalFilter.addAction(UploaderBroadcastReceiver.UPLOAD_PROGRESS_ACTION);
             mLocalFilter.addAction(UploaderBroadcastReceiver.UPLOAD_END_ACTION);
             mLocalFilter.addAction(UploaderBroadcastReceiver.UPLOAD_ERROR_ACTION);
-            mLocalFilter.addAction(i5LoginState.LOGIN_SUCCESS);
-            mLocalFilter.addAction(i5LoginState.LOGIN_FAILED);
+            mLocalFilter.addAction(LoginState.LOGIN_SUCCESS);
+            mLocalFilter.addAction(LoginState.LOGIN_FAILED);
             mLocalFilter.addCategory(Intent.CATEGORY_DEFAULT);
             mLocalReceiver = new UploaderBroadcastReceiver();
         }

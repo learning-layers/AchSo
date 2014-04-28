@@ -18,9 +18,11 @@ package fi.aalto.legroup.achso.state;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -73,7 +75,7 @@ public class LasLoginState implements LoginState {
 
                 if (allowed && !login.isEmpty() && !pwd.isEmpty()) {
                     asynchronousLogin(login, pwd);
-                    Log.i("LoginState", "autologin launched async login.");
+                    Log.i("LasLoginState", "autologin launched async login.");
                 }
 
             }
@@ -99,28 +101,28 @@ public class LasLoginState implements LoginState {
             try {
                 result = taskresult.get();
             } catch (InterruptedException e) {
-                Log.e("LoginState", "Login failed, catched InterruptedException");
+                Log.e("LoginState", "LasLogin failed, catched InterruptedException");
                 e.printStackTrace();
                 setState(LOGGED_OUT);
                 return;
             } catch (ExecutionException e) {
-                Log.e("LoginState", "Login failed, catched ExecutionException");
+                Log.e("LoginState", "LasLogin failed, catched ExecutionException");
                 e.printStackTrace();
                 setState(LOGGED_OUT);
                 return;
             }
             // LoginTask onPostExecute sets mIn to LOGGED_IN or LOGGED_OUT
             if (result.equals(LasConnection.CONNECTION_PROBLEM)) {
-                Log.e("LoginState", "iLogin failed, connection problem");
+                Log.e("LoginState", "LasLogin failed, connection problem");
                 setState(LOGGED_OUT);
             } else if (result.equals(LasConnection.AUTHENTICATION_PROBLEM)) {
-                Log.e("LoginState", "iLogin failed, authentication problem");
+                Log.e("LoginState", "LasLogin failed, authentication problem");
                 setState(LOGGED_OUT);
             } else if (result.equals(LasConnection.UNDEFINED_PROBLEM)) {
-                Log.e("LoginState", "iLogin failed, unknown problem");
+                Log.e("LoginState", "LasLogin failed, unknown problem");
                 setState(LOGGED_OUT);
             } else {
-                Log.i("LoginState", "iLogin result: " + result);
+                Log.i("LoginState", "LasLogin result: " + result);
                 mUser = user;
                 appendLog(String.format("Logged in as %s", mUser));
                 setState(LOGGED_IN);
@@ -136,7 +138,7 @@ public class LasLoginState implements LoginState {
                 edit.apply();
             }
         } else if (mIn == TRYING_TO_LOG_IN) {
-            Log.e("LoginState", "Still trying to log in, even as task has ended. Strange.");
+            Log.e("LasLoginState", "Still trying to log in, even as task has ended. Strange.");
         }
     }
 
@@ -156,7 +158,17 @@ public class LasLoginState implements LoginState {
             disable_autologin_for_session = true;
         }
         mIn = state;
-        Log.i("LoginState", "state set to " + state + ". Should update the icon next. ");
+        Log.i("LasLoginState", "state set to " + state + ". Should update the icon next. ");
+        Intent intent = new Intent();
+        if (state == LOGGED_OUT) {
+            intent.setAction(LOGIN_FAILED);
+            LocalBroadcastManager.getInstance(ctx).sendBroadcast(intent);
+        } else if (state == LOGGED_IN) {
+            intent.setAction(LOGIN_SUCCESS);
+            LocalBroadcastManager.getInstance(ctx).sendBroadcast(intent);
+        }
+
+
     }
 
     @Override
@@ -193,32 +205,32 @@ public class LasLoginState implements LoginState {
             }
             user = arg[0];
             pass = arg[1];
-            Log.i("LoginTask", "Starting background logging in");
+            Log.i("LasLoginTask", "Starting background logging in");
             // create the connection; the result will be a session id or an error message
             LasConnection con = LasConnection.getConnection();
             ret = con.connect(user, pass);
             con.disconnect();
             mUser = user;
-            Log.i("LoginTask", "Received logging in response: " + ret);
+            Log.i("LasLoginTask", "Received logging in response: " + ret);
             return ret;
         }
 
         protected void onPostExecute(String result) {
-            Log.i("LoginTask", "doing onPostExecute with result " + result);
+            Log.i("LasLoginTask", "doing onPostExecute with result " + result);
             if (result.equals(LasConnection.CONNECTION_PROBLEM)) {
                 Toast.makeText(ctx, "Connection problem", Toast.LENGTH_LONG).show();
-                Log.e("LoginState", "Login failed, connection problem");
+                Log.e("LasLoginState", "Login failed, connection problem");
                 setState(LOGGED_OUT);
             } else if (result.equals(LasConnection.AUTHENTICATION_PROBLEM)) {
                 Toast.makeText(ctx, "Authentication problem", Toast.LENGTH_LONG).show();
-                Log.e("LoginState", "Login failed, authentication problem");
+                Log.e("LasLoginState", "Login failed, authentication problem");
                 setState(LOGGED_OUT);
             } else if (result.equals(LasConnection.UNDEFINED_PROBLEM)) {
                 Toast.makeText(ctx, "Unknown problem connecting", Toast.LENGTH_LONG).show();
-                Log.e("LoginState", "Login failed, unknown problem");
+                Log.e("LasLoginState", "Login failed, unknown problem");
                 setState(LOGGED_OUT);
             } else {
-                Log.i("LoginState", "Login result: " + result);
+                Log.i("LasLoginState", "Login result: " + result);
                 setState(LOGGED_IN);
             }
         }

@@ -34,7 +34,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import fi.aalto.legroup.achso.R;
-import fi.aalto.legroup.achso.state.i5LoginState;
+import fi.aalto.legroup.achso.state.LoginState;
 import fi.aalto.legroup.achso.util.App;
 
 public class LoginActivity extends ActionbarActivity {
@@ -131,8 +131,8 @@ public class LoginActivity extends ActionbarActivity {
         // Start receiving local broadcasts
         if (mLocalFilter == null || mLocalReceiver == null) {
             mLocalFilter = new IntentFilter();
-            mLocalFilter.addAction(i5LoginState.LOGIN_SUCCESS);
-            mLocalFilter.addAction(i5LoginState.LOGIN_FAILED);
+            mLocalFilter.addAction(LoginState.LOGIN_SUCCESS);
+            mLocalFilter.addAction(LoginState.LOGIN_FAILED);
             mLocalReceiver = new LoginBroadcastReceiver();
         }
         LocalBroadcastManager.getInstance(this).registerReceiver(mLocalReceiver, mLocalFilter);
@@ -152,7 +152,7 @@ public class LoginActivity extends ActionbarActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             super.onReceive(context, intent);
-            if (intent.getAction() != null && intent.getAction().equals(i5LoginState.LOGIN_SUCCESS)) {
+            if (intent.getAction() != null && intent.getAction().equals(LoginState.LOGIN_SUCCESS)) {
                 close_this(intent.getAction());
             }
         }

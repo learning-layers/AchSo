@@ -16,12 +16,12 @@
 
 package fi.aalto.legroup.achso.state;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -39,15 +39,12 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 
-import fi.aalto.legroup.achso.activity.ActionbarActivity;
 import fi.aalto.legroup.achso.util.App;
 
 import static fi.aalto.legroup.achso.util.App.appendLog;
 
 public class i5LoginState implements LoginState {
     private int mIn = LOGGED_OUT;
-    public static String LOGIN_SUCCESS = "fi.aalto.legroup.achso.login_success";
-    public static String LOGIN_FAILED = "fi.aalto.legroup.achso.login_failed";
     private final String loginUrl = "http://137.226.58.11:8081/i5Cloud/services/3/auth";
     private String mUser;
     private String mAuthToken;
@@ -124,7 +121,7 @@ public class i5LoginState implements LoginState {
                             handle_login_result(result_array, true);
                         }
                     }.execute(user, pass);
-                    Log.i("LoginState", "autologin launched async login.");
+                    Log.i("i5LoginState", "autologin launched async login.");
                 }
 
             }
@@ -140,14 +137,14 @@ public class i5LoginState implements LoginState {
         Intent intent = new Intent();
         if (state == LOGGED_OUT) {
             intent.setAction(LOGIN_FAILED);
-            ctx.sendBroadcast(intent);
+            LocalBroadcastManager.getInstance(ctx).sendBroadcast(intent);
         } else if (state == LOGGED_IN) {
             intent.setAction(LOGIN_SUCCESS);
-            ctx.sendBroadcast(intent);
+            LocalBroadcastManager.getInstance(ctx).sendBroadcast(intent);
         }
 
         mIn = state;
-        Log.i("LoginState", "state set to " + state + ". Should update the icon next. ");
+        Log.i("i5LoginState", "state set to " + state + ". Should update the icon next. ");
     }
 
     private boolean handle_login_result(String[] result_array, boolean silent) {
@@ -224,7 +221,7 @@ public class i5LoginState implements LoginState {
                 return null;
             }
             HttpClient httpclient = new DefaultHttpClient();
-            Log.i("LoginTask", "Starting background logging in");
+            Log.i("i5LoginTask", "Starting background logging in");
             //creating HTTP REST Call & authentication information
             HttpPost post = new HttpPost(loginUrl);
             HashMap<String, String> login_info = new HashMap<String, String>();
@@ -247,12 +244,13 @@ public class i5LoginState implements LoginState {
                     HttpEntity e = response.getEntity();
                     String data = EntityUtils.toString(e);
                     mUser = arg[0];
-                    Log.i("LoginTask", "Received logging in response: " + data);
+                    Log.i("i5LoginTask", "Received logging in response: " + data);
                     //setState(LOGGED_IN);
                     result_array[0] = data;
                     result_array[1] = "200";
                 } else {
-                    Log.i("LoginTask", "Received status code " + status + " in response: " + response.getStatusLine().getReasonPhrase());
+                    Log.i("i5LoginTask", "Received status code " + status + " in response: " +
+                            response.getStatusLine().getReasonPhrase());
                     result_array[0] = "Error";
                     result_array[1] = String.valueOf(status);
                 }
