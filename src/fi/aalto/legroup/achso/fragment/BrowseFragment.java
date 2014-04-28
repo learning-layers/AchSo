@@ -137,7 +137,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
                 }).show();
                 return true;
             case R.id.action_upload:
-                if (App.login_state.isIn()) {
+                if (!App.login_state.isIn()) {
                     final Context ctx = this.getActivity();
                     new AlertDialog.Builder(this.getActivity()).setTitle(R.string.not_loggedin_nag_title)
                             .setMessage(R.string.not_loggedin_nag_text)

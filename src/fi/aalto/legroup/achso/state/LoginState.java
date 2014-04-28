@@ -20,6 +20,8 @@ public interface LoginState {
 
     String getUser();
 
+    String getAuthToken();
+
     int getState();
 
     void logout();

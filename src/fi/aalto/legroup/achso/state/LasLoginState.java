@@ -41,6 +41,7 @@ public class LasLoginState implements LoginState {
     public static final int LOGGED_IN = 2;
     private String mUser = null;
     private Context ctx;
+    private String mAuthToken;
     private boolean disable_autologin_for_session = false;
 
     public LasLoginState(Context ctx) {
@@ -64,6 +65,7 @@ public class LasLoginState implements LoginState {
 
     }
 
+    @Override
     public void autologinIfAllowed() {
         if (!disable_autologin_for_session) {
             if (mIn == LOGGED_OUT && App.hasConnection()) {
@@ -82,6 +84,7 @@ public class LasLoginState implements LoginState {
         }
     }
 
+    @Override
     public void login(String user, String pass) {
         setState(LOGGED_OUT);
         appendLog(String.format("Doing manual login as %s", user));
@@ -146,6 +149,7 @@ public class LasLoginState implements LoginState {
         return mUser;
     }
 
+
     public int getState() {
         return mIn;
     }
@@ -176,18 +180,24 @@ public class LasLoginState implements LoginState {
         return null;
     }
 
+    @Override
+    public String getAuthToken() {
+        return mAuthToken;
+    }
+
+    @Override
     public boolean isIn() {
         return (mIn == LOGGED_IN);
     }
 
     @Override
     public boolean isOut() {
-        return false;
+        return (mIn == LOGGED_OUT);
     }
 
     @Override
     public boolean isTrying() {
-        return false;
+        return (mIn == TRYING_TO_LOG_IN);
     }
 
     public void logout() {
@@ -199,7 +209,7 @@ public class LasLoginState implements LoginState {
 
         @Override
         protected String doInBackground(String... arg) {
-            String ret, user, pass;
+            String response, user, pass;
             if (arg.length < 2) {
                 return null;
             }
@@ -207,12 +217,12 @@ public class LasLoginState implements LoginState {
             pass = arg[1];
             Log.i("LasLoginTask", "Starting background logging in");
             // create the connection; the result will be a session id or an error message
-            LasConnection con = LasConnection.getConnection();
-            ret = con.connect(user, pass);
-            con.disconnect();
+            LasConnection lc = (LasConnection) App.connection;
+            response = lc.connect(user, pass);
+            lc.disconnect();
             mUser = user;
-            Log.i("LasLoginTask", "Received logging in response: " + ret);
-            return ret;
+            Log.i("LasLoginTask", "Received logging in response: " + response);
+            return response;
         }
 
         protected void onPostExecute(String result) {
@@ -231,6 +241,7 @@ public class LasLoginState implements LoginState {
                 setState(LOGGED_OUT);
             } else {
                 Log.i("LasLoginState", "Login result: " + result);
+                mAuthToken = result;
                 setState(LOGGED_IN);
             }
         }

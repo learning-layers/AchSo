@@ -208,7 +208,7 @@ public class UploaderService extends IntentService {
         HttpClient httpclient = new DefaultHttpClient();
         //added source and file id to the http post
         HttpPost httppost = new HttpPost(server_url + "?source=achso&uid=" + filename);
-        LasConnection las = LasConnection.getConnection();
+        LasConnection las = (LasConnection) App.connection;
         String username = las.getClient().getUser();
         String pass = new String(Base64.encode(las.getPass().getBytes(), 0));
         appendLog(String.format("Uploading video %d to %s as file %s", sem_video.getId(), server_url, filename));

@@ -47,7 +47,7 @@ public class LasConnection implements Connection {
     public static final String CONNECTION_PROBLEM = "An error accoured when connectiong to web please check your internet conenction settings";
     public static final String AUTHENTICATION_PROBLEM = "wrong username or password, please try again";
     public static final String UNDEFINED_PROBLEM = "an exception occured, please try again";
-    private static LasConnection con = null;
+    //private static LasConnection con = null;
     // FIELDS
     // -------------------------------------------------------------------
     private Client client;
@@ -79,13 +79,13 @@ public class LasConnection implements Connection {
      *
      * @return the connection
      */
-    public static LasConnection getConnection() {
-        if (con == null) {
-            con = new LasConnection();
-        }
-
-        return con;
-    }
+//    public static LasConnection getConnection() {
+//        if (con == null) {
+//            con = new LasConnection();
+//        }
+//
+//        return con;
+//    }
 
     // GETTERS
     // ------------------------------------------------------------------
@@ -292,8 +292,10 @@ public class LasConnection implements Connection {
             // What should we invoke to get
             // i5.atlas.las.service.videoinformation.Videoinformation
             //
+            //xmlString = (String) this.invoke("mpeg7_multimediacontent_service",
+            //        "getVideoInformations");
             xmlString = (String) this.invoke("mpeg7_multimediacontent_service",
-                    "getVideoInformations");
+                    "getMediaUrls");
 
         } catch (Exception e) {
             // TODO Auto-generated catch block
@@ -344,7 +346,9 @@ public class LasConnection implements Connection {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-
+        if (isInstantiated) {
+            Log.i("LasConnection", "Successfully instantiated DBContext");
+        }
         return isInstantiated;
 
     }
@@ -384,8 +388,7 @@ public class LasConnection implements Connection {
 
         // userService.setCurrentUser(new User());
 
-        client = new Client(lasHostname, lasPort, timeOut * 1000, username,
-                password);
+        client = new Client(lasHostname, lasPort, timeOut * 1000, username, password);
         client.getMobileContext().setApplicationCode("AchSo");
 
         Log.i("LasConnection", "CLIENT TIMEOUT: " + client.getTimeoutMs());
@@ -402,6 +405,7 @@ public class LasConnection implements Connection {
 
             Object[] params = {appCode, constraints};
 
+            Log.i("LasConnection", "instantiating context: " + params.toString());
             this.invoke("xmldbxs-context-service", "instantiateContext", params);
             this.connected = true;
 
@@ -450,13 +454,25 @@ public class LasConnection implements Connection {
     }
 
 
+    /**
+     * Method to get video data that can be later expanded to a list of SemanticVideos
+     * When this gets called we should already be in asynchronous thread.
+     * @param query_type -- query types are defined at BrowsePagerAdapter,
+     *                   but the actual implementation for formulating the query in such way that
+     *                   the server can understand it is done here.
+     *
+     * @param query -- if there are keywords to search, locations etc. give them here. (we can
+     *              change this to List<String> if necessary.)
+     * @return
+     */
+    @Override
     public String getVideos(int query_type, String query) {
         String xml = "";
         // prepare authentication arguments for http GET
-        con = getConnection();
-        if (con.client == null) {
-
-        }
+        //con = getConnection();
+        //if (con.client == null) {
+        //
+        //}
 
         // prepare url to call and its search arguments
         switch (query_type) {

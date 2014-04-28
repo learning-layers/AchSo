@@ -389,7 +389,6 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
         public void onReceive(Context context, Intent intent) {
             super.onReceive(context, intent);
             String action = intent.getAction();
-            Log.i("UploaderBroadcastReceiver", "Received action " + action);
             if (action != null && (action.equals(UPLOAD_START_ACTION) || action.equals
                     (UPLOAD_PROGRESS_ACTION) ||
                 action.equals(UPLOAD_END_ACTION) || action.equals(UPLOAD_ERROR_ACTION))) {
@@ -402,6 +401,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
                 if (ui == null)
                     return;
                 if (action.equals(UPLOAD_START_ACTION)) {
+                    Log.i("UploaderBroadcastReceiver", "Received upload start action ");
                     sv.setUploaded(false);
                     sv.setUploading(true);
                     ui.first.setVisibility(View.VISIBLE);
@@ -410,6 +410,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
                     int percentage = intent.getIntExtra(UploaderService.PARAM_ARG, 0);
                     ui.first.setProgress(percentage);
                 } else if (action.equals(UPLOAD_END_ACTION)) {
+                    Log.i("UploaderBroadcastReceiver", "Received upload end action ");
                     sv.setUploaded(true);
                     sv.setUploading(false);
                     sv.setUploadPending(false);
@@ -423,6 +424,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
 
                     Toast.makeText(context, "Upload successful.", Toast.LENGTH_LONG).show();
                 } else if (action.equals(UPLOAD_ERROR_ACTION)) {
+                        Log.i("UploaderBroadcastReceiver", "Received upload error action ");
                         sv.setUploaded(false);
                         sv.setUploading(false);
                         sv.setUploadPending(false);
