@@ -10,7 +10,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -19,18 +18,25 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import fi.aalto.legroup.achso.state.LasLoginState;
+import fi.aalto.legroup.achso.state.LoginState;
 import fi.aalto.legroup.achso.state.i5LoginState;
 
 public class App extends Application {
 
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    public static i5LoginState login_state;
-    public static i5Connection connection;
+    public static LoginState login_state;
+    public static Connection connection;
     private static Context mContext;
     private static File mLogFile;
     public static Location last_location;
+    public static final int CLVITRA2 = 2;
+    public static final int CLVITRA = 1;
+    public static final int AALTO_TEST_SERVER = 0;
+    public static int uploader;
     public String last_qr_code;
     public Date last_qr_code_timestamp;
+    public static boolean use_las = true;
 
 
     public static Context getContext() {
@@ -75,7 +81,14 @@ public class App extends Application {
             }
         }
 
-        login_state = new i5LoginState(mContext);
+        uploader = CLVITRA;
+        if (use_las) {
+            login_state = new LasLoginState(mContext);
+            connection = new LasConnection();
+        } else {
+            login_state = new i5LoginState(mContext);
+            connection = new i5Connection();
+        }
         appendLog("Starting Ach so! -app on device " + android.os.Build.MODEL);
         Log.i("App", "Starting Ach so! -app on device " + android.os.Build.MODEL);
 

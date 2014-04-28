@@ -27,6 +27,7 @@ import java.util.ResourceBundle;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import fi.aalto.legroup.achso.adapter.BrowsePagerAdapter;
 import i5.las.httpConnector.client.AccessDeniedException;
 import i5.las.httpConnector.client.AuthenticationFailedException;
 import i5.las.httpConnector.client.Client;
@@ -41,7 +42,7 @@ import i5.las.httpConnector.client.UnableToConnectException;
 /**
  * The Class LasConnection.
  */
-public class LasConnection {
+public class LasConnection implements Connection {
 
     public static final String CONNECTION_PROBLEM = "An error accoured when connectiong to web please check your internet conenction settings";
     public static final String AUTHENTICATION_PROBLEM = "wrong username or password, please try again";
@@ -305,7 +306,6 @@ public class LasConnection {
     /**
      * Converts a String into an XML Document TODO use the XmlObject here
      *
-     * @param String xmlRepresentation
      */
     private Document getXMLDocument(String xmlRepresentation) {
         // convert the result into an XML Document
@@ -449,4 +449,48 @@ public class LasConnection {
         return pass;
     }
 
+
+    public String getVideos(int query_type, String query) {
+        String xml = "";
+        // prepare authentication arguments for http GET
+        con = getConnection();
+        if (con.client == null) {
+
+        }
+
+        // prepare url to call and its search arguments
+        switch (query_type) {
+            case BrowsePagerAdapter.SEARCH:
+                xml = getVideoInformations();
+                break;
+            case BrowsePagerAdapter.QR_SEARCH:
+                xml = getVideoInformations();
+                break;
+            case BrowsePagerAdapter.LATEST:
+                xml = getVideoInformations();
+                break;
+            case BrowsePagerAdapter.MY_VIDEOS:
+                xml = getVideoInformations();
+                break;
+            case BrowsePagerAdapter.RECOMMENDED:
+                xml = getVideoInformations();
+                break;
+            case BrowsePagerAdapter.BROWSE_BY_GENRE:
+                xml = getVideoInformations();
+                break;
+            case BrowsePagerAdapter.NEARBY:
+                xml = getVideoInformations();
+                break;
+        }
+        // start building http GET
+
+
+        // execute GET
+
+
+        // handle results
+
+        return xml;
+
+    }
 }

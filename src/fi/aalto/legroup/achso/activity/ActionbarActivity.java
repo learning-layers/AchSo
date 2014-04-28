@@ -297,7 +297,11 @@ public abstract class ActionbarActivity extends FragmentActivity {
         return newvideo.getId();
     }
 
-
+    /**
+     * Re-implement this in subclasses to recognize more or less broadcasts -- these are the
+     * defaults to have login button to change state according to login process and network
+     * availability
+     */
     protected void startReceivingBroadcasts() {
 
         // Start receiving system / inter app broadcasts

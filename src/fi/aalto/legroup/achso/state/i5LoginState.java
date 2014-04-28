@@ -44,11 +44,8 @@ import fi.aalto.legroup.achso.util.App;
 
 import static fi.aalto.legroup.achso.util.App.appendLog;
 
-public class i5LoginState {
-    public static final int LOGGED_OUT = 0;
+public class i5LoginState implements LoginState {
     private int mIn = LOGGED_OUT;
-    public static final int TRYING_TO_LOG_IN = 1;
-    public static final int LOGGED_IN = 2;
     public static String LOGIN_SUCCESS = "fi.aalto.legroup.achso.login_success";
     public static String LOGIN_FAILED = "fi.aalto.legroup.achso.login_failed";
     private final String loginUrl = "http://137.226.58.11:8081/i5Cloud/services/3/auth";
@@ -69,32 +66,39 @@ public class i5LoginState {
         return mAuthToken;
     }
 
+    @Override
     public String getPublicUrl() {
         return mPublicUrl;
     }
 
     // it is easier to ask first if we are logged in at all
 
+    @Override
     public boolean isIn() {
         return (mIn == LOGGED_IN);
     }
 
+    @Override
     public boolean isOut() {
         return (mIn == LOGGED_OUT);
     }
 
+    @Override
     public boolean isTrying() {
         return (mIn == TRYING_TO_LOG_IN);
     }
 
+    @Override
     public String getUser() {
         return mUser;
     }
 
+    @Override
     public int getState() {
         return mIn;
     }
 
+    @Override
     public void logout() {
         mUser = null;
         setState(LOGGED_OUT);
@@ -102,6 +106,7 @@ public class i5LoginState {
 
     // Internal stuff, mostly:
 
+    @Override
     public void autologinIfAllowed() {
         if (!disable_autologin_for_session) {
             if (mIn == LOGGED_OUT && App.hasConnection()) {
@@ -190,6 +195,7 @@ public class i5LoginState {
         return false;
     }
 
+    @Override
     public void login(String user, String pass) {
         setState(LOGGED_OUT);
         appendLog(String.format("Doing login as %s", user));

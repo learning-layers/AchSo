@@ -32,7 +32,7 @@ import fi.aalto.legroup.achso.util.LasConnection;
 
 import static fi.aalto.legroup.achso.util.App.appendLog;
 
-public class LasLoginState {
+public class LasLoginState implements LoginState {
     public static final int LOGGED_OUT = 0;
     private int mIn = LOGGED_OUT;
     public static final int TRYING_TO_LOG_IN = 1;
@@ -80,12 +80,12 @@ public class LasLoginState {
         }
     }
 
-    public boolean login(String user, String pass) {
+    public void login(String user, String pass) {
         setState(LOGGED_OUT);
         appendLog(String.format("Doing manual login as %s", user));
 
         if (user == null || pass == null) {
-            return false;
+            return;
         } else {
             // TODO (Petru) Replace the old LAS login with the integrated OpenID login
 
@@ -102,12 +102,12 @@ public class LasLoginState {
                 Log.e("LoginState", "Login failed, catched InterruptedException");
                 e.printStackTrace();
                 setState(LOGGED_OUT);
-                return false;
+                return;
             } catch (ExecutionException e) {
                 Log.e("LoginState", "Login failed, catched ExecutionException");
                 e.printStackTrace();
                 setState(LOGGED_OUT);
-                return false;
+                return;
             }
             // LoginTask onPostExecute sets mIn to LOGGED_IN or LOGGED_OUT
             if (result.equals(LasConnection.CONNECTION_PROBLEM)) {
@@ -135,13 +135,9 @@ public class LasLoginState {
                 edit.putString("pwd", pass);
                 edit.apply();
             }
-            return true;
-        } else if (mIn == LOGGED_OUT) {
-            return false;
-        } else {
+        } else if (mIn == TRYING_TO_LOG_IN) {
             Log.e("LoginState", "Still trying to log in, even as task has ended. Strange.");
         }
-        return false;
     }
 
     public String getUser() {
@@ -163,8 +159,23 @@ public class LasLoginState {
         Log.i("LoginState", "state set to " + state + ". Should update the icon next. ");
     }
 
+    @Override
+    public String getPublicUrl() {
+        return null;
+    }
+
     public boolean isIn() {
         return (mIn == LOGGED_IN);
+    }
+
+    @Override
+    public boolean isOut() {
+        return false;
+    }
+
+    @Override
+    public boolean isTrying() {
+        return false;
     }
 
     public void logout() {

@@ -43,6 +43,7 @@ import java.util.UUID;
 import fi.aalto.legroup.achso.activity.VideoBrowserActivity;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
+import fi.aalto.legroup.achso.util.App;
 import fi.aalto.legroup.achso.util.LasConnection;
 import fi.aalto.legroup.achso.util.xml.XmlConverter;
 
@@ -72,7 +73,18 @@ public class UploaderService extends IntentService {
 
         if (id != -1) {
             SemanticVideo sem_video = VideoDBHelper.getById(id);
-            uploadToClViTra2Service(sem_video);
+            switch (App.uploader) {
+                case App.CLVITRA2:
+                    uploadToClViTra2Service(sem_video);
+                    break;
+                case App.CLVITRA:
+                    uploadToClViTra(sem_video);
+                    break;
+                case App.AALTO_TEST_SERVER:
+                    uploadToAaltoTestService(sem_video);
+                    break;
+
+            }
         }
     }
 
@@ -139,7 +151,7 @@ public class UploaderService extends IntentService {
         endIntent.putExtra(PARAM_OUT, traffic_id);
         endIntent.putExtra(PARAM_WHAT, UPLOAD_ERROR);
         endIntent.putExtra(PARAM_ARG, errmsg);
-        Log.i("UploaderService", "Broadcasting error message: "+ errmsg);
+        Log.i("UploaderService", "Broadcasting error message: " + errmsg);
         LocalBroadcastManager.getInstance(this).sendBroadcast(endIntent);
     }
 
@@ -235,6 +247,47 @@ public class UploaderService extends IntentService {
             e.printStackTrace();
         }
     }
+
+    private void uploadToAaltoTestService(SemanticVideo sem_video) {
+        // This is new uploader using the i5Cloud services
+        // Now implemented a simple stub that sends video file as a PUT to some url.
+
+        // prepare file for sending
+        Long traffic_id = sem_video.getId();
+        String url = "http://www.example.com/resource"; // replace this with something real
+        String token = ""; // replace this with something real
+        HttpClient client = new DefaultHttpClient();
+        HttpPut put= new HttpPut(url);
+        File file = new File(sem_video.getUri().getPath());
+        FileEntity fe = new FileEntity(file, "binary/octet-stream");
+        fe.setChunked(true);
+        PollableHttpEntity broadcasting_entity = enableProgressBroadcasting(fe, traffic_id);
+        put.setEntity(broadcasting_entity);
+
+        put.setHeader("X-Auth-Token", token);
+        put.setHeader("Content-type", "application/x-www-form-urlencoded");
+        try {
+            Log.i("UploaderService", "sending PUT to " + url);
+            HttpResponse response = client.execute(put);
+            Log.i("UploaderService", "response:" + response.getStatusLine().toString());
+            appendLog("response:" + response.getStatusLine().toString());
+        } catch (ClientProtocolException e) {
+            announceError("Sorry, error in transfer.", traffic_id);
+            Log.i("UploaderService", "ClientProtocolException caught");
+            appendLog("ClientProtocolException caught");
+        } catch (IOException e) {
+            announceError("Sorry, couldn't connect to server.", traffic_id);
+            Log.i("UploaderService", "IOException caught:" + e.getMessage());
+            appendLog("IOException caught:" + e.getMessage());
+        } catch (IllegalStateException e) {
+            announceError("Bad or missing server name.", traffic_id);
+            Log.i("UploaderService", "IllegalStateException caught:" + e.getMessage());
+            appendLog("IllegalStateException caught:" + e.getMessage());
+            e.printStackTrace();
+        }
+        // hmm, what to do with the response?
+    }
+
 }
 
 

@@ -28,6 +28,8 @@ import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.fragment.BrowseFragment;
 import fi.aalto.legroup.achso.remote.RemoteResultCache;
 import fi.aalto.legroup.achso.remote.RemoteSemanticVideoFactory;
+import fi.aalto.legroup.achso.util.App;
+import fi.aalto.legroup.achso.util.LasConnection;
 import fi.aalto.legroup.achso.util.i5Connection;
 import fi.aalto.legroup.achso.util.xml.XmlConverter;
 import fi.aalto.legroup.achso.util.xml.XmlObject;
@@ -61,11 +63,15 @@ public class RemoteFetchTask extends AsyncTask<String, Double, ArrayList<Semanti
     protected ArrayList<SemanticVideo> doInBackground(String... arg0) {
         ArrayList<SemanticVideo> ret = new ArrayList<SemanticVideo>();
 
-        String videoInformations = i5Connection.getVideos(mQueryType, mQuery);
+        //String videoInformations = i5Connection.getVideos(mQueryType, mQuery);
+        String videoInformations = App.connection.getVideos(mQueryType, mQuery);
 
         Log.i("RemoteFetchTask", "Received response data: " + videoInformations);
-        if (videoInformations == null)
+        if (videoInformations == null || videoInformations.isEmpty()) {
+            Log.i("RemoteFetchTask", "Response is empty. ");
             return ret;
+        }
+        Log.i("RemoteFetchTask", "Trying to convert from xml: " + videoInformations);
         XmlObject xmlobj = XmlConverter.fromXml(videoInformations);
         for (XmlObject o : xmlobj.getSubObjects()) {
             ret.add(new RemoteSemanticVideoFactory().fromXmlObject(o));
@@ -87,8 +93,7 @@ public class RemoteFetchTask extends AsyncTask<String, Double, ArrayList<Semanti
         if (pb != null) {
             pb.setVisibility(View.GONE);
         }
-        Log.i("MultimediaOperationsTask", "Executed search, found " + remoteVideos.size()
-                + "videos.");
+        Log.i("RemoteFetchTask", "Fetched videos, found " + remoteVideos.size());
         // lets do caching even if the page/fragment is disabled -- it is there for later use
         RemoteResultCache.setCached(mPage, remoteVideos);
         BrowseFragment f = mFragment.get();

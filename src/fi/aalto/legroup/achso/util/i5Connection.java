@@ -3,7 +3,21 @@ package fi.aalto.legroup.achso.util;
 
 import fi.aalto.legroup.achso.adapter.BrowsePagerAdapter;
 
-public class i5Connection {
+public class i5Connection implements Connection {
+
+    private static Connection con;
+    private String errorCode;
+    private boolean connected;
+
+    /**
+     * Constructor
+     */
+    public i5Connection() {
+        this.errorCode = new String();
+        this.connected = false;
+
+    }
+
 
     /**
      * Method to get video data that can be later expanded to a list of SemanticVideos
@@ -16,8 +30,8 @@ public class i5Connection {
      *              change this to List<String> if necessary.)
      * @return
      */
-
-    public static String getVideos(int query_type, String query) {
+    @Override
+    public String getVideos(int query_type, String query) {
         String xml = "";
         // prepare authentication arguments for http GET
 
