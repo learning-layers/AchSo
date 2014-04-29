@@ -162,7 +162,7 @@ public class LasConnection implements Connection {
         final String accessDenied = "ERR6"; //$NON-NLS-1$
         final String unknownError = "ERR7"; //$NON-NLS-1$
         final String serverError = "ERR8"; //$NON-NLS-1$
-        final String unkownMethod = "ERR9"; //$NON-NLS-1$
+        final String unknownMethod = "ERR9"; //$NON-NLS-1$
 
         this.errorCode = new String();
 
@@ -170,12 +170,14 @@ public class LasConnection implements Connection {
             Log.e("LasConnection", "Missing client.");
             return null;
         }
+        Log.i("LasConnection", "client.invoke with service: " + service + ", method: " + method + ", params:" + params.toString());
+        Log.i("LasConnection", "stored sessionId: " + this.sessionId + ", " +
+                "client sessionId: " + client.getSessionId());
 
         try {
             Date before = new Date();
             Object res = client.invoke(service, method, params);
             Date after = new Date();
-
             String s = (after.getTime() - before.getTime()) + "ms: " + service
                     + "." + method;
             Log.i("LasConnection", s);
@@ -200,7 +202,7 @@ public class LasConnection implements Connection {
             this.connected = false;
             e.printStackTrace();
         } catch (NotFoundException e) {
-            this.errorCode = unkownMethod;
+            this.errorCode = unknownMethod;
             e.printStackTrace();
         } catch (ConnectorClientException e) {
             this.errorCode = serverError;
@@ -294,8 +296,10 @@ public class LasConnection implements Connection {
             //
             //xmlString = (String) this.invoke("mpeg7_multimediacontent_service",
             //        "getVideoInformations");
-            xmlString = (String) this.invoke("videoinformation_service",
-                    "getVideoInformationByXQuery", "");
+            //xmlString = (String) this.invoke("videoinformation_service",
+            //         "getVideoInformationByXQuery", "");
+            xmlString = (String) this.invoke("mpeg7_multimediacontent_service",
+                   "getMediaUrls");
 
         } catch (Exception e) {
             // TODO Auto-generated catch block
@@ -433,6 +437,7 @@ public class LasConnection implements Connection {
      */
     public boolean disconnect() {
         try {
+            Log.i("LasConnection", "Disconnecting client.");
             client.disconnect();
             this.connected = false;
             return true;

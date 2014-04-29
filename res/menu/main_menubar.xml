@@ -11,6 +11,12 @@
           android:showAsAction="always|withText"
           android:icon="@drawable/ic_record_video"
     />
+    <item android:id="@+id/action_addvideo"
+          android:title="@string/add_video"
+          android:showAsAction="always|withText"
+          android:icon="@drawable/ic_menu_archive"
+        />
+
     <item android:id="@+id/action_readqrcode"
           android:title="@string/read_qr_code"
           android:showAsAction="always|withText"

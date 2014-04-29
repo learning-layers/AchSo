@@ -17,6 +17,7 @@
 package fi.aalto.legroup.achso.activity;
 
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -68,6 +69,7 @@ public abstract class ActionbarActivity extends FragmentActivity {
     public static final int REQUEST_QR_CODE_FOR_EXISTING_VIDEO = 5;
     public static final int REQUEST_LOGIN = 7;
     public static final int API_VERSION = android.os.Build.VERSION.SDK_INT;
+    private static final int REQUEST_VIDEO_FILE = 8;
 
     protected Menu mMenu;
     private Uri mVideoUri;
@@ -105,8 +107,22 @@ public abstract class ActionbarActivity extends FragmentActivity {
                 App.login_state.logout();
                 invalidateOptionsMenu();
                 return true;
+            case R.id.action_addvideo:
+                launchFileSelect();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void launchFileSelect() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("video/mp4");
+        intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
+        try {
+            startActivityForResult(intent, REQUEST_VIDEO_FILE);
+        } catch (ActivityNotFoundException e) {
+            Log.e("tag", "No activity can handle picking a file. Showing alternatives.");
         }
     }
 
@@ -349,6 +365,26 @@ public abstract class ActionbarActivity extends FragmentActivity {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         switch (requestCode) {
+            case REQUEST_VIDEO_FILE:
+                if (resultCode == RESULT_OK) {
+                    //String videoPath = intent.getData();
+                    //Log.i("ActionbarActivity", "Received data: "+ intent.getData());
+                    //Log.i("ActionbarActivity", "Received path "+ videoPath);
+                    mVideoUri = intent.getData();
+                    Log.i("ActionbarActivity", "mVideoUri "+ mVideoUri);
+                    String received_path = LocalRawVideos.getRealPathFromURI(this, mVideoUri);
+                    Log.i("ActionbarActivity", "Received path "+ received_path);
+                    mVideoUri = Uri.parse(received_path);
+                    long video_id = createSemanticVideo(mVideoUri);
+                    Intent i = new Intent(this, GenreSelectionActivity.class);
+                    i.putExtra("videoId", video_id);
+                    startActivityForResult(i, REQUEST_SEMANTIC_VIDEO_GENRE);
+                } else if (resultCode == RESULT_CANCELED) {
+                    Log.d("CANCEL", "Video add canceled");
+                } else {
+                    Log.i("ActionBarActivity", "Video add failed.");
+                }
+                break;
             case REQUEST_VIDEO_CAPTURE:
                 //Log.d("ActionBarActivity", "REQUEST_VIDEO_CAPTURE returned " + resultCode);
 

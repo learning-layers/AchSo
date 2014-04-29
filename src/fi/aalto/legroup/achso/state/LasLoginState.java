@@ -219,7 +219,7 @@ public class LasLoginState implements LoginState {
             // create the connection; the result will be a session id or an error message
             LasConnection lc = (LasConnection) App.connection;
             response = lc.connect(user, pass);
-            lc.disconnect();
+            //lc.disconnect();
             mUser = user;
             Log.i("LasLoginTask", "Received logging in response: " + response);
             return response;

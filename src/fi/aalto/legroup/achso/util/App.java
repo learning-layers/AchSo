@@ -37,6 +37,7 @@ public class App extends Application {
     public String last_qr_code;
     public Date last_qr_code_timestamp;
     public static boolean use_las = true;
+    private static boolean use_log_file = false;
 
 
     public static Context getContext() {
@@ -50,15 +51,17 @@ public class App extends Application {
     }
 
     public static void appendLog(String text) {
-        try {
-            //BufferedWriter for performance, true to set append to file flag
-            BufferedWriter buf = new BufferedWriter(new FileWriter(mLogFile, true));
-            buf.append(String.format("%s %s", sdf.format(new Date()), text));
-            buf.newLine();
-            buf.close();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        if (use_log_file) {
+            try {
+                //BufferedWriter for performance, true to set append to file flag
+                BufferedWriter buf = new BufferedWriter(new FileWriter(mLogFile, true));
+                buf.append(String.format("%s %s", sdf.format(new Date()), text));
+                buf.newLine();
+                buf.close();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
     }
 
@@ -71,13 +74,15 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
         mContext = this;
-        mLogFile = new File(mContext.getExternalFilesDir(null), "achso.log");
-        if (!mLogFile.exists()) {
-            try {
-                boolean ok = mLogFile.createNewFile();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+        if (use_log_file) {
+            mLogFile = new File(mContext.getExternalFilesDir(null), "achso.log");
+            if (!mLogFile.exists()) {
+                try {
+                    boolean ok = mLogFile.createNewFile();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
         }
 
