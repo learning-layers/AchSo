@@ -24,8 +24,10 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.location.Location;
 import android.media.MediaMetadataRetriever;
+import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.util.Pair;
 
 import fi.aalto.legroup.achso.R;
@@ -225,7 +227,25 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
 		}
 	}
 
-	public Pair<Bitmap, Bitmap> getThumbnails() {
+    public boolean prepareThumbnails() {
+
+        Log.i("VideoDBHelper", "Creating thumbnails from sv in " + getUri().getPath());
+        Bitmap mini = ThumbnailUtils.createVideoThumbnail(getUri().getPath(), MediaStore.Images.Thumbnails.MINI_KIND);
+
+        Bitmap micro = ThumbnailUtils.createVideoThumbnail(getUri().getPath(), MediaStore.Images.Thumbnails.MICRO_KIND);
+        if (mini == null) {
+            Log.e("SemanticVideo", "Thumbnail mini is null!");
+            return false;
+        }
+        if (micro == null) {
+            Log.e("SemanticVideo", "Thumbnail micro is null!");
+            return false;
+        }
+        setThumbnails(mini, micro);
+        return true;
+    }
+
+    public Pair<Bitmap, Bitmap> getThumbnails() {
 		return new Pair(mThumbMini, mThumbMicro);
 	}
 

@@ -24,7 +24,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
-import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -64,7 +63,8 @@ public class VideoDBHelper extends SQLiteOpenHelper {
     public static final String KEY_LONGITUDE = "longitude";
     public static final String KEY_PROVIDER = "provider";
     public static final String KEY_QRCODE = "qr_code";
-    private static final int DBVER = 9; // Increase this if you make changes to the database structure
+    private static final int DBVER = 10; // Increase this if you make changes to the database
+    // structure
     private static final String DBNAME = "videoDB";
     private static final String TBL_VIDEO = "video";
     private static final String TBL_GENRE = "genre";
@@ -136,6 +136,15 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         return null;
     }
 
+    public static SemanticVideo getByUri(Uri uri) {
+        if (mLocalVideoCache == null) return null;
+        for (SemanticVideo v : mLocalVideoCache) {
+            if (v.getUri().equals(uri)) return v;
+        }
+        return null;
+    }
+
+
     public static SemanticVideo getByPosition(int pos) {
         return mLocalVideoCache.get(pos);
     }
@@ -197,19 +206,6 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         return cv;
     }
 
-    private Pair<Bitmap, Bitmap> createBitmapsForVideo(SemanticVideo sv) {
-        Log.i("VideoDBHelper", "Creating thumbnails from sv in " + sv.getUri().getPath());
-        Bitmap mini = ThumbnailUtils.createVideoThumbnail(sv.getUri().getPath(), MediaStore.Images.Thumbnails.MINI_KIND);
-        Bitmap micro = ThumbnailUtils.createVideoThumbnail(sv.getUri().getPath(), MediaStore.Images.Thumbnails.MICRO_KIND);
-        if (mini == null) {
-            Log.e("VideoDBHelper", "Thumbnail mini is null!");
-        }
-        if (micro == null) {
-            Log.e("VideoDBHelper", "Thumbnail micro is null!");
-        }
-        return new Pair(mini, micro);
-    }
-
     public void insert(SerializableToDB o) {
         if (o instanceof SemanticVideo) {
             SemanticVideo sv = (SemanticVideo) o;
@@ -242,11 +238,10 @@ public class VideoDBHelper extends SQLiteOpenHelper {
 
     private void insert(SemanticVideo sv) {
         SQLiteDatabase db = this.getWritableDatabase();
-        Pair<Bitmap, Bitmap> thumbs = createBitmapsForVideo(sv);
+        Pair<Bitmap, Bitmap> thumbs = sv.getThumbnails();
         ContentValues cv = getContentValues(sv, thumbs);
         long id = db.insertOrThrow(TBL_VIDEO, null, cv);
         sv.setId(id);
-        sv.setThumbnails(thumbs.first, thumbs.second);
         mLocalVideoCache.add(0, sv);
         db.close();
     }
@@ -414,6 +409,7 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         Cursor c = db.query(TBL_VIDEO, null, KEY_CREATED_AT + ">= date('now','start of day')", null, null, null, null);
         int ret = c.getCount();
         c.close();
+        db.close();
         return ret;
     }
 
@@ -464,10 +460,21 @@ public class VideoDBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TBL_VIDEO);
-        db.execSQL("DROP TABLE IF EXISTS " + TBL_GENRE);
-        db.execSQL("DROP TABLE IF EXISTS " + TBL_ANNOTATION);
-        onCreate(db);
+        for (int i = oldVersion; i < newVersion; i++)
+        {
+            switch(i)
+            {
+                case 10:
+                    // ok it cannot be done in SqLite
+                    //db.execSQL("ALTER TABLE video DROP CONSTRAINT UNIQUE");
+                    break;
+            }
+        }
+
+        //db.execSQL("DROP TABLE IF EXISTS " + TBL_VIDEO);
+        //db.execSQL("DROP TABLE IF EXISTS " + TBL_GENRE);
+        //db.execSQL("DROP TABLE IF EXISTS " + TBL_ANNOTATION);
+        //onCreate(db);
     }
     /*
     static {

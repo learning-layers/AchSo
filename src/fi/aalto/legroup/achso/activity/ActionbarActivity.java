@@ -53,6 +53,7 @@ import fi.aalto.legroup.achso.util.App;
 import fi.google.zxing.integration.android.IntentIntegrator;
 
 import static fi.aalto.legroup.achso.util.App.appendLog;
+import static fi.aalto.legroup.achso.util.App.getContext;
 
 /**
  * This activity is used to present the same actionbar buttons for every activity.
@@ -307,6 +308,17 @@ public abstract class ActionbarActivity extends FragmentActivity {
         String vid_name = ordinal(count + 1) + " video of " + dayname;
         SemanticVideo newvideo = new SemanticVideo(vid_name, video_uri,
                 SemanticVideo.Genre.values()[0], creator);
+        if (VideoDBHelper.getByUri(newvideo.getUri()) != null) {
+            Log.i("ActionbarActivity", "Video already exists, abort! Abort!");
+            vdb.close();
+            return -2;
+        }
+
+        if (!newvideo.prepareThumbnails()) {
+            Log.i("ActionbarActivity", "Failed to create thumbnails, abort! Abort!");
+            vdb.close();
+            return -1;
+        }
         vdb.insert(newvideo);
         vdb.close();
         appendLog(String.format("Created video %s to uri %s", vid_name, video_uri.toString()));
@@ -376,9 +388,17 @@ public abstract class ActionbarActivity extends FragmentActivity {
                     Log.i("ActionbarActivity", "Received path "+ received_path);
                     mVideoUri = Uri.parse(received_path);
                     long video_id = createSemanticVideo(mVideoUri);
-                    Intent i = new Intent(this, GenreSelectionActivity.class);
-                    i.putExtra("videoId", video_id);
-                    startActivityForResult(i, REQUEST_SEMANTIC_VIDEO_GENRE);
+                    if (video_id == -1) {
+                        Toast.makeText(getContext(), "Unknown format, or file is not a video",
+                                Toast.LENGTH_LONG).show();
+                    } else if (video_id == -2) {
+                        Toast.makeText(getContext(), "This video is already in Ach so!",
+                                Toast.LENGTH_LONG).show();
+                    } else {
+                        Intent i = new Intent(this, GenreSelectionActivity.class);
+                        i.putExtra("videoId", video_id);
+                        startActivityForResult(i, REQUEST_SEMANTIC_VIDEO_GENRE);
+                    }
                 } else if (resultCode == RESULT_CANCELED) {
                     Log.d("CANCEL", "Video add canceled");
                 } else {
@@ -432,7 +452,7 @@ public abstract class ActionbarActivity extends FragmentActivity {
                     } else {
                         // Version 1: intent wrote file to correct place at once.
                         if (intent == null && videoPath.isEmpty()) {
-                            Toast.makeText(this, "Failed to save video.", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getContext(), "Failed to save video.", Toast.LENGTH_LONG).show();
                             super.onBackPressed();
                         } else if (intent != null && !intent.getDataString().isEmpty()) {
                             Log.d("ActionBarActivity", "Found better from intent: " + intent.getData());
@@ -451,9 +471,17 @@ public abstract class ActionbarActivity extends FragmentActivity {
                     //Toast.makeText(this, "Video saved to: " + mVideoUri, Toast.LENGTH_LONG).show();
                     long video_id = createSemanticVideo(mVideoUri);
 
-                    Intent i = new Intent(this, GenreSelectionActivity.class);
-                    i.putExtra("videoId", video_id);
-                    startActivityForResult(i, REQUEST_SEMANTIC_VIDEO_GENRE);
+                    if (video_id == -1) {
+                        Toast.makeText(getContext(), "Failed to create thumbnails - video itself is " +
+                                "somewhere in device.", Toast.LENGTH_LONG).show();
+                    } else if (video_id == -2) {
+                        Toast.makeText(getContext(), "This video is already in Ach so!",
+                                Toast.LENGTH_LONG).show();
+                    } else {
+                        Intent i = new Intent(this, GenreSelectionActivity.class);
+                        i.putExtra("videoId", video_id);
+                        startActivityForResult(i, REQUEST_SEMANTIC_VIDEO_GENRE);
+                    }
                 } else if (resultCode == RESULT_CANCELED) {
                     Log.d("CANCEL", "Camera canceled");
                 } else {
@@ -469,7 +497,7 @@ public abstract class ActionbarActivity extends FragmentActivity {
                 break;
             case REQUEST_LOGIN:
                 invalidateOptionsMenu();
-                Toast.makeText(this, "Login successful", Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(), "Login successful", Toast.LENGTH_LONG).show();
                 break;
 
         }
