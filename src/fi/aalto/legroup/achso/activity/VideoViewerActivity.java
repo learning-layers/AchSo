@@ -133,17 +133,6 @@ public class VideoViewerActivity extends ActionbarActivity {
         super.onDestroy();
     }
 
-    @Override
-    public  void onResume() {
-        super.onResume();
-        startReceivingBroadcasts();
-    }
-    @Override
-    public  void onPause() {
-        super.onPause();
-        stopReceivingBroadcasts();
-    }
-
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {

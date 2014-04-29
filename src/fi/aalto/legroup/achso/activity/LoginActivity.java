@@ -25,6 +25,7 @@ import android.content.SharedPreferences.Editor;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -43,6 +44,7 @@ public class LoginActivity extends ActionbarActivity {
 
     private EditText mUserName;
     private EditText mPassword;
+    private BroadcastReceiver mLocalReceiver = null;
     private BroadcastReceiver mReceiver = null;
     private IntentFilter mFilter = null;
     private IntentFilter mLocalFilter;
@@ -136,6 +138,11 @@ public class LoginActivity extends ActionbarActivity {
             mLocalReceiver = new LoginBroadcastReceiver();
         }
         LocalBroadcastManager.getInstance(this).registerReceiver(mLocalReceiver, mLocalFilter);
+    }
+    @Override
+    protected void stopReceivingBroadcasts(){
+        this.unregisterReceiver(mReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mLocalReceiver);
     }
 
     @Override

@@ -294,8 +294,8 @@ public class LasConnection implements Connection {
             //
             //xmlString = (String) this.invoke("mpeg7_multimediacontent_service",
             //        "getVideoInformations");
-            xmlString = (String) this.invoke("mpeg7_multimediacontent_service",
-                    "getMediaUrls");
+            xmlString = (String) this.invoke("videoinformation_service",
+                    "getVideoInformationByXQuery", "");
 
         } catch (Exception e) {
             // TODO Auto-generated catch block
