@@ -22,6 +22,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.Log;
 import android.view.SurfaceView;
@@ -40,6 +41,7 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
 
     public static final long ANNOTATION_SHOW_DURATION_MILLISECONDS = 3000;
     public static final long ANNOTATION_FADE_DURATION_MILLISECONDS = 200;
+    public static final int ORIGINAL_SIZE = 80;
     boolean mSelected;
     int mOpacity;
     private int mSize = 80;
@@ -48,9 +50,12 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
     private boolean mVisible;
     private boolean mAlive;
     private Bitmap mBitmap;
+    private FloatPosition mRememberedPosition;
+    private float mRememberedScaleFactor;
 
-    public Annotation(Context ctx, long videoid, long starttime, String text, FloatPosition position) {
-        super(videoid, starttime, ANNOTATION_SHOW_DURATION_MILLISECONDS, text, position);
+    public Annotation(Context ctx, long videoid, long starttime, String text,
+                      FloatPosition position, float scale) {
+        super(videoid, starttime, ANNOTATION_SHOW_DURATION_MILLISECONDS, text, position, scale);
         mSelected = false;
         mVisible = false;
         mAlive = true;
@@ -59,7 +64,8 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
     }
 
     public Annotation(Context ctx, SemanticVideo sv, AnnotationBase base) {
-        super(-1, base.getStartTime(), base.getDuration(), base.getText(), base.getPosition());
+        super(-1, base.getStartTime(), base.getDuration(), base.getText(), base.getPosition(),
+                (float) 1.0);
         createAnnotationBitmap(ctx);
         mSelected = false;
         mVisible = false;
@@ -159,8 +165,14 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
             float posx = pos.getX() * c.getWidth();
             float posy = pos.getY() * c.getHeight();
             //Log.i("Annotation", "Drawing annotation -- canvas y:" + posy + "(" + pos.getY() + ") canvas height:" + c.getHeight());
-            c.drawBitmap(mBitmap, posx - (mSize / 2), posy - (mSize / 2), p);
+            //c.drawBitmap(mBitmap, posx - (mSize / 2), posy - (mSize / 2), p);
+
+            mSize = (int) (mScale * ORIGINAL_SIZE);
+            int wh2 = mSize / 2;
+            Rect nr = new Rect((int) posx - wh2, (int) posy - wh2, (int) posx + wh2, (int) posy + wh2);
+            c.drawBitmap(mBitmap, null, nr, p);
             if (mText != null) SubtitleManager.addSubtitle(mText);
+
         }
     }
 
@@ -169,6 +181,27 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
         float y = getPosition().getY() * drawnTo.getHeight();
         return new RectF(x - mSize, y - mSize, x + mSize, y + mSize);
     }
+
+    public void setScaleFactor(float scaleFactor) {
+        super.setScaleFactor(scaleFactor);
+    }
+
+    public float getScaleFactor() {
+        return super.getScaleFactor();
+    }
+
+    // If editing is canceled, these are the values to revert to.
+    public void rememberState() {
+        mRememberedPosition = getPosition();
+        mRememberedScaleFactor = getScaleFactor();
+    }
+
+    // When editing is canceled:
+    public void revertToRemembered() {
+        setPosition(mRememberedPosition);
+        setScaleFactor(mRememberedScaleFactor);
+    }
+
 
     public static enum Button {
         Left,

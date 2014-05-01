@@ -31,13 +31,16 @@ public class AnnotationBase implements XmlSerializable {
     private long mDuration;
     private FloatPosition mPosition;
     protected String mText;
+    protected float mScale;
 
-    public AnnotationBase(long videoid, long starttime, long duration, String text, FloatPosition position) {
+    public AnnotationBase(long videoid, long starttime, long duration, String text,
+                          FloatPosition position, float scale) {
         mVideoId=videoid;
         mStartTime=starttime;
         mDuration=duration;
         mPosition=position;
         mText=text;
+        mScale = scale;
     }
 
     public void setText(String text) {
@@ -91,5 +94,13 @@ public class AnnotationBase implements XmlSerializable {
             .addSubObject("y_position", Float.toString(pos.getY()))
             .addSubObject("start_time", Long.toString(getStartTime()))
             .addSubObject("duration", Long.toString(getDuration()));
+    }
+
+    public void setScaleFactor(float scaleFactor) {
+        mScale = scaleFactor;
+    }
+
+    public float getScaleFactor() {
+        return mScale;
     }
 }

@@ -58,12 +58,13 @@ public class VideoDBHelper extends SQLiteOpenHelper {
     public static final String KEY_POSITION_Y = "yposition";
     public static final String KEY_VIDEO_ID = "videoid";
     public static final String KEY_TEXT = "text";
+    public static final String KEY_SCALE = "scale";
     public static final String KEY_ACCURACY = "accuracy";
     public static final String KEY_LATITUDE = "latitude";
     public static final String KEY_LONGITUDE = "longitude";
     public static final String KEY_PROVIDER = "provider";
     public static final String KEY_QRCODE = "qr_code";
-    private static final int DBVER = 10; // Increase this if you make changes to the database
+    private static final int DBVER = 12; // Increase this if you make changes to the database
     // structure
     private static final String DBNAME = "videoDB";
     private static final String TBL_VIDEO = "video";
@@ -203,6 +204,7 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         cv.put(KEY_POSITION_Y, a.getPosition().getY());
         cv.put(KEY_VIDEO_ID, a.getVideoId());
         cv.put(KEY_TEXT, a.getText());
+        cv.put(KEY_SCALE, a.getScaleFactor());
         return cv;
     }
 
@@ -291,15 +293,24 @@ public class VideoDBHelper extends SQLiteOpenHelper {
 
     private Annotation getAnnotationFromCursor(Cursor c) {
         int i = 0;
+        Log.i("VideoDBHelper", "Column name: "+ c.getColumnName(i));
         long id = c.getLong(i++);
+        Log.i("VideoDBHelper", "Column name: "+ c.getColumnName(i));
         long starttime = c.getLong(i++);
+        Log.i("VideoDBHelper", "Column name: "+ c.getColumnName(i));
         long duration = c.getLong(i++);
+        Log.i("VideoDBHelper", "Column name: "+ c.getColumnName(i));
         float x = c.getFloat(i++);
+        Log.i("VideoDBHelper", "Column name: "+ c.getColumnName(i));
         float y = c.getFloat(i++);
+        Log.i("VideoDBHelper", "Column name: "+ c.getColumnName(i));
         long vid = c.getLong(i++);
+        Log.i("VideoDBHelper", "Column name: "+ c.getColumnName(i));
         String text = c.getString(i++);
         if (text == null) text = "";
-        Annotation a = new Annotation(mContext, vid, starttime, text, new FloatPosition(x, y));
+        Log.i("VideoDBHelper", "Column name: "+ c.getColumnName(i));
+        float sc = c.getFloat(i++);
+        Annotation a = new Annotation(mContext, vid, starttime, text, new FloatPosition(x, y), sc);
         ((AnnotationBase) a).setId(id);
         return a;
     }
@@ -308,7 +319,8 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         List<Annotation> ret = new ArrayList<Annotation>();
         SQLiteDatabase db = this.getReadableDatabase();
         String[] whereargs = {Long.toString(videoid)};
-        Cursor c = db.query(TBL_ANNOTATION, null, KEY_VIDEO_ID + "=?", whereargs, null, null, null);
+        Cursor c = db.query(TBL_ANNOTATION, null, KEY_VIDEO_ID + "=?", whereargs, null, null,
+                null);
         if (c.getCount() > 0) {
             while (c.moveToNext()) {
                 ret.add(getAnnotationFromCursor(c));
@@ -322,7 +334,8 @@ public class VideoDBHelper extends SQLiteOpenHelper {
     public Annotation getAnnotationById(long videoId, long annotationId) {
         SQLiteDatabase db = this.getReadableDatabase();
         String[] whereargs = {Long.toString(videoId), Long.toString(annotationId)};
-        Cursor c = db.query(TBL_ANNOTATION, null, KEY_VIDEO_ID + "=? AND " + KEY_ID + "=?", whereargs, null, null, null);
+        Cursor c = db.query(TBL_ANNOTATION, null, KEY_VIDEO_ID + "=? AND " + KEY_ID + "=?",
+                whereargs, null, null, null);
         if (c.getCount() < 1) return null;
         c.moveToNext();
         Annotation ret = getAnnotationFromCursor(c);
@@ -446,6 +459,7 @@ public class VideoDBHelper extends SQLiteOpenHelper {
                         KEY_POSITION_Y + " FLOAT NOT NULL, " +
                         KEY_VIDEO_ID + " INTEGER NOT NULL, " +
                         KEY_TEXT + " TEXT, " +
+                        KEY_SCALE + " FLOAT NOT NULL DEFAULT '1.0'," +
                         "FOREIGN KEY(" + KEY_VIDEO_ID + ") REFERENCES " + TBL_VIDEO + "(" + KEY_ID + ")" +
                         ")"
         );
@@ -459,7 +473,14 @@ public class VideoDBHelper extends SQLiteOpenHelper {
     }
 
     @Override
+    public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        Log.i("VideoDBHelper", "Downgrading database, hope you know what you are doing.");
+    }
+
+        @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        Log.i("VideoDBHelper", "visiting onUpgrade -method, oldVersion: " + oldVersion + " new " +
+                "version: " + newVersion);
         for (int i = oldVersion; i < newVersion; i++)
         {
             switch(i)
@@ -467,6 +488,12 @@ public class VideoDBHelper extends SQLiteOpenHelper {
                 case 10:
                     // ok it cannot be done in SqLite
                     //db.execSQL("ALTER TABLE video DROP CONSTRAINT UNIQUE");
+                    break;
+                case 11:
+                    Log.i("VideoDBHelper *** upgrade", "Upgrading annotation table to have scale " +
+                            "-column");
+                    db.execSQL("ALTER TABLE annotation ADD COLUMN "+ KEY_SCALE + " FLOAT NOT NULL" +
+                            " DEFAULT 1.0");
                     break;
             }
         }

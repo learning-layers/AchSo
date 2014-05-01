@@ -28,6 +28,7 @@ public class RemoteAnnotationFactory implements XmlSerializableFactory {
         float ypos = 0;
         long starttime = 0;
         long duration = 0;
+        float scale = (float) 1.0;
 
         if (!obj.getName().equals("annotation")) {
             return null;
@@ -43,9 +44,12 @@ public class RemoteAnnotationFactory implements XmlSerializableFactory {
                 starttime = Long.parseLong(o.getText());
             } else if (o.getName().equals("duration")) {
                 duration = Long.parseLong(o.getText());
+            } else if (o.getName().equals("scale")) {
+                scale = Float.parseFloat(o.getText());
             }
         }
 
-        return new RemoteAnnotation(starttime, duration, text, new FloatPosition(xpos, ypos));
+        return new RemoteAnnotation(starttime, duration, text, new FloatPosition(xpos, ypos),
+                scale);
     }
 }

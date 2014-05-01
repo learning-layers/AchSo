@@ -27,5 +27,5 @@ public interface EditorListener {
 
     void deleteAnnotation(final Annotation a);
 
-    void revertAnnotationPosition(final Annotation a);
+    void revertAnnotationChanges(final Annotation a);
 }

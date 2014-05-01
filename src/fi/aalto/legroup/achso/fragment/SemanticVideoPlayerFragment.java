@@ -17,6 +17,7 @@
 package fi.aalto.legroup.achso.fragment;
 
 import android.app.ActionBar;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
@@ -32,6 +33,7 @@ import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -75,6 +77,9 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     private static final int NEW_ANNOTATION_MODE = 1;
     private static final int EDIT_ANNOTATION_MODE = 2;
     private static final int POLL_RATE_MILLISECONDS = 100;
+    private static final int IS_PINCHING = 1;
+    private static final int WAS_PINCHING = 2;
+
     private SurfaceView mAnnotationSurface;
     private SurfaceView mVideoSurface;
     private RelativeLayout mVideoSurfaceContainer;
@@ -90,8 +95,10 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     private long mLastPos = 0;
     private Handler mPauseHandler;
     private SavedState mSavedState;
+    private int mPinching = 0;
     private boolean mEditableAnnotations;
     private boolean mVideoTakesAllVerticalSpace = false;
+    private ScaleGestureDetector mScaleGestureDetector;
 
     public SemanticVideoPlayerFragment() {
         SubtitleManager.clearSubtitles();
@@ -180,11 +187,8 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     }
 
     @Override
-    public void revertAnnotationPosition(final Annotation a) {
-        VideoDBHelper dbh = new VideoDBHelper(getActivity());
-        Annotation prevAnn = dbh.getAnnotationById(a.getVideoId(), a.getId());
-        dbh.close();
-        a.setPosition(prevAnn.getPosition());
+    public void revertAnnotationChanges(final Annotation a) {
+        a.revertToRemembered();
         mAnnotationSurfaceHandler.draw();
         appendLog(String.format("Canceled annotation change for %s.", a.toString()));
     }
@@ -413,6 +417,8 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
         assert(v != null);
         mBufferProgress = (ProgressBar) v.findViewById(R.id.video_buffer_progress);
         v.setOnTouchListener(this);
+        mScaleGestureDetector = new ScaleGestureDetector(getActivity(),
+                new simpleOnScaleGestureListener());
         mTitleArea = (LinearLayout) getActivity().findViewById(R.id.video_title_area);
         return v;
     }
@@ -588,6 +594,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     }
 
 
+
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         //Log.i("SemanticVideoPlayerFragment", "TouchEvent x: " + event.getX() + " y: " + event.getY());
@@ -597,6 +604,14 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
         // mVideoSurface.getHeight()/2 returns the center of the video shown
         // These two are subtracted from event.getY() to get the actual position
         // on the (possibly) scaled video
+        mScaleGestureDetector.onTouchEvent(event);
+        if (mPinching != NORMAL_MODE) {
+            if (mPinching == WAS_PINCHING && event.getAction() == MotionEvent.ACTION_UP) {
+                mPinching = NORMAL_MODE;
+                mController.show();
+            }
+            return true;
+        }
 
         float width_diff = ((getView().getWidth() / 2) - (mVideoSurface.getWidth() / 2));
         float height_diff = ((getView().getHeight() / 2) - (mVideoSurface.getHeight() / 2));
@@ -706,5 +721,35 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
             this.annotationId = prefs.getLong("annotationId", -1);
             this.videoId = prefs.getLong("videoId", -1);
         }
+    }
+
+    public class simpleOnScaleGestureListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+            if (mController.isAnnotationModeEnabled()) {
+                Annotation a = mController.getCurrentAnnotation();
+                a.setScaleFactor(a.getScaleFactor() * detector.getScaleFactor());
+                mAnnotationSurfaceHandler.draw();
+            }
+            return true;
+        }
+
+        @Override
+        public boolean onScaleBegin(ScaleGestureDetector detector) {
+            mAnnotationSurfaceHandler.stopRectangleAnimation();
+            mPinching = IS_PINCHING;
+            return true;
+        }
+
+        @Override
+        public void onScaleEnd(ScaleGestureDetector detector) {
+            if (mController.isAnnotationModeEnabled()) {
+                //mController.getCurrentAnnotation().
+            }
+            mPinching = WAS_PINCHING;
+        }
+
+
     }
 }

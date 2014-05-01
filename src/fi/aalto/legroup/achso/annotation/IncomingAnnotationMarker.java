@@ -19,7 +19,7 @@ public class IncomingAnnotationMarker {
 
 
     private final Bitmap mBitmap;
-    private final int original_size = 80;
+    private final int ORIGINAL_SIZE = 80;
     private final float max_size = 8;
     private final int DURATION = 400;
     private final int STEP_SIZE = 20;
@@ -46,7 +46,7 @@ public class IncomingAnnotationMarker {
     public IncomingAnnotationMarker(Context ctx, AnnotationSurfaceHandler surface, VideoControllerView listener, FloatPosition position) {
         mPosition = position;
         Bitmap tmp = BitmapFactory.decodeResource(ctx.getResources(), R.drawable.square_large);
-        mBitmap = Bitmap.createScaledBitmap(tmp, original_size, original_size, false);
+        mBitmap = Bitmap.createScaledBitmap(tmp, ORIGINAL_SIZE, ORIGINAL_SIZE, false);
         tmp.recycle();
         mSurface = surface;
         mListener = listener;
@@ -78,7 +78,7 @@ public class IncomingAnnotationMarker {
         p.setAlpha((int) (255 * v));
         float posx = mPosition.getX() * c.getWidth();
         float posy = mPosition.getY() * c.getHeight();
-        int wh = (int) (size_m * original_size);
+        int wh = (int) (size_m * ORIGINAL_SIZE);
         int wh2 = wh / 2;
         Rect nr = new Rect((int) posx - wh2, (int) posy - wh2, (int) posx + wh2, (int) posy + wh2);
         c.drawBitmap(mBitmap, null, nr, p);

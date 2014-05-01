@@ -23,8 +23,9 @@ import fi.aalto.legroup.achso.util.FloatPosition;
 public class RemoteAnnotation extends AnnotationBase {
     private SemanticVideo mVideo;
 
-    public RemoteAnnotation(long starttime, long duration, String text, FloatPosition position) {
-        super(-1, starttime, duration, text, position);
+    public RemoteAnnotation(long starttime, long duration, String text, FloatPosition position,
+                            float scale) {
+        super(-1, starttime, duration, text, position, scale);
         mVideo = null;
     }
 

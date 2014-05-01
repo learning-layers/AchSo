@@ -106,7 +106,7 @@ public class AnnotationSurfaceHandler {
 
     public Annotation addAnnotation(long time, FloatPosition pos) {
         VideoDBHelper vdb = new VideoDBHelper(mContext);
-        Annotation a = new Annotation(mContext, mVideoId, time, "", pos);
+        Annotation a = new Annotation(mContext, mVideoId, time, "", pos, (float) 1.0);
         a.setVisible(true);
         mAnnotations.add(a);
         vdb.insert(a);

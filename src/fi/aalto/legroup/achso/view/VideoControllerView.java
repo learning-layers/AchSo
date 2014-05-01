@@ -255,7 +255,7 @@ public class VideoControllerView extends FrameLayout {
             disableAnnotationMode();
             if (mCurrentAnnotation != null) {
                 if (mCurrentAnnotationIsNew) mEditorListener.deleteAnnotation(mCurrentAnnotation);
-                else mEditorListener.revertAnnotationPosition(mCurrentAnnotation);
+                else mEditorListener.revertAnnotationChanges(mCurrentAnnotation);
             }
             setCurrentAnnotation(null);
         }
@@ -333,6 +333,9 @@ public class VideoControllerView extends FrameLayout {
 
     public void setCurrentAnnotation(Annotation a) {
         mCurrentAnnotation = a;
+        if (a != null) {
+            a.rememberState();
+        }
         mCurrentAnnotationIsNew = false;
     }
 

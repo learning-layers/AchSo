@@ -3,6 +3,7 @@ package fi.aalto.legroup.achso.util;
 import android.app.Application;
 import android.content.Context;
 import android.content.res.Configuration;
+import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -18,6 +19,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.state.LasLoginState;
 import fi.aalto.legroup.achso.state.LoginState;
 import fi.aalto.legroup.achso.state.i5LoginState;
@@ -94,6 +96,7 @@ public class App extends Application {
             login_state = new i5LoginState(mContext);
             connection = new i5Connection();
         }
+
         appendLog("Starting Ach so! -app on device " + android.os.Build.MODEL);
         Log.i("App", "Starting Ach so! -app on device " + android.os.Build.MODEL);
 
