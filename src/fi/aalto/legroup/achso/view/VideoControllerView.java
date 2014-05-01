@@ -55,6 +55,7 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.annotation.Annotation;
 import fi.aalto.legroup.achso.annotation.EditorListener;
 import fi.aalto.legroup.achso.database.SemanticVideo;
+import fi.aalto.legroup.achso.util.FloatPosition;
 
 import static fi.aalto.legroup.achso.util.App.appendLog;
 
@@ -219,7 +220,7 @@ public class VideoControllerView extends FrameLayout {
             if (mPlayer == null) return;
             if (mAnnotationModeEnabled) {
                 disableAnnotationMode();
-            } else if (!mPlayer.isPlaying()) enableAnnotationMode(true);
+            } else if (!mPlayer.isPlaying()) enableAnnotationMode(true, null);
         }
     };
     private boolean mAnnotationModeWasEnabled;
@@ -779,7 +780,7 @@ public class VideoControllerView extends FrameLayout {
             mPlayer.pause();
             appendLog(String.format("Pausing playback at point %d", mPlayer.getCurrentPosition()));
             if (mAnnotationModeWasEnabled) {
-                enableAnnotationMode(true);
+                enableAnnotationMode(true, null);
             }
         } else {
             mPlayer.start();
@@ -837,13 +838,13 @@ public class VideoControllerView extends FrameLayout {
 
     public void enableAnnotationEditModeForAnnotation(Annotation a) {
         setCurrentAnnotation(a);
-        enableAnnotationMode(false);
+        enableAnnotationMode(false, null);
     }
 
     public void enableNewAnnotationModeForAnnotation(Annotation a) {
         // Fake new annotation mode for existing annotation
         setCurrentAnnotation(a);
-        enableAnnotationMode(false);
+        enableAnnotationMode(false, null);
         mCurrentAnnotationIsNew = true;
         mDeleteButton.setVisibility(View.GONE);
     }
@@ -867,14 +868,14 @@ public class VideoControllerView extends FrameLayout {
         return mAnnotationPauseEnabled;
     }
 
-    public void addAnnotationToPlace() {
+    public void addAnnotationToPlace(FloatPosition place) {
         if (mPlayer.isPlaying()) {
             return;
         }
-        enableAnnotationMode(true);
+        enableAnnotationMode(true, place);
     }
 
-    private void enableAnnotationMode(boolean createNew) {
+    private void enableAnnotationMode(boolean createNew, FloatPosition place) {
         mAnnotationModeWasEnabled = mAnnotationModeEnabled;
         mAnnotationModeEnabled = true;
         setAnnotationPausedMode(false);
@@ -887,7 +888,10 @@ public class VideoControllerView extends FrameLayout {
         mCurrentTime.setVisibility(View.GONE);
         mEndTime.setVisibility(View.GONE);
         if (createNew) {
-            mEditorListener.newAnnotation();
+            if (place == null) {
+                place = new FloatPosition((float) 0.5, (float) 0.5);
+            }
+            mEditorListener.newAnnotation(place);
             mCurrentAnnotationIsNew = true;
             mDeleteButton.setVisibility(View.GONE);
         } else {

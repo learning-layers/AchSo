@@ -16,8 +16,10 @@
 
 package fi.aalto.legroup.achso.annotation;
 
+import fi.aalto.legroup.achso.util.FloatPosition;
+
 public interface EditorListener {
-    void newAnnotation();
+    void newAnnotation(FloatPosition place);
 
     void drawAnnotations();
 

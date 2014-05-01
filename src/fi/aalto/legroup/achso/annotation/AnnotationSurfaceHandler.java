@@ -30,6 +30,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.util.FloatPosition;
+import fi.aalto.legroup.achso.view.VideoControllerView;
 
 import static fi.aalto.legroup.achso.util.App.appendLog;
 
@@ -39,6 +40,7 @@ public class AnnotationSurfaceHandler {
     private ConcurrentLinkedQueue<Annotation> mAnnotations;
     private long mVideoId;
     private Context mContext;
+    private IncomingAnnotationMarker mIncoming;
 
     public AnnotationSurfaceHandler(Context c, SurfaceView surface, long videoid) {
         Log.i("AnnotationSurfaceHandler", "Creating instance of AnnotationSurfaceHandler");
@@ -63,6 +65,9 @@ public class AnnotationSurfaceHandler {
                 for (Annotation ann : mAnnotations) {
                     ann.draw(c);
                 }
+                if (mIncoming != null) {
+                    mIncoming.draw(c);
+                }
                 sh.unlockCanvasAndPost(c);
             }
         }
@@ -86,6 +91,17 @@ public class AnnotationSurfaceHandler {
         TextView sv = SubtitleManager.getSubtitleTextView();
         // add here code to analyse if subtitles overlap with annotations and move subtitles if necessary
 
+    }
+
+    public void drawIncoming() {
+        SurfaceHolder sh = mAnnotationSurface.getHolder();
+        if (sh != null) {
+            Canvas c = sh.lockCanvas();
+            if (c!= null) {
+                mIncoming.draw(c);
+                sh.unlockCanvasAndPost(c);
+            }
+        }
     }
 
     public Annotation addAnnotation(long time, FloatPosition pos) {
@@ -164,6 +180,30 @@ public class AnnotationSurfaceHandler {
                 a.setVisible(true);
             } else
                 a.setVisible(false);
+        }
+    }
+
+    public void startRectangleAnimation(FloatPosition position,
+                                        VideoControllerView controller) {
+        if (mIncoming != null) {
+            stopRectangleAnimation();
+            Log.i("AnnotationSurfaceHandler", "Stopping ongoing animation");
+        }
+        mIncoming = new IncomingAnnotationMarker(mContext, this, controller, position);
+        mIncoming.startAnimation();
+
+    }
+
+    public void stopRectangleAnimation() {
+        if (mIncoming != null) {
+            mIncoming.stopAnimation();
+            mIncoming = null;
+        }
+    }
+
+    public void moveRectangleAnimation(FloatPosition position) {
+        if (mIncoming != null) {
+            mIncoming.setPosition(position);
         }
     }
 }

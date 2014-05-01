@@ -54,10 +54,10 @@ import fi.aalto.legroup.achso.annotation.EditorListener;
 import fi.aalto.legroup.achso.annotation.SubtitleManager;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
+import fi.aalto.legroup.achso.remote.RemoteResultCache;
 import fi.aalto.legroup.achso.remote.RemoteSemanticVideo;
 import fi.aalto.legroup.achso.util.Dialog;
 import fi.aalto.legroup.achso.util.FloatPosition;
-import fi.aalto.legroup.achso.remote.RemoteResultCache;
 import fi.aalto.legroup.achso.view.AnnotatedSeekBar;
 import fi.aalto.legroup.achso.view.VideoControllerView;
 
@@ -75,7 +75,6 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     private static final int NEW_ANNOTATION_MODE = 1;
     private static final int EDIT_ANNOTATION_MODE = 2;
     private static final int POLL_RATE_MILLISECONDS = 100;
-    private static final int ANNOTATION_ACTIVATION_DELAY = 500 ;
     private SurfaceView mAnnotationSurface;
     private SurfaceView mVideoSurface;
     private RelativeLayout mVideoSurfaceContainer;
@@ -149,8 +148,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     //}
 
     @Override
-    public void newAnnotation() {
-        FloatPosition position = new FloatPosition(0.5f, 0.5f);
+    public void newAnnotation(FloatPosition position) {
         Annotation ann = mAnnotationSurfaceHandler.addAnnotation(mMediaPlayer.getCurrentPosition(), position);
         mController.setCurrentAnnotation(ann);
         mAnnotationSurfaceHandler.select(ann);
@@ -258,7 +256,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
 
     public void onPause() {
         super.onPause();
-        _longPressDetector.removeCallbacks(_longPressed);
+        mAnnotationSurfaceHandler.stopRectangleAnimation();
         if (mMediaPlayer != null) {
             SharedPreferences.Editor e = getActivity().getSharedPreferences("AchSoPrefs", 0).edit();
             e.putBoolean("stateSaved", true);
@@ -498,8 +496,8 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     public void start() {
         if (mMediaPlayer == null)
             return;
+        mAnnotationSurfaceHandler.stopRectangleAnimation();
 
-        _longPressDetector.removeCallbacks(_longPressed);
         mMediaPlayer.start();
         mAnnotationSurfaceHandler.select(null);
         mAnnotationSurfaceHandler.draw();
@@ -590,16 +588,6 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     }
 
 
-    final Handler _longPressDetector = new Handler();
-    Runnable _longPressed = new Runnable() {
-        public void run() {
-            Log.i("info","LongPress");
-            mController.addAnnotationToPlace();
-
-        }
-    };
-
-
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         //Log.i("SemanticVideoPlayerFragment", "TouchEvent x: " + event.getX() + " y: " + event.getY());
@@ -632,19 +620,23 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
         } else {
             Annotation a = mAnnotationSurfaceHandler.getAnnotation(position);
             if (a != null && !isPlaying() && !mController.isPausedForShowingAnnotation()) {
+                mAnnotationSurfaceHandler.stopRectangleAnimation();
                 mController.enableAnnotationEditModeForAnnotation(a);
                 mController.hide();
             } else {
                 switch(event.getAction()){
                     case MotionEvent.ACTION_DOWN:
-                        _longPressDetector.postDelayed(_longPressed,
-                                ANNOTATION_ACTIVATION_DELAY);
+                        //_longPressDetector.postDelayed(_longPressed,
+                        //        ANNOTATION_ACTIVATION_DELAY);
+                        mAnnotationSurfaceHandler.startRectangleAnimation
+                                (position, mController);
+                        //mAnnotationSurfaceHandler.drawIncoming();
                         break;
                     case MotionEvent.ACTION_MOVE:
-                        _longPressDetector.removeCallbacks(_longPressed);
+                        mAnnotationSurfaceHandler.moveRectangleAnimation(position);
                         break;
                     case MotionEvent.ACTION_UP:
-                        _longPressDetector.removeCallbacks(_longPressed);
+                        mAnnotationSurfaceHandler.stopRectangleAnimation();
                         break;
                 }
                 return true;
@@ -652,6 +644,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
         }
         return true;
     }
+
 
     @Override
     public void onCompletion(MediaPlayer mp) {
