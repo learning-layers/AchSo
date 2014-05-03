@@ -279,7 +279,7 @@ public class LasConnection implements Connection {
      * @return XML document representation of videos content
      */
     public String getVideoInformations() {
-        String xmlString = null;
+        String response = null;
         try {
 
             this.instantiateDBContext();
@@ -294,19 +294,31 @@ public class LasConnection implements Connection {
             // What should we invoke to get
             // i5.atlas.las.service.videoinformation.Videoinformation
             //
+            //Object[] params = {"sevianno"};
             //xmlString = (String) this.invoke("mpeg7_multimediacontent_service",
             //        "getVideoInformations");
-            //xmlString = (String) this.invoke("videoinformation_service",
-            //         "getVideoInformationByXQuery", "");
-            xmlString = (String) this.invoke("mpeg7_multimediacontent_service",
-                   "getMediaUrls");
+            //Object oo = (Object) this.invoke("videoinformation_service",
+            //        "getVideoInformationFilterByCreator", params);
+            //Log.i("LasConnection", "Success!! Received response "+ oo.toString());
+            String videoUrls[] = (String[]) this.invoke("mpeg7_multimediacontent_service",
+                   "getMediaURLs");
+            for (String url : videoUrls) {
+                Log.i("LasConnection", "Returned videoUrls:" + url);
+            }
+            Object[] params = {"String[]", videoUrls};
+            String thumbUrls[] = (String[]) this.invoke("mpeg_multimediacontent_service", "",
+                    params);
+
+            for (String url : thumbUrls) {
+                Log.i("LasConnection", "Returned thumbUrls:" + url);
+            }
 
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
-        return xmlString;
+        return response;
     }
 
     /**
@@ -472,7 +484,7 @@ public class LasConnection implements Connection {
      */
     @Override
     public String getVideos(int query_type, String query) {
-        String xml = "";
+        String xml;
         // prepare authentication arguments for http GET
         //con = getConnection();
         //if (con.client == null) {
@@ -511,7 +523,7 @@ public class LasConnection implements Connection {
 
         // handle results
 
-        return xml;
+        return "";
 
     }
 }

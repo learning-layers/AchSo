@@ -20,39 +20,35 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.SeekBar;
 
 import fi.aalto.legroup.achso.annotation.Annotation;
 import fi.aalto.legroup.achso.annotation.AnnotationSurfaceHandler;
-import fi.aalto.legroup.achso.database.SemanticVideo;
-import fi.aalto.legroup.achso.database.VideoDBHelper;
 
 public class AnnotatedSeekBar extends SeekBar {
+    //private Annotation lastTouched = null;
+    private VideoControllerView mController;
+    public boolean suggests_position = false;
+
+
+    public void setController(VideoControllerView controller) {
+        mController = controller;
+    }
 
     public OnSeekBarChangeListener seekBarChangeListener = new OnSeekBarChangeListener() {
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-            AnnotatedSeekBar sb = (AnnotatedSeekBar) seekBar;
             if (fromUser && mAnnotationSurfaceHandler.getAnnotations() != null) {
-                long maxRange = 500;
-                long closestAnnotationx = 0;
-                Annotation closestAnnotation = null;
-                for (Annotation a : mAnnotationSurfaceHandler.getAnnotations()) {
-                    SemanticVideo sv = VideoDBHelper.getById(a.getVideoId());
-                    long videoDuration = sv.getDuration(getContext());
-                    long progressx = (progress * videoDuration) / 1000L;
-                    int range = Math.abs((int) progressx - (int) a.getStartTime());
-                    if (range <= maxRange) {
-                        closestAnnotationx = (int) (((float) a.getStartTime() / videoDuration) * 1000);
-                        maxRange = range;
-                        closestAnnotation = a;
-                    }
-                }
+                Annotation closestAnnotation = getAnnotationUnderThumb(progress);
                 if (closestAnnotation != null) {
-                    sb.setProgress((int) closestAnnotationx);
+                    suggests_position = true;
+                    setProgress((int) closestAnnotation.getStartTime());
+                    mController.playerSeekTo((int) closestAnnotation.getStartTime());
                     mAnnotationSurfaceHandler.show(closestAnnotation);
                 } else {
                     mAnnotationSurfaceHandler.show(null);
+                    suggests_position = false;
                 }
                 mAnnotationSurfaceHandler.draw();
             }
@@ -66,26 +62,52 @@ public class AnnotatedSeekBar extends SeekBar {
         public void onStopTrackingTouch(SeekBar seekBar) {
         }
     };
+
+    public Annotation getAnnotationUnderThumb(int progress) {
+        Annotation closestAnnotation = null;
+        int videoDuration = mController.getDuration();
+        int maxRange;
+        int w = this.getWidth();
+        if (w == 0) { // when called after rotate there is no width
+            maxRange = 500;
+        } else {
+            maxRange = (videoDuration / (this.getWidth() - (this.getThumbOffset()*2)
+            )) * 14;
+        }
+        for (Annotation a : mAnnotationSurfaceHandler.getAnnotations()) {
+            int range = Math.abs(progress - (int) a.getStartTime());
+            if (range <= maxRange) {
+                maxRange = range;
+                closestAnnotation = a;
+            }
+        }
+        return closestAnnotation;
+    }
+
     private AnnotationSurfaceHandler mAnnotationSurfaceHandler;
 
     public AnnotatedSeekBar(Context context) {
         super(context);
         setOnSeekBarChangeListener(seekBarChangeListener);
+        //lastTouched = null;
     }
 
     public AnnotatedSeekBar(Context context, AttributeSet attrs) {
         super(context, attrs);
         setOnSeekBarChangeListener(seekBarChangeListener);
+        //lastTouched = null;
     }
 
     public AnnotatedSeekBar(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         setOnSeekBarChangeListener(seekBarChangeListener);
+        //lastTouched = null;
     }
 
     public void setAnnotationSurfaceHandler(AnnotationSurfaceHandler h) {
         mAnnotationSurfaceHandler = h;
     }
+
 
     @Override
     protected void onDraw(Canvas c) {
@@ -95,11 +117,14 @@ public class AnnotatedSeekBar extends SeekBar {
         p.setStyle(Paint.Style.FILL_AND_STROKE);
         p.setStrokeWidth(1.0f);
         p.setFlags(Paint.ANTI_ALIAS_FLAG);
+        int w = this.getWidth() - (this.getThumbOffset() * 2);
+
         if (mAnnotationSurfaceHandler != null) {
             if (mAnnotationSurfaceHandler.getAnnotations() != null) {
+                int video_duration = mController.getDuration();
                 for (Annotation a : mAnnotationSurfaceHandler.getAnnotations()) {
-                    SemanticVideo sv = VideoDBHelper.getById(a.getVideoId());
-                    int thumbx = (int) (((float) a.getStartTime() / sv.getDuration(getContext())) * this.getWidth());
+                    int thumbx = (int) (((float) a.getStartTime() / video_duration ) * w) + this
+                            .getThumbOffset();
                     c.drawCircle(thumbx, this.getHeight() / 2, 4.0f, p);
                     p.setColor(0x88EAB674);
                     c.drawCircle(thumbx, this.getHeight() / 2, 14.0f, p);

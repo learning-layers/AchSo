@@ -55,6 +55,7 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.annotation.Annotation;
 import fi.aalto.legroup.achso.annotation.EditorListener;
 import fi.aalto.legroup.achso.database.SemanticVideo;
+import fi.aalto.legroup.achso.fragment.SemanticVideoPlayerFragment;
 import fi.aalto.legroup.achso.util.FloatPosition;
 
 import static fi.aalto.legroup.achso.util.App.appendLog;
@@ -118,7 +119,7 @@ public class VideoControllerView extends FrameLayout {
             int pos = mPlayer.getCurrentPosition();
             pos -= 1000; // milliseconds
             mPlayer.seekTo(pos);
-            setProgress();
+            updateProgress();
 
             show(sDefaultTimeout);
         }
@@ -132,7 +133,7 @@ public class VideoControllerView extends FrameLayout {
             int pos = mPlayer.getCurrentPosition();
             pos += 1000; // milliseconds
             mPlayer.seekTo(pos);
-            setProgress();
+            updateProgress();
 
             show(sDefaultTimeout);
         }
@@ -177,20 +178,22 @@ public class VideoControllerView extends FrameLayout {
                 // the progress bar's position.
                 return;
             }
-
-            long duration = mPlayer.getDuration();
-            long newposition = (duration * progress) / 1000L;
-
-            mPlayer.seekTo((int) newposition);
+            //Log.i("VideoControllerView", "OnProgressChanged called: " + progress);
+            //mPlayer.seekTo(progress);
+            AnnotatedSeekBar asb = (AnnotatedSeekBar) mProgress;
+            if (!asb.suggests_position) {
+                mPlayer.seekTo(progress);
+            }
             if (mCurrentTime != null)
-                mCurrentTime.setText(stringForTime((int) newposition));
+                mCurrentTime.setText(stringForTime(progress));
+
         }
 
         public void onStopTrackingTouch(SeekBar bar) {
             mSuperSeekListener.onStopTrackingTouch(bar);
 
             mDragging = false;
-            setProgress();
+            updateProgress();
             updatePausePlay();
             //Log.i("VideoControllerView", "Stopped tracking touch");
             //show(sDefaultTimeout);
@@ -213,17 +216,17 @@ public class VideoControllerView extends FrameLayout {
     private Button mKeepButton;
     private Button mCancelButton;
     private Button mDeleteButton;
-    private boolean mAnnotationModeEnabled;
+    public int annotationMode;
+    //private boolean mAnnotationModeEnabled;
     private OnClickListener mAnnotationButtonListener = new OnClickListener() {
         @Override
         public void onClick(View v) {
             if (mPlayer == null) return;
-            if (mAnnotationModeEnabled) {
+            if (annotationMode != SemanticVideoPlayerFragment.NORMAL_MODE) {
                 disableAnnotationMode();
-            } else if (!mPlayer.isPlaying()) enableAnnotationMode(true, null);
+            } else if (!mPlayer.isPlaying()) addNewAnnotation(null);
         }
     };
-    private boolean mAnnotationModeWasEnabled;
     private boolean mAnnotationPauseEnabled;
     private Handler mHandler = new MessageHandler(this);
     private ProgressBar mAnnotationPausedProgress;
@@ -252,15 +255,16 @@ public class VideoControllerView extends FrameLayout {
         @Override
         public void onClick(View v) {
             if (mPlayer == null) return;
-            disableAnnotationMode();
             if (mCurrentAnnotation != null) {
-                if (mCurrentAnnotationIsNew) mEditorListener.deleteAnnotation(mCurrentAnnotation);
+                if (annotationMode == SemanticVideoPlayerFragment.NEW_ANNOTATION_MODE)
+                    mEditorListener.deleteAnnotation(mCurrentAnnotation);
                 else mEditorListener.revertAnnotationChanges(mCurrentAnnotation);
             }
+            disableAnnotationMode();
             setCurrentAnnotation(null);
         }
     };
-    private boolean mAnnotationModeAvailable = true;
+    private boolean mCanAnnotate = true;
     private VideoControllerShowHideListener mControllerListener = null;
     // There are two scenarios that can trigger the seekbar listener to trigger:
     //
@@ -288,12 +292,11 @@ public class VideoControllerView extends FrameLayout {
         mContext = context;
         mUseFastForward = true;
         mFromXml = true;
-        mAnnotationModeEnabled = false;
-        mAnnotationModeWasEnabled = false;
+        annotationMode = SemanticVideoPlayerFragment.NORMAL_MODE;
         mAnnotationPauseEnabled = false;
         mCurrentAnnotation = null;
         mEditorListener = listener;
-        mAnnotationModeAvailable = annotationModeAvailable;
+        mCanAnnotate = annotationModeAvailable;
     }
 
     public VideoControllerView(Context context, boolean useFastForward, EditorListener listener, boolean annotationModeAvailable) {
@@ -301,14 +304,14 @@ public class VideoControllerView extends FrameLayout {
         mContext = context;
         mUseFastForward = useFastForward;
         mEditorListener = listener;
-        mAnnotationModeAvailable = annotationModeAvailable;
+        mCanAnnotate = annotationModeAvailable;
         mAnnotationPauseEnabled = false;
     }
 
     public VideoControllerView(Context context, EditorListener listener, boolean annotationModeAvailable) {
         this(context, true, listener, annotationModeAvailable);
         mEditorListener = listener;
-        mAnnotationModeAvailable = annotationModeAvailable;
+        mCanAnnotate = annotationModeAvailable;
     }
 
     public void setVideoControllerShowHideListener(VideoControllerShowHideListener l) {
@@ -316,11 +319,11 @@ public class VideoControllerView extends FrameLayout {
     }
 
     public boolean isAnnotationModeAvailable() {
-        return mAnnotationModeAvailable;
+        return mCanAnnotate;
     }
 
     public void setAnnotationModeAvailable(boolean b) {
-        mAnnotationModeAvailable = b;
+        mCanAnnotate = b;
     }
 
     public ProgressBar getProgressBar() {
@@ -420,7 +423,7 @@ public class VideoControllerView extends FrameLayout {
 
         mAnnotationButton = (Button) v.findViewById(R.id.add_annotation_button);
         if (mAnnotationButton != null) {
-            if (mAnnotationModeAvailable) {
+            if (mCanAnnotate) {
                 //Drawable d=getResources().getDrawable(R.drawable.ic_square);
                 //if(d!=null) {
                 //    d.setBounds(0,0,d.getIntrinsicWidth(),d.getIntrinsicHeight());
@@ -457,8 +460,9 @@ public class VideoControllerView extends FrameLayout {
                 AnnotatedSeekBar seeker = (AnnotatedSeekBar) mProgress;
                 mSuperSeekListener = seeker.seekBarChangeListener;
                 seeker.setOnSeekBarChangeListener(mSeekListener);
+                seeker.setController(this);
             }
-            mProgress.setMax(1000);
+            mProgress.setMax(1000); // this will be set to video length
         }
 
         mEndTime = (TextView) v.findViewById(R.id.time);
@@ -522,7 +526,7 @@ public class VideoControllerView extends FrameLayout {
         if (!mPlayer.isPlaying()) timeout = mInfinity;
 
         if (!mShowing && mAnchor != null) {
-            setProgress();
+            updateProgress();
             if (mPauseButton != null) {
                 mPauseButton.requestFocus();
             }
@@ -591,9 +595,9 @@ public class VideoControllerView extends FrameLayout {
         return mShowing;
     }
 
-    public boolean isAnnotationModeEnabled() {
-        return mAnnotationModeEnabled;
-    }
+    //public boolean isAnnotationModeEnabled() {
+    //    return mAnnotationModeEnabled;
+    //}
 
 
 
@@ -663,7 +667,7 @@ public class VideoControllerView extends FrameLayout {
         }
     }
 
-    private int setProgress() {
+    private int updateProgress() {
         if (mPlayer == null || mDragging) {
             return 0;
         }
@@ -673,11 +677,11 @@ public class VideoControllerView extends FrameLayout {
         if (mProgress != null) {
             if (duration > 0) {
                 // use long to avoid overflow
-                long pos = 1000L * position / duration;
-                mProgress.setProgress((int) pos);
+                //long pos = 1000L * position / duration;
+                mProgress.setProgress(position);
             }
             int percent = mPlayer.getBufferPercentage();
-            mProgress.setSecondaryProgress(percent * 10);
+            mProgress.setSecondaryProgress(percent * duration);
         }
 
         if (mEndTime != null)
@@ -782,9 +786,6 @@ public class VideoControllerView extends FrameLayout {
         if (mPlayer.isPlaying()) {
             mPlayer.pause();
             appendLog(String.format("Pausing playback at point %d", mPlayer.getCurrentPosition()));
-            if (mAnnotationModeWasEnabled) {
-                enableAnnotationMode(true, null);
-            }
         } else {
             mPlayer.start();
             appendLog(String.format("Starting playback at point %d", mPlayer.getCurrentPosition()));
@@ -839,22 +840,19 @@ public class VideoControllerView extends FrameLayout {
         super.onAttachedToWindow();
     }
 
-    public void enableAnnotationEditModeForAnnotation(Annotation a) {
-        setCurrentAnnotation(a);
-        enableAnnotationMode(false, null);
-    }
 
-    public void enableNewAnnotationModeForAnnotation(Annotation a) {
+    public void fakeNewAnnotationModeForAnnotation(Annotation a) {
         // Fake new annotation mode for existing annotation
         setCurrentAnnotation(a);
-        enableAnnotationMode(false, null);
+        editCurrentAnnotation();
         mCurrentAnnotationIsNew = true;
         mDeleteButton.setVisibility(View.GONE);
+        annotationMode = SemanticVideoPlayerFragment.NEW_ANNOTATION_MODE;
     }
 
-    public boolean annotationModeIsEdit() {
-        return mAnnotationModeEnabled && !mCurrentAnnotationIsNew;
-    }
+    //public boolean annotationModeIsEdit() {
+    //    return mAnnotationModeEnabled && !mCurrentAnnotationIsNew;
+    //}
 
     public void setAnnotationPausedMode(Boolean b) {
         //Log.i("VideoControllerView", "setAnnotationPausedMode:" + b);
@@ -875,12 +873,27 @@ public class VideoControllerView extends FrameLayout {
         if (mPlayer.isPlaying()) {
             return;
         }
-        enableAnnotationMode(true, place);
+        addNewAnnotation(place);
     }
 
-    private void enableAnnotationMode(boolean createNew, FloatPosition place) {
-        mAnnotationModeWasEnabled = mAnnotationModeEnabled;
-        mAnnotationModeEnabled = true;
+    public void editCurrentAnnotation(){
+        annotationMode = SemanticVideoPlayerFragment.EDIT_ANNOTATION_MODE;
+        setAnnotationPausedMode(false);
+        mRewButton.setVisibility(View.GONE);
+        mPauseButton.setVisibility(View.GONE);
+        mFfwdButton.setVisibility(View.GONE);
+        mAnnotationButton.setVisibility(View.GONE);
+        mProgress.setVisibility(View.GONE);
+        mCurrentTime.setVisibility(View.GONE);
+        mEndTime.setVisibility(View.GONE);
+        mDeleteButton.setVisibility(View.VISIBLE);
+        mOkButton.setVisibility(View.VISIBLE);
+        mKeepButton.setVisibility(View.VISIBLE);
+        mCancelButton.setVisibility(View.VISIBLE);
+    }
+
+    public void addNewAnnotation(FloatPosition place) {
+        annotationMode = SemanticVideoPlayerFragment.NEW_ANNOTATION_MODE;
         setAnnotationPausedMode(false);
 
         mRewButton.setVisibility(View.GONE);
@@ -890,29 +903,23 @@ public class VideoControllerView extends FrameLayout {
         mProgress.setVisibility(View.GONE);
         mCurrentTime.setVisibility(View.GONE);
         mEndTime.setVisibility(View.GONE);
-        if (createNew) {
-            if (place == null) {
-                place = new FloatPosition((float) 0.5, (float) 0.5);
-            }
-            mEditorListener.newAnnotation(place);
-            mCurrentAnnotationIsNew = true;
-            mDeleteButton.setVisibility(View.GONE);
-        } else {
-            mDeleteButton.setVisibility(View.VISIBLE);
+        if (place == null) {
+            place = new FloatPosition((float) 0.5, (float) 0.5);
         }
+        mEditorListener.newAnnotation(place);
+        mCurrentAnnotationIsNew = true;
+        mDeleteButton.setVisibility(View.GONE);
         mOkButton.setVisibility(View.VISIBLE);
         mKeepButton.setVisibility(View.VISIBLE);
         mCancelButton.setVisibility(View.VISIBLE);
     }
 
     private void disableAnnotationMode() {
-        mAnnotationModeWasEnabled = mAnnotationModeEnabled;
-        mAnnotationModeEnabled = false;
-
+        annotationMode = SemanticVideoPlayerFragment.NORMAL_MODE;
         mRewButton.setVisibility(View.VISIBLE);
         mPauseButton.setVisibility(View.VISIBLE);
         mFfwdButton.setVisibility(View.VISIBLE);
-        if (mAnnotationModeAvailable) {
+        if (mCanAnnotate) {
             mAnnotationButton.setVisibility(View.VISIBLE);
         }
         mProgress.setVisibility(View.VISIBLE);
@@ -923,6 +930,16 @@ public class VideoControllerView extends FrameLayout {
         mKeepButton.setVisibility(View.GONE);
         mCancelButton.setVisibility(View.GONE);
         mDeleteButton.setVisibility(View.GONE);
+    }
+
+    public int getDuration() {
+        return mPlayer.getDuration();
+    }
+
+    public void playerSeekTo(int position) {
+        mPlayer.seekTo(position);
+        if (mCurrentTime != null)
+            mCurrentTime.setText(stringForTime(position));
     }
 
     public interface VideoControllerShowHideListener {
@@ -982,7 +999,7 @@ public class VideoControllerView extends FrameLayout {
                     break;
                 case SHOW_PROGRESS:
                     try {
-                        pos = view.setProgress();
+                        pos = view.updateProgress();
                         if (!view.mDragging && view.mShowing && view.mPlayer.isPlaying()) {
                             msg = obtainMessage(SHOW_PROGRESS);
                             sendMessageDelayed(msg, 1000 - (pos % 1000));

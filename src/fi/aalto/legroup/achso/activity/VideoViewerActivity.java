@@ -39,6 +39,7 @@ public class VideoViewerActivity extends ActionbarActivity {
     public static final int REQUEST_VIDEO_INFORMATION = 6;
     private long mVideoId;
     private int mVideoPositionInSearchCache;
+    private SemanticVideoPlayerFragment mPlayerFragment;
     private IntentFilter mFilter;
     private BroadcastReceiver mReceiver;
     protected boolean show_record() {return true;}
@@ -51,7 +52,8 @@ public class VideoViewerActivity extends ActionbarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video_viewer);
-
+        Log.i("VideoViewerActivity", "onCreate called, saveState exists: " +
+                (savedInstanceState != null));
         // Show the Up button in the action bar.
         getActionBar().setDisplayHomeAsUpEnabled(true);
 
@@ -70,8 +72,18 @@ public class VideoViewerActivity extends ActionbarActivity {
                 mVideoPositionInSearchCache = getIntent().getIntExtra(VideoViewerFragment.ARG_ITEM_CACHE_POSITION, -1);
             }
             modifyCurrentFragments(false);
+        } else {
+            mPlayerFragment = (SemanticVideoPlayerFragment) getSupportFragmentManager()
+                    .findFragmentById(R.id.video_player_content);
+            mPlayerFragment.restoreStateBundle(savedInstanceState);
         }
+    }
 
+    @Override
+    public void onSaveInstanceState(Bundle saveState) {
+        super.onSaveInstanceState(saveState);
+        Log.i("VideoViewerActivity", "In videoviewer's on save instance state ");
+        saveState.putAll(mPlayerFragment.getStateBundle());
     }
 
     @Override
@@ -83,7 +95,7 @@ public class VideoViewerActivity extends ActionbarActivity {
 
     void modifyCurrentFragments(boolean replace) {
         // Clear saved SemanticVideoPlayerFragment data
-        getSharedPreferences("AchSoPrefs", 0).edit().putBoolean("stateSaved", false).commit();
+        //getSharedPreferences("AchSoPrefs", 0).edit().putBoolean("stateSaved", false).commit();
 
         // Create the detail fragment and add it to the activity
         // using a fragment transaction.
@@ -98,19 +110,19 @@ public class VideoViewerActivity extends ActionbarActivity {
         }
         Log.i("VideoViewerActivity", "Modifying current fragments -- new video is set to video_viewer_container");
         VideoViewerFragment fragment = new VideoViewerFragment();
-        SemanticVideoPlayerFragment videofragment = new SemanticVideoPlayerFragment();
-        videofragment.setEditableAnnotations(mVideoId != -1);
+        mPlayerFragment = new SemanticVideoPlayerFragment();
+        mPlayerFragment.setEditableAnnotations(mVideoId != -1);
         fragment.setArguments(arguments);
-        videofragment.setArguments(arguments);
+        mPlayerFragment.setArguments(arguments);
         if (replace) {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.video_viewer_container, fragment)
-                    .replace(R.id.video_player_content, videofragment)
+                    .replace(R.id.video_player_content, mPlayerFragment)
                     .commitAllowingStateLoss();
         } else {
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.video_viewer_container, fragment)
-                    .replace(R.id.video_player_content, videofragment)
+                    .replace(R.id.video_player_content, mPlayerFragment)
                     .commit();
         }
 

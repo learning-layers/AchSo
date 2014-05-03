@@ -293,24 +293,17 @@ public class VideoDBHelper extends SQLiteOpenHelper {
 
     private Annotation getAnnotationFromCursor(Cursor c) {
         int i = 0;
-        Log.i("VideoDBHelper", "Column name: "+ c.getColumnName(i));
         long id = c.getLong(i++);
-        Log.i("VideoDBHelper", "Column name: "+ c.getColumnName(i));
         long starttime = c.getLong(i++);
-        Log.i("VideoDBHelper", "Column name: "+ c.getColumnName(i));
         long duration = c.getLong(i++);
-        Log.i("VideoDBHelper", "Column name: "+ c.getColumnName(i));
         float x = c.getFloat(i++);
-        Log.i("VideoDBHelper", "Column name: "+ c.getColumnName(i));
         float y = c.getFloat(i++);
-        Log.i("VideoDBHelper", "Column name: "+ c.getColumnName(i));
         long vid = c.getLong(i++);
-        Log.i("VideoDBHelper", "Column name: "+ c.getColumnName(i));
         String text = c.getString(i++);
         if (text == null) text = "";
-        Log.i("VideoDBHelper", "Column name: "+ c.getColumnName(i));
-        float sc = c.getFloat(i++);
-        Annotation a = new Annotation(mContext, vid, starttime, text, new FloatPosition(x, y), sc);
+        float scale = c.getFloat(i++);
+        Annotation a = new Annotation(mContext, vid, starttime, text, new FloatPosition(x, y),
+                scale);
         ((AnnotationBase) a).setId(id);
         return a;
     }

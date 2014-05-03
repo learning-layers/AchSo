@@ -25,6 +25,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -205,5 +206,29 @@ public class AnnotationSurfaceHandler {
         if (mIncoming != null) {
             mIncoming.setPosition(position);
         }
+    }
+
+    public List<Annotation> getAnnotationsAppearingBetween(long prev_moment, long now) {
+        List<Annotation> result = new ArrayList<Annotation>();
+        for (final Annotation a : getAnnotations()) {
+            final long aTime = a.getStartTime();
+            // mLastPos is the position from previous onProgressChanged
+            // This returns true for position that is after the annotation start point,
+            // but where previous position was before the annotation start point.
+            if (now >= aTime && prev_moment < aTime && a.isAlive()) {
+                result.add(a);
+            } else {
+                a.setVisible(false);
+            }
+        }
+        return result;
+    }
+
+    public void hideAnnotationsNotAppearingBetween(long prev_moment, long now) {
+        for (final Annotation a : getAnnotations()) {
+            final long aTime = a.getStartTime();
+            a.setVisible((now >= aTime && prev_moment < aTime && a.isAlive()));
+        }
+
     }
 }

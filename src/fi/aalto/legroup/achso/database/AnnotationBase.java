@@ -25,38 +25,37 @@ import fi.aalto.legroup.achso.util.xml.XmlSerializable;
 public class AnnotationBase implements XmlSerializable {
     // Modify VideoDBHelper database in case of adding/removing/modifying members of this class!
 
-    private long mId;
     protected long mVideoId;
+    protected String mText;
+    protected float mScale;
+    private long mId;
     private long mStartTime;
     private long mDuration;
     private FloatPosition mPosition;
-    protected String mText;
-    protected float mScale;
 
-    public AnnotationBase(long videoid, long starttime, long duration, String text,
-                          FloatPosition position, float scale) {
-        mVideoId=videoid;
-        mStartTime=starttime;
-        mDuration=duration;
-        mPosition=position;
-        mText=text;
+    public AnnotationBase(long videoid, long starttime, long duration, String text, FloatPosition position, float scale) {
+        mVideoId = videoid;
+        mStartTime = starttime;
+        mDuration = duration;
+        mPosition = position;
+        mText = text;
         mScale = scale;
-    }
-
-    public void setText(String text) {
-        mText=text;
     }
 
     public String getText() {
         return mText;
     }
 
-    void setId(long id) {
-        mId=id;
+    public void setText(String text) {
+        mText = text;
     }
 
     public long getId() {
         return mId;
+    }
+
+    void setId(long id) {
+        mId = id;
     }
 
     public long getStartTime() {
@@ -68,8 +67,8 @@ public class AnnotationBase implements XmlSerializable {
     }
 
     public void setEndTime(int time) {
-        if(time>mStartTime) {
-            mDuration=time-mStartTime;
+        if (time > mStartTime) {
+            mDuration = time - mStartTime;
         }
     }
 
@@ -82,25 +81,20 @@ public class AnnotationBase implements XmlSerializable {
     }
 
     public void setPosition(FloatPosition p) {
-        mPosition=p;
+        mPosition = p;
     }
 
     @Override
     public XmlObject getXmlObject(Context ctx) {
         FloatPosition pos = getPosition();
-        return new XmlObject("annotation")
-            .addSubObject("text", getText())
-            .addSubObject("x_position", Float.toString(pos.getX()))
-            .addSubObject("y_position", Float.toString(pos.getY()))
-            .addSubObject("start_time", Long.toString(getStartTime()))
-            .addSubObject("duration", Long.toString(getDuration()));
-    }
-
-    public void setScaleFactor(float scaleFactor) {
-        mScale = scaleFactor;
+        return new XmlObject("annotation").addSubObject("text", getText()).addSubObject("x_position", Float.toString(pos.getX())).addSubObject("y_position", Float.toString(pos.getY())).addSubObject("start_time", Long.toString(getStartTime())).addSubObject("duration", Long.toString(getDuration()));
     }
 
     public float getScaleFactor() {
         return mScale;
+    }
+
+    public void setScaleFactor(float scaleFactor) {
+        mScale = scaleFactor;
     }
 }
