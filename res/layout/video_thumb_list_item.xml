@@ -132,9 +132,6 @@
                         android:id="@+id/upload_icon"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="false"
-                        android:layout_alignParentRight="true"
-                        android:layout_alignParentStart="false"
                         android:src="@android:drawable/ic_menu_upload" />
                 <!--</RelativeLayout>-->
             </LinearLayout>

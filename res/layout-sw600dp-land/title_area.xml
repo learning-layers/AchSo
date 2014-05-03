@@ -15,13 +15,14 @@
         android:text="Large Text"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
-    <ImageView
+    <ImageButton
         android:id="@+id/more_information_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:layout_marginLeft="20dp"
-        android:background="@drawable/ic_information" />
+        android:background="?android:attr/selectableItemBackground"
+        android:src="@drawable/ic_information" />
 
     <TextView
         android:id="@+id/video_genre"
