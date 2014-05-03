@@ -156,7 +156,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
                 } else {
                     for (int pos : mSelectedVideos.keySet()) {
                         SemanticVideo sv = mSelectedVideos.get(pos);
-                        sv.setUploadPending(true);
+                        sv.setUploadStatus(SemanticVideo.UPLOAD_PENDING);
                         Intent uploadIntent = new Intent(getActivity(), UploaderService.class);
                         uploadIntent.putExtra(UploaderService.PARAM_IN, sv.getId());
                         getActivity().startService(uploadIntent);

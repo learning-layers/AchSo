@@ -61,6 +61,7 @@ public class UploaderService extends IntentService {
     public static final int UPLOAD_END = 2;
     public static final int UPLOAD_ERROR = 3;
 
+
     public UploaderService() {
         super("AchSoUploaderService");
     }
@@ -202,9 +203,7 @@ public class UploaderService extends IntentService {
         String server_url = "http://merian.informatik.rwth-aachen.de:5080/ClViTra/FileUploadServlet";
         //give an unique name to the video and xml files stored on server
         String filename = new String(UUID.randomUUID() + "");
-        sem_video.setUploading(true);
-        sem_video.setUploaded(false);
-        sem_video.setUploadPending(false);
+        sem_video.setUploadStatus(SemanticVideo.UPLOADING);
         HttpClient httpclient = new DefaultHttpClient();
         //added source and file id to the http post
         HttpPost httppost = new HttpPost(server_url + "?source=achso&uid=" + filename);

@@ -65,6 +65,7 @@ public class RemoteSemanticVideoFactory implements XmlSerializableFactory {
         Date created_at = null;
         Location location = null;
         Bitmap image = null;
+        String key = null;
         List<RemoteAnnotation> remoteAnnotations = new ArrayList<RemoteAnnotation>();
         long duration = 0;
         if (!obj.getName().equals("video")) {
@@ -130,9 +131,13 @@ public class RemoteSemanticVideoFactory implements XmlSerializableFactory {
                 for (XmlObject annotation : o.getSubObjects()) {
                     remoteAnnotations.add(new RemoteAnnotationFactory().fromXmlObject(annotation));
                 }
+            } else if (name.equals("key")) {
+                key = o.getText();
             }
         }
-        RemoteSemanticVideo ret = new RemoteSemanticVideo(title, created_at, duration, video_uri, genre == null ? 0 : genre.ordinal(), image, image, qrcode, location, true, creator, remoteAnnotations);
+        RemoteSemanticVideo ret = new RemoteSemanticVideo(title, created_at, duration, video_uri,
+                genre == null ? 0 : genre.ordinal(), image, image, qrcode, location,
+                SemanticVideo.UPLOADED, creator, key, remoteAnnotations);
         for (RemoteAnnotation ra : remoteAnnotations) {
             ra.setVideo(ret);
         }

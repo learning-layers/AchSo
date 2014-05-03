@@ -107,6 +107,8 @@ public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
             vh.thumbnail_port = (RelativeLayout) convertView.findViewById(R.id.portrait_thumb_layout);
             vh.progress = (ProgressBar) convertView.findViewById(R.id.upload_progress);
             vh.uploadIcon = (ImageView) convertView.findViewById(R.id.upload_icon);
+            vh.localIcon = (ImageView) convertView.findViewById(R.id.local_icon);
+            vh.cloudIcon = (ImageView) convertView.findViewById(R.id.cloud_icon);
             // store viewholder, save pointers to different fields in this thumb
             convertView.setTag(vh);
         } else {
@@ -168,19 +170,31 @@ public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
             vh.thumbnail_port.setVisibility(View.VISIBLE);
             vh.thumbnail_land.setVisibility(View.GONE);
         }
-        if (v.isUploading()) {
+        if (v.isNeverUploaded()) {
+            vh.uploadIcon.setColorFilter(null);
+            vh.uploadIcon.setVisibility(View.GONE);
+        } else if (v.isUploading()) {
             vh.progress.setVisibility(View.VISIBLE);
             vh.uploadIcon.setColorFilter(res.getColor(R.color.upload_icon_uploading));
         } else if (v.isUploadPending()) {
             vh.progress.setVisibility(View.VISIBLE);
             vh.uploadIcon.setColorFilter(res.getColor(R.color.upload_icon_pending));
-        } else if (!v.isUploading()) {
+        } else if (v.isUploaded()) {
             vh.progress.setVisibility(View.GONE);
             vh.uploadIcon.setColorFilter(null);
-            if (v.isUploaded()) {
-                vh.uploadIcon.setVisibility(View.GONE);
-            }
+            vh.uploadIcon.setVisibility(View.GONE);
         }
+        if (v.inCloud()) {
+            vh.cloudIcon.setVisibility(View.VISIBLE);
+        } else {
+            vh.cloudIcon.setVisibility(View.GONE);
+        }
+        if (v.inLocalDB()) {
+            vh.localIcon.setVisibility(View.VISIBLE);
+        } else {
+            vh.localIcon.setVisibility(View.GONE);
+        }
+
         return convertView;
     }
 
@@ -244,5 +258,7 @@ public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
         public RelativeLayout thumbnail_port;
         public ProgressBar progress;
         public ImageView uploadIcon;
+        public ImageView localIcon;
+        public ImageView cloudIcon;
     }
 }

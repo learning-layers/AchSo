@@ -33,8 +33,11 @@ public class RemoteSemanticVideo extends SemanticVideo {
     private List<Annotation> mAnnotations;
 
     RemoteSemanticVideo(String title, Date createdat, long duration, Uri uri, int genreInt, Bitmap mini, Bitmap micro,
-                        String qrcode, Location location, boolean uploaded, String creator, List<RemoteAnnotation> remoteAnnotations) {
-        super(-1, title, createdat, duration, uri, genreInt, mini, micro, qrcode, location, uploaded, creator);
+                        String qrcode, Location location, int uploadStatus, String creator,
+                        String key,
+                        List<RemoteAnnotation> remoteAnnotations) {
+        super(-1, title, createdat, duration, uri, genreInt, mini, micro, qrcode, location,
+                uploadStatus, creator, key);
         mRemoteAnnotations = remoteAnnotations;
         mAnnotations = null;
     }

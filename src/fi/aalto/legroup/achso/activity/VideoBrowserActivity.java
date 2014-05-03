@@ -402,8 +402,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
                     return;
                 if (action.equals(UPLOAD_START_ACTION)) {
                     Log.i("UploaderBroadcastReceiver", "Received upload start action ");
-                    sv.setUploaded(false);
-                    sv.setUploading(true);
+                    sv.setUploadStatus(SemanticVideo.UPLOADING);
                     ui.first.setVisibility(View.VISIBLE);
                     ui.second.setColorFilter(getResources().getColor(R.color.upload_icon_uploading));
                 } else if (action.equals(UPLOAD_PROGRESS_ACTION)) {
@@ -411,9 +410,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
                     ui.first.setProgress(percentage);
                 } else if (action.equals(UPLOAD_END_ACTION)) {
                     Log.i("UploaderBroadcastReceiver", "Received upload end action ");
-                    sv.setUploaded(true);
-                    sv.setUploading(false);
-                    sv.setUploadPending(false);
+                    sv.setUploadStatus(SemanticVideo.UPLOADED);
 
                     VideoDBHelper vdb = new VideoDBHelper(context);
                     vdb.update(sv);
@@ -425,9 +422,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
                     Toast.makeText(context, "Upload successful.", Toast.LENGTH_LONG).show();
                 } else if (action.equals(UPLOAD_ERROR_ACTION)) {
                         Log.i("UploaderBroadcastReceiver", "Received upload error action ");
-                        sv.setUploaded(false);
-                        sv.setUploading(false);
-                        sv.setUploadPending(false);
+                        sv.setUploadStatus(SemanticVideo.UPLOAD_ERROR);
                         ui.first.setVisibility(View.GONE);
                         ui.second.setVisibility(View.GONE);
                         String errmsg = intent.getStringExtra(UploaderService.PARAM_ARG);

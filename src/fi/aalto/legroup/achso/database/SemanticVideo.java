@@ -42,7 +42,13 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
 	// Modify VideoDBHelper database in case of adding/removing/modifying
 	// members of this class!
 
-	protected long mId;
+    public static final int NO_UPLOAD = 0;
+    public static final int UPLOAD_PENDING = 0;
+    public static final int UPLOADED = 1;
+    public static final int UPLOADING = 2;
+    public static final int UPLOAD_ERROR = 3;
+
+    protected long mId;
 	protected String mTitle;
 	protected String mCreator;
 	protected String mQrCode;
@@ -51,9 +57,10 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
 	protected Genre mGenre;
 	protected Bitmap mThumbMini;
 	protected Bitmap mThumbMicro;
-	protected boolean mUploaded;
-	protected boolean mUploading;
-	protected boolean mUploadPending;
+    protected int mUploadStatus;
+    protected boolean mInLocalDB;
+    protected boolean mInCloud;
+    protected String mKey;
 	protected Location mLocation;
     protected Long mDuration;
 
@@ -61,6 +68,8 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
     public void setText(String text) {
         this.setTitle(text);
     }
+
+
 
     public enum Genre {
         GoodWork, Problem, TrickOfTrade, SiteOverview
@@ -86,39 +95,47 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
 
     protected SemanticVideo(long id, String title, Date createdat, Long duration, Uri uri,
                             int genreInt, Bitmap mini, Bitmap micro, String qrcode,
-                            Location location, boolean uploaded, String creator) {
+                            Location location, int uploadStatus, String creator, String key) {
         this.mId = id;
         this.mTitle = title;
         this.mCreatedAt = createdat;
         this.mUri = uri;
         this.mQrCode = qrcode;
         this.mGenre = Genre.values()[genreInt];
+        this.mUploadStatus = uploadStatus;
         this.mThumbMini = mini;
         this.mThumbMicro = micro;
-        this.mUploaded = uploaded;
         this.mLocation = location;
         this.mCreator = creator;
         this.mDuration = duration;
+        this.mInLocalDB = true;
+        this.mInCloud = (uploadStatus == UPLOADED);
+        this.mKey = key;
     }
 
 	// Constructor for VideoDBHelper to reconstruct SemanticVideo object from
 	// the database
 	protected SemanticVideo(long id, String title, Date createdat, Uri uri,
 			int genreInt, Bitmap mini, Bitmap micro, String qrcode,
-			Location location, boolean uploaded, String creator) {
-        this(id, title, createdat, null, uri, genreInt, mini, micro, qrcode, location, uploaded, creator);
+			Location location, int uploadStatus, String creator, String key) {
+        this(id, title, createdat, null, uri, genreInt, mini, micro, qrcode, location,
+                uploadStatus, creator, key);
 	}
 
-	public SemanticVideo(String title, Uri videouri, Genre genre, String creator) {
-		this.mUri = videouri;
+    // This is used when creating SemanticVideo from local recording
+	public SemanticVideo(String title, Uri uri, Genre genre, String creator) {
+		this.mUri = uri;
 		this.mCreatedAt = new Date();
 		this.mTitle = title != null ? title : "Untitled";
 		this.mGenre = genre;
-		this.mUploaded = false;
 		this.mLocation = App.last_location;
 		this.mQrCode = null;
+        this.mUploadStatus = NO_UPLOAD;
 		this.mCreator = creator;
         this.mDuration = null;
+        this.mInLocalDB = true;
+        this.mInCloud = false;
+        this.mKey = null;
 	}
 
     public void extractRemoteDatas() {
@@ -150,7 +167,16 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
         }
         return mDuration;
     }
-    
+
+    public boolean inCloud() {
+        return mInCloud;
+    }
+
+    public boolean inLocalDB() {
+        return mInLocalDB;
+    }
+
+
     //passing the LAS credentials with creator information
 	public String getCreator() {
 		return mCreator;
@@ -216,6 +242,10 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
 		return this.mId;
 	}
 
+    public String getKey() {
+        return this.mKey;
+    }
+
 	public Bitmap getThumbnail(int type) {
 		switch (type) {
 		case MediaStore.Images.Thumbnails.MINI_KIND:
@@ -258,31 +288,32 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
 		this.mThumbMicro = micro;
 	}
 
-	public boolean isUploaded() {
-		return mUploaded;
-	}
+    public void setUploadStatus(int status) {
+        mUploadStatus = status;
+    }
 
-	public void setUploaded(boolean mUploaded) {
-		this.mUploaded = mUploaded;
+    public boolean isUploaded() {
+		return (mUploadStatus == UPLOADED);
 	}
 
 	public boolean isUploading() {
-		return mUploading;
-	}
-
-	public void setUploading(boolean b) {
-		mUploading = b;
+        return (mUploadStatus == UPLOADING);
 	}
 
 	public boolean isUploadPending() {
-		return mUploadPending;
+        return (mUploadStatus == UPLOAD_PENDING);
 	}
 
-	public void setUploadPending(boolean b) {
-		mUploadPending = b;
-	}
+    public boolean hasUploadError() {
+        return (mUploadStatus == UPLOAD_ERROR);
+    }
 
-	public void setQrCode(String code) {
+    public boolean isNeverUploaded() {
+        return (mUploadStatus == NO_UPLOAD);
+    }
+
+
+    public void setQrCode(String code) {
 		mQrCode = code;
 	}
 

@@ -64,7 +64,8 @@ public class VideoDBHelper extends SQLiteOpenHelper {
     public static final String KEY_LONGITUDE = "longitude";
     public static final String KEY_PROVIDER = "provider";
     public static final String KEY_QRCODE = "qr_code";
-    private static final int DBVER = 12; // Increase this if you make changes to the database
+    public static final String KEY_HASHKEY = "key";
+    private static final int DBVER = 13; // Increase this if you make changes to the database
     // structure
     private static final String DBNAME = "videoDB";
     private static final String TBL_VIDEO = "video";
@@ -379,7 +380,7 @@ public class VideoDBHelper extends SQLiteOpenHelper {
                 Bitmap mini = BitmapFactory.decodeByteArray(minib, 0, minib.length);
                 Bitmap micro = BitmapFactory.decodeByteArray(microb, 0, microb.length);
 
-                boolean uploaded = c.getInt(i++) == 1 ? true : false;
+                int uploadStatus = c.getInt(i++) == 1 ? SemanticVideo.UPLOADED : SemanticVideo.NO_UPLOAD;
                 String creator = null;
                 if (!c.isNull(i)) {
                     creator = c.getString(i++);
@@ -401,8 +402,14 @@ public class VideoDBHelper extends SQLiteOpenHelper {
                 if (!c.isNull(i)) {
                     qrCode = c.getString(i++);
                 }
+                String key = null;
+                if (!c.isNull(i)) {
+                    key = c.getString(i++);
+                }
 
-                ret.add(new SemanticVideo(id, title, createdat, uri, genreInt, mini, micro, qrCode, loc, uploaded, creator));
+
+                ret.add(new SemanticVideo(id, title, createdat, uri, genreInt, mini, micro,
+                        qrCode, loc, uploadStatus, creator, key));
             }
         }
         c.close();
@@ -441,6 +448,7 @@ public class VideoDBHelper extends SQLiteOpenHelper {
                         KEY_LONGITUDE + " DOUBLE, " +
                         KEY_PROVIDER + " TEXT, " +
                         KEY_QRCODE + " TEXT, " +
+                        KEY_HASHKEY + " TEXT, " +
                         "FOREIGN KEY(" + KEY_GENRE + ") REFERENCES " + TBL_GENRE + "(" + KEY_ID + ")" +
                         ")"
         );
@@ -487,6 +495,11 @@ public class VideoDBHelper extends SQLiteOpenHelper {
                             "-column");
                     db.execSQL("ALTER TABLE annotation ADD COLUMN "+ KEY_SCALE + " FLOAT NOT NULL" +
                             " DEFAULT 1.0");
+                    break;
+                case 12:
+                    Log.i("VideoDBHelper *** upgrade", "Upgrading video table to have hashkey  " +
+                            "-column");
+                    db.execSQL("ALTER TABLE video ADD COLUMN "+ KEY_HASHKEY + " TEXT");
                     break;
             }
         }
