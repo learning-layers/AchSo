@@ -206,8 +206,8 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
         Log.i("VideoBrowserActivity", "Registering receivers in onCreate.");
 
         mViewPager = (ViewPager) findViewById(R.id.pager);
-        mPagerAdapter = new BrowsePagerAdapter(this, getSupportFragmentManager(), mQuery,
-                mQueryType);
+        mPagerAdapter = new BrowsePagerAdapter(this, getSupportFragmentManager()); //, mQuery,
+                //mQueryType);
         mViewPager.setAdapter(mPagerAdapter);
         mViewPager.setOnPageChangeListener(this);
 
@@ -227,7 +227,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
     }
 
     @Override
-    public void onRemoteItemSelected(int positionInCache) {
+    public void onRemoteItemSelected(int positionInCache, SemanticVideo sv) {
         Intent detailIntent = new Intent(this, VideoViewerActivity.class);
         detailIntent.putExtra(VideoViewerFragment.ARG_ITEM_CACHE_POSITION, positionInCache);
         startActivity(detailIntent);
@@ -323,6 +323,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
         int m = Math.min(i + 1, mPagerAdapter.getCount() - 1);
         for (int j = k; j <= m; ++j) { // Finish action modes on both sides of
             // current fragment
+            Log.i("VideoBrowserActivity", "Checking and finishing action mode for page "+ j);
             ActionMode am = ((BrowseFragment) mPagerAdapter.getItem(j)).getActionMode();
             if (am != null)
                 am.finish();

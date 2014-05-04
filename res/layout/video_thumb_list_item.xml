@@ -43,7 +43,8 @@
                     android:id="@+id/landscape_thumb_layout"
                     android:layout_width="120dp"
                     android:layout_height="80dp"
-                    android:translationY="-1dp" >
+                    android:translationY="-1dp"
+                    android:background="@drawable/circle">
 
                     <TextView
                         android:id="@+id/landscape_thumb_duration_text"
@@ -123,6 +124,7 @@
                     <ImageView
                         android:id="@+id/cloud_icon"
                         android:alpha="0.6"
+                        android:layout_gravity="center"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:src="@drawable/cloud" />
@@ -130,6 +132,7 @@
 
                     <ImageView
                         android:id="@+id/upload_icon"
+                        android:layout_gravity="center"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:src="@android:drawable/ic_menu_upload" />

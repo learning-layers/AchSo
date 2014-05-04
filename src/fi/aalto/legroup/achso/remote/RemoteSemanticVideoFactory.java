@@ -20,6 +20,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.net.Uri;
+import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,6 +58,7 @@ public class RemoteSemanticVideoFactory implements XmlSerializableFactory {
 
     @Override
     public RemoteSemanticVideo fromXmlObject(XmlObject obj) {
+        Log.i("RemoteSemanticVideoFactory", "Parsing xmlobject:" + obj.toString());
         String title = null;
         SemanticVideo.Genre genre = null;
         String qrcode = null;
@@ -66,6 +68,7 @@ public class RemoteSemanticVideoFactory implements XmlSerializableFactory {
         Location location = null;
         Bitmap image = null;
         String key = null;
+        Uri thumbnail_url = null;
         List<RemoteAnnotation> remoteAnnotations = new ArrayList<RemoteAnnotation>();
         long duration = 0;
         if (!obj.getName().equals("video")) {
@@ -87,10 +90,16 @@ public class RemoteSemanticVideoFactory implements XmlSerializableFactory {
                 video_uri = Uri.parse(o.getText());
             } else if (name.equals("created_at")) {
                 created_at = new Date();
-                SimpleDateFormat format = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
+                //SimpleDateFormat format = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
+                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss:SSSZZZZZ");
+                // Example1: 2014-03-07T11:23:51:724+01:00
+                // Example2: 2013-12-10T21:34:51:186+01:00
+                // Pattern:  yyyy-MM-dd'T'HH:mm:ss:SSSZZZZZ
                 try {
                     created_at = format.parse(o.getText());
                 } catch (ParseException e) {
+                    Log.i("RemoteSemanticVideoFactory", "Date parsing error:" + e.getMessage());
+                    Log.i("RemoteSemanticVideoFactory", o.getText());
                 }
             } else if (name.equals("duration")) {
                 duration = Long.parseLong(o.getText(), 10);
@@ -114,6 +123,8 @@ public class RemoteSemanticVideoFactory implements XmlSerializableFactory {
                 location.setAccuracy(accuracy);
                 location.setLongitude(longitude);
                 location.setLatitude(latitude);
+            } else if (name.equals("thumbnail")) {
+                thumbnail_url = Uri.parse(o.getText());
             } else if (name.equals("thumb_image")) {
                 String encoding = o.getAttributes().get("encoding");
                 if (encoding != null && encoding.equals("base64")) {
@@ -137,7 +148,7 @@ public class RemoteSemanticVideoFactory implements XmlSerializableFactory {
         }
         RemoteSemanticVideo ret = new RemoteSemanticVideo(title, created_at, duration, video_uri,
                 genre == null ? 0 : genre.ordinal(), image, image, qrcode, location,
-                SemanticVideo.UPLOADED, creator, key, remoteAnnotations);
+                SemanticVideo.UPLOADED, creator, key, thumbnail_url, remoteAnnotations);
         for (RemoteAnnotation ra : remoteAnnotations) {
             ra.setVideo(ret);
         }

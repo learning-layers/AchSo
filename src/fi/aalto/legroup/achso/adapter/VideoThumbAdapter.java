@@ -19,6 +19,7 @@ package fi.aalto.legroup.achso.adapter;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -33,6 +34,9 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
+
 import org.ocpsoft.prettytime.PrettyTime;
 
 import java.util.ArrayList;
@@ -42,6 +46,7 @@ import java.util.concurrent.TimeUnit;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.database.SemanticVideo;
+import fi.aalto.legroup.achso.remote.RemoteSemanticVideo;
 import fi.aalto.legroup.achso.util.App;
 
 public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
@@ -105,6 +110,7 @@ public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
             }
             vh.thumbnail_land = (RelativeLayout) convertView.findViewById(R.id.landscape_thumb_layout);
             vh.thumbnail_port = (RelativeLayout) convertView.findViewById(R.id.portrait_thumb_layout);
+
             vh.progress = (ProgressBar) convertView.findViewById(R.id.upload_progress);
             vh.uploadIcon = (ImageView) convertView.findViewById(R.id.upload_icon);
             vh.localIcon = (ImageView) convertView.findViewById(R.id.local_icon);
@@ -122,7 +128,15 @@ public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
             vh.timestamp.setText(mPrettyTime.format(v.getCreationTime()));
         }
         vh.genre.setText(v.getGenreText());
-        vh.author.setText("Me");
+        String author = v.getCreator();
+        if (author == null || author.isEmpty()) {
+            if (v.inLocalDB()) {
+                author = mContext.getString(R.string.author_is_me);
+            } else {
+                author = mContext.getString(R.string.author_is_unknown);
+            }
+        }
+        vh.author.setText(author);
         long min = TimeUnit.MILLISECONDS.toMinutes(v.getDuration(getContext()));
         long sec = TimeUnit.MILLISECONDS.toSeconds(v.getDuration(getContext())) % 60;
         if (vh.duration_land != null) {
@@ -159,16 +173,20 @@ public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
                 }
                 break;
         }
-        BitmapDrawable thumb = new BitmapDrawable(mContext.getResources(),
-                v.getThumbnail(MediaStore.Images.Thumbnails.MINI_KIND));
-        if (thumb.getIntrinsicWidth() > thumb.getIntrinsicHeight()) {
-            setThumbBackground(vh.thumbnail_land, thumb);
-            vh.thumbnail_land.setVisibility(View.VISIBLE);
-            vh.thumbnail_port.setVisibility(View.GONE);
+        if (v.inLocalDB()) {
+            BitmapDrawable thumb = new BitmapDrawable(mContext.getResources(), v.getThumbnail(MediaStore.Images.Thumbnails.MINI_KIND));
+            if (thumb.getIntrinsicWidth() > thumb.getIntrinsicHeight()) {
+                setThumbBackground(vh.thumbnail_land, thumb);
+                vh.thumbnail_land.setVisibility(View.VISIBLE);
+                vh.thumbnail_port.setVisibility(View.GONE);
+            } else {
+                setThumbBackground(vh.thumbnail_port, thumb);
+                vh.thumbnail_port.setVisibility(View.VISIBLE);
+                vh.thumbnail_land.setVisibility(View.GONE);
+            }
         } else {
-            setThumbBackground(vh.thumbnail_port, thumb);
-            vh.thumbnail_port.setVisibility(View.VISIBLE);
-            vh.thumbnail_land.setVisibility(View.GONE);
+            RemoteSemanticVideo rv = (RemoteSemanticVideo) v;
+            rv.putThumbnailTo(vh); //);
         }
         if (v.isNeverUploaded()) {
             vh.uploadIcon.setColorFilter(null);
@@ -199,7 +217,7 @@ public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
     }
 
     @TargetApi(16)
-    private void setBorderBackground(LinearLayout layout, Drawable drawable) {
+    public static void setBorderBackground(LinearLayout layout, Drawable drawable) {
         if (Build.VERSION.SDK_INT < 16) {
             layout.setBackgroundDrawable(drawable);
         } else {
@@ -208,7 +226,7 @@ public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
     }
 
     @TargetApi(16)
-    private void setThumbBackground(RelativeLayout layout, BitmapDrawable thumb) {
+    public static void setThumbBackground(RelativeLayout layout, BitmapDrawable thumb) {
         if (Build.VERSION.SDK_INT < 16) {
             layout.setBackgroundDrawable(thumb);
         } else {
@@ -246,7 +264,7 @@ public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
         this.addAll(mLocalVideos);
     }
 
-    public static final class ViewHolder {
+    public class ViewHolder implements Target {
         public LinearLayout border;
         public TextView title;
         public TextView genre;
@@ -260,5 +278,31 @@ public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
         public ImageView uploadIcon;
         public ImageView localIcon;
         public ImageView cloudIcon;
+
+        @Override
+        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom loadedFrom) {
+            BitmapDrawable thumb = new BitmapDrawable(App.getContext().getResources(),
+                    bitmap);
+            if (thumb.getIntrinsicWidth() > thumb.getIntrinsicHeight()) {
+                setThumbBackground(this.thumbnail_land, thumb);
+                this.thumbnail_land.setVisibility(View.VISIBLE);
+                this.thumbnail_port.setVisibility(View.GONE);
+            } else {
+                setThumbBackground(this.thumbnail_port, thumb);
+                this.thumbnail_port.setVisibility(View.VISIBLE);
+                this.thumbnail_land.setVisibility(View.GONE);
+            }
+
+        }
+
+        @Override
+        public void onBitmapFailed(Drawable drawable) {
+
+        }
+
+        @Override
+        public void onPrepareLoad(Drawable drawable) {
+
+        }
     }
 }

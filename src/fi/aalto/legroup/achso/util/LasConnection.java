@@ -20,14 +20,22 @@ import android.util.Log;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
+import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import fi.aalto.legroup.achso.adapter.BrowsePagerAdapter;
+import fi.aalto.legroup.achso.database.SemanticVideo;
+import fi.aalto.legroup.achso.remote.RemoteSemanticVideo;
+import fi.aalto.legroup.achso.remote.RemoteSemanticVideoFactory;
+import fi.aalto.legroup.achso.util.xml.XmlConverter;
+import fi.aalto.legroup.achso.util.xml.XmlObject;
 import i5.las.httpConnector.client.AccessDeniedException;
 import i5.las.httpConnector.client.AuthenticationFailedException;
 import i5.las.httpConnector.client.Client;
@@ -61,6 +69,7 @@ public class LasConnection implements Connection {
      * OAuth server/client communication
      */
     private String pass;
+    private String username;
 
     /**
      * Creates a new instance of this class with empty values.
@@ -165,7 +174,6 @@ public class LasConnection implements Connection {
         final String unknownMethod = "ERR9"; //$NON-NLS-1$
 
         this.errorCode = new String();
-
         if (client == null) {
             Log.e("LasConnection", "Missing client.");
             return null;
@@ -173,7 +181,18 @@ public class LasConnection implements Connection {
         Log.i("LasConnection", "client.invoke with service: " + service + ", method: " + method + ", params:" + params.toString());
         Log.i("LasConnection", "stored sessionId: " + this.sessionId + ", " +
                 "client sessionId: " + client.getSessionId());
-
+/*
+        for (Object param: params) {
+            Log.i("LasConnection", "param: " + param.toString());
+        }
+        try {
+            Log.i("LasConnection", "getParameterCoding:" + client.getParameterCoding(params));
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ConnectorClientException e) {
+            e.printStackTrace();
+        }
+*/
         try {
             Date before = new Date();
             Object res = client.invoke(service, method, params);
@@ -269,6 +288,7 @@ public class LasConnection implements Connection {
 
     }
 
+
     /**
      * Gets the xml containing existing media from the SeViAnno 2.0 Database The
      * result contains elements of the form <videos> <video> <title>X</title>
@@ -278,8 +298,37 @@ public class LasConnection implements Connection {
      *
      * @return XML document representation of videos content
      */
-    public String getVideoInformations() {
+    public List<SemanticVideo> getVideoInformationsFor(String username) {
         String response = null;
+        this.instantiateDBContext();
+
+        // returns a String with the XML containing all the videos and the
+        // corresponding data for each video
+
+        // These come from i5.atlas.las.service.mpeg7.multimediacontent
+        // MPEG7MultimediaContentService.getVideoInformations
+        // What should we invoke to get
+        // i5.atlas.las.service.videoinformation.Videoinformation
+        //
+        Object[] params = {username};
+
+        response = (String) this.invoke("videoinformation",
+                "getVideoInformationFilterByCreator", params);
+        return convertXmlToSemanticVideos(response);
+    }
+
+
+    /**
+     * Gets the xml containing existing media from the SeViAnno 2.0 Database The
+     * result contains elements of the form <videos> <video> <title>X</title>
+     * <creator>uploader</creator> <video_url>http://...mp4</video_url>
+     * <created_at>2011-11-11T10:20:57:728F1000+01:00</created_at> <thumb_image
+     * uploader="uploader">http://...d0.jpg</thumb_image> </video> ... </videos>
+     *
+     * @return XML document representation of videos content
+     */
+    public List<SemanticVideo> getVideosAndThumbs() {
+        List<SemanticVideo> videoList = new ArrayList<SemanticVideo>();
         try {
 
             this.instantiateDBContext();
@@ -294,23 +343,37 @@ public class LasConnection implements Connection {
             // What should we invoke to get
             // i5.atlas.las.service.videoinformation.Videoinformation
             //
-            //Object[] params = {"sevianno"};
-            //xmlString = (String) this.invoke("mpeg7_multimediacontent_service",
-            //        "getVideoInformations");
-            //Object oo = (Object) this.invoke("videoinformation_service",
-            //        "getVideoInformationFilterByCreator", params);
-            //Log.i("LasConnection", "Success!! Received response "+ oo.toString());
+            Object[] params2 = {"sevianno"};
+
+
             String videoUrls[] = (String[]) this.invoke("mpeg7_multimediacontent_service",
                    "getMediaURLs");
-            for (String url : videoUrls) {
-                Log.i("LasConnection", "Returned videoUrls:" + url);
-            }
-            Object[] params = {"String[]", videoUrls};
-            String thumbUrls[] = (String[]) this.invoke("mpeg_multimediacontent_service", "",
-                    params);
+            Object[] params = {videoUrls};
+            String thumbUrls[] = (String[]) this.invoke("mpeg7_multimediacontent_service",
+                    "getVideoThumbnails", params);
+                    // "getVideoThumbnails",
+                    // "getMediaCreationTitles",
+            String titles[] = (String[]) this.invoke("mpeg7_multimediacontent_service",
+                    "getMediaCreationTitles", params);
+            String title, author, thumb_url, video_url;
+            RemoteSemanticVideo rsv;
+            if (videoUrls.length == thumbUrls.length && videoUrls.length == titles.length) {
+                for (int i=0; i < videoUrls.length; i++) {
+                    title = titles[i];
+                    thumb_url = thumbUrls[i];
+                    video_url = videoUrls[i];
+                    String[] titleauthor = title.split("####", 2);
+                    if (titleauthor.length == 2) {
+                        title = titleauthor[0];
+                        author = titleauthor[1];
+                    } else {
+                        author = "";
+                    }
+                    rsv = new RemoteSemanticVideo(title, video_url, thumb_url, author);
+                    videoList.add(rsv);
 
-            for (String url : thumbUrls) {
-                Log.i("LasConnection", "Returned thumbUrls:" + url);
+                }
+
             }
 
         } catch (Exception e) {
@@ -318,7 +381,7 @@ public class LasConnection implements Connection {
             e.printStackTrace();
         }
 
-        return response;
+        return videoList;
     }
 
     /**
@@ -400,28 +463,20 @@ public class LasConnection implements Connection {
             return configFileErr;
         }
 
-        Log.i("LasConnection", "Connecting LAS Host: " + lasHostname + " port: " + lasPort);
-
-        // userService.setCurrentUser(new User());
-
         client = new Client(lasHostname, lasPort, timeOut * 1000, username, password);
         client.getMobileContext().setApplicationCode("AchSo");
-
-        Log.i("LasConnection", "CLIENT TIMEOUT: " + client.getTimeoutMs());
         try {
             // connect to LAS server
             client.connect();
             this.pass = password;
+            this.username = username;
             this.setSessionId(client.getSessionId());
             // parameters used for determining the database connection to be
             // used to store the metadata
             // below, we use the same DB tables as SeViAnno2.0 version
             String appCode = b.getString("context_appCode"); //$NON-NLS-1$
             String constraints = b.getString("context_constraints"); //$NON-NLS-1$
-
             Object[] params = {appCode, constraints};
-
-            Log.i("LasConnection", "instantiating context: " + params.toString());
             this.invoke("xmldbxs-context-service", "instantiateContext", params);
             this.connected = true;
 
@@ -440,6 +495,16 @@ public class LasConnection implements Connection {
         }
 
         return client.getSessionId();
+    }
+
+    private List<SemanticVideo> convertXmlToSemanticVideos(String xml) {
+        List<SemanticVideo> res = new ArrayList<SemanticVideo>();
+        Log.i("LasConnection", "Trying to convert from xml: " + xml);
+        XmlObject xmlobj = XmlConverter.fromXml(xml);
+        for (XmlObject o : xmlobj.getSubObjects()) {
+            res.add(new RemoteSemanticVideoFactory().fromXmlObject(o));
+        }
+        return res;
     }
 
     /**
@@ -483,47 +548,45 @@ public class LasConnection implements Connection {
      * @return
      */
     @Override
-    public String getVideos(int query_type, String query) {
-        String xml;
+    public List<SemanticVideo> getVideos(int query_type, String query) {
+        List<SemanticVideo> videoList;
+
         // prepare authentication arguments for http GET
         //con = getConnection();
         //if (con.client == null) {
         //
         //}
+        videoList = new ArrayList<SemanticVideo>();
 
         // prepare url to call and its search arguments
         switch (query_type) {
             case BrowsePagerAdapter.SEARCH:
-                xml = getVideoInformations();
+                Log.i("LasConnection", "BrowsePagerAdapter.SEARCH");
                 break;
             case BrowsePagerAdapter.QR_SEARCH:
-                xml = getVideoInformations();
+                Log.i("LasConnection", "BrowsePagerAdapter.QR_SEARCH");
                 break;
             case BrowsePagerAdapter.LATEST:
-                xml = getVideoInformations();
+                Log.i("LasConnection", "BrowsePagerAdapter.LATEST");
                 break;
             case BrowsePagerAdapter.MY_VIDEOS:
-                xml = getVideoInformations();
+                Log.i("LasConnection", "BrowsePagerAdapter.MY_VIDEOS");
+                videoList = getVideoInformationsFor(this.username);
                 break;
             case BrowsePagerAdapter.RECOMMENDED:
-                xml = getVideoInformations();
+                Log.i("LasConnection", "BrowsePagerAdapter.RECOMMENDED");
+                videoList = getVideosAndThumbs();
                 break;
             case BrowsePagerAdapter.BROWSE_BY_GENRE:
-                xml = getVideoInformations();
+                Log.i("LasConnection", "BrowsePagerAdapter.BROWSE_BY_GENRE");
                 break;
             case BrowsePagerAdapter.NEARBY:
-                xml = getVideoInformations();
+                Log.i("LasConnection", "BrowsePagerAdapter.NEARBY");
                 break;
         }
-        // start building http GET
-
-
-        // execute GET
-
 
         // handle results
-
-        return "";
+        return videoList;
 
     }
 }

@@ -1,7 +1,11 @@
 package fi.aalto.legroup.achso.util;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
 import fi.aalto.legroup.achso.adapter.BrowsePagerAdapter;
+import fi.aalto.legroup.achso.database.SemanticVideo;
 
 public class i5Connection implements Connection {
 
@@ -31,8 +35,8 @@ public class i5Connection implements Connection {
      * @return
      */
     @Override
-    public String getVideos(int query_type, String query) {
-        String xml = "";
+    public List<SemanticVideo> getVideos(int query_type, String query) {
+        List<SemanticVideo> res = new ArrayList<SemanticVideo>();
         // prepare authentication arguments for http GET
 
         // prepare url to call and its search arguments
@@ -60,6 +64,6 @@ public class i5Connection implements Connection {
 
         // handle results
 
-        return xml;
+        return res;
     }
 }

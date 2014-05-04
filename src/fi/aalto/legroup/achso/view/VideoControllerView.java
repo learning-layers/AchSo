@@ -676,12 +676,11 @@ public class VideoControllerView extends FrameLayout {
         int duration = mPlayer.getDuration();
         if (mProgress != null) {
             if (duration > 0) {
-                // use long to avoid overflow
-                //long pos = 1000L * position / duration;
                 mProgress.setProgress(position);
             }
-            int percent = mPlayer.getBufferPercentage();
-            mProgress.setSecondaryProgress(percent * duration);
+            float percent = mPlayer.getBufferPercentage() / 100f;
+            int buffer_position = (int) (percent * duration);
+            mProgress.setSecondaryProgress(buffer_position);
         }
 
         if (mEndTime != null)

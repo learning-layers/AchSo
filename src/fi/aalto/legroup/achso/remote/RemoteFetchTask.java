@@ -23,6 +23,7 @@ import android.widget.ProgressBar;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.List;
 
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.fragment.BrowseFragment;
@@ -34,7 +35,7 @@ import fi.aalto.legroup.achso.util.i5Connection;
 import fi.aalto.legroup.achso.util.xml.XmlConverter;
 import fi.aalto.legroup.achso.util.xml.XmlObject;
 
-public class RemoteFetchTask extends AsyncTask<String, Double, ArrayList<SemanticVideo>> {
+public class RemoteFetchTask extends AsyncTask<String, Double, List<SemanticVideo>> {
 
     private final int mPage;
     private WeakReference<BrowseFragment> mFragment;
@@ -48,6 +49,8 @@ public class RemoteFetchTask extends AsyncTask<String, Double, ArrayList<Semanti
         mPage = cache_page;
         mQuery = fragment.getQuery();
         mQueryType = fragment.getQueryType();
+        Log.i("RemoteFetchTask", "Created new RemoteFetchTask for fragment with q:" + mQuery + " " +
+                "qtype:" + mQueryType);
     }
 
     @Override
@@ -60,21 +63,16 @@ public class RemoteFetchTask extends AsyncTask<String, Double, ArrayList<Semanti
     }
 
     @Override
-    protected ArrayList<SemanticVideo> doInBackground(String... arg0) {
-        ArrayList<SemanticVideo> ret = new ArrayList<SemanticVideo>();
+    protected List<SemanticVideo> doInBackground(String... arg0) {
+        List<SemanticVideo> ret; // = new ArrayList<SemanticVideo>();
 
         //String videoInformations = i5Connection.getVideos(mQueryType, mQuery);
-        String videoInformations = App.connection.getVideos(mQueryType, mQuery);
+        ret = App.connection.getVideos(mQueryType, mQuery);
 
-        Log.i("RemoteFetchTask", "Received response data: " + videoInformations);
-        if (videoInformations == null || videoInformations.isEmpty()) {
+        //Log.i("RemoteFetchTask", "Received response data: " + ret);
+        if (ret == null || ret.isEmpty()) {
             Log.i("RemoteFetchTask", "Response is empty. ");
             return ret;
-        }
-        Log.i("RemoteFetchTask", "Trying to convert from xml: " + videoInformations);
-        XmlObject xmlobj = XmlConverter.fromXml(videoInformations);
-        for (XmlObject o : xmlobj.getSubObjects()) {
-            ret.add(new RemoteSemanticVideoFactory().fromXmlObject(o));
         }
         return ret;
     }
@@ -88,13 +86,14 @@ public class RemoteFetchTask extends AsyncTask<String, Double, ArrayList<Semanti
     }
 
     @Override
-    protected void onPostExecute(ArrayList<SemanticVideo> remoteVideos) {
+    protected void onPostExecute(List<SemanticVideo> remoteVideos) {
         ProgressBar pb = mSearchProgress.get();
         if (pb != null) {
             pb.setVisibility(View.GONE);
         }
         Log.i("RemoteFetchTask", "Fetched videos, found " + remoteVideos.size());
         // lets do caching even if the page/fragment is disabled -- it is there for later use
+        Log.i("RemoteFetchTask", "Cached videos, to cache page " + mPage);
         RemoteResultCache.setCached(mPage, remoteVideos);
         BrowseFragment f = mFragment.get();
         if (f != null) {

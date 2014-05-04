@@ -41,6 +41,7 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -61,9 +62,14 @@ import fi.aalto.legroup.achso.view.AnnotatedSeekBar;
 import fi.aalto.legroup.achso.view.VideoControllerView;
 
 import static fi.aalto.legroup.achso.util.App.appendLog;
+import static fi.aalto.legroup.achso.util.App.getContext;
 
 
-public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHolder.Callback, MediaPlayer.OnPreparedListener, VideoControllerView.MediaPlayerControl, View.OnTouchListener, MediaPlayer.OnCompletionListener, OnErrorListener, OnVideoSizeChangedListener, EditorListener, MediaPlayer.OnBufferingUpdateListener, VideoControllerView.VideoControllerShowHideListener {
+public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHolder.Callback,
+        MediaPlayer.OnPreparedListener, VideoControllerView.MediaPlayerControl,
+        View.OnTouchListener, MediaPlayer.OnCompletionListener, OnErrorListener,
+        OnVideoSizeChangedListener, EditorListener, MediaPlayer.OnBufferingUpdateListener,
+        VideoControllerView.VideoControllerShowHideListener, MediaPlayer.OnInfoListener {
 
     public static final int NORMAL_MODE = 0;
     public static final int NEW_ANNOTATION_MODE = 1;
@@ -136,10 +142,12 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
 
             // Current video & id
             mVideoId = args.getLong(VideoViewerFragment.ARG_ITEM_ID);
-            boolean cached_video = (mVideoId == -1);
+            boolean cached_remote_video = (mVideoId == -1);
             SemanticVideo semantic_video;
-            if (cached_video) {
+            if (cached_remote_video) {
                 semantic_video = RemoteResultCache.getSelectedVideo();
+                Log.i("SemanticeVideoPlayerFragment", "semantic_video =" + (semantic_video !=
+                        null));
             } else {
                 semantic_video = VideoDBHelper.getById(mVideoId);
             }
@@ -158,7 +166,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
             }
             // Annotations for surface get set by constructor if there is proper videoId
             mAnnotationSurfaceHandler = new AnnotationSurfaceHandler(getActivity(), mAnnotationSurface, mVideoId);
-            if (cached_video) {
+            if (cached_remote_video) {
                 RemoteSemanticVideo rsv = (RemoteSemanticVideo) semantic_video;
                 mAnnotationSurfaceHandler.setAnnotations(rsv.getAnnotations(getActivity()));
             }
@@ -443,7 +451,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
         if (mBufferProgress != null) {
             if (mMediaPlayer.isPlaying()) {
                 mBufferProgress.setVisibility(View.GONE);
-            } else if (mBufferPercentage != 100) {
+            } else if (mBufferPercentage < 5) {
                 mBufferProgress.setVisibility(View.VISIBLE);
             }
         }
@@ -487,6 +495,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
         mp.setOnVideoSizeChangedListener(this);
         mp.setOnBufferingUpdateListener(this);
         mp.setOnPreparedListener(this);
+        mp.setOnInfoListener(this);
         return mp;
     }
 
@@ -532,6 +541,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
 
 
     public void setVideo(Uri uri) {
+        Log.i("SemanticVideoPlayerFragment", "Setting video to uri:" + uri.toString());
         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         try {
             mMediaPlayer.setDataSource(getActivity(), uri);
@@ -612,6 +622,8 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
         if (mMediaPlayer == null) {
             return;
         }
+        mLastPos = pos; // if mLastPos had a smaller value than pos, jump to pos would trigger all
+        // annotations in between to be visible when playback continues.
         mMediaPlayer.seekTo(pos);
         mAnnotationSurfaceHandler.draw();
     }
@@ -724,13 +736,85 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
 
     @Override
     public boolean onError(MediaPlayer mp, int what, int extra) {
-        return false;
+        Log.e("SemanticVideoPlayerFragment", "onError:  what:" + what + " extra: " + extra );
+        mController.show();
+        switch (extra) {
+            case MediaPlayer.MEDIA_ERROR_IO:
+                Toast.makeText(getContext(), "Network error", Toast.LENGTH_LONG).show();
+                break;
+            case MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK:
+                Toast.makeText(getContext(), "Video not valid for streaming",
+                        Toast.LENGTH_LONG).show();
+                break;
+            case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
+                Toast.makeText(getContext(), "Media server died.", Toast.LENGTH_LONG).show();
+                break;
+            case MediaPlayer.MEDIA_ERROR_TIMED_OUT:
+                Toast.makeText(getContext(), "Server timed out.", Toast.LENGTH_LONG).show();
+                break;
+            case MediaPlayer.MEDIA_ERROR_UNKNOWN:
+                Toast.makeText(getContext(), "Unknown error with media player.",
+                        Toast.LENGTH_LONG).show();
+                break;
+            case MediaPlayer.MEDIA_ERROR_UNSUPPORTED:
+                Toast.makeText(getContext(), "Unsupported media format.",
+                        Toast.LENGTH_LONG).show();
+                break;
+            default:
+                Toast.makeText(getContext(), "Media player error: "+ what,
+                        Toast.LENGTH_LONG).show();
+                break;
+        }
+        return true;
     }
 
     @Override
     public void onVideoSizeChanged(MediaPlayer mp, int width, int height) {
     }
 
+    @Override
+    public boolean onInfo(MediaPlayer mediaPlayer, int i, int i2) {
+        Log.i("SemanticVideoPlayerFragment", "onInfo:  i:" + i + " i2: " + i2 );
+        switch (i) {
+            case MediaPlayer.MEDIA_INFO_BUFFERING_START:
+                Log.i("SemanticVideoPlayerFragment", "MediaPlayer.MEDIA_INFO_BUFFERING_START");
+                mController.show();
+                mBufferProgress.setVisibility(View.VISIBLE);
+                Toast.makeText(getContext(), "Buffering...", Toast.LENGTH_SHORT).show();
+                break;
+            case MediaPlayer.MEDIA_INFO_BUFFERING_END:
+                Log.i("SemanticVideoPlayerFragment", "MediaPlayer.MEDIA_INFO_BUFFERING_END");
+                mBufferProgress.setVisibility(View.GONE);
+                mController.show();
+                //Toast.makeText(getContext(), "Buffering...", Toast.LENGTH_SHORT).show();
+                break;
+            case MediaPlayer.MEDIA_INFO_NOT_SEEKABLE:
+                Log.i("SemanticVideoPlayerFragment", "MediaPlayer.MEDIA_INFO_NOT_SEEKABLE");
+                mController.show();
+                break;
+            case MediaPlayer.MEDIA_INFO_BAD_INTERLEAVING:
+                Log.i("SemanticVideoPlayerFragment", "MediaPlayer.MEDIA_INFO_BAD_INTERLEAVING");
+                mController.show();
+                break;
+            case MediaPlayer.MEDIA_INFO_METADATA_UPDATE:
+                Log.i("SemanticVideoPlayerFragment", "MediaPlayer.MEDIA_INFO_METADATA_UPDATE");
+                mController.show();
+                break;
+            case MediaPlayer.MEDIA_INFO_UNKNOWN:
+                Log.i("SemanticVideoPlayerFragment", "MediaPlayer.MEDIA_INFO_UNKNOWN");
+                mController.show();
+                break;
+            case MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START:
+                Log.i("SemanticVideoPlayerFragment", "MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START");
+                mController.show();
+                break;
+            case MediaPlayer.MEDIA_INFO_VIDEO_TRACK_LAGGING:
+                Log.i("SemanticVideoPlayerFragment", "MediaPlayer.MEDIA_INFO_VIDEO_TRACK_LAGGING");
+                mController.show();
+                break;
+        }
+        return false;
+    }
 
 
     private static class AnnotationUpdateHandler extends Handler {

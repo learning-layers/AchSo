@@ -82,5 +82,7 @@
     <string name="nearby_videos">Nearby</string>
     <string name="search_results">Search results</string>
     <string name="add_video">Add video</string>
+    <string name="author_is_me">Me</string>
+    <string name="author_is_unknown">Unknown</string>
 
 </resources>

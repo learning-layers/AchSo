@@ -56,6 +56,7 @@ import fi.aalto.legroup.achso.adapter.BrowsePagerAdapter;
 import fi.aalto.legroup.achso.adapter.VideoThumbAdapter;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
+import fi.aalto.legroup.achso.remote.RemoteSemanticVideo;
 import fi.aalto.legroup.achso.state.IntentDataHolder;
 import fi.aalto.legroup.achso.upload.UploaderService;
 import fi.aalto.legroup.achso.util.App;
@@ -73,7 +74,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
         public void onLocalItemSelected(long id) {
         }
 
-        public void onRemoteItemSelected(int positionInCache) {
+        public void onRemoteItemSelected(int positionInCache, SemanticVideo sv) {
         }
     };
     Callbacks mCallbacks = sDummyCallbacks;
@@ -88,7 +89,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
     int mQueryType = 0;
     private HashMap<Integer, SemanticVideo> mSelectedVideos;
     private ActionMode mActionMode = null;
-    private AsyncTask<String, Double, ArrayList<SemanticVideo>> mFetchTask;
+    private AsyncTask<String, Double, List<SemanticVideo>> mFetchTask;
     private int mSeparatorPosition;
     private TextView mUrl;
     private LinearLayout mUrlArea;
@@ -204,10 +205,14 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         view.setSelected(true);
         SemanticVideo sv = (SemanticVideo) getVideoAdapter().getItem(position);
-        if (sv.isLocal()) {
-            mCallbacks.onLocalItemSelected(sv.getId());
-        } else {
-            mCallbacks.onRemoteItemSelected(position);
+        Log.i("BrowseFragment", "Item click on sv: " + (sv != null));
+        if (sv != null) {
+            if (sv.inLocalDB()) {
+                mCallbacks.onLocalItemSelected(sv.getId());
+            } else {
+                mCallbacks.onRemoteItemSelected(position, sv);
+                RemoteResultCache.setSelectedVideo((RemoteSemanticVideo) sv);
+            }
         }
     }
 
@@ -228,6 +233,9 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true); // Needed for AsyncTask to survive orientation/activity change
+
+        Log.i("BrowseFragment", "Creating fragment, savedinstancestate:" + (savedInstanceState !=
+                        null));
 
         mSelectedVideos = new HashMap<Integer, SemanticVideo>();
         if (VideoDBHelper.getVideoCache() == null) {
@@ -295,7 +303,8 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
     @Override
     public void onResume() {
         super.onResume();
-        Log.i("BrowseFragment", "onResume called");
+        Log.i("BrowseFragment", "onResume called for fragment " + mPage + ", " +
+                "of type " + mQueryType);
         refreshLocalVideos();
         refreshRemoteVideos();
         if (mContainerState != null) {
@@ -404,7 +413,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
 
     private void startRemoteVideoFetch() {
         if (App.hasConnection()) {
-            Log.i("BrowseGridFragment", "Has connection, trying remote search");
+            Log.i("BrowseFragment", "Has connection, trying remote search");
             mNoConnectionMessage.setVisibility(LinearLayout.GONE);
             mRemoteProgress.setVisibility(LinearLayout.VISIBLE);
 
@@ -496,7 +505,8 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
     public interface Callbacks {
         public void onLocalItemSelected(long id);
 
-        public void onRemoteItemSelected(int positionInCache);
+        public void onRemoteItemSelected(int positionInCache, SemanticVideo sv);
+
     }
 
 }

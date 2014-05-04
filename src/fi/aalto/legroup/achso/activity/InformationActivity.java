@@ -22,9 +22,11 @@ import android.support.v4.app.FragmentActivity;
 import android.view.MenuItem;
 
 import fi.aalto.legroup.achso.R;
+import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.fragment.InformationFragment;
 import fi.aalto.legroup.achso.fragment.VideoViewerFragment;
+import fi.aalto.legroup.achso.remote.RemoteResultCache;
 
 public class InformationActivity extends FragmentActivity {
 
@@ -41,9 +43,15 @@ public class InformationActivity extends FragmentActivity {
         }
         if (savedInstanceState == null) {
             Long id = getIntent().getLongExtra(VideoViewerFragment.ARG_ITEM_ID, -1);
+            SemanticVideo sv;
+            if (id == -1) {
+                sv = RemoteResultCache.getSelectedVideo();
+            } else {
+                sv = VideoDBHelper.getById(id);
+            }
             getSupportFragmentManager().
                     beginTransaction().
-                    replace(R.id.information_container, new InformationFragment(VideoDBHelper.getById(id))).
+                    replace(R.id.information_container, new InformationFragment(sv)).
                     commit();
         }
     }

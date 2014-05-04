@@ -22,6 +22,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.util.Log;
+import android.view.ViewGroup;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,8 +35,7 @@ import fi.aalto.legroup.achso.fragment.BrowseFragment;
 
 public class BrowsePagerAdapter extends FragmentStatePagerAdapter {
 
-    private final String mQuery;
-    private final int mQueryType;
+    private int mCurrentIndex;
     private Context mContext;
     private HashMap<Integer, BrowseFragment> mFragments;
     private List<Integer> mOrderedFragments;
@@ -51,10 +51,6 @@ public class BrowsePagerAdapter extends FragmentStatePagerAdapter {
     public final static int SEARCH = 60;
 
 
-    public BrowsePagerAdapter(Context ctx, FragmentManager fm) {
-        this(ctx, fm, null, 0);
-    }
-
     /**
      * Browse pager adapter delivers browse page fragments. They need to be presentable as list,
      * where user can swipe to next fragment. However sometimes some fragments may not be
@@ -65,11 +61,9 @@ public class BrowsePagerAdapter extends FragmentStatePagerAdapter {
      *
      * @param ctx
      * @param fm
-     * @param query
-     * @param query_type
      */
 
-    public BrowsePagerAdapter(Context ctx, FragmentManager fm, String query, int query_type) {
+    public BrowsePagerAdapter(Context ctx, FragmentManager fm) {
         super(fm);
         mContext = ctx;
         // Initialize list of pages, the actual fragments don't exist until first navigated there
@@ -90,8 +84,6 @@ public class BrowsePagerAdapter extends FragmentStatePagerAdapter {
         mPageTitles.add(ctx.getString(R.string.recommended_videos));
         mPageTitles.add(ctx.getString(R.string.latest_videos));
         mPageTitles.addAll(SemanticVideo.genreStrings.values());
-        mQuery = query;
-        mQueryType = query_type;
     }
 
     /**
@@ -102,6 +94,7 @@ public class BrowsePagerAdapter extends FragmentStatePagerAdapter {
     @Override
     public Fragment getItem(int i) {
         int key = mOrderedFragments.get(i);
+        Log.i("BrowsePagerAdapter", "Getting page " + i + ", key " + key);
         BrowseFragment frag = mFragments.get(key);
         if (frag == null) {
             frag = new BrowseFragment();
@@ -125,6 +118,17 @@ public class BrowsePagerAdapter extends FragmentStatePagerAdapter {
             mFragments.put(key, frag);
         }
         return frag;
+    }
+
+    @Override
+    public void setPrimaryItem(ViewGroup container, int position, Object object) {
+        super.setPrimaryItem(container, position, object);
+        Log.i("BrowsePagerAdapter", "SetPrimaryItem called with position " + position);
+        mCurrentIndex = position;
+    }
+
+    public int getCurrentPageId() {
+        return mOrderedFragments.get(mCurrentIndex);
     }
 
     @Override

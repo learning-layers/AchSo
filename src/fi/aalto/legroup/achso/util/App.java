@@ -3,7 +3,6 @@ package fi.aalto.legroup.achso.util;
 import android.app.Application;
 import android.content.Context;
 import android.content.res.Configuration;
-import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -19,7 +18,6 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.state.LasLoginState;
 import fi.aalto.legroup.achso.state.LoginState;
 import fi.aalto.legroup.achso.state.i5LoginState;
@@ -36,8 +34,6 @@ public class App extends Application {
     public static final int CLVITRA = 1;
     public static final int AALTO_TEST_SERVER = 0;
     public static int uploader;
-    public String last_qr_code;
-    public Date last_qr_code_timestamp;
     public static boolean use_las = true;
     private static boolean use_log_file = false;
 
@@ -101,6 +97,7 @@ public class App extends Application {
         Log.i("App", "Starting Ach so! -app on device " + android.os.Build.MODEL);
 
     }
+
 
     /**
      * Location should be asked when starting the app and when starting recording. It can be

@@ -56,7 +56,8 @@
                     android:id="@+id/landscape_thumb_layout"
                     android:layout_width="170dp"
                     android:layout_height="98dp"
-                    android:translationY="-1dp" >
+                    android:translationY="-1dp"
+                    android:background="@drawable/circle">
 
                     <TextView
                         android:id="@+id/grid_item_duration"
@@ -148,6 +149,7 @@
 
                 <ImageView
                     android:id="@+id/cloud_icon"
+                    android:layout_gravity="center"
                     android:alpha="0.6"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -155,11 +157,9 @@
 
                 <ImageView
                         android:id="@+id/upload_icon"
+                        android:layout_gravity="center"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="false"
-                        android:layout_alignParentRight="true"
-                        android:layout_alignParentStart="false"
                         android:src="@android:drawable/ic_menu_upload" />
                 <!--</RelativeLayout>-->
             </LinearLayout>
