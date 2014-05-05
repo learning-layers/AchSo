@@ -292,9 +292,9 @@ public class LasConnection implements Connection {
     /**
      * Gets the xml containing existing media from the SeViAnno 2.0 Database The
      * result contains elements of the form <videos> <video> <title>X</title>
-     * <creator>uploader</creator> <video_url>http://...mp4</video_url>
+     * <creator>video_uploader</creator> <video_url>http://...mp4</video_url>
      * <created_at>2011-11-11T10:20:57:728F1000+01:00</created_at> <thumb_image
-     * uploader="uploader">http://...d0.jpg</thumb_image> </video> ... </videos>
+     * video_uploader="video_uploader">http://...d0.jpg</thumb_image> </video> ... </videos>
      *
      * @return XML document representation of videos content
      */
@@ -321,9 +321,9 @@ public class LasConnection implements Connection {
     /**
      * Gets the xml containing existing media from the SeViAnno 2.0 Database The
      * result contains elements of the form <videos> <video> <title>X</title>
-     * <creator>uploader</creator> <video_url>http://...mp4</video_url>
+     * <creator>video_uploader</creator> <video_url>http://...mp4</video_url>
      * <created_at>2011-11-11T10:20:57:728F1000+01:00</created_at> <thumb_image
-     * uploader="uploader">http://...d0.jpg</thumb_image> </video> ... </videos>
+     * video_uploader="video_uploader">http://...d0.jpg</thumb_image> </video> ... </videos>
      *
      * @return XML document representation of videos content
      */

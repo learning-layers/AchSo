@@ -30,6 +30,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.FileEntity;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
@@ -37,7 +38,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
+import java.io.UnsupportedEncodingException;
 import java.util.UUID;
 
 import fi.aalto.legroup.achso.activity.VideoBrowserActivity;
@@ -74,24 +75,35 @@ public class UploaderService extends IntentService {
 
         if (id != -1) {
             SemanticVideo sem_video = VideoDBHelper.getById(id);
-            switch (App.uploader) {
+            switch (App.video_uploader) {
                 case App.CLVITRA2:
-                    uploadToClViTra2Service(sem_video);
+                    uploadVideoToClViTra2Service(sem_video);
                     break;
                 case App.CLVITRA:
-                    uploadToClViTra(sem_video);
+                    //uploadVideoToClViTra(sem_video);
                     break;
                 case App.AALTO_TEST_SERVER:
-                    uploadToAaltoTestService(sem_video);
+                    uploadVideoToAaltoTestService(sem_video);
                     break;
-
             }
+            switch (App.metadata_uploader) {
+                case App.CLVITRA2:
+                    uploadMetadataToClViTra2Service(sem_video);
+                    break;
+                case App.CLVITRA:
+                    uploadMetadataToClViTra(sem_video);
+                    break;
+                case App.AALTO_TEST_SERVER:
+                    uploadMetadataToAaltoTestService(sem_video);
+                    break;
+            }
+
         }
     }
 
     /**
      * Moved announcing upload start and progress to their own method,
-     * to avoid repeating them in different uploaders and to make the uploader code more readable.
+     * to avoid repeating them in different uploaders and to make the video_uploader code more readable.
      *
      * This takes the content of the upload, makes it a pollable entity and attaches necessary
      * intents for broadcasting the progress of upload.
@@ -156,8 +168,8 @@ public class UploaderService extends IntentService {
         LocalBroadcastManager.getInstance(this).sendBroadcast(endIntent);
     }
 
-    private void uploadToClViTra2Service(SemanticVideo sem_video) {
-        // This is new uploader using the i5Cloud services
+    private void uploadVideoToClViTra2Service(SemanticVideo sem_video) {
+        // This is new video_uploader using the i5Cloud services
         // Now implemented a simple stub that sends video file as a PUT to some url.
 
         // prepare file for sending
@@ -196,13 +208,19 @@ public class UploaderService extends IntentService {
         // hmm, what to do with the response?
     }
 
-    private void uploadToClViTra(SemanticVideo sem_video) {
+    private void uploadVideoToClViTra(SemanticVideo sem_video) {
         final LocalBroadcastManager broadcast_manager = LocalBroadcastManager.getInstance(this);
         final Context context = this;
 
         String server_url = "http://merian.informatik.rwth-aachen.de:5080/ClViTra/FileUploadServlet";
         //give an unique name to the video and xml files stored on server
-        String filename = new String(UUID.randomUUID() + "");
+        String filename = sem_video.getKey();
+        if (filename == null || filename.isEmpty()) {
+            filename = sem_video.createKey();
+            VideoDBHelper vdb = new VideoDBHelper(context);
+            vdb.update(sem_video);
+            vdb.close();
+        }
         sem_video.setUploadStatus(SemanticVideo.UPLOADING);
         HttpClient httpclient = new DefaultHttpClient();
         //added source and file id to the http post
@@ -214,7 +232,7 @@ public class UploaderService extends IntentService {
         //String pass = las.getSessionId();
         String userData = username + ":" + pass;
 
-        sem_video.setCreator(userData);
+        //sem_video.setCreator(userData);
 
         MultipartEntityBuilder multipartEntity = MultipartEntityBuilder.create();
         multipartEntity.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
@@ -247,8 +265,8 @@ public class UploaderService extends IntentService {
         }
     }
 
-    private void uploadToAaltoTestService(SemanticVideo sem_video) {
-        // This is new uploader using the i5Cloud services
+    private void uploadVideoToAaltoTestService(SemanticVideo sem_video) {
+        // This is new video_uploader using the i5Cloud services
         // Now implemented a simple stub that sends video file as a PUT to some url.
 
         // prepare file for sending
@@ -286,6 +304,68 @@ public class UploaderService extends IntentService {
         }
         // hmm, what to do with the response?
     }
+
+
+    private void uploadMetadataToClViTra2Service(SemanticVideo sem_video) {
+        Log.i("UploaderService", "uploadMetadataToClViTra2Service -- not implemented");
+    }
+
+    private void uploadMetadataToClViTra(SemanticVideo sem_video) {
+        Log.i("UploaderService", "uploadMetadataToClViTra -- not implemented");
+
+    }
+
+    private void uploadMetadataToAaltoTestService(SemanticVideo sem_video) {
+        // This is new video_uploader using the i5Cloud services
+        // Now implemented a simple stub that sends video file as a PUT to some url.
+
+        // prepare file for sending
+        Long traffic_id = sem_video.getId();
+        String url = "http://achso.aalto.fi/server/upload_data"; // replace this with something real
+        String token = ""; // replace this with something real
+        HttpClient client = new DefaultHttpClient();
+        HttpPost post= new HttpPost(url);
+        String key = sem_video.getKey();
+        if (key == null || key.isEmpty()) {
+            key = sem_video.createKey();
+            VideoDBHelper vdb = new VideoDBHelper(this);
+            vdb.update(sem_video);
+            vdb.close();
+        }
+        String json = sem_video.json_dump().toString();
+
+        StringEntity se = null;
+        try {
+            se = new StringEntity(json, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        post.setEntity(se);
+        post.setHeader("Accept", "application/json");
+        post.setHeader("Content-type", "application/json");
+
+        try {
+            Log.i("UploaderService", "sending POST to " + url);
+            HttpResponse response = client.execute(post);
+            Log.i("UploaderService", "response:" + response.getStatusLine().toString());
+            appendLog("response:" + response.getStatusLine().toString());
+        } catch (ClientProtocolException e) {
+            announceError("Sorry, error in transfer.", traffic_id);
+            Log.i("UploaderService", "ClientProtocolException caught");
+            appendLog("ClientProtocolException caught");
+        } catch (IOException e) {
+            announceError("Sorry, couldn't connect to server.", traffic_id);
+            Log.i("UploaderService", "IOException caught:" + e.getMessage());
+            appendLog("IOException caught:" + e.getMessage());
+        } catch (IllegalStateException e) {
+            announceError("Bad or missing server name.", traffic_id);
+            Log.i("UploaderService", "IllegalStateException caught:" + e.getMessage());
+            appendLog("IllegalStateException caught:" + e.getMessage());
+            e.printStackTrace();
+        }
+        // hmm, what to do with the response?
+    }
+
 
 }
 

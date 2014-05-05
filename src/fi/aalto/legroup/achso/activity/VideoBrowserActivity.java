@@ -412,6 +412,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
                 } else if (action.equals(UPLOAD_END_ACTION)) {
                     Log.i("UploaderBroadcastReceiver", "Received upload end action ");
                     sv.setUploadStatus(SemanticVideo.UPLOADED);
+                    sv.setInCloud(true);
 
                     VideoDBHelper vdb = new VideoDBHelper(context);
                     vdb.update(sv);

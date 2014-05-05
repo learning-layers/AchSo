@@ -19,6 +19,7 @@ package fi.aalto.legroup.achso.database;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.UUID;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -29,6 +30,9 @@ import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.util.Pair;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.annotation.Annotation;
@@ -69,6 +73,33 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
         this.setTitle(text);
     }
 
+    public JSONObject json_dump() {
+        JSONObject o = new JSONObject();
+        try {
+            o.accumulate("title", mTitle);
+            o.accumulate("creator", mCreator);
+            o.accumulate("qr_code", mQrCode);
+            o.accumulate("created_at", mCreatedAt.getTime());
+            o.accumulate("video_uri", mUri.toString());
+            o.accumulate("genre", englishGenreStrings.get(mGenre));
+            o.accumulate("key", mKey);
+            if (mLocation != null) {
+                o.accumulate("latitude", mLocation.getLatitude());
+                o.accumulate("longitude", mLocation.getLongitude());
+                o.accumulate("accuracy", mLocation.getAccuracy());
+            } else {
+                o.accumulate("latitude", 0);
+                o.accumulate("longitude", 0);
+                o.accumulate("accuracy", 0);
+            }
+            o.accumulate("duration", mDuration);
+            o.accumulate("thumb_uri", "");
+        } catch (JSONException e) {
+            Log.i("SemanticVideo", "Error building json string.");
+            e.printStackTrace();
+        }
+        return o;
+    }
 
 
     public enum Genre {
@@ -172,10 +203,17 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
         return mInCloud;
     }
 
+    public void setInCloud(boolean b) {
+        this.mInCloud = b;
+    }
+
     public boolean inLocalDB() {
         return mInLocalDB;
     }
 
+    public void setInLocalDB(boolean b) {
+        this.mInLocalDB = b;
+    }
 
     //passing the LAS credentials with creator information
 	public String getCreator() {
@@ -240,6 +278,13 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
 
     public String getKey() {
         return this.mKey;
+    }
+
+    public String createKey() {
+        if (this.mKey == null || this.mKey.isEmpty()) {
+            mKey = UUID.randomUUID().toString();
+        }
+        return mKey;
     }
 
 	public Bitmap getThumbnail(int type) {

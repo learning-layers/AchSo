@@ -33,7 +33,9 @@ public class App extends Application {
     public static final int CLVITRA2 = 2;
     public static final int CLVITRA = 1;
     public static final int AALTO_TEST_SERVER = 0;
-    public static int uploader;
+    public static int video_uploader;
+    public static int metadata_uploader;
+
     public static boolean use_las = true;
     private static boolean use_log_file = false;
 
@@ -84,7 +86,9 @@ public class App extends Application {
             }
         }
 
-        uploader = CLVITRA;
+        video_uploader = CLVITRA;
+        metadata_uploader = AALTO_TEST_SERVER;
+
         if (use_las) {
             login_state = new LasLoginState(mContext);
             connection = new LasConnection();
