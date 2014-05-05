@@ -24,8 +24,8 @@ public class RemoteAnnotation extends AnnotationBase {
     private SemanticVideo mVideo;
 
     public RemoteAnnotation(long starttime, long duration, String text, FloatPosition position,
-                            float scale) {
-        super(-1, starttime, duration, text, position, scale);
+                            float scale, String creator) {
+        super(-1, starttime, duration, text, position, scale, creator);
         mVideo = null;
     }
 

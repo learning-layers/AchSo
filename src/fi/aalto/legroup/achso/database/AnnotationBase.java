@@ -28,13 +28,16 @@ public class AnnotationBase implements XmlSerializable {
     protected long mVideoId;
     protected String mText;
     protected float mScale;
+    private String mCreator;
     private long mId;
     private long mStartTime;
     private long mDuration;
     private FloatPosition mPosition;
 
-    public AnnotationBase(long videoid, long starttime, long duration, String text, FloatPosition position, float scale) {
+    public AnnotationBase(long videoid, long starttime, long duration, String text,
+                          FloatPosition position, float scale, String creator) {
         mVideoId = videoid;
+        mCreator = creator;
         mStartTime = starttime;
         mDuration = duration;
         mPosition = position;
@@ -53,6 +56,8 @@ public class AnnotationBase implements XmlSerializable {
     public long getId() {
         return mId;
     }
+
+    public String getCreator() { return mCreator; }
 
     void setId(long id) {
         mId = id;

@@ -65,7 +65,7 @@ public class VideoDBHelper extends SQLiteOpenHelper {
     public static final String KEY_PROVIDER = "provider";
     public static final String KEY_QRCODE = "qr_code";
     public static final String KEY_HASHKEY = "key";
-    private static final int DBVER = 13; // Increase this if you make changes to the database
+    private static final int DBVER = 14; // Increase this if you make changes to the database
     // structure
     private static final String DBNAME = "videoDB";
     private static final String TBL_VIDEO = "video";
@@ -206,6 +206,7 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         cv.put(KEY_VIDEO_ID, a.getVideoId());
         cv.put(KEY_TEXT, a.getText());
         cv.put(KEY_SCALE, a.getScaleFactor());
+        cv.put(KEY_CREATOR, a.getCreator());
         return cv;
     }
 
@@ -303,8 +304,9 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         String text = c.getString(i++);
         if (text == null) text = "";
         float scale = c.getFloat(i++);
+        String creator = c.getString(i++);
         Annotation a = new Annotation(mContext, vid, starttime, text, new FloatPosition(x, y),
-                scale);
+                scale, creator);
         ((AnnotationBase) a).setId(id);
         return a;
     }
@@ -461,6 +463,7 @@ public class VideoDBHelper extends SQLiteOpenHelper {
                         KEY_VIDEO_ID + " INTEGER NOT NULL, " +
                         KEY_TEXT + " TEXT, " +
                         KEY_SCALE + " FLOAT NOT NULL DEFAULT '1.0'," +
+                        KEY_CREATOR + " TEXT, " +
                         "FOREIGN KEY(" + KEY_VIDEO_ID + ") REFERENCES " + TBL_VIDEO + "(" + KEY_ID + ")" +
                         ")"
         );
@@ -501,6 +504,12 @@ public class VideoDBHelper extends SQLiteOpenHelper {
                             "-column");
                     db.execSQL("ALTER TABLE video ADD COLUMN "+ KEY_HASHKEY + " TEXT");
                     break;
+                case 13:
+                    Log.i("VideoDBHelper *** upgrade", "Upgrading annotation table to have " +
+                            "creator -column");
+                    db.execSQL("ALTER TABLE annotation ADD COLUMN "+ KEY_CREATOR + " TEXT");
+                    break;
+
             }
         }
 

@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import fi.aalto.legroup.achso.database.VideoDBHelper;
+import fi.aalto.legroup.achso.util.App;
 import fi.aalto.legroup.achso.util.FloatPosition;
 import fi.aalto.legroup.achso.view.VideoControllerView;
 
@@ -107,7 +108,8 @@ public class AnnotationSurfaceHandler {
 
     public Annotation addAnnotation(long time, FloatPosition pos) {
         VideoDBHelper vdb = new VideoDBHelper(mContext);
-        Annotation a = new Annotation(mContext, mVideoId, time, "", pos, (float) 1.0);
+        Annotation a = new Annotation(mContext, mVideoId, time, "", pos, (float) 1.0,
+                App.getUsername());
         a.setVisible(true);
         mAnnotations.add(a);
         vdb.insert(a);

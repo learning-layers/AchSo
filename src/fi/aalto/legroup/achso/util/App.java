@@ -33,6 +33,7 @@ public class App extends Application {
     public static final int CLVITRA2 = 2;
     public static final int CLVITRA = 1;
     public static final int AALTO_TEST_SERVER = 0;
+    public static final String DEFAULT_USERNAME = "achso_device_owner";
     public static int video_uploader;
     public static int metadata_uploader;
 
@@ -144,7 +145,13 @@ public class App extends Application {
 
     }
 
-
+    public static String getUsername() {
+        if (login_state != null) {
+            if (login_state.isIn())
+                return login_state.getUser();
+        }
+        return DEFAULT_USERNAME;
+    }
 }
 
 
