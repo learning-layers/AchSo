@@ -68,7 +68,9 @@
     <string name="good_work_genre_english">Good work</string>           <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
     <string name="problem_genre_english">Problem</string>               <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
     <string name="site_overview_genre_english">Site overview</string>   <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
-    <string name="trick_of_trade_genre_english">Trick of trade</string>
+    <string name="trick_of_trade_genre_english">Trick of trade</string> <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
+    <!-- ENGLISH GENRES END -->
+
     <string name="url_found_label">Found link:</string>
     <string name="open_in_browser">Open in browser</string>
     <string name="latest_videos">Latest</string>
@@ -89,7 +91,5 @@
     <string name="logged_in_as">Logged in as </string>
     <string name="connection_problem">Connection problem</string>
     <string name="authentication_problem">Authentication problem</string>
-    <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
-    <!-- ENGLISH GENRES END -->
 
 </resources>
