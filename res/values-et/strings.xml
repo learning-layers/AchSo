@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Ach So</string>
+    <string name="title_item_detail">Omadused</string>
+    <string name="my_videos">Minu videod</string>
+    <string name="loading">Laeb</string>
+    <string name="record">Salvesta uus video</string>
+    <string name="read_qr_code">Otsi QR koodi jrgi</string>
+    <string name="title_activity_genre_selection">Vali video tp</string>
+    <string name="title_activity_information">Video info</string>
+    <string name="action_settings">Seaded</string>
+    <string name="select_genre">Milline video see oli?</string>
+
+    <string name="good_work_genre">Hea t</string>
+    <string name="problem_genre">Probleem</string>
+    <string name="site_overview_genre">levaade</string>
+    <string name="trick_of_trade_genre">Tvte</string>
+
+    <string name="delete">Kustuta</string>
+    <string name="upload">Lae les</string>
+    <string name="qr_to_video">Lisa QR kood</string>
+    <string name="deletion_title">Video kustutamine</string>
+    <string name="deletion_question">Kas sa tahad kustutada valitud video(d) ja seotud mrkused?</string>
+
+    <string name="first_page">Kik videod</string>
+    <string name="storage_error">Video salvestamise viga</string>
+    <string name="detailed_storage_error">Viga video ladustamisele ligipsuga. Kas SD kaart on seadmesse sisestatud</string>
+
+    <string name="login_description">Sisene serverisse</string>
+    <string name="user">Kasutajanimi</string>
+    <string name="pass">Parool</string>
+    <string name="login">Sisene</string>
+    <string name="login_nag_text">Vigane kasutajanimi vi parool</string>
+    <string name="title_activity_login">Sisene serverisse</string>
+
+    <string name="not_loggedin_nag_title">Ei ole sisse loginud</string>
+    <string name="not_loggedin_nag_text">Video leslaadimiseks peab enne keskkonda sisse logima</string>
+
+    <string name="location_not_enabled">Asukohaphised teenused keelatud</string>
+    <string name="location_not_enabled_text">Asukohaphised teenused ei ole lubatud. Kas sa soovid neid nd vimaldada?</string>
+
+    <string name="ok">OK</string>
+    <string name="cancel">Thista</string>
+    
+    <string name="edit_text">Muuda teksti</string>
+
+    <!-- SemanticVideo data -->
+    <string name="semanticvideo_title">Pealkiri</string>
+    <string name="semanticvideo_creator">Autor</string>
+    <string name="semanticvideo_qrcode">QR kood</string>
+    <string name="semanticvideo_createdat">Loodud</string>
+    <string name="semanticvideo_uri">Faili nimi seadmes</string>
+    <string name="semanticvideo_genre">Genre</string>
+    <string name="semanticvideo_uploaded">les laetud</string>
+    <string name="semanticvideo_latitude">Laius</string>
+    <string name="semanticvideo_longitude">Pikkus</string>
+    <string name="semanticvideo_accuracy">Asukoha tpsus</string>
+    <string name="semanticvideo_unknown_creator">Teadmata autor</string>
+    <string name="semanticvideo_unknown_location">Teadmata asukoht</string>
+    <string name="semanticvideo_no_qr">QR kood puudub</string>
+    <!-- /SemanticVideo data -->
+
+    <string name="search_hint">Otsi videoid</string>
+    <string name="title_activity_search">Otsi</string>
+
+    <string name="remote_video_separator">Vlised videod</string>
+
+    <!-- ENGLISH GENRES BEGIN -->
+    <string name="good_work_genre_english">Good work</string>           <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
+    <string name="problem_genre_english">Problem</string>               <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
+    <string name="site_overview_genre_english">Site overview</string>   <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
+    <string name="trick_of_trade_genre_english">Trick of trade</string>   <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
+    <!-- ENGLISH GENRES END -->
+
+    <string name="keep">Keep</string>
+    <string name="url_found_label">Found link:</string>
+    <string name="open_in_browser">Open in browser</string>
+    <string name="latest_videos">Latest</string>
+    <string name="recommended_videos">Recommended</string>
+    <string name="no_connection">No connection to cloud</string>
+    <string name="nearby_videos">Nearby</string>
+    <string name="search_results">Search results</string>
+    <string name="add_video">Add video</string>
+    <string name="author_is_me">Me</string>
+    <string name="author_is_unknown">Unknown</string>
+    <string name="unknown_format">Unknown format, or file is not a video</string>
+    <string name="video_already_exists">This video is already in Ach so!</string>
+    <string name="login_successful">Login successful</string>
+    <string name="created_new_video">Created new video.</string>
+    <string name="code_added_to_videos">Code added to selected video(s).</string>
+    <string name="upload_successful">Upload successful.</string>
+    <string name="buffering">Buffering...</string>
+    <string name="logged_in_as">Logged in as </string>
+    <string name="connection_problem">Connection problem</string>
+    <string name="authentication_problem">Authentication problem</string>
+
+</resources>

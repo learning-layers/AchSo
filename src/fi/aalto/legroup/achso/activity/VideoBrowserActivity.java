@@ -252,7 +252,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
                         if (intent == null) {
                             Log.i("itemListActivity", "something failed: camera resulted an empty intent.");
                         } else {
-                            Toast.makeText(this, "Created SemanticVideo with id: " + intent.getLongExtra("video_id", -1), Toast.LENGTH_LONG).show();
+                            Toast.makeText(this, getString(R.string.created_new_video), Toast.LENGTH_LONG).show();
                         }
                     } else {
                         Log.d("BACK", "Genre selection canceled");
@@ -302,7 +302,8 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
                 vdb.update(v);
             }
             vdb.close();
-            Toast.makeText(this, "Qr-code: " + mQrResult + " added to selected video(s).", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getString(R.string.code_added_to_videos),
+                    Toast.LENGTH_LONG).show();
             mQrResult = null;
         }
     }
@@ -421,7 +422,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
                     ui.first.setVisibility(View.GONE);
                     ui.second.setVisibility(View.GONE);
 
-                    Toast.makeText(context, "Upload successful.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, getString(R.string.upload_successful), Toast.LENGTH_LONG).show();
                 } else if (action.equals(UPLOAD_ERROR_ACTION)) {
                         Log.i("UploaderBroadcastReceiver", "Received upload error action ");
                         sv.setUploadStatus(SemanticVideo.UPLOAD_ERROR);

@@ -155,7 +155,7 @@ public class VideoViewerActivity extends ActionbarActivity {
                 modifyCurrentFragments(true); // Update the whole activity
             } else if (requestCode == REQUEST_LOGIN) {
                 invalidateOptionsMenu();
-                Toast.makeText(this, "Login successful", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, getString(R.string.login_successful), Toast.LENGTH_LONG).show();
             }
         }
     }

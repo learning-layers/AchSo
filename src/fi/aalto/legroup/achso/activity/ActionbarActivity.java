@@ -389,10 +389,10 @@ public abstract class ActionbarActivity extends FragmentActivity {
                     mVideoUri = Uri.parse(received_path);
                     long video_id = createSemanticVideo(mVideoUri);
                     if (video_id == -1) {
-                        Toast.makeText(getContext(), "Unknown format, or file is not a video",
+                        Toast.makeText(getContext(), getString(R.string.unknown_format),
                                 Toast.LENGTH_LONG).show();
                     } else if (video_id == -2) {
-                        Toast.makeText(getContext(), "This video is already in Ach so!",
+                        Toast.makeText(getContext(), getString(R.string.video_already_exists),
                                 Toast.LENGTH_LONG).show();
                     } else {
                         Intent i = new Intent(this, GenreSelectionActivity.class);
@@ -475,7 +475,7 @@ public abstract class ActionbarActivity extends FragmentActivity {
                         Toast.makeText(getContext(), "Failed to create thumbnails - video itself is " +
                                 "somewhere in device.", Toast.LENGTH_LONG).show();
                     } else if (video_id == -2) {
-                        Toast.makeText(getContext(), "This video is already in Ach so!",
+                        Toast.makeText(getContext(), getString(R.string.video_already_exists),
                                 Toast.LENGTH_LONG).show();
                     } else {
                         Intent i = new Intent(this, GenreSelectionActivity.class);
@@ -497,7 +497,7 @@ public abstract class ActionbarActivity extends FragmentActivity {
                 break;
             case REQUEST_LOGIN:
                 invalidateOptionsMenu();
-                Toast.makeText(getContext(), "Login successful", Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(), getString(R.string.login_successful), Toast.LENGTH_LONG).show();
                 break;
 
         }

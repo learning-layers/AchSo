@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 
+import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.util.App;
 
 import static fi.aalto.legroup.achso.util.App.appendLog;
@@ -158,7 +159,7 @@ public class i5LoginState implements LoginState {
                 mTenantId = json_data.getString("tenant-id");
                 setState(LOGGED_IN);
                 if (!silent) {
-                    Toast.makeText(ctx, "Logged in as " + mUser, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ctx, ctx.getString(R.string.logged_in_as) + mUser, Toast.LENGTH_SHORT).show();
                     SharedPreferences prefs = ctx.getSharedPreferences("AchSoPrefs", 0);
                     if (prefs.getBoolean("autologin", false)) {
                         Editor edit = prefs.edit();

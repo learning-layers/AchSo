@@ -91,7 +91,6 @@ public class LoginActivity extends ActionbarActivity {
     }
 
     private void close_this(String intentdata) {
-        Toast.makeText(ctx, "received" + intentdata, Toast.LENGTH_LONG).show();
         setResult(RESULT_OK);
         finish();
     }

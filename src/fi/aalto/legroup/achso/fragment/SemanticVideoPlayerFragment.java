@@ -736,7 +736,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
 
     @Override
     public boolean onError(MediaPlayer mp, int what, int extra) {
-        Log.e("SemanticVideoPlayerFragment", "onError:  what:" + what + " extra: " + extra );
+        Log.e("SemanticVideoPlayerFragment", "onError:  what:" + what + " extra: " + extra);
         mController.show();
         switch (extra) {
             case MediaPlayer.MEDIA_ERROR_IO:
@@ -780,7 +780,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
                 Log.i("SemanticVideoPlayerFragment", "MediaPlayer.MEDIA_INFO_BUFFERING_START");
                 mController.show();
                 mBufferProgress.setVisibility(View.VISIBLE);
-                Toast.makeText(getContext(), "Buffering...", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.buffering), Toast.LENGTH_SHORT).show();
                 break;
             case MediaPlayer.MEDIA_INFO_BUFFERING_END:
                 Log.i("SemanticVideoPlayerFragment", "MediaPlayer.MEDIA_INFO_BUFFERING_END");

@@ -79,6 +79,16 @@
     <string name="add_video">Add video</string>
     <string name="author_is_me">Me</string>
     <string name="author_is_unknown">Unknown</string>
+    <string name="unknown_format">Unknown format, or file is not a video</string>
+    <string name="video_already_exists">This video is already in Ach so!</string>
+    <string name="login_successful">Login successful</string>
+    <string name="created_new_video">Created new video.</string>
+    <string name="code_added_to_videos">Code added to selected video(s).</string>
+    <string name="upload_successful">Upload successful.</string>
+    <string name="buffering">Buffering...</string>
+    <string name="logged_in_as">Logged in as </string>
+    <string name="connection_problem">Connection problem</string>
+    <string name="authentication_problem">Authentication problem</string>
     <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
     <!-- ENGLISH GENRES END -->
 

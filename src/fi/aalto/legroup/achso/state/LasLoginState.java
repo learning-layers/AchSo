@@ -28,6 +28,7 @@ import android.widget.Toast;
 
 import java.util.concurrent.ExecutionException;
 
+import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.activity.ActionbarActivity;
 import fi.aalto.legroup.achso.util.App;
 import fi.aalto.legroup.achso.util.LasConnection;
@@ -228,11 +229,11 @@ public class LasLoginState implements LoginState {
         protected void onPostExecute(String result) {
             Log.i("LasLoginTask", "doing onPostExecute with result " + result);
             if (result.equals(LasConnection.CONNECTION_PROBLEM)) {
-                Toast.makeText(ctx, "Connection problem", Toast.LENGTH_LONG).show();
+                Toast.makeText(ctx, ctx.getString(R.string.connection_problem), Toast.LENGTH_LONG).show();
                 Log.e("LasLoginState", "Login failed, connection problem");
                 setState(LOGGED_OUT);
             } else if (result.equals(LasConnection.AUTHENTICATION_PROBLEM)) {
-                Toast.makeText(ctx, "Authentication problem", Toast.LENGTH_LONG).show();
+                Toast.makeText(ctx, ctx.getString(R.string.authentication_problem), Toast.LENGTH_LONG).show();
                 Log.e("LasLoginState", "Login failed, authentication problem");
                 setState(LOGGED_OUT);
             } else if (result.equals(LasConnection.UNDEFINED_PROBLEM)) {

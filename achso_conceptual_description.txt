@@ -12,7 +12,8 @@ Annotated videos come from three sources:
 
 Video files
     Video file is a part of Annotated video.
-    these are raw or packed video files that we try to operate on as high level as possible -- we don't care about their format etc. we just receive them, play them, and send them to server in format that is device's preferred format. Video file's own metadata fields are not used, when it exists only locally, it is managed by Android's media storage and has path and id relative to that. When it is sent to server it will be processed by ClViTra2.0 and an URI for remote video file is returned. This will be used if local file is not available.
+    these are raw or packed video files that we try to operate on as high level as possible -- we don't care about their format etc. we just receive them, play them, and send them to server in a format that is device's preferred format. Video file's own metadata fields are not used. When it exists only locally, it is managed by Android's media storage and has path and id relative to that. When it is sent to server it will be processed by ClViTra2.0 and an URI for remote video file is returned. This will be used if local file is not available.
+
 
 
 Metadata

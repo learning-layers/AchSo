@@ -87,6 +87,9 @@ public class XmlConverter {
         LinkedList<XmlObject> hierarchy = new LinkedList<XmlObject>();
         XmlObject ret = null;
         XmlObject current = null;
+        if (xml == null || xml.isEmpty()) {
+            return ret;
+        }
         try {
             XmlPullParser xpp = XmlPullParserFactory.newInstance().newPullParser();
             xpp.setInput(new StringReader(xml));

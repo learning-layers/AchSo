@@ -319,13 +319,9 @@ public class LasConnection implements Connection {
 
 
     /**
-     * Gets the xml containing existing media from the SeViAnno 2.0 Database The
-     * result contains elements of the form <videos> <video> <title>X</title>
-     * <creator>video_uploader</creator> <video_url>http://...mp4</video_url>
-     * <created_at>2011-11-11T10:20:57:728F1000+01:00</created_at> <thumb_image
-     * video_uploader="video_uploader">http://...d0.jpg</thumb_image> </video> ... </videos>
-     *
-     * @return XML document representation of videos content
+     * This tries to get all videos from SeViAnno2 -server. Then it fetches thumbnails and titles
+     * for them, in similar way as SeViAnno2.
+     * @return List of videos -- they miss many fields of metadata and their annotations.
      */
     public List<SemanticVideo> getVideosAndThumbs() {
         List<SemanticVideo> videoList = new ArrayList<SemanticVideo>();
@@ -333,49 +329,37 @@ public class LasConnection implements Connection {
 
             this.instantiateDBContext();
 
-            // returns a String with the XML containing all the videos and the
-            // corresponding data for each video
-            // TODO add semantic annotations and genre in the returned XML
-            // representation
-
-            // These come from i5.atlas.las.service.mpeg7.multimediacontent
-            // MPEG7MultimediaContentService.getVideoInformations
-            // What should we invoke to get
-            // i5.atlas.las.service.videoinformation.Videoinformation
-            //
-            Object[] params2 = {"sevianno"};
-
-
             String videoUrls[] = (String[]) this.invoke("mpeg7_multimediacontent_service",
                    "getMediaURLs");
-            Object[] params = {videoUrls};
-            String thumbUrls[] = (String[]) this.invoke("mpeg7_multimediacontent_service",
-                    "getVideoThumbnails", params);
-                    // "getVideoThumbnails",
-                    // "getMediaCreationTitles",
-            String titles[] = (String[]) this.invoke("mpeg7_multimediacontent_service",
-                    "getMediaCreationTitles", params);
-            String title, author, thumb_url, video_url;
-            RemoteSemanticVideo rsv;
-            if (videoUrls.length == thumbUrls.length && videoUrls.length == titles.length) {
-                for (int i=0; i < videoUrls.length; i++) {
-                    title = titles[i];
-                    thumb_url = thumbUrls[i];
-                    video_url = videoUrls[i];
-                    String[] titleauthor = title.split("####", 2);
-                    if (titleauthor.length == 2) {
-                        title = titleauthor[0];
-                        author = titleauthor[1];
-                    } else {
-                        author = "";
+            if (videoUrls != null && videoUrls.length > 0) {
+                Object[] params = {videoUrls};
+                String thumbUrls[] = (String[]) this.invoke("mpeg7_multimediacontent_service", "getVideoThumbnails", params);
+                // "getVideoThumbnails",
+                // "getMediaCreationTitles",
+                String titles[] = (String[]) this.invoke("mpeg7_multimediacontent_service", "getMediaCreationTitles", params);
+                String title, author, thumb_url, video_url;
+                RemoteSemanticVideo rsv;
+                if (videoUrls != null && thumbUrls != null && titles != null) {
+                    if (videoUrls.length == thumbUrls.length && videoUrls.length == titles.length) {
+                        for (int i = 0; i < videoUrls.length; i++) {
+                            title = titles[i];
+                            thumb_url = thumbUrls[i];
+                            video_url = videoUrls[i];
+                            String[] titleauthor = title.split("####", 2);
+                            if (titleauthor.length == 2) {
+                                title = titleauthor[0];
+                                author = titleauthor[1];
+                            } else {
+                                author = "";
+                            }
+                            rsv = new RemoteSemanticVideo(title, video_url, thumb_url, author);
+                            videoList.add(rsv);
+
+                        }
+
                     }
-                    rsv = new RemoteSemanticVideo(title, video_url, thumb_url, author);
-                    videoList.add(rsv);
-
                 }
-
             }
-
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -501,8 +485,10 @@ public class LasConnection implements Connection {
         List<SemanticVideo> res = new ArrayList<SemanticVideo>();
         Log.i("LasConnection", "Trying to convert from xml: " + xml);
         XmlObject xmlobj = XmlConverter.fromXml(xml);
-        for (XmlObject o : xmlobj.getSubObjects()) {
-            res.add(new RemoteSemanticVideoFactory().fromXmlObject(o));
+        if (xmlobj != null) {
+            for (XmlObject o : xmlobj.getSubObjects()) {
+                res.add(new RemoteSemanticVideoFactory().fromXmlObject(o));
+            }
         }
         return res;
     }
