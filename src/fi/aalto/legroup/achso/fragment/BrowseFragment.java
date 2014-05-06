@@ -43,7 +43,10 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -95,6 +98,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
     private LinearLayout mUrlArea;
     private TextView mUrlLabel;
     private TextView mNoConnectionMessage;
+    private boolean mQrQuery;
 
     public BrowseFragment() {
 
@@ -160,7 +164,12 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
                         sv.setUploadStatus(SemanticVideo.UPLOAD_PENDING);
                         Intent uploadIntent = new Intent(getActivity(), UploaderService.class);
                         uploadIntent.putExtra(UploaderService.PARAM_IN, sv.getId());
-                        getActivity().startService(uploadIntent);
+                        if (App.allow_upload) {
+                            getActivity().startService(uploadIntent);
+                        } else {
+                            Toast.makeText(App.getContext(), "Uploading is temporarily switched off. It " +
+                                    "will be enabled in future version.",  Toast.LENGTH_LONG).show();
+                        }
                     }
                     refreshLocalVideos();
                     mSelectedVideos.clear();
@@ -205,7 +214,6 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         view.setSelected(true);
         SemanticVideo sv = (SemanticVideo) getVideoAdapter().getItem(position);
-        Log.i("BrowseFragment", "Item click on sv: " + (sv != null));
         if (sv != null) {
             if (sv.inLocalDB()) {
                 mCallbacks.onLocalItemSelected(sv.getId());
@@ -234,8 +242,6 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
         super.onCreate(savedInstanceState);
         setRetainInstance(true); // Needed for AsyncTask to survive orientation/activity change
 
-        Log.i("BrowseFragment", "Creating fragment, savedinstancestate:" + (savedInstanceState !=
-                        null));
 
         mSelectedVideos = new HashMap<Integer, SemanticVideo>();
         if (VideoDBHelper.getVideoCache() == null) {
@@ -249,8 +255,6 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
             mQuery = args.getString("query");
             mQueryType = args.getInt("query_type");
         }
-        Log.i("BrowseFragment", "Created fragment:" + mPage + " query: " + mQuery + " " +
-                "query_type:" + mQueryType);
         mUsesGrid = App.isTablet();
     }
 
@@ -303,8 +307,24 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
     @Override
     public void onResume() {
         super.onResume();
-        Log.i("BrowseFragment", "onResume called for fragment " + mPage + ", " +
-                "of type " + mQueryType);
+        if (mQueryType == BrowsePagerAdapter.SEARCH) {
+            VideoBrowserActivity vba = (VideoBrowserActivity) getActivity();
+            mQuery = vba.getQueryString();
+            if (vba.isQrSearch()) {
+                mUrlArea.setVisibility(LinearLayout.VISIBLE);
+                mUrl.setText(mQuery);
+                mQrQuery = true;
+                try {
+                    URL url = new URL(mQuery);
+                    mUrlLabel.setText(R.string.url_found_label);
+                } catch (MalformedURLException e) {
+                    mUrlLabel.setText(R.string.code_found_label);
+                }
+            } else {
+                mQrQuery = false;
+            }
+        }
+
         refreshLocalVideos();
         refreshRemoteVideos();
         if (mContainerState != null) {
@@ -315,6 +335,8 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
             }
         }
         mContainerState = null;
+
+
     }
 
     @Override
@@ -339,7 +361,6 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
      * date and not cached old list.
      */
     public void refreshLocalVideos() {
-        Log.i("BrowseFragment", "refreshLocalVideos called.");
         VideoThumbAdapter va = (VideoThumbAdapter) getVideoAdapter();
         if (va == null) {
             va = new VideoThumbAdapter(getActivity(), new ArrayList<SemanticVideo>());
@@ -365,7 +386,6 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
     }
 
     public void refreshRemoteVideos() {
-        Log.i("BrowseFragment", "refreshRemoteVideos called.");
         VideoThumbAdapter va = (VideoThumbAdapter) getVideoAdapter();
         if (va == null) {
             va = new VideoThumbAdapter(getActivity(), new ArrayList<SemanticVideo>());
@@ -392,14 +412,17 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
 
     private List<SemanticVideo> getLocalVideos() {
         switch (mQueryType) {
-            case BrowsePagerAdapter.QR_SEARCH:
-                return VideoDBHelper.getVideosByQrCode(mQuery);
             case BrowsePagerAdapter.SEARCH:
-                return VideoDBHelper.queryVideoCacheByTitle(mQuery);
+                if (mQrQuery) {
+                    return VideoDBHelper.getVideosByQrCode(mQuery);
+                } else {
+                    return VideoDBHelper.queryVideoCacheByTitle(mQuery);
+                }
             case BrowsePagerAdapter.MY_VIDEOS:
-                Log.i("BrowseFragment", "Getting local video cache");
                 return VideoDBHelper.getVideoCache();
             case BrowsePagerAdapter.RECOMMENDED:
+                return Collections.<SemanticVideo>emptyList();
+            case BrowsePagerAdapter.EMPTY:
                 return Collections.<SemanticVideo>emptyList();
             case BrowsePagerAdapter.LATEST:
                 return Collections.<SemanticVideo>emptyList();
@@ -412,8 +435,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
     }
 
     private void startRemoteVideoFetch() {
-        if (App.hasConnection()) {
-            Log.i("BrowseFragment", "Has connection, trying remote search");
+        if (App.hasConnection() && (App.login_state.isIn() || App.login_state.isTrying())) {
             mNoConnectionMessage.setVisibility(LinearLayout.GONE);
             mRemoteProgress.setVisibility(LinearLayout.VISIBLE);
 
@@ -423,7 +445,6 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
             mFetchTask = new RemoteFetchTask(this, mRemoteProgress, mPage);
             mFetchTask.execute(mQuery); // Fetch and populate remote grid
         } else {
-            Log.i("SearchGridFragment", "No connection, showing empty list");
             mNoConnectionMessage.setVisibility(LinearLayout.VISIBLE);
 
             VideoThumbAdapter va = (VideoThumbAdapter) getVideoAdapter();
@@ -440,6 +461,9 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
 
     private List<SemanticVideo> getRemoteVideos() {
         List<SemanticVideo> list;
+        if (mQueryType == BrowsePagerAdapter.EMPTY) {
+            return Collections.<SemanticVideo>emptyList();
+        }
         if (RemoteResultCache.hasCached(mPage)) {
             list = RemoteResultCache.getCached(mPage);
         } else {

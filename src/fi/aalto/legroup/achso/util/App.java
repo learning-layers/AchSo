@@ -39,6 +39,7 @@ public class App extends Application {
 
     public static boolean use_las = true;
     private static boolean use_log_file = false;
+    public static boolean allow_upload = false;
 
 
     public static Context getContext() {

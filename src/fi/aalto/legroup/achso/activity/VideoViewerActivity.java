@@ -46,6 +46,7 @@ public class VideoViewerActivity extends ActionbarActivity {
     protected boolean show_login() {return false;}
     protected boolean show_qr() {return false;}
     protected boolean show_search() {return false;}
+    protected boolean show_addvideo() {return false;}
 
 
     @Override

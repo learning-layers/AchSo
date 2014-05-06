@@ -83,8 +83,11 @@ public class VideoDBHelper extends SQLiteOpenHelper {
 
     public static List<SemanticVideo> queryVideoCacheByTitle(String query) {
         List<SemanticVideo> ret = new ArrayList<SemanticVideo>();
-        for (SemanticVideo v : mLocalVideoCache) {
-            if (v.getTitle().toLowerCase().contains(query.toLowerCase())) ret.add(v);
+        if (query != null && !query.isEmpty()) {
+            for (SemanticVideo v : mLocalVideoCache) {
+                if (v.getTitle().toLowerCase().contains(query.toLowerCase()))
+                    ret.add(v);
+            }
         }
         return ret;
     }

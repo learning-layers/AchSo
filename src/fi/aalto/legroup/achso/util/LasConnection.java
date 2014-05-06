@@ -502,6 +502,8 @@ public class LasConnection implements Connection {
         try {
             Log.i("LasConnection", "Disconnecting client.");
             client.disconnect();
+            this.username = "";
+            this.pass ="";
             this.connected = false;
             return true;
         } catch (Exception e) {

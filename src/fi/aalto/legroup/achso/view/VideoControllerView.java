@@ -55,6 +55,7 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.annotation.Annotation;
 import fi.aalto.legroup.achso.annotation.EditorListener;
 import fi.aalto.legroup.achso.database.SemanticVideo;
+import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.fragment.SemanticVideoPlayerFragment;
 import fi.aalto.legroup.achso.util.FloatPosition;
 
@@ -281,6 +282,10 @@ public class VideoControllerView extends FrameLayout {
     private OnClickListener mKeepListener = new OnClickListener() {
         @Override
         public void onClick(View v) {
+            Annotation a = getCurrentAnnotation();
+            VideoDBHelper vdb = new VideoDBHelper(mContext);
+            vdb.update(a);
+            vdb.close();
             setCurrentAnnotation(null);
             disableAnnotationMode();
         }

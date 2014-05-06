@@ -204,6 +204,16 @@ public class LasLoginState implements LoginState {
     public void logout() {
         mUser = null;
         setState(LOGGED_OUT);
+        LasConnection lc = (LasConnection) App.connection;
+        lc.disconnect();
+        SharedPreferences prefs = ctx.getSharedPreferences("AchSoPrefs", 0);
+        if (prefs.getBoolean("autologin", false)) {
+            Editor edit = prefs.edit();
+            edit.putBoolean("autologin", false);
+            edit.apply();
+        }
+
+
     }
 
     private class LoginTask extends AsyncTask<String, Void, String> {

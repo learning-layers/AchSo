@@ -50,6 +50,7 @@ public class LoginActivity extends ActionbarActivity {
     private IntentFilter mLocalFilter;
 
     protected boolean show_record() {return false;}
+    protected boolean show_addvideo() {return false;}
     protected boolean show_login() {return false;}
     protected boolean show_qr() {return false;}
     protected boolean show_search() {return false;}

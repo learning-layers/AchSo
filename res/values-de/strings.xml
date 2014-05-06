@@ -71,25 +71,27 @@
     <string name="trick_of_trade_genre_english">Trick of trade</string> <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
     <!-- ENGLISH GENRES END -->
 
-    <string name="url_found_label">Found link:</string>
-    <string name="open_in_browser">Open in browser</string>
-    <string name="latest_videos">Latest</string>
-    <string name="recommended_videos">Recommended</string>
-    <string name="no_connection">No connection to cloud</string>
-    <string name="nearby_videos">Nearby</string>
-    <string name="search_results">Search results</string>
-    <string name="add_video">Add video</string>
-    <string name="author_is_me">Me</string>
-    <string name="author_is_unknown">Unknown</string>
-    <string name="unknown_format">Unknown format, or file is not a video</string>
-    <string name="video_already_exists">This video is already in Ach so!</string>
-    <string name="login_successful">Login successful</string>
-    <string name="created_new_video">Created new video.</string>
-    <string name="code_added_to_videos">Code added to selected video(s).</string>
-    <string name="upload_successful">Upload successful.</string>
-    <string name="buffering">Buffering...</string>
-    <string name="logged_in_as">Logged in as </string>
-    <string name="connection_problem">Connection problem</string>
-    <string name="authentication_problem">Authentication problem</string>
+
+    <string name="url_found_label">Link gefunden:</string>
+    <string name="open_in_browser">Öffne im Browser</string>
+    <string name="latest_videos">Zuletzt</string>
+    <string name="recommended_videos">Empfohlene Videos</string>
+    <string name="no_connection">Keine Verbindung zur Cloud</string>
+    <string name="nearby_videos">Ähnliche Videos</string>
+    <string name="search_results">Suchergebnisse</string>
+    <string name="add_video">Video hinzufügen</string>
+    <string name="author_is_me">Meine Videos</string>
+    <string name="author_is_unknown">Unbekannter Autor</string>
+    <string name="unknown_format">Unbekanntes Format oder kein Video</string>
+    <string name="video_already_exists">Dieses Video gibt es schon bei Ach so!</string>
+    <string name="login_successful">Login erfolgreich</string>
+    <string name="created_new_video">Ein neues Video wurde erstellt.</string>
+    <string name="code_added_to_videos">Ein Code wurde zu(m) Video(s) hinzugefügt.</string>
+    <string name="upload_successful">Upload erfolgreich.</string>
+    <string name="buffering">Zwischenspeicherung...</string>
+    <string name="logged_in_as">Eingeloggt als </string>
+    <string name="connection_problem">Verbindungsproblem</string>
+    <string name="authentication_problem">Authentifizierungsproblem</string>
+
 
 </resources>

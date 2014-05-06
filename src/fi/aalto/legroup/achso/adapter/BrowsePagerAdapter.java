@@ -29,7 +29,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import fi.aalto.legroup.achso.R;
-import fi.aalto.legroup.achso.activity.VideoBrowserActivity;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.fragment.BrowseFragment;
 
@@ -39,7 +38,6 @@ public class BrowsePagerAdapter extends FragmentStatePagerAdapter {
     private Context mContext;
     private HashMap<Integer, BrowseFragment> mFragments;
     private List<Integer> mOrderedFragments;
-    private List<String> mPageTitles;
     // Page ids -- these are used in many places to recognize different features for pages
     // These are also used as keys for mFragments hashmap.
     public final static int MY_VIDEOS = 0;
@@ -49,6 +47,10 @@ public class BrowsePagerAdapter extends FragmentStatePagerAdapter {
     public final static int BROWSE_BY_GENRE = 30;
     public static final int QR_SEARCH = 50;
     public final static int SEARCH = 60;
+    public final static int EMPTY = 404;
+
+    private String mQuery;
+    private boolean mSearchPageAvailable;
 
 
     /**
@@ -70,20 +72,18 @@ public class BrowsePagerAdapter extends FragmentStatePagerAdapter {
         mOrderedFragments = new ArrayList<Integer>();
         mOrderedFragments.add(MY_VIDEOS);
         mOrderedFragments.add(RECOMMENDED);
-        mOrderedFragments.add(LATEST);
-        mOrderedFragments.add(NEARBY);
+        //mOrderedFragments.add(LATEST);
+        //mOrderedFragments.add(NEARBY);
         mOrderedFragments.add(BROWSE_BY_GENRE + SemanticVideo.Genre.GoodWork.ordinal());
         mOrderedFragments.add(BROWSE_BY_GENRE + SemanticVideo.Genre.Problem.ordinal());
         mOrderedFragments.add(BROWSE_BY_GENRE + SemanticVideo.Genre.TrickOfTrade.ordinal());
         mOrderedFragments.add(BROWSE_BY_GENRE + SemanticVideo.Genre.SiteOverview.ordinal());
+        mOrderedFragments.add(EMPTY); // make empty pages to remove previous page name when swipe
+        // is disabled
+        mOrderedFragments.add(SEARCH);
         mFragments = new HashMap<Integer, BrowseFragment>(10);
 
 
-        mPageTitles = new ArrayList<String>();
-        mPageTitles.add(ctx.getString(R.string.my_videos));
-        mPageTitles.add(ctx.getString(R.string.recommended_videos));
-        mPageTitles.add(ctx.getString(R.string.latest_videos));
-        mPageTitles.addAll(SemanticVideo.genreStrings.values());
     }
 
     /**
@@ -94,8 +94,8 @@ public class BrowsePagerAdapter extends FragmentStatePagerAdapter {
     @Override
     public Fragment getItem(int i) {
         int key = mOrderedFragments.get(i);
-        Log.i("BrowsePagerAdapter", "Getting page " + i + ", key " + key);
         BrowseFragment frag = mFragments.get(key);
+
         if (frag == null) {
             frag = new BrowseFragment();
             Bundle args = new Bundle();
@@ -109,21 +109,21 @@ public class BrowsePagerAdapter extends FragmentStatePagerAdapter {
                 int genre_i = key - BROWSE_BY_GENRE;
                 String q = SemanticVideo.englishGenreStrings.get(SemanticVideo.Genre.values()[genre_i]);
                 args.putString("query", q);
-                Log.i("BrowsePagerAdapter", "Constructed genre browsing fragment with query " + q);
             } else {
                 args.putInt("query_type", key);
-                args.putString("query", "");
+                args.putString("query", mQuery);
             }
             frag.setArguments(args);
             mFragments.put(key, frag);
         }
+
         return frag;
     }
 
     @Override
     public void setPrimaryItem(ViewGroup container, int position, Object object) {
         super.setPrimaryItem(container, position, object);
-        Log.i("BrowsePagerAdapter", "SetPrimaryItem called with position " + position);
+        //Log.i("BrowsePagerAdapter", "SetPrimaryItem called with position " + position);
         mCurrentIndex = position;
     }
 
@@ -133,7 +133,13 @@ public class BrowsePagerAdapter extends FragmentStatePagerAdapter {
 
     @Override
     public int getCount() {
-        return mOrderedFragments.size();
+        // you cannot swipe your way to search page if the pager believes that
+        // you are at the end of the list already.
+        if (mSearchPageAvailable) {
+            return mOrderedFragments.size();
+        } else {
+            return mOrderedFragments.size()-2;
+        }
     }
 
     @Override
@@ -148,9 +154,9 @@ public class BrowsePagerAdapter extends FragmentStatePagerAdapter {
                 return mContext.getString(R.string.latest_videos);
             case NEARBY:
                 return mContext.getString(R.string.nearby_videos);
+            case EMPTY:
+                return "";
             case SEARCH:
-                return mContext.getString(R.string.search_results);
-            case QR_SEARCH:
                 return mContext.getString(R.string.search_results);
             default:
                 if (page_id >= BROWSE_BY_GENRE && page_id <= BROWSE_BY_GENRE +
@@ -161,5 +167,23 @@ public class BrowsePagerAdapter extends FragmentStatePagerAdapter {
                     return "what page?";
                 }
         }
+    }
+
+    public int getPageIndexFor(int page) {
+        return mOrderedFragments.indexOf(page);
+
+    }
+
+    public void setQuery(String query) {
+        mQuery = query;
+    }
+
+    public void setSearchPageAvailable(boolean b) {
+        mSearchPageAvailable = b;
+        notifyDataSetChanged();
+    }
+
+    public boolean getSearchPageAvailable() {
+        return mSearchPageAvailable;
     }
 }

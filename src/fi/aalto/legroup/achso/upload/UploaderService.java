@@ -73,6 +73,8 @@ public class UploaderService extends IntentService {
 
         Log.i("UploaderService", "Received intent to upload");
 
+        /*
+
         if (id != -1) {
             SemanticVideo sem_video = VideoDBHelper.getById(id);
             switch (App.video_uploader) {
@@ -99,6 +101,7 @@ public class UploaderService extends IntentService {
             }
 
         }
+        */
     }
 
     /**

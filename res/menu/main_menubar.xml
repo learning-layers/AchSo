@@ -2,8 +2,9 @@
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/action_search"
+          android:title="Search"
         android:icon="@drawable/ic_search"
-        android:showAsAction="collapseActionView|always"
+        android:showAsAction="collapseActionView|ifRoom"
         android:actionViewClass="android.widget.SearchView"
         />
     <item android:id="@+id/action_newvideo"
@@ -13,30 +14,33 @@
     />
     <item android:id="@+id/action_addvideo"
           android:title="@string/add_video"
-          android:showAsAction="always|withText"
+          android:showAsAction="ifRoom|withText"
           android:icon="@drawable/ic_menu_archive"
         />
 
     <item android:id="@+id/action_readqrcode"
           android:title="@string/read_qr_code"
-          android:showAsAction="always|withText"
+          android:showAsAction="ifRoom|withText"
           android:icon="@drawable/ic_read_qr_code"
     />
+    <group>
     <item android:id="@+id/action_logout"
           android:title="Logout"
           android:showAsAction="ifRoom|withText"
     />
     <item android:id="@+id/action_login"
         android:title="Login"
-        android:showAsAction="always|withText"
+        android:showAsAction="ifRoom|withText"
     />
     <item android:id="@+id/action_offline"
         android:title="Offline"
-        android:showAsAction="always|withText"
+        android:showAsAction="ifRoom|withText"
     />
     <item android:id="@+id/menu_refresh"
         android:icon="@drawable/ic_menu_refresh"
+        android:title=""
         android:showAsAction="ifRoom"
         android:actionLayout="@layout/small_progress_bar"
-    />    
+    />
+    </group>
 </menu>

@@ -467,6 +467,15 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
             final List<Annotation> annotationsToShow = mAnnotationSurfaceHandler.getAnnotationsAppearingBetween(mLastPos, pos);
             if (!annotationsToShow.isEmpty()) {
                 // start annotation pause mode. AnnotationPauseCounter will eventually end it.
+
+                // annotation showing is triggered when player has passed the annotation start
+                // time, but we want the annotation to be shown on exactly the right moment. Jump
+                // there!
+                Annotation last = annotationsToShow.get(annotationsToShow.size()-1);
+                pos = last.getStartTime();
+
+                mMediaPlayer.seekTo((int) pos);
+
                 mController.setAnnotationPausedMode(true);
                 mAnnotationSurfaceHandler.showMultiple(annotationsToShow);
                 pause();

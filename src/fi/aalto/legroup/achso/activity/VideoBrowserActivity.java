@@ -25,12 +25,10 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.util.Pair;
-import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -50,6 +48,7 @@ import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.fragment.BrowseFragment;
 import fi.aalto.legroup.achso.fragment.VideoViewerFragment;
+import fi.aalto.legroup.achso.pager.SwipeDisabledViewPager;
 import fi.aalto.legroup.achso.remote.RemoteResultCache;
 import fi.aalto.legroup.achso.state.IntentDataHolder;
 import fi.aalto.legroup.achso.state.LoginState;
@@ -58,8 +57,8 @@ import fi.aalto.legroup.achso.util.App;
 import fi.google.zxing.integration.android.IntentIntegrator;
 import fi.google.zxing.integration.android.IntentResult;
 
-public class VideoBrowserActivity extends ActionbarActivity implements BrowseFragment.Callbacks,
-        ViewPager.OnPageChangeListener {
+public class VideoBrowserActivity extends ActionbarActivity implements BrowseFragment.Callbacks
+         {
 
     private List<SemanticVideo> mSelectedVideosForQrCode;
     private UploaderBroadcastReceiver mLocalReceiver = null;
@@ -68,14 +67,16 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
     private IntentFilter mFilter = null;
     private String mQrResult = null;
     private String mQuery = null;
-    private FragmentStatePagerAdapter mPagerAdapter;
-    private ViewPager mViewPager;
+    private BrowsePagerAdapter mPagerAdapter;
+    private SwipeDisabledViewPager mViewPager;
     private SearchView mSearchView;
+    private int mLastPage;
     private int mQueryType;
 
     protected boolean show_record() {return true;}
     protected boolean show_login() {return true;}
     protected boolean show_qr() {return true;}
+    protected boolean show_addvideo() {return true;}
     protected boolean show_search() {return true;}
 
     public static final int TITLE_QUERY = 1;
@@ -125,17 +126,16 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
             si.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
                 @Override
                 public boolean onMenuItemActionExpand(MenuItem item) {
+
+
                     return true;
                 }
 
                 @Override
                 public boolean onMenuItemActionCollapse(MenuItem item) {
-                    Log.i("VideoBrowserActivity", "MenuItem collapsed. Doing stuff with browse " +
-                            "pager adapter");
-                    mPagerAdapter = new BrowsePagerAdapter(ctx, getSupportFragmentManager());
-                    mViewPager.setAdapter(mPagerAdapter);
-                    mPagerAdapter.notifyDataSetChanged();
                     mQuery = null;
+                    mViewPager.setSwipeEnabled(true);
+                    goToBrowsePage(mLastPage);
                     return true;
                 }
             });
@@ -143,12 +143,9 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
             mSearchView.setOnCloseListener(new SearchView.OnCloseListener() {
                 @Override
                 public boolean onClose() {
-                    Log.i("VideoBrowserActivity", "MenuItem closed. Doing stuff with browse " +
-                            "pager adapter");
-                    mPagerAdapter = new BrowsePagerAdapter(ctx, getSupportFragmentManager());
-                    mViewPager.setAdapter(mPagerAdapter);
-                    mPagerAdapter.notifyDataSetChanged();
                     mQuery = null;
+                    mViewPager.setSwipeEnabled(true);
+                    goToBrowsePage(mLastPage);
                     return true;
                 }
             });
@@ -190,32 +187,55 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
+
         super.onSaveInstanceState(outState);
+        outState.putInt("last_page", mLastPage);
+        outState.putInt("query_type", mQueryType);
+        outState.putString("query", mQuery);
+        outState.putString("qr_result", mQrResult);
+        outState.putBoolean("pager_swipe_enabled", mViewPager.getSwipeEnabled());
+        outState.putBoolean("adapter_search_page_available",
+                mPagerAdapter.getSearchPageAvailable());
     }
 
     /**
      * Main concern here is to set up filters so that the browse page can react to background
      * processes and system events.
-     * @param savedInstanceState
+     * @param savedState
      */
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void onCreate(Bundle savedState) {
+        super.onCreate(savedState);
 
         setContentView(R.layout.activity_mainmenu);
-        Log.i("VideoBrowserActivity", "Registering receivers in onCreate.");
 
-        mViewPager = (ViewPager) findViewById(R.id.pager);
+        mViewPager = (SwipeDisabledViewPager) findViewById(R.id.pager);
+        mViewPager.setOffscreenPageLimit(0);
         mPagerAdapter = new BrowsePagerAdapter(this, getSupportFragmentManager()); //, mQuery,
                 //mQueryType);
         mViewPager.setAdapter(mPagerAdapter);
-        mViewPager.setOnPageChangeListener(this);
+        //mViewPager.setOnPageChangeListener(mViewPager);
+        if (savedState != null) {
+            mLastPage = savedState.getInt("last_page");
+            mQueryType = savedState.getInt("query_type");
+            mQuery = savedState.getString("query");
+            mQrResult = savedState.getString("qr_result");
+            mViewPager.setSwipeEnabled(savedState.getBoolean("pager_swipe_enabled"));
+            mPagerAdapter.setSearchPageAvailable(savedState.getBoolean("adapter_search_page_available"));
+        } else {
+            mLastPage = BrowsePagerAdapter.MY_VIDEOS;
+            mViewPager.setSwipeEnabled(true);
+            mPagerAdapter.setSearchPageAvailable(false);
+            App.getLocation();
+        }
+        goToBrowsePage(mLastPage);
+
+        //mViewPager.setCurrentItem()
 
         if (getIntent() != null) {
             onNewIntent(getIntent());
         }
 
-        App.getLocation();
     }
 
 
@@ -265,14 +285,12 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
                         if (IntentDataHolder.From == ActionbarActivity.class) {
                             if (!scanResult.getContents().equals(mQuery)) {
                                 mQuery = scanResult.getContents();
-                                mQueryType = QR_QUERY;
-                                RemoteResultCache.clearCache(mViewPager.getCurrentItem());
+                                RemoteResultCache.clearCache(BrowsePagerAdapter.SEARCH);
                             }
-                            // last argument in next line is 'isItTitleQuery'. false means qr-query.
-                            ActionBar bar = getActionBar();
-                            if (bar != null) {
-                                bar.setDisplayHomeAsUpEnabled(true); // Enable back button
-                            }
+                            mViewPager.setSwipeEnabled(false);
+                            mQueryType = QR_QUERY;
+                            mQrResult = mQuery;
+                            goToBrowsePage(BrowsePagerAdapter.SEARCH);
                         }
                         /** not used currently, but keep the code if we need to do this
                          *
@@ -294,7 +312,8 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
             mSearchView.setQuery(mQuery, false);
             mSearchView.clearFocus();
         }
-        if (mQrResult != null) {
+        if (mQrResult != null && mSelectedVideosForQrCode != null && mSelectedVideosForQrCode
+                .size() > 0) {
             VideoDBHelper vdb = new VideoDBHelper(this);
             for (SemanticVideo v : mSelectedVideosForQrCode) {
                 // Again, a place for database optimization.
@@ -304,7 +323,9 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
             vdb.close();
             Toast.makeText(this, getString(R.string.code_added_to_videos),
                     Toast.LENGTH_LONG).show();
-            mQrResult = null;
+            mQuery = mQrResult;
+            mQueryType = QR_QUERY;
+            goToBrowsePage(BrowsePagerAdapter.SEARCH);
         }
     }
 
@@ -313,43 +334,51 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
         return f.getUiElementsFor(sv);
     }
 
-    @Override
-    public void onPageScrolled(int i, float v, int i2) {
+             /*
+                 @Override
+                 public void onPageScrolled(int i, float v, int i2) {
 
-    }
+                 }
 
+             /*
+                 @Override
+                 public void onPageSelected(int i) {
+                     int k = Math.max(i - 1, 0);
+                     int m = Math.min(i + 1, mPagerAdapter.getCount() - 1);
+                     for (int j = k; j <= m; ++j) { // Finish action modes on both sides of
+                         // current fragment
+                         Log.i("VideoBrowserActivity", "Checking and finishing action mode for page "+ j);
+                         ActionMode am = ((BrowseFragment) mPagerAdapter.getItem(j)).getActionMode();
+                         if (am != null)
+                             am.finish();
+                     }
+                 }
     @Override
     public void onPageSelected(int i) {
-        int k = Math.max(i - 1, 0);
-        int m = Math.min(i + 1, mPagerAdapter.getCount() - 1);
-        for (int j = k; j <= m; ++j) { // Finish action modes on both sides of
-            // current fragment
-            Log.i("VideoBrowserActivity", "Checking and finishing action mode for page "+ j);
-            ActionMode am = ((BrowseFragment) mPagerAdapter.getItem(j)).getActionMode();
-            if (am != null)
-                am.finish();
-        }
+        Log.i("VideoBrowserActivity", "onPageSelected called with " + i);
+
     }
+
 
     @Override
     public void onPageScrollStateChanged(int i) {
 
     }
+             */
 
     @Override
     protected void onNewIntent(Intent i) {
         String action = i.getAction();
         if (action != null && action.equals(Intent.ACTION_SEARCH)) {
-            switchToSearchPage(i);
-        }
-    }
-
-    private void switchToSearchPage(Intent intent) {
-        String query = intent.getStringExtra(SearchManager.QUERY);
-        if (query != null && !query.equals(mQuery)) {
-            mQuery = intent.getStringExtra(SearchManager.QUERY);
-            mQueryType = TITLE_QUERY;
-            RemoteResultCache.clearCache(mViewPager.getCurrentItem());
+            String query = i.getStringExtra(SearchManager.QUERY);
+            if (query != null) {
+                if (mQuery != query) {
+                    mQuery = query;
+                    RemoteResultCache.clearCache(BrowsePagerAdapter.SEARCH);
+                }
+                mQueryType = TITLE_QUERY;
+                goToBrowsePage(BrowsePagerAdapter.SEARCH);
+            }
         }
     }
 
@@ -357,7 +386,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
      * Remove search query or other browse -related data and return to 'front page'
      */
     private void cleanBrowsePage() {
-        mViewPager.getAdapter().notifyDataSetChanged();
+        //mViewPager.getAdapter().notifyDataSetChanged();
         mQuery = null;
         ActionBar ab = getActionBar();
         if (ab != null) {
@@ -370,6 +399,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
         switch (item.getItemId()) {
             case android.R.id.home:
                 cleanBrowsePage();
+                goToBrowsePage(mLastPage);
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -379,6 +409,37 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
     public void onDestroy() {
         App.appendLog("Closing Ach So!");
         super.onDestroy();
+    }
+
+
+    public void goToBrowsePage(int page) {
+        int page_n = mPagerAdapter.getPageIndexFor(page);
+        if (page == BrowsePagerAdapter.SEARCH) {
+            mViewPager.setSwipeEnabled(false);
+            mPagerAdapter.setQuery(mQuery);
+            mPagerAdapter.setSearchPageAvailable(true);
+            if (mQueryType == QR_QUERY) {
+                ActionBar bar = getActionBar();
+                if (bar != null) {
+                    bar.setDisplayHomeAsUpEnabled(true); // Enable back button
+                }
+            }
+
+        } else {
+            mPagerAdapter.setSearchPageAvailable(false);
+            mViewPager.setSwipeEnabled(true);
+            mLastPage = page;
+        }
+        mViewPager.setCurrentItem(page_n, true);
+
+    }
+
+    public String getQueryString() {
+        return mQuery;
+    }
+
+    public boolean isQrSearch() {
+        return (mQueryType == QR_QUERY);
     }
 
     public class UploaderBroadcastReceiver extends AchSoLocalBroadcastReceiver {
@@ -435,3 +496,4 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
         }
     }
 }
+

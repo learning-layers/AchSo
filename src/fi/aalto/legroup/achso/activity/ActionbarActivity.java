@@ -80,6 +80,7 @@ public abstract class ActionbarActivity extends FragmentActivity {
     protected AchSoLocalBroadcastReceiver mLocalReceiver;
 
     protected boolean show_record() {return true;}
+    protected boolean show_addvideo() {return true;}
     protected boolean show_login() {return true;}
     protected boolean show_qr() {return true;}
     protected boolean show_search() {return true;}
@@ -143,6 +144,9 @@ public abstract class ActionbarActivity extends FragmentActivity {
             menu.removeItem(R.id.action_logout);
             menu.removeItem(R.id.action_offline);
             menu.removeItem(R.id.menu_refresh);
+        }
+        if (!show_addvideo()) {
+            menu.removeItem(R.id.action_addvideo);
         }
         if (!show_qr()) {
             menu.removeItem(R.id.action_readqrcode);
