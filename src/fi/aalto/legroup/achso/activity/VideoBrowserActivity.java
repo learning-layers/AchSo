@@ -308,7 +308,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
         super.onResume();
         invalidateOptionsMenu();
 
-        if (mQuery != null) {
+        if (mQuery != null && mSearchView != null) {
             mSearchView.setQuery(mQuery, false);
             mSearchView.clearFocus();
         }

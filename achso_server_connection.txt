@@ -1,0 +1,363 @@
+Ach so! server connection, wishful documentation/api
+
+
+=== Uploading and updating ===
+
+I have assumed 2 services to handle Ach so! videos. One is generic video encoder/processer (ClViTra2.0) and the other is specific service that understands and receives Ach so! metadata.    
+
+The workflow for uploading is following:
+    - (prepare authentication means for both services)
+    - build unique key for video.
+    - Send video metadata to AchSoService, with video_uri and thumbnail_uri empty. (upload_achso_data)
+    - If Success: Send video file to video upload service (use key as filename). (upload_video)
+    - If Success: Start polling upload service (get_processing_state) with key
+        - write AchSo prefs that polling of video $key is required in case of shutdown.
+    - When replies 'state' == 'finished', update video metadata (update_achso_data) with video_uri and thumbnail_uri.
+        - stop polling & remove polling instruction from AchSo prefs.  
+        OR
+        - When replies 'state' == 'encoding error' or 'not found', stop polling & remove polling instruction from AchSo prefs. Alert user.
+    - If Success: done.
+
+The workflow for modifying video metadata is following:
+    - (prepare authentication means for ach so data service)
+    - If online:
+        - call update_achso_data with video key and changed field.
+        - If Success: done
+    - If offline:
+        - add changes (json string) to pending changes in AchSo prefs. When back online, send changes with update_achso_data (needs to do some cleaning to remove redundant changes before that)
+(This is vulnerable to conflicts, or older changes rewriting newer changes. We can see if it is worth working around with timestamps for modifications or such.) 
+
+The workflow for modifying existing annotation is following:
+    - (prepare authentication means for ach so data service)
+    - If online:
+        - call update_achso_annotation with annotation key and changed fields.
+        - If Success: done
+    - If offline:
+        - add changes (json string) to pending changes in AchSo prefs. When back online, send changes with update_achso_annotation (needs to do some cleaning to remove redundant changes before that)
+
+The workflow for adding annotation (for uploaded video) is following:
+    - (prepare authentication means for ach so data service)
+    - If online:
+        - call upload_achso_annotation with annotation data.
+        - If Success: done
+    - If offline:
+        - add annotation (json string) to pending changes in AchSo prefs. When back online, send changes with upload_achso_annotation.
+
+
+
+Before uploading we create random uid in Ach so!, which will be used as a key in database and as an unique part of URI. 
+
+---- calls to video service ----
+
+upload_video
+    """ This is used to send video for encoding/conversion """
+    Request: POST.
+    URL: http://<ip-address>/ClViTra_2.0/rest/upload
+    What is sent: "File" as "multipart/form-data". File has filename, which is form of $key.[mp4,avi,mpg... whatever is the acceptable videofile suffix]. This filename (without suffix) will be used when querying the state of the processing, so remember it.
+        header "X-auth-token":$token
+
+    What is received: 
+        200: Success.
+        404: URL not found.
+        401: Unauthorized.
+        500: Server Error.
+
+    example:
+        HttpPost httppost = new HttpPost("http://merian.informatik.rwth-aachen.de:5080/ClViTra_2.0/rest/upload");
+        httppost.setHeader("X-auth-token", "04ef789a010c6f252a9f572347cac345");
+        MultipartEntityBuilder multipart_entity = MultipartEntityBuilder.create();
+        multipart_entity.addPart("File", new FileBody(video_file));
+        httppost.setEntity(multipart_entity);
+        ...
+        httpclient.execute(httppost);
+        ...
+
+get_processing_state
+    """ This is used to check if the video $key has finished its encoding and to receive the uri to use when playing it. !!  
+    Request: GET
+    URL: http://<ip-address>/ClViTra_2.0/rest/get_processing_state
+    What is sent: "key":String, which is the unique filename that was sent when uploading video.
+
+    What is received:
+        200: (Success) "{'state':'finished', $video_format1:$video_uri1, $video_format2:$video_uri2, 'thumbnail':$thumbnail_uri}" 
+        -OR- 
+        "{'state':'processing' (optional:, 'progress':$percentage), 'thumbnail':$thumbnail_uri'}  
+        -OR- 
+        "{'state':'not found'}
+        -OR-
+        "{'state":'encoding failed', 'err':$err }
+        404: URL not found.
+        401: Unauthorized.
+        500: Server Error.
+
+    example:
+        http://merian.informatik.rwth-aachen.de:5080/ClViTra_2.0/rest/get_processing_state?key=ea901369-3ae0-42c6-aece-41151e474472
+
+        >"{'mp4':'http://tosini.informatik.rwth-aachen.de:8134/videos/ea901369-3ae0-42c6-aece-41151e474472.mp4', 'thumbnail':'http://tosini.informatik.rwth-aachen.de:8134/thumbnails/ea901369-3ae0-42c6-aece-41151e474472.jpg'}"
+
+        http://merian.informatik.rwth-aachen.de:5080/ClViTra_2.0/rest/get_processing_state?key=foobar
+
+        >"not found"
+
+---- Calls to Ach So data service ----
+
+upload_achso_data
+    """ This is used to upload annotations and metadata for video. This is done before sending the actual video file, but the video uri and thumb uri have placeholders instead of actual values. When upload_video is completed, Ach so! polls server with get_processing_state until it receives 'finished' state as response, and then does update_metadata with new uri values.
+
+    Ach saves to its local preferences when unfinished video processing polling is activated, so that it can continue and finalize the video metadata next time Ach so is launched, in case that the Ach so is shut down while the processing in server side is still going on.   
+
+    Request: POST.
+    URL: http://???/upload_achso_data
+    What is sent: "data" as UTF-8 StringEntity. 
+    headers: 
+        "X-auth-token":$token 
+        "Content-type":"application/json" 
+        "Accept":"application/json" 
+
+        data is json-representation of SemanticVideo:
+        SemanticVideo = json_object({
+            title: String,
+            creator: String,
+            qr_code: String,
+            created_at: Number,
+            video_uri: String,
+            genre: String,
+            key: String,
+            latitude: Number,
+            longitude: Number,
+            accuracy: Number,
+            duration: Number,
+            thumb_uri: String,
+            communities: String[],
+            annotations: Annotation[]
+            })
+
+        where each Annotation = {
+            creator: String,
+            start_time: Number,
+            position_x: Number,
+            position_y: Number,
+            text: String,
+            scale: Number,
+            key: String
+        }
+
+        In server side annotations should be saved as individual objects that have a reference to semantic video they belong to. It is easier to avoid conflicts when updating annotations. Annotation keys have form 'A{$random-prefix}-$video_key'.
+
+    What is received: 
+        200: Success.
+        404: URL not found.
+        401: Unauthorized.
+        500: Server Error.
+
+    example:
+
+        json = "{
+            'title': '1st video of Friday',
+            'creator': 'Jukka',
+            'qr_code': 'http://learning-layers.eu/',
+            'created_at': 1399550703652,
+            'video_uri': '',
+            'genre': 'Good work',
+            'key': 'ea901369-3ae0-42c6-aece-41151e474472',
+            'latitude': null,
+            'longitude': null,
+            'accuracy': null,
+            'duration': 324993,
+            'thumb_uri': '',
+            'communities': ['public'],
+            'annotations': [
+                {
+                'creator': 'Jukka',
+                'start_time': 12003,
+                'position_x': 0.33,
+                'position_y': 0.7,
+                'scale': 1.2,
+                'text': 'I made a scratch here.',
+                'key': 'A2f-ea901369-3ae0-42c6-aece-41151e474472'
+                },
+                {
+                'creator': 'Jukka',
+                'start_time': 22003,
+                'position_x': 0.63,
+                'position_y': 0.12,
+                'scale': 1.0,
+                'text': 'Good seam.',
+                'key': 'A36-ea901369-3ae0-42c6-aece-41151e474472'
+                }
+            ]
+
+        }";
+
+        HttpPost httppost = new HttpPost("http://merian.informatik.rwth-aachen.de:5080/AchSoServer/rest/upload_achso_data");        
+        httppost.setHeader("X-auth-token", "04ef789a010c6f252a9f572347cac345");
+        httppost.setHeader("Content-type", "application/json");
+        httppost.setHeader("Accept":"application/json");
+        StringEntity se = new StringEntity(json, "UTF-8");
+        httppost.setEntity(se);
+        ...
+        httpclient.execute(httppost);
+        ...
+
+
+update_achso_data
+    """ Update some of the fields of the video -- those that are included in the sent json object (excluding 'key', it cannot be changed, it is used to find what video to change.). It is otherwise similar to upload_metadata. Single annotations are not updated through this, 'annotations' -field is now list of keys to annotation objects. """
+    Request: POST.
+    URL: http://???/upload_m_data
+    What is sent: "data" as UTF-8 StringEntity. 
+    headers: 
+        "X-auth-token":$token 
+        "Content-type":"application/json" 
+        "Accept":"application/json" 
+
+        data is partial json-representation of SemanticVideo:
+        {
+            key: String, **rest are optional: **
+            title: String,
+            creator: String,
+            qr_code: String,
+            created_at: Number,
+            video_uri: String,
+            genre: String,
+            key: String,
+            latitude: Number,
+            longitude: Number,
+            accuracy: Number,
+            duration: Number,
+            thumb_uri: String,
+            communities: String[],
+            annotations: String[]
+        }
+
+    What is received: 
+        200: Success.
+        404: URL not found.
+        401: Unauthorized.
+        500: Server Error.
+
+    example:
+        json = "{
+            'key': 'ea901369-3ae0-42c6-aece-41151e474472',
+            'video_uri': 'http://tosini.informatik.rwth-aachen.de:8134/videos/ea901369-3ae0-42c6-aece-41151e474472.mp4',
+            'thumb_uri': 'http://tosini.informatik.rwth-aachen.de:8134/thumbnails/ea901369-3ae0-42c6-aece-41151e474472.jpg',
+        }";
+
+        HttpPost httppost = new HttpPost("http://merian.informatik.rwth-aachen.de:5080/AchSoServer/rest/update_achso_data");        
+        httppost.setHeader("X-auth-token", "04ef789a010c6f252a9f572347cac345");
+        httppost.setHeader("Content-type", "application/json");
+        httppost.setHeader("Accept":"application/json");
+        StringEntity se = new StringEntity(json, "UTF-8");
+        httppost.setEntity(se);
+        ...
+        httpclient.execute(httppost);
+        ...
+
+
+
+
+upload_achso_annotation
+    """ This is used to upload new annotation for existing video. """
+
+    Request: POST.
+    URL: http://???/upload_achso_annotation
+    What is sent: "data" as UTF-8 StringEntity. 
+    headers: 
+        "X-auth-token":$token 
+        "Content-type":"application/json" 
+        "Accept":"application/json" 
+
+        data is a json-representation of Annotation:
+
+        Annotation = {
+            creator: String,
+            start_time: Number,
+            position_x: Number,
+            position_y: Number,
+            text: String,
+            scale: Number,
+            key: String,
+            video_key: String,
+        }
+
+        Annotation keys have form 'A{$random-prefix}-$video_key'.
+
+    What is received: 
+        200: Success.
+        404: URL not found.
+        401: Unauthorized.
+        500: Server Error.
+
+    example:
+
+        json = "{
+                'creator': 'Jukka',
+                'start_time': 12003,
+                'position_x': 0.33,
+                'position_y': 0.7,
+                'scale': 1.2,
+                'text': 'I made a scratch here.',
+                'key': 'A2f-ea901369-3ae0-42c6-aece-41151e474472',
+                'video_key': 'ea901369-3ae0-42c6-aece-41151e474472'
+        }";
+
+        HttpPost httppost = new HttpPost("http://merian.informatik.rwth-aachen.de:5080/AchSoServer/rest/upload_achso_annotation");        
+        httppost.setHeader("X-auth-token", "04ef789a010c6f252a9f572347cac345");
+        httppost.setHeader("Content-type", "application/json");
+        httppost.setHeader("Accept":"application/json");
+        StringEntity se = new StringEntity(json, "UTF-8");
+        httppost.setEntity(se);
+        ...
+        httpclient.execute(httppost);
+        ...
+
+
+
+update_achso_annotation
+    """ This is used to update attributes of existing annotation. """
+
+    Request: POST.
+    URL: http://???/update_achso_annotation
+    What is sent: "data" as UTF-8 StringEntity. 
+    headers: 
+        "X-auth-token":$token 
+        "Content-type":"application/json" 
+        "Accept":"application/json" 
+
+        data is a json-representation of Annotation:
+
+        Annotation = {
+            key: String, *** Rest are optional: ***
+            creator: String,
+            start_time: Number,
+            position_x: Number,
+            position_y: Number,
+            text: String,
+            scale: Number,
+        }
+
+    What is received: 
+        200: Success.
+        404: URL not found.
+        401: Unauthorized.
+        500: Server Error.
+
+    example:
+
+        json = "{
+                'key': 'A2f-ea901369-3ae0-42c6-aece-41151e474472',
+                'position_x': 0.6,
+                'position_y': 0.2
+        }";
+
+        HttpPost httppost = new HttpPost("http://merian.informatik.rwth-aachen.de:5080/AchSoServer/rest/upload_achso_annotation");        
+        httppost.setHeader("X-auth-token", "04ef789a010c6f252a9f572347cac345");
+        httppost.setHeader("Content-type", "application/json");
+        httppost.setHeader("Accept":"application/json");
+        StringEntity se = new StringEntity(json, "UTF-8");
+        httppost.setEntity(se);
+        ...
+        httpclient.execute(httppost);
+        ...
+
+
+
