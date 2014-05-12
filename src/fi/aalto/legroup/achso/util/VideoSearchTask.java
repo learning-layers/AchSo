@@ -1,5 +1,12 @@
-/**
- * Copyright 2013 Aalto university, see AUTHORS
+/*
+ * Code contributed to the Learning Layers project
+ * http://www.learning-layers.eu
+ * Development is partly funded by the FP7 Programme of the European
+ * Commission under
+ * Grant Agreement FP7-ICT-318209.
+ * Copyright (c) 2014, Aalto University.
+ * For a list of contributors see the AUTHORS file at the top-level directory
+ * of this distribution.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
