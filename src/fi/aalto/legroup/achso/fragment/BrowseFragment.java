@@ -60,6 +60,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import fi.aalto.legroup.achso.R;
+import fi.aalto.legroup.achso.activity.ActionbarActivity;
 import fi.aalto.legroup.achso.activity.LoginActivity;
 import fi.aalto.legroup.achso.activity.VideoBrowserActivity;
 import fi.aalto.legroup.achso.adapter.BrowsePagerAdapter;
@@ -228,6 +229,10 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
                 mCallbacks.onRemoteItemSelected(position, sv);
                 RemoteResultCache.setSelectedVideo((RemoteSemanticVideo) sv);
             }
+        } else if (getVideoAdapter().getItemViewType(position) == VideoThumbAdapter
+                    .ITEM_TYPE_RECORD_BUTTON) {
+            ActionbarActivity activity = (ActionbarActivity) getActivity();
+            activity.launchRecording();
         }
     }
 

@@ -60,7 +60,8 @@ public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
 
     private static final int ITEM_TYPE_VIDEO = 0;
     private static final int ITEM_TYPE_SEPARATOR = 1;
-    private static final int ITEM_TYPE_COUNT = 2;
+    public static final int ITEM_TYPE_RECORD_BUTTON = 2;
+    private static final int ITEM_TYPE_COUNT = 3;
 
     private List<SemanticVideo> mLocalVideos;
     private List<SemanticVideo> mRemoteVideos;
@@ -82,12 +83,18 @@ public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
         LayoutInflater i = (LayoutInflater) mContext
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         boolean isTablet = App.isTablet();
-        boolean isSeparator = getItemViewType(position) == ITEM_TYPE_SEPARATOR;
-        Resources res = getContext().getResources();
-        if (isSeparator) {
-            convertView = i.inflate(R.layout.list_separator, null);
-            return convertView;
+        int view_type = getItemViewType(position);
+        switch(view_type) {
+            case ITEM_TYPE_RECORD_BUTTON:
+                convertView = i.inflate(R.layout.large_record_item, null);
+                return convertView;
+            case ITEM_TYPE_SEPARATOR:
+                convertView = i.inflate(R.layout.list_separator, null);
+                return convertView;
+            case ITEM_TYPE_VIDEO:
+                break;
         }
+        Resources res = getContext().getResources();
 
         // prepare convertView -object if not old version available
         if (convertView == null) {
@@ -248,12 +255,13 @@ public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
 
     @Override
     public int getItemViewType(int position) {
-        return getItem(position) == null ? ITEM_TYPE_SEPARATOR : ITEM_TYPE_VIDEO;
+        return getItem(position) == null ? ITEM_TYPE_RECORD_BUTTON : ITEM_TYPE_VIDEO;
     }
 
     public void updateLocalVideos(List<SemanticVideo> localVideos) {
         mLocalVideos = localVideos;
         this.clear();
+        this.add(null);
         this.addAll(mLocalVideos);
         this.addAll(mRemoteVideos);
     }
@@ -261,6 +269,7 @@ public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
     public void updateRemoteVideos(List<SemanticVideo> remoteVideos) {
         mRemoteVideos = remoteVideos;
         this.clear();
+        this.add(null);
         this.addAll(mLocalVideos);
         this.addAll(mRemoteVideos);
     }
