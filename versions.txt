@@ -1,0 +1,18 @@
+Version 0.9.7
+-Fixed a bug with inaccurate video seek that caused annotations to get stuck in a loop [#LL-200].
+-Added a big red start recording -button for tablet interface.[#LL-209]
+
+Version 0.9.6
+-Fixed strange bug when Nexus 7 crashes after QR-code reading.
+
+Version 0.9.5
+-Annotations can be scaled
+-Annotations can be added with long press
+-Annotation timeline is more precise
+-Adding videos from device to Ach so!
+-Networking support, mostly finished but disabled for this release
+-Improved browsing of videos
+-Improved QR adding/searching workflow
+- Many, many minor fixes and improvements
+
+... earlier version texts are dispersed around our documents.
