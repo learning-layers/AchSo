@@ -375,7 +375,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
     public void refreshLocalVideos() {
         VideoThumbAdapter va = (VideoThumbAdapter) getVideoAdapter();
         if (va == null) {
-            va = new VideoThumbAdapter(getActivity(), new ArrayList<SemanticVideo>());
+            va = new VideoThumbAdapter(getActivity(), new ArrayList<SemanticVideo>(), mQueryType);
             if (mUsesGrid) {
                 if (mVideoGrid != null) {
                     mVideoGrid.invalidateViews();
@@ -400,7 +400,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
     public void refreshRemoteVideos() {
         VideoThumbAdapter va = (VideoThumbAdapter) getVideoAdapter();
         if (va == null) {
-            va = new VideoThumbAdapter(getActivity(), new ArrayList<SemanticVideo>());
+            va = new VideoThumbAdapter(getActivity(), new ArrayList<SemanticVideo>(), mQueryType);
             if (mUsesGrid) {
                 if (mVideoGrid != null) {
                     mVideoGrid.invalidateViews();
@@ -457,7 +457,9 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
             mFetchTask = new RemoteFetchTask(this, mRemoteProgress, mPage);
             mFetchTask.execute(mQuery); // Fetch and populate remote grid
         } else {
-            mNoConnectionMessage.setVisibility(LinearLayout.VISIBLE);
+            if (!App.isCandybar()) {
+                mNoConnectionMessage.setVisibility(LinearLayout.VISIBLE);
+            }
 
             VideoThumbAdapter va = (VideoThumbAdapter) getVideoAdapter();
 

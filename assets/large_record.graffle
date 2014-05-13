@@ -14,7 +14,7 @@
 	<key>BackgroundGraphic</key>
 	<dict>
 		<key>Bounds</key>
-		<string>{{0, 0}, {559.00000476837158, 783}}</string>
+		<string>{{0, 0}, {558.99997711181641, 783}}</string>
 		<key>Class</key>
 		<string>SolidGraphic</string>
 		<key>ID</key>
@@ -124,9 +124,9 @@
 					<key>Color</key>
 					<dict>
 						<key>b</key>
-						<string>0.411765</string>
+						<string>0.221183</string>
 						<key>g</key>
-						<string>0.494118</string>
+						<string>0.276984</string>
 						<key>r</key>
 						<string>0.858824</string>
 					</dict>
@@ -166,9 +166,9 @@
 					<key>Color</key>
 					<dict>
 						<key>b</key>
-						<string>0.411765</string>
+						<string>0.221183</string>
 						<key>g</key>
-						<string>0.494118</string>
+						<string>0.276984</string>
 						<key>r</key>
 						<string>0.858824</string>
 					</dict>
@@ -206,9 +206,9 @@
 					<key>Color</key>
 					<dict>
 						<key>b</key>
-						<string>0.411765</string>
+						<string>0.221183</string>
 						<key>g</key>
-						<string>0.494118</string>
+						<string>0.276984</string>
 						<key>r</key>
 						<string>0.858824</string>
 					</dict>
@@ -241,9 +241,9 @@
 					<key>Color</key>
 					<dict>
 						<key>b</key>
-						<string>0.411765</string>
+						<string>0.221183</string>
 						<key>g</key>
-						<string>0.494118</string>
+						<string>0.276984</string>
 						<key>r</key>
 						<string>0.858824</string>
 					</dict>
@@ -256,7 +256,7 @@
 				<key>stroke</key>
 				<dict>
 					<key>CornerRadius</key>
-					<real>5</real>
+					<real>8</real>
 					<key>Draws</key>
 					<string>NO</string>
 				</dict>
@@ -310,7 +310,7 @@
 	<key>MasterSheets</key>
 	<array/>
 	<key>ModificationDate</key>
-	<string>2014-05-12 13:16:33 +0000</string>
+	<string>2014-05-13 07:50:51 +0000</string>
 	<key>Modifier</key>
 	<string>Jukka Purma</string>
 	<key>NotesVisible</key>
@@ -341,7 +341,7 @@
 		<key>NSPaperSize</key>
 		<array>
 			<string>size</string>
-			<string>{595.00000476837158, 842}</string>
+			<string>{594.99997711181641, 842}</string>
 		</array>
 		<key>NSPrintReverseOrientation</key>
 		<array>
@@ -391,7 +391,7 @@
 			</dict>
 		</array>
 		<key>Frame</key>
-		<string>{{149, 60}, {694, 818}}</string>
+		<string>{{149, 65}, {694, 813}}</string>
 		<key>ListView</key>
 		<true/>
 		<key>OutlineWidth</key>
@@ -405,7 +405,7 @@
 		<key>SidebarWidth</key>
 		<integer>120</integer>
 		<key>VisibleRegion</key>
-		<string>{{0, 0}, {559, 679}}</string>
+		<string>{{0, 0}, {559, 674}}</string>
 		<key>Zoom</key>
 		<real>1</real>
 		<key>ZoomValues</key>

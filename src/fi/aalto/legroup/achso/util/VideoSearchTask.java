@@ -50,6 +50,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+import fi.aalto.legroup.achso.adapter.BrowsePagerAdapter;
 import fi.aalto.legroup.achso.adapter.VideoThumbAdapter;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.remote.RemoteResultCache;
@@ -138,7 +139,7 @@ public class VideoSearchTask extends AsyncTask<String, Double, ArrayList<Semanti
         RemoteResultCache.setCached(mPage, remoteVideos);
         if (mIsGrid) {
             GridView v = (GridView) mView;
-            v.setAdapter(new VideoThumbAdapter(mCtx, remoteVideos));
+            v.setAdapter(new VideoThumbAdapter(mCtx, remoteVideos, BrowsePagerAdapter.SEARCH));
             ((ArrayAdapter) v.getAdapter()).notifyDataSetChanged();
         } else {
             ListView v = (ListView) mView;

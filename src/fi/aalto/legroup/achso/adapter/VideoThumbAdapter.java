@@ -62,6 +62,7 @@ public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
     private static final int ITEM_TYPE_SEPARATOR = 1;
     public static final int ITEM_TYPE_RECORD_BUTTON = 2;
     private static final int ITEM_TYPE_COUNT = 3;
+    private final int mQueryType;
 
     private List<SemanticVideo> mLocalVideos;
     private List<SemanticVideo> mRemoteVideos;
@@ -69,9 +70,10 @@ public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
     PrettyTime mPrettyTime;
     Context mContext;
 
-    public VideoThumbAdapter(Context c, List<SemanticVideo> videos) {
+    public VideoThumbAdapter(Context c, List<SemanticVideo> videos, int query_type) {
         super(c, 0, videos);
         mContext = c;
+        mQueryType = query_type;
         mPrettyTime = new PrettyTime();
         mLocalVideos = new ArrayList<SemanticVideo>();
         mRemoteVideos = new ArrayList<SemanticVideo>();
@@ -94,7 +96,7 @@ public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
             case ITEM_TYPE_VIDEO:
                 break;
         }
-        Resources res = getContext().getResources();
+        Resources res = mContext.getResources();
 
         // prepare convertView -object if not old version available
         if (convertView == null) {
@@ -261,7 +263,9 @@ public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
     public void updateLocalVideos(List<SemanticVideo> localVideos) {
         mLocalVideos = localVideos;
         this.clear();
-        this.add(null);
+        if (mQueryType == BrowsePagerAdapter.MY_VIDEOS && !App.isHorizontalCandybar()) {
+            this.add(null);
+        }
         this.addAll(mLocalVideos);
         this.addAll(mRemoteVideos);
     }
@@ -269,7 +273,9 @@ public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
     public void updateRemoteVideos(List<SemanticVideo> remoteVideos) {
         mRemoteVideos = remoteVideos;
         this.clear();
-        this.add(null);
+        if (mQueryType == BrowsePagerAdapter.MY_VIDEOS && !App.isHorizontalCandybar()) {
+            this.add(null);
+        }
         this.addAll(mLocalVideos);
         this.addAll(mRemoteVideos);
     }

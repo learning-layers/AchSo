@@ -95,6 +95,35 @@ public class App extends Application {
                 .SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_LARGE;
     }
 
+    public static int getScreenSize() {
+        return mContext.getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK;
+    }
+
+    public static int getScreenOrientation() {
+        return mContext.getResources().getConfiguration().orientation;
+    }
+
+    public static boolean isHorizontalCandybar() {
+        Configuration c = mContext.getResources().getConfiguration();
+        int size = c.screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK;
+        return (c.orientation == Configuration.ORIENTATION_LANDSCAPE && (size == Configuration
+                .SCREENLAYOUT_SIZE_SMALL || size == Configuration.SCREENLAYOUT_SIZE_NORMAL));
+    }
+
+    public static boolean isVerticalCandybar() {
+        Configuration c = mContext.getResources().getConfiguration();
+        int size = c.screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK;
+        return (c.orientation == Configuration.ORIENTATION_PORTRAIT && (size == Configuration
+                .SCREENLAYOUT_SIZE_SMALL || size == Configuration.SCREENLAYOUT_SIZE_NORMAL));
+    }
+
+    public static boolean isCandybar() {
+        Configuration c = mContext.getResources().getConfiguration();
+        int size = c.screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK;
+        return (size == Configuration.SCREENLAYOUT_SIZE_SMALL || size == Configuration.SCREENLAYOUT_SIZE_NORMAL);
+    }
+
+
     @Override
     public void onCreate() {
         super.onCreate();
