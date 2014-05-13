@@ -233,11 +233,27 @@ public class AnnotationSurfaceHandler {
         return result;
     }
 
+
     public void hideAnnotationsNotAppearingBetween(long prev_moment, long now) {
         for (final Annotation a : getAnnotations()) {
             final long aTime = a.getStartTime();
             a.setVisible((now >= aTime && prev_moment < aTime && a.isAlive()));
         }
 
+    }
+
+    public int incomingAnnotations(long pos, int pollRateMilliseconds) {
+        int d, min_d = 500;
+        for (final Annotation a : getAnnotations()) {
+            d = (int) (a.getStartTime() - pos);
+            if (d >= 0 && d <= pollRateMilliseconds && d < min_d) {
+                min_d = d;
+            }
+        }
+        if (min_d != 500) {
+            return min_d;
+        } else {
+            return -1;
+        }
     }
 }

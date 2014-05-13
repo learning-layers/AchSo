@@ -124,7 +124,7 @@ public class VideoControllerView extends FrameLayout {
 
             int pos = mPlayer.getCurrentPosition();
             pos -= 1000; // milliseconds
-            mPlayer.seekTo(pos);
+            mPlayer.seekTo(pos, SemanticVideoPlayerFragment.DO_NOTHING);
             updateProgress();
 
             show(sDefaultTimeout);
@@ -138,7 +138,7 @@ public class VideoControllerView extends FrameLayout {
 
             int pos = mPlayer.getCurrentPosition();
             pos += 1000; // milliseconds
-            mPlayer.seekTo(pos);
+            mPlayer.seekTo(pos, SemanticVideoPlayerFragment.DO_NOTHING);
             updateProgress();
 
             show(sDefaultTimeout);
@@ -188,7 +188,7 @@ public class VideoControllerView extends FrameLayout {
             //mPlayer.seekTo(progress);
             AnnotatedSeekBar asb = (AnnotatedSeekBar) mProgress;
             if (!asb.suggests_position) {
-                mPlayer.seekTo(progress);
+                mPlayer.seekTo(progress, SemanticVideoPlayerFragment.DO_NOTHING);
             }
             if (mCurrentTime != null)
                 mCurrentTime.setText(stringForTime(progress));
@@ -946,7 +946,8 @@ public class VideoControllerView extends FrameLayout {
     }
 
     public void playerSeekTo(int position) {
-        mPlayer.seekTo(position);
+        Log.i("VideoControllerView", "playerSeekTo " + position);
+        mPlayer.seekTo(position, SemanticVideoPlayerFragment.DO_NOTHING);
         if (mCurrentTime != null)
             mCurrentTime.setText(stringForTime(position));
     }
@@ -968,7 +969,7 @@ public class VideoControllerView extends FrameLayout {
 
         int getCurrentPosition();
 
-        void seekTo(int pos);
+        void seekTo(int pos, int do_after_seek);
 
         boolean isPlaying();
 
