@@ -27,6 +27,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Handler;
@@ -42,10 +43,12 @@ public class IncomingAnnotationMarker {
 
 
     private final Bitmap mBitmap;
-    private final int ORIGINAL_SIZE = 80;
+    private final int ORIGINAL_SIZE = 60;
     private final float max_size = 8;
-    private final int DURATION = 400;
-    private final int STEP_SIZE = 20;
+    private final int DURATION = 300;
+    private final int STEP_SIZE = 10;
+    private final int mColorOrange;
+    private final int mColorShadow;
     private FloatPosition mPosition;
     private int counter;
     private AnnotationSurfaceHandler mSurface;
@@ -74,6 +77,8 @@ public class IncomingAnnotationMarker {
         mSurface = surface;
         mListener = listener;
         mVisible = false;
+        mColorOrange = ctx.getResources().getColor(R.color.orange_square);
+        mColorShadow = Color.BLACK;
     }
 
     public void startAnimation() {
@@ -91,20 +96,26 @@ public class IncomingAnnotationMarker {
         mSurface.draw();
     }
 
+
+
+
     public void draw(Canvas c) {
         if (!mVisible) {
             return;
         }
         Paint p = new Paint();
+        Paint s = new Paint();
         float v = (float) counter / (float) DURATION;
         float size_m = 1 + ((max_size - 1) * (1 - v));
+        p.setColor(mColorOrange);
+        s.setColor(mColorShadow);
         p.setAlpha((int) (255 * v));
+        s.setAlpha((int) (150 * v));
         float posx = mPosition.getX() * c.getWidth();
         float posy = mPosition.getY() * c.getHeight();
         int wh = (int) (size_m * ORIGINAL_SIZE);
-        int wh2 = wh / 2;
-        Rect nr = new Rect((int) posx - wh2, (int) posy - wh2, (int) posx + wh2, (int) posy + wh2);
-        c.drawBitmap(mBitmap, null, nr, p);
+        Annotation.drawAnnotationRect(c, p, s, posx, posy, wh, size_m);
+        //c.drawBitmap(mBitmap, null, nr, p);
     }
 
     public void setPosition(FloatPosition position) {

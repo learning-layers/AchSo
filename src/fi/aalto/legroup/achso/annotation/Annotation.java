@@ -29,6 +29,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.Log;
@@ -42,17 +43,19 @@ import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.util.FloatPosition;
 import fi.aalto.legroup.achso.util.TextSettable;
 
+import static fi.aalto.legroup.achso.util.App.allow_upload;
 import static fi.aalto.legroup.achso.util.App.appendLog;
 
 public class Annotation extends AnnotationBase implements TextSettable, SerializableToDB {
 
     public static final long ANNOTATION_SHOW_DURATION_MILLISECONDS = 3000;
     public static final long ANNOTATION_FADE_DURATION_MILLISECONDS = 200;
-    public static final int ORIGINAL_SIZE = 80;
+    public static final int ORIGINAL_SIZE = 60;
     boolean mSelected;
     int mOpacity;
-    private int mSize = 80;
-    private int mColor = Color.RED;
+    private int mSize = 60;
+    private int mColor = Color.RED; // override as orange when instantiated
+    private int mColorShadow = Color.BLACK;
     private int mSelectedColor = Color.BLUE;
     private boolean mVisible;
     private boolean mAlive;
@@ -68,6 +71,7 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
         mVisible = false;
         mAlive = true;
         mOpacity = 100;
+        mColor = ctx.getResources().getColor(R.color.orange_square);
         createAnnotationBitmap(ctx);
     }
 
@@ -162,13 +166,54 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
         super.setText(text);
     }
 
+    public static void drawAnnotationRect(Canvas c, Paint color, Paint shadow, Float posx,
+                                         Float posy, int wh, float scale) {
+        int wh2 = wh / 2;
+        int tilt = wh / 8;
+        int adjust = wh / 16;
+        int madjust = (int) ((wh / 16) * (scale * 2) );
+        color.setStyle(Paint.Style.STROKE);
+        color.setAntiAlias(true);
+        color.setStrokeWidth(8);
+        shadow.setStyle(Paint.Style.STROKE);
+        shadow.setStrokeWidth(8);
+        shadow.setAntiAlias(true);
+        float tlx, ty, trx, blx, by, brx;
+        tlx = posx - wh2 + tilt;
+        ty = posy - wh2;
+        trx = posx + wh2 - tilt;
+        blx = posx - wh2;
+        by = posy + wh2;
+        brx = posx + wh2;
+
+        Path p = new Path();
+        p.moveTo(tlx + madjust, ty + adjust);
+        p.lineTo(trx + madjust, ty + adjust - 4);
+        p.lineTo(brx + madjust, by + adjust);
+        p.lineTo(blx + madjust, by + adjust);
+        p.lineTo(tlx + madjust, ty + adjust);
+        p.close();
+        c.drawPath(p, shadow);
+        p.reset();
+        p.moveTo(tlx, ty);
+        p.lineTo(trx, ty - 4);
+        p.lineTo(brx, by);
+        p.lineTo(blx, by);
+        p.lineTo(tlx, ty);
+        p.close();
+        c.drawPath(p, color);
+
+    }
+
     public void draw(Canvas c) {
         if (mVisible) {
             Paint p = new Paint();
+            Paint s = new Paint();
             p.setColor(mColor);
-            p.setStyle(Paint.Style.STROKE);
-            p.setStrokeWidth(3.0f);
-            p.setAlpha((int) (mOpacity * 2.55));
+            s.setColor(mColorShadow);
+            int a = (int) (mOpacity / 100f) * 255;
+            p.setAlpha(a);
+            s.setAlpha((int) (a * 0.7f));
             FloatPosition pos = getPosition();
             float posx = pos.getX() * c.getWidth();
             float posy = pos.getY() * c.getHeight();
@@ -176,9 +221,12 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
             //c.drawBitmap(mBitmap, posx - (mSize / 2), posy - (mSize / 2), p);
 
             mSize = (int) (mScale * ORIGINAL_SIZE);
-            int wh2 = mSize / 2;
-            Rect nr = new Rect((int) posx - wh2, (int) posy - wh2, (int) posx + wh2, (int) posy + wh2);
-            c.drawBitmap(mBitmap, null, nr, p);
+            drawAnnotationRect(c, p, s, posx, posy, mSize, 1f);
+
+            //int wh2 = mSize / 2;
+            //Rect nr = new Rect((int) posx - wh2, (int) posy - wh2, (int) posx + wh2,
+            //        (int) posy + wh2);
+            //c.drawBitmap(mBitmap, null, nr, p);
             if (mText != null) SubtitleManager.addSubtitle(mText);
 
         }
