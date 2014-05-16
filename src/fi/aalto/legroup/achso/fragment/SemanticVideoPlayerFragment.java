@@ -336,18 +336,14 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
         AnnotatedSeekBar asb = (AnnotatedSeekBar) mController.getProgressBar();
         asb.setMax(mController.getDuration());
         asb.setAnnotationSurfaceHandler(mAnnotationSurfaceHandler);
-
+        final List<Annotation> annotationsToShow;
         if (is_playing) {
-            final List<Annotation> annotationsToShow = mAnnotationSurfaceHandler.getAnnotationsAppearingBetween(mLastPos, position);
-            mAnnotationSurfaceHandler.showMultiple(annotationsToShow);
+            annotationsToShow = mAnnotationSurfaceHandler.getAnnotationsAppearingBetween(mLastPos, position);
         } else {
             Log.i("SemanticVideoPlayerFragment", "Looking for annotations under current position " + position);
-            Annotation a = asb.getAnnotationUnderThumb(position);
-            if (a != null) {
-                Log.i("SemanticVideoPlayerFragment", "Setting found annotation visible");
-                a.setVisible(true);
-            }
+            annotationsToShow = mAnnotationSurfaceHandler.getAnnotationsAppearingBetween(position - 10, position);
         }
+        mAnnotationSurfaceHandler.showMultiple(annotationsToShow);
         mUpdateHandler.sendEmptyMessage(0);
 
         SubtitleManager.updateVisibleSubtitles();
@@ -510,12 +506,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     private void pauseOnAnnotation(List<Annotation> annotationsToShow, long pos) {
         // start annotation pause mode. AnnotationPauseCounter will eventually end it.
 
-        // annotation showing is triggered when player has passed the annotation start
-        // time, but we want the annotation to be shown on exactly the right moment. Jump
-        // there!
-        Annotation last = annotationsToShow.get(annotationsToShow.size() - 1);
         mAnnotationsToShow = annotationsToShow;
-        //seekTo((int) pos, DO_NOTHING);
         mController.setAnnotationPausedMode(true);
         mAnnotationSurfaceHandler.showMultiple(mAnnotationsToShow);
         pause();
@@ -750,14 +741,10 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
 
                 // if dragging on areas covered by controllers, hide them.
                 if (mVideoTakesAllVerticalSpace && mTitleAreaHeight+10 > event.getY()) {
-                    Log.i("SemanticVideoPlayerFragment", "drag position x:" + event.getX() + " y: " +
-                            event.getY() + " limit: " + (mTitleAreaHeight+10));
                     mController.hide();
                 } else if (mVideoTakesAllVerticalSpace && mControllerTopCoordinate - 10 < event.getY
                         ()) {
                     mController.hide();
-                    Log.i("SemanticVideoPlayerFragment", "drag position x:" + event.getX() + " y: " +
-                            event.getY() + " limit: " + (mControllerTopCoordinate - 10));
                 }
                 mController.getCurrentAnnotation().setPosition(position);
             }

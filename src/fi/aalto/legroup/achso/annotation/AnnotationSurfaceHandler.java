@@ -185,6 +185,7 @@ public class AnnotationSurfaceHandler {
     }
 
     public void showMultiple(List<Annotation> annotationList) {
+        if (annotationList == null) return;
         for (Annotation a : mAnnotations) {
             if (annotationList.contains(a)) {
                 a.setVisible(true);

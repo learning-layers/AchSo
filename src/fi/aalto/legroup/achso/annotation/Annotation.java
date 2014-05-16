@@ -59,7 +59,6 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
     private int mSelectedColor = Color.BLUE;
     private boolean mVisible;
     private boolean mAlive;
-    private Bitmap mBitmap;
     private FloatPosition mRememberedPosition;
     private float mRememberedScaleFactor;
 
@@ -72,23 +71,15 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
         mAlive = true;
         mOpacity = 100;
         mColor = ctx.getResources().getColor(R.color.orange_square);
-        createAnnotationBitmap(ctx);
     }
 
     public Annotation(Context ctx, SemanticVideo sv, AnnotationBase base) {
         super(-1, base.getStartTime(), base.getDuration(), base.getText(), base.getPosition(),
                 (float) 1.0, base.getCreator());
-        createAnnotationBitmap(ctx);
         mSelected = false;
         mVisible = false;
         mAlive = true;
         mOpacity = 100;
-    }
-
-    private void createAnnotationBitmap(Context ctx) {
-        Bitmap tmp = BitmapFactory.decodeResource(ctx.getResources(), R.drawable.square_large);
-        mBitmap = Bitmap.createScaledBitmap(tmp, mSize, mSize, false);
-        tmp.recycle();
     }
 
     public SemanticVideo.Genre getGenre() {
@@ -217,16 +208,10 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
             FloatPosition pos = getPosition();
             float posx = pos.getX() * c.getWidth();
             float posy = pos.getY() * c.getHeight();
-            //Log.i("Annotation", "Drawing annotation -- canvas y:" + posy + "(" + pos.getY() + ") canvas height:" + c.getHeight());
-            //c.drawBitmap(mBitmap, posx - (mSize / 2), posy - (mSize / 2), p);
 
             mSize = (int) (mScale * ORIGINAL_SIZE);
             drawAnnotationRect(c, p, s, posx, posy, mSize, 1f);
 
-            //int wh2 = mSize / 2;
-            //Rect nr = new Rect((int) posx - wh2, (int) posy - wh2, (int) posx + wh2,
-            //        (int) posy + wh2);
-            //c.drawBitmap(mBitmap, null, nr, p);
             if (mText != null) SubtitleManager.addSubtitle(mText);
 
         }

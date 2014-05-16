@@ -30,6 +30,8 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.widget.SeekBar;
 
+import java.util.List;
+
 import fi.aalto.legroup.achso.annotation.Annotation;
 import fi.aalto.legroup.achso.annotation.AnnotationSurfaceHandler;
 
@@ -50,9 +52,13 @@ public class AnnotatedSeekBar extends SeekBar {
                 Annotation closestAnnotation = getAnnotationUnderThumb(progress);
                 if (closestAnnotation != null) {
                     suggests_position = true;
-                    setProgress((int) closestAnnotation.getStartTime());
-                    mController.playerSeekTo((int) closestAnnotation.getStartTime());
-                    mAnnotationSurfaceHandler.show(closestAnnotation);
+                    int new_time = (int) closestAnnotation.getStartTime();
+                    setProgress(new_time);
+                    mController.playerSeekTo(new_time);
+                    // now there may be more than one annotations to show, get them as list
+                    final List<Annotation> annotationsToShow = mAnnotationSurfaceHandler
+                            .getAnnotationsAppearingBetween(new_time-10, new_time);
+                    mAnnotationSurfaceHandler.showMultiple(annotationsToShow);
                 } else {
                     mAnnotationSurfaceHandler.show(null);
                     suggests_position = false;
