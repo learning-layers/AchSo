@@ -104,6 +104,8 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     private int mSeekCompleteTask;
     private List<Annotation> mAnnotationsToShow;
     private boolean mCarefulProgress;
+    private int mTitleAreaHeight;
+    private int mControllerTopCoordinate;
 
 
     public SemanticVideoPlayerFragment() {
@@ -122,7 +124,6 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
         mBufferProgress = (ProgressBar) v.findViewById(R.id.video_buffer_progress);
         v.setOnTouchListener(this);
         mScaleGestureDetector = new ScaleGestureDetector(getActivity(), new simpleOnScaleGestureListener());
-        mTitleArea = (LinearLayout) getActivity().findViewById(R.id.video_title_area);
         if (savedState != null) {
             mStateBundle.putAll(savedState);
             // maybe we can do all restoring in onResume, using mStateBundle
@@ -191,8 +192,13 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
             } // otherwise it is true, set by constructor
             mController = new VideoControllerView(getActivity(), this, mCanEditAnnotations);
             mController.setVideoControllerShowHideListener(this);
+            mTitleAreaHeight = mTitleArea.getMeasuredHeight();
+            mControllerTopCoordinate = 0; // we get proper value when video is initialized
+            // buttons are initialized
             setVideo(semantic_video.getUri()); // restoring continues in onPrepared -- when video
             // player is ready
+
+
 
         } else if (mMediaPlayer == null && mVideoId != -1) {
             mMediaPlayer = createMediaPlayer();
@@ -297,6 +303,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
         // Do not draw annotations this time (because of possible orientation change)
         SubtitleManager.setSubtitleTextView((TextView) getView().findViewById(R.id.subtitle));
         mController.show();
+        mControllerTopCoordinate = mController.getControllerTop();
         boolean is_playing = true;
         if (mStateBundle != null) {
             is_playing = mStateBundle.getBoolean("playing");
@@ -382,12 +389,12 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     public void videoControllerHide() {
         Log.i("SemanticVideoPlayerFragment", "Hide video controller");
         ActionBar bar = getActivity().getActionBar();
-        LinearLayout l = (LinearLayout) getActivity().findViewById(R.id.video_title_area);
         RelativeLayout.LayoutParams host_lp = (RelativeLayout.LayoutParams) mVideoSurfaceContainer.getLayoutParams();
-        if (l != null && bar != null && host_lp != null) {
+        if (mTitleArea != null && bar != null && host_lp != null) {
             bar.hide();
-            l.bringToFront();
-            l.measure(0, 0);
+            mTitleArea.bringToFront();
+            mTitleArea.measure(0, 0);
+
             host_lp.setMargins(0, 0, 40, 0); //bar.getHeight()
 
 
@@ -707,14 +714,10 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        //Log.i("SemanticVideoPlayerFragment", "TouchEvent x: " + event.getX() + " y: " + event.getY());
-        //Log.i("SemanticVideoPlayerFragment", "Video size w: " + mVideoSurface.getWidth() + " h: " + mVideoSurface.getHeight());
-        //Log.i("SemanticVideoPlayerFragment", "view size w: " + getView().getWidth() + " h: " + getView().getHeight());
-        // getView().getHeight()/2 returns the center of the big surfaceview
-        // mVideoSurface.getHeight()/2 returns the center of the video shown
-        // These two are subtracted from event.getY() to get the actual position
-        // on the (possibly) scaled video
+
         mScaleGestureDetector.onTouchEvent(event);
+
+        // End pinching if that was going on
         if (mPinching != NORMAL_MODE) {
             if (mPinching == WAS_PINCHING && event.getAction() == MotionEvent.ACTION_UP) {
                 mPinching = NORMAL_MODE;
@@ -723,39 +726,59 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
             return true;
         }
 
+        // preparations
         float width_diff = ((getView().getWidth() / 2) - (mVideoSurface.getWidth() / 2));
         float height_diff = ((getView().getHeight() / 2) - (mVideoSurface.getHeight() / 2));
         float x = (event.getX() - width_diff) / mVideoSurface.getWidth();
         float y = (event.getY() - height_diff) / mVideoSurface.getHeight();
-        //Log.e("SemanticVideoPlayerFragment", String.format("x:%f y:%f , event x: %f event y: %f, width_diff: %f height_diff: %f ", x, y, event.getX(), event.getY(), width_diff, height_diff)  );
         FloatPosition position = new FloatPosition(x, y);
+
+        // Any touch on a playing video pauses it.
         if (isPlaying() && canPause()) {
             mController.doPauseResume();
             mController.show();
         }
+
+        // Editing mode
         if (isEditingAnnotations()) {
-            if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                mController.hide();
-            } else if (event.getAction() == MotionEvent.ACTION_UP) {
+
+            if (event.getAction() == MotionEvent.ACTION_DOWN) { // start dragging
+                // starting to drag doesn't require anything else.
+            } else if (event.getAction() == MotionEvent.ACTION_UP) { // end dragging
                 mController.show();
-            } else {
+            } else { // keep dragging
+
+                // if dragging on areas covered by controllers, hide them.
+                if (mVideoTakesAllVerticalSpace && mTitleAreaHeight+10 > event.getY()) {
+                    Log.i("SemanticVideoPlayerFragment", "drag position x:" + event.getX() + " y: " +
+                            event.getY() + " limit: " + (mTitleAreaHeight+10));
+                    mController.hide();
+                } else if (mVideoTakesAllVerticalSpace && mControllerTopCoordinate - 10 < event.getY
+                        ()) {
+                    mController.hide();
+                    Log.i("SemanticVideoPlayerFragment", "drag position x:" + event.getX() + " y: " +
+                            event.getY() + " limit: " + (mControllerTopCoordinate - 10));
+                }
                 mController.getCurrentAnnotation().setPosition(position);
             }
             mAnnotationSurfaceHandler.draw();
+            return true;
+
+        // regular pause mode, check if there is an annotation under touched area.
         } else {
             Annotation a = mAnnotationSurfaceHandler.getAnnotation(position);
+
+            // Annotation exists -- select it
             if (a != null && !isPlaying() && !mController.isPausedForShowingAnnotation()) {
                 mAnnotationSurfaceHandler.stopRectangleAnimation();
                 mController.setCurrentAnnotation(a);
                 mController.editCurrentAnnotation();
-                mController.hide();
             } else {
+                // Annotation in this position doesn't exist, start 'long press' animation. If the
+                // touch continues until the animation ends, new annotation is created on position.
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
-                        //_longPressDetector.postDelayed(_longPressed,
-                        //        ANNOTATION_ACTIVATION_DELAY);
                         mAnnotationSurfaceHandler.startRectangleAnimation(position, mController);
-                        //mAnnotationSurfaceHandler.drawIncoming();
                         break;
                     case MotionEvent.ACTION_MOVE:
                         mAnnotationSurfaceHandler.moveRectangleAnimation(position);
@@ -904,29 +927,6 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
             }
         }
     }
-
-/*
-    private class SavedState {
-        public boolean ok;
-        public boolean playing;
-        public int position;
-        public boolean annotationModeAvailable;
-        public int annotationMode;
-        public long annotationId;
-        public long videoId;
-
-        public SavedState() {
-            SharedPreferences prefs = getActivity().getSharedPreferences("AchSoPrefs", 0);
-            this.ok = prefs.getBoolean("stateSaved", false);
-            this.annotationModeAvailable = prefs.getBoolean("annotationModeAvailable", false);
-            this.playing = prefs.getBoolean("playing", false);
-            this.position = prefs.getInt("position", 0);
-            this.annotationMode = prefs.getInt("annotationMode", -1);
-            this.annotationId = prefs.getLong("annotationId", -1);
-            this.videoId = prefs.getLong("videoId", -1);
-        }
-    }
-*/
 
     public class simpleOnScaleGestureListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
 

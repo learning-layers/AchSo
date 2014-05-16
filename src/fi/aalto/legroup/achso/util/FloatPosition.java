@@ -39,4 +39,13 @@ public class FloatPosition {
     public float getY() {
         return mPosition.second;
     }
+
+    public void setX(Float x) {
+        mPosition = new Pair(x, mPosition.second);
+    }
+
+    public void setY(Float y) {
+        mPosition = new Pair(mPosition.first, y);
+    }
+
 }

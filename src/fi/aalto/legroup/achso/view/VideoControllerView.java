@@ -65,6 +65,7 @@ import fi.aalto.legroup.achso.fragment.SemanticVideoPlayerFragment;
 import fi.aalto.legroup.achso.util.FloatPosition;
 
 import static fi.aalto.legroup.achso.util.App.appendLog;
+import static fi.aalto.legroup.achso.util.App.getScreenSize;
 
 /**
  * A view containing controls for a MediaPlayer. Typically contains the
@@ -253,7 +254,8 @@ public class VideoControllerView extends FrameLayout {
             disableAnnotationMode();
         }
     };
-    private AtomicBoolean mAnimationRunning = new AtomicBoolean(false);
+    private boolean mHideAnimationRunning = false;
+    private boolean mShowAnimationRunning = false;
     private SemanticVideo.Genre mVideoGenre;
     private boolean mAttached = false;
     private boolean mCurrentAnnotationIsNew = false;
@@ -524,10 +526,13 @@ public class VideoControllerView extends FrameLayout {
      *                the controller until hide() is called.
      */
     public void show(int timeout) {
+        if (mShowing || mShowAnimationRunning) {
+            return;
+        }
 
         if (mPlayer == null) return;
-        if (mAnimationRunning.get()) {
-            mAnimationRunning.set(false);
+        if (mHideAnimationRunning) {
+            mHideAnimationRunning = false;
             this.getAnimation().cancel();
             this.clearAnimation();
         }
@@ -555,7 +560,7 @@ public class VideoControllerView extends FrameLayout {
             }
 
             if (mControllerListener != null && mControllerListener.videoFillsVerticalSpace()) {
-                Log.i("VideoControllerView", "Animate showing. ");
+                Log.i("VideoControllerView", "Start showing animation");
                 LinearLayout lo = (LinearLayout) findViewById(R.id.media_controllers);
                 lo.measure(0, 0);
                 TranslateAnimation slide = new TranslateAnimation(0.0f, 0.0f, lo.getMeasuredHeight(), 0.0f);
@@ -564,12 +569,13 @@ public class VideoControllerView extends FrameLayout {
                 slide.setAnimationListener(new Animation.AnimationListener() {
                     @Override
                     public void onAnimationStart(Animation animation) {
-                        mAnimationRunning.set(true);
+                        mShowAnimationRunning = true;
                     }
 
                     @Override
                     public void onAnimationEnd(Animation animation) {
-                        if (mAnimationRunning.getAndSet(false)) {
+                        if (mShowAnimationRunning) {
+                            mShowAnimationRunning = false;
                             mEditorListener.drawAnnotations();
                         }
                     }
@@ -616,14 +622,21 @@ public class VideoControllerView extends FrameLayout {
      * Remove the controller from the screen.
      */
     public void hide() {
-        Log.i("VideoControllerView", "Hide called. ");
+        if (mHideAnimationRunning || !mShowing) {
+            return;
+        }
         if (mAnchor == null) {
             return;
         }
-        Log.i("VideoControllerView", "Video fills vertical space: " + mControllerListener.videoFillsVerticalSpace());
+
+        if (mShowAnimationRunning) {
+            mShowAnimationRunning = false;
+            this.getAnimation().cancel();
+            this.clearAnimation();
+        }
         if (mControllerListener != null && mControllerListener.videoFillsVerticalSpace()) {
             // Animate the hiding of the controller
-            Log.i("VideoControllerView", "Animate hiding. ");
+            Log.i("VideoControllerView", "Start hiding animation");
             LinearLayout lo = (LinearLayout) findViewById(R.id.media_controllers);
             lo.measure(0, 0);
             TranslateAnimation slide = new TranslateAnimation(0.0f, 0.0f, 0.0f, lo.getMeasuredHeight());
@@ -633,13 +646,14 @@ public class VideoControllerView extends FrameLayout {
             slide.setAnimationListener(new Animation.AnimationListener() {
                 @Override
                 public void onAnimationStart(Animation animation) {
-                    mAnimationRunning.set(true);
+                    mHideAnimationRunning = true;
                 }
 
                 @Override
                 public void onAnimationEnd(Animation animation) {
-                    if (mAnimationRunning.getAndSet(false)) {
+                    if (mHideAnimationRunning) {
                         mShowing = false;
+                        mHideAnimationRunning = false;
                         mHandler.removeMessages(SHOW_PROGRESS);
                         mEditorListener.drawAnnotations();
                     }
@@ -950,6 +964,19 @@ public class VideoControllerView extends FrameLayout {
         mPlayer.seekTo(position, SemanticVideoPlayerFragment.DO_NOTHING);
         if (mCurrentTime != null)
             mCurrentTime.setText(stringForTime(position));
+    }
+
+    public int getControllerTop() {
+        LinearLayout lo = (LinearLayout) findViewById(R.id.media_controllers);
+        if (lo != null) {
+            Log.i("VideoControllerView", "Found media_controllers, " +
+                            "root height: " + getRootView().getMeasuredHeight() +
+                    "controller height " + lo.getMeasuredHeight() );
+            return getRootView().getMeasuredHeight() - lo.getMeasuredHeight();
+        } else {
+            Log.e("VideoControllerView", "media_controllers doesn't exist!");
+            return 0;
+        }
     }
 
     public interface VideoControllerShowHideListener {

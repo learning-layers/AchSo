@@ -93,6 +93,17 @@ public class AnnotationBase implements XmlSerializable {
     }
 
     public void setPosition(FloatPosition p) {
+        if (p.getY() > 1.0f) {
+            p.setY(1.0f);
+        } else if (p.getY() < 0f) {
+            p.setY(0f);
+        }
+        if (p.getX() > 1.0f) {
+            p.setX(1.0f);
+        } else if (p.getX() < 0f) {
+            p.setX(0f);
+        }
+
         mPosition = p;
     }
 
