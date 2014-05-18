@@ -1,3 +1,10 @@
+
+Version 0.9.8
+- Improvements on stability when showing and editing annotations that are near to each other, in time or in placement.
+- Vector-based annotation marker, scaling is prettier.
+- Draws a hairline to connect selected annotation and related editing buttons.
+- When pausing on annotation, pause can be skipped by tapping on screen, or lengthened by keeping the screen pressed.
+
 Version 0.9.7
 -Fixed a bug with inaccurate video seek that caused annotations to get stuck in a loop [#LL-200].
 -Added a big red start recording -button for tablet interface.[#LL-209]
