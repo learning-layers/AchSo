@@ -141,15 +141,11 @@ public class AnnotationSurfaceHandler {
     }
 
     public void select(Annotation a) {
-        if (a == null) {
-            for (Annotation ann : mAnnotations) {
-                ann.mSelected = false;
-            }
-        } else if (!a.isSelected()) {
-            for (Annotation ann : mAnnotations) {
-                ann.mSelected = false;
-            }
-            a.mSelected = true;
+        for (Annotation ann : mAnnotations) {
+            ann.setSelected(false);
+        }
+        if (a != null) {
+            a.setSelected(true);
         }
     }
 
@@ -165,14 +161,21 @@ public class AnnotationSurfaceHandler {
     }
 
     public Annotation getAnnotation(FloatPosition pos) {
+        int x = (int) (pos.getX() * mAnnotationSurface.getWidth());
+        int y = (int) (pos.getY() * mAnnotationSurface.getHeight());
+        Annotation found = null;
         for (Annotation a : mAnnotations) {
-            if (a.getBounds(mAnnotationSurface).contains(pos.getX() * mAnnotationSurface.getWidth(),
-                    pos.getY() * mAnnotationSurface.getHeight())) {
-                if (a.isVisible())
-                    return a;
+            if (a.isVisible() && a.getBounds(mAnnotationSurface).contains(x, y)) {
+                if (found != null) {
+                    if (found.getScaleFactor() > a.getScaleFactor()) {
+                        found = a;
+                    }
+                } else {
+                    found = a;
+                }
             }
         }
-        return null;
+        return found;
     }
 
     public void show(Annotation ann) {
@@ -193,6 +196,18 @@ public class AnnotationSurfaceHandler {
                 a.setVisible(false);
         }
     }
+
+    public void showAnnotationsAt(int pos) {
+        long lpos = (long) pos;
+        for (Annotation a : mAnnotations) {
+            if (a.getStartTime() == lpos) {
+                a.setVisible(true);
+            } else {
+                a.setVisible(false);
+            }
+        }
+    }
+
 
     public void startRectangleAnimation(FloatPosition position,
                                         VideoControllerView controller) {
@@ -243,11 +258,17 @@ public class AnnotationSurfaceHandler {
 
     }
 
+    public void hideAllAnnotations() {
+        for (final Annotation a : getAnnotations()) {
+            a.setVisible(false);
+        }
+    }
+
     public int incomingAnnotations(long pos, int pollRateMilliseconds) {
         int d, min_d = 500;
         for (final Annotation a : getAnnotations()) {
             d = (int) (a.getStartTime() - pos);
-            if (d >= 0 && d <= pollRateMilliseconds && d < min_d) {
+            if (d > 0 && d <= pollRateMilliseconds && d < min_d) {
                 min_d = d;
             }
         }
@@ -256,5 +277,17 @@ public class AnnotationSurfaceHandler {
         } else {
             return -1;
         }
+    }
+
+    public List<Annotation> getAnnotationsAt(long pos) {
+        List<Annotation> result = new ArrayList<Annotation>();
+        for (final Annotation a : getAnnotations()) {
+            if (pos == a.getStartTime()) {
+                result.add(a);
+            } else {
+                a.setVisible(false);
+            }
+        }
+        return result;
     }
 }

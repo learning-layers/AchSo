@@ -42,7 +42,6 @@ import fi.aalto.legroup.achso.view.VideoControllerView;
 public class IncomingAnnotationMarker {
 
 
-    private final Bitmap mBitmap;
     private final int ORIGINAL_SIZE = 60;
     private final float max_size = 8;
     private final int DURATION = 300;
@@ -71,9 +70,6 @@ public class IncomingAnnotationMarker {
 
     public IncomingAnnotationMarker(Context ctx, AnnotationSurfaceHandler surface, VideoControllerView listener, FloatPosition position) {
         mPosition = position;
-        Bitmap tmp = BitmapFactory.decodeResource(ctx.getResources(), R.drawable.square_large);
-        mBitmap = Bitmap.createScaledBitmap(tmp, ORIGINAL_SIZE, ORIGINAL_SIZE, false);
-        tmp.recycle();
         mSurface = surface;
         mListener = listener;
         mVisible = false;
@@ -96,9 +92,6 @@ public class IncomingAnnotationMarker {
         mSurface.draw();
     }
 
-
-
-
     public void draw(Canvas c) {
         if (!mVisible) {
             return;
@@ -115,7 +108,6 @@ public class IncomingAnnotationMarker {
         float posy = mPosition.getY() * c.getHeight();
         int wh = (int) (size_m * ORIGINAL_SIZE);
         Annotation.drawAnnotationRect(c, p, s, posx, posy, wh, size_m);
-        //c.drawBitmap(mBitmap, null, nr, p);
     }
 
     public void setPosition(FloatPosition position) {

@@ -74,15 +74,13 @@ import static fi.aalto.legroup.achso.util.App.getContext;
 
 public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHolder.Callback, MediaPlayer.OnPreparedListener, VideoControllerView.MediaPlayerControl, View.OnTouchListener, MediaPlayer.OnCompletionListener, OnErrorListener, OnVideoSizeChangedListener, EditorListener, MediaPlayer.OnBufferingUpdateListener, VideoControllerView.VideoControllerShowHideListener, MediaPlayer.OnInfoListener, MediaPlayer.OnSeekCompleteListener {
 
-    public static final int NORMAL_MODE = 0;
-    public static final int NEW_ANNOTATION_MODE = 1;
-    public static final int EDIT_ANNOTATION_MODE = 2;
     public static final int DO_NOTHING = 0;
     public static final int PAUSE = 1;
     private static final int POLL_RATE_MILLISECONDS = 200;
     private static final int POLL_RATE_MILLISECONDS_ACCURATE = 20;
     private static final int IS_PINCHING = 1;
     private static final int WAS_PINCHING = 2;
+    private static final int NO_PINCH = 0;
     private SurfaceView mAnnotationSurface;
     private SurfaceView mVideoSurface;
     private RelativeLayout mVideoSurfaceContainer;
@@ -106,6 +104,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     private boolean mCarefulProgress;
     private int mTitleAreaHeight;
     private int mControllerTopCoordinate;
+    private boolean mStallPauseCounter;
 
 
     public SemanticVideoPlayerFragment() {
@@ -190,7 +189,8 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
             if (mStateBundle != null) {
                 mCanEditAnnotations = mStateBundle.getBoolean("canAnnotate");
             } // otherwise it is true, set by constructor
-            mController = new VideoControllerView(getActivity(), this, mCanEditAnnotations);
+            mController = new VideoControllerView(getActivity(), true, this, mCanEditAnnotations,
+                    mAnnotationSurfaceHandler);
             mController.setVideoControllerShowHideListener(this);
             mTitleAreaHeight = mTitleArea.getMeasuredHeight();
             mControllerTopCoordinate = 0; // we get proper value when video is initialized
@@ -244,7 +244,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
         if (mMediaPlayer != null) {
 
             saveState.putBoolean("canEditAnnotations", mCanEditAnnotations);
-            saveState.putInt("annotationMode", mController.annotationMode);
+            saveState.putInt("controllerMode", mController.controllerMode);
             saveState.putLong("annotationId", (mController.getCurrentAnnotation() != null) ? mController.getCurrentAnnotation().getId() : -1);
             // annotation state (position and scale) can be restored from the annotation object
 
@@ -262,7 +262,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     public void restoreStateBundle(Bundle b) {
         mStateBundle = new Bundle();
         mStateBundle.putBoolean("canEditAnnotations", b.getBoolean("canEditAnnotations"));
-        mStateBundle.putInt("annotationMode", b.getInt("annotationMode"));
+        mStateBundle.putInt("controllerMode", b.getInt("controllerMode"));
         mStateBundle.putLong("annotationId", b.getLong("annotationId"));
         mStateBundle.putLong("videoId", b.getLong("videoId"));
         mStateBundle.putBoolean("playing", b.getBoolean("playing"));
@@ -320,14 +320,14 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
             Annotation a = mAnnotationSurfaceHandler.getAnnotation(mStateBundle.getLong("annotationId"));
             if (a != null) {
                 a.setVisible(true);
-                Log.i("SemanticVideoPlayerFragment", "annotationMode: " + mStateBundle.getInt("annotationMode"));
-                switch (mStateBundle.getInt("annotationMode")) {
-                    case NEW_ANNOTATION_MODE:
+                Log.i("SemanticVideoPlayerFragment", "controllerMode: " + mStateBundle.getInt("controllerMode"));
+                switch (mStateBundle.getInt("controllerMode")) {
+                    case VideoControllerView.NEW_ANNOTATION_MODE:
                         mController.fakeNewAnnotationModeForAnnotation(a);
                         break;
-                    case EDIT_ANNOTATION_MODE:
+                    case VideoControllerView.EDIT_ANNOTATION_MODE:
                         mController.setCurrentAnnotation(a);
-                        mController.editCurrentAnnotation();
+                        mController.setControllerMode(VideoControllerView.EDIT_ANNOTATION_MODE);
                         break;
                 }
             }
@@ -365,7 +365,6 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
 
     @Override
     public void videoControllerShow() {
-        Log.i("SemanticVideoPlayerFragment", "Show video controller");
         ActionBar bar = getActivity().getActionBar();
         RelativeLayout.LayoutParams host_lp = (RelativeLayout.LayoutParams) mVideoSurfaceContainer.getLayoutParams();
         if (mTitleArea != null && bar != null) {
@@ -383,7 +382,6 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
 
     @Override
     public void videoControllerHide() {
-        Log.i("SemanticVideoPlayerFragment", "Hide video controller");
         ActionBar bar = getActivity().getActionBar();
         RelativeLayout.LayoutParams host_lp = (RelativeLayout.LayoutParams) mVideoSurfaceContainer.getLayoutParams();
         if (mTitleArea != null && bar != null && host_lp != null) {
@@ -417,8 +415,6 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     public void newAnnotation(FloatPosition position) {
         Annotation ann = mAnnotationSurfaceHandler.addAnnotation(mMediaPlayer.getCurrentPosition(), position);
         mController.setCurrentAnnotation(ann);
-        mAnnotationSurfaceHandler.select(ann);
-        mAnnotationSurfaceHandler.draw();
         appendLog(String.format("Added new annotation %s to video %d at time %d", ann.toString(), mVideoId, mMediaPlayer.getCurrentPosition()));
     }
 
@@ -432,7 +428,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
         Dialog.getTextSetterDialog(getActivity(), a, a.getText(), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                mAnnotationSurfaceHandler.select(null);
+                //mAnnotationSurfaceHandler.select(null);
                 mAnnotationSurfaceHandler.draw(a);
             }
         }, a).show();
@@ -473,13 +469,14 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     public void onProgressChanged(long pos) {
         if (mMediaPlayer.isPlaying()) {
             if (!mCarefulProgress) {
-                int incoming = mAnnotationSurfaceHandler.incomingAnnotations(pos, POLL_RATE_MILLISECONDS);
-                if (incoming == 0) {
-                    final List<Annotation> annotationsToShow = mAnnotationSurfaceHandler.getAnnotationsAppearingBetween(mLastPos, pos);
+                if (mLastPos != pos) {
+                    final List<Annotation> annotationsToShow = mAnnotationSurfaceHandler.getAnnotationsAt(pos);
                     if (!annotationsToShow.isEmpty()) {
                         pauseOnAnnotation(annotationsToShow, pos);
                     }
-                } else if (incoming > 0) {
+                }
+                int incoming = mAnnotationSurfaceHandler.incomingAnnotations(pos, POLL_RATE_MILLISECONDS);
+                if (incoming > 0) {
                     mCarefulProgress = true;
                 } else {
                     // progress as usual
@@ -494,7 +491,6 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
             }
         } else {
             // paused by user
-            Log.i("SemanticVideoPlayerFragment", "onProgressChanged: Cleaning unnecessary " + "annotations. ");
             mAnnotationSurfaceHandler.hideAnnotationsNotAppearingBetween(mLastPos, pos);
         }
         mLastPos = pos;
@@ -505,9 +501,9 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
 
     private void pauseOnAnnotation(List<Annotation> annotationsToShow, long pos) {
         // start annotation pause mode. AnnotationPauseCounter will eventually end it.
-
         mAnnotationsToShow = annotationsToShow;
-        mController.setAnnotationPausedMode(true);
+        mStallPauseCounter = false;
+        mController.setControllerMode(VideoControllerView.ANNOTATION_PAUSE_MODE);
         mAnnotationSurfaceHandler.showMultiple(mAnnotationsToShow);
         pause();
         mPauseHandler = new Handler();
@@ -616,9 +612,10 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
 
         mMediaPlayer.start();
         mAnnotationSurfaceHandler.select(null);
-        mAnnotationSurfaceHandler.draw();
+        mAnnotationSurfaceHandler.hideAllAnnotations();
+        onProgressChanged(mMediaPlayer.getCurrentPosition());
         mUpdateHandler.sendEmptyMessageDelayed(0, POLL_RATE_MILLISECONDS);
-        mController.updatePausePlay();
+        mController.setControllerMode(VideoControllerView.PLAY_MODE);
         mController.hide();
         //ViewGroup area = (ViewGroup) rootView.findViewById(R.id.video_title_area);
         //ViewGroup area_host = (ViewGroup) area.getParent();
@@ -628,12 +625,14 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     }
 
     @Override
+    /*
+    Don't change controller mode here, because pause can be ANNOTATION_PAUSE_MODE or PAUSE_MODE
+     */
     public void pause() {
         if (mMediaPlayer == null) {
             return;
         }
         mMediaPlayer.pause();
-        mController.updatePausePlay();
     }
 
     @Override
@@ -655,7 +654,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     @Override
     public void seekTo(int pos, int do_after_seek) {
         if (mController.isPausedForShowingAnnotation()) {
-            mController.setAnnotationPausedMode(false);
+            mController.setControllerMode(VideoControllerView.PAUSE_MODE);
         }
         if (mMediaPlayer == null) {
             return;
@@ -709,81 +708,118 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
         mScaleGestureDetector.onTouchEvent(event);
 
         // End pinching if that was going on
-        if (mPinching != NORMAL_MODE) {
+        if (mPinching != NO_PINCH) {
             if (mPinching == WAS_PINCHING && event.getAction() == MotionEvent.ACTION_UP) {
-                mPinching = NORMAL_MODE;
+                mPinching = NO_PINCH;
                 mController.show();
             }
             return true;
         }
 
         // preparations
+        Annotation a = null;
         float width_diff = ((getView().getWidth() / 2) - (mVideoSurface.getWidth() / 2));
         float height_diff = ((getView().getHeight() / 2) - (mVideoSurface.getHeight() / 2));
         float x = (event.getX() - width_diff) / mVideoSurface.getWidth();
         float y = (event.getY() - height_diff) / mVideoSurface.getHeight();
         FloatPosition position = new FloatPosition(x, y);
 
-        // Any touch on a playing video pauses it.
-        if (isPlaying() && canPause()) {
-            mController.doPauseResume();
-            mController.show();
-        }
+        switch (mController.controllerMode) {
 
-        // Editing mode
-        if (isEditingAnnotations()) {
+            case VideoControllerView.PLAY_MODE:
 
-            if (event.getAction() == MotionEvent.ACTION_DOWN) { // start dragging
-                // starting to drag doesn't require anything else.
-            } else if (event.getAction() == MotionEvent.ACTION_UP) { // end dragging
+                // Any touch on a playing video pauses it.
+                mController.doPauseResume();
                 mController.show();
-            } else { // keep dragging
+                break;
 
-                // if dragging on areas covered by controllers, hide them.
-                if (mVideoTakesAllVerticalSpace && mTitleAreaHeight+10 > event.getY()) {
-                    mController.hide();
-                } else if (mVideoTakesAllVerticalSpace && mControllerTopCoordinate - 10 < event.getY
-                        ()) {
-                    mController.hide();
+            case VideoControllerView.PAUSE_MODE:
+
+                // regular pause mode, check if there is an annotation under touched area.
+                a = mAnnotationSurfaceHandler.getAnnotation(position);
+                // Annotation exists -- select it
+                if (a != null) {
+                    mAnnotationSurfaceHandler.stopRectangleAnimation();
+                    mController.setCurrentAnnotation(a);
+                    mController.setControllerMode(VideoControllerView.EDIT_ANNOTATION_MODE);
+                } else {
+                    // Annotation in this position doesn't exist, start 'long press' animation. If the
+                    // touch continues until the animation ends, new annotation is created on position.
+                    switch (event.getAction()) {
+                        case MotionEvent.ACTION_DOWN:
+                            mAnnotationSurfaceHandler.startRectangleAnimation(position, mController);
+                            break;
+                        case MotionEvent.ACTION_MOVE:
+                            mAnnotationSurfaceHandler.moveRectangleAnimation(position);
+                            break;
+                        case MotionEvent.ACTION_UP:
+                            mAnnotationSurfaceHandler.stopRectangleAnimation();
+                            break;
+                    }
                 }
-                mController.getCurrentAnnotation().setPosition(position);
-            }
-            mAnnotationSurfaceHandler.draw();
-            return true;
+                break;
 
-        // regular pause mode, check if there is an annotation under touched area.
-        } else {
-            Annotation a = mAnnotationSurfaceHandler.getAnnotation(position);
+            case VideoControllerView.ANNOTATION_PAUSE_MODE:
 
-            // Annotation exists -- select it
-            if (a != null && !isPlaying() && !mController.isPausedForShowingAnnotation()) {
-                mAnnotationSurfaceHandler.stopRectangleAnimation();
-                mController.setCurrentAnnotation(a);
-                mController.editCurrentAnnotation();
-            } else {
-                // Annotation in this position doesn't exist, start 'long press' animation. If the
-                // touch continues until the animation ends, new annotation is created on position.
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        mAnnotationSurfaceHandler.startRectangleAnimation(position, mController);
-                        break;
-                    case MotionEvent.ACTION_MOVE:
-                        mAnnotationSurfaceHandler.moveRectangleAnimation(position);
-                        break;
-                    case MotionEvent.ACTION_UP:
-                        mAnnotationSurfaceHandler.stopRectangleAnimation();
-                        break;
+                // regular pause mode, check if there is an annotation under touched area.
+                a = mAnnotationSurfaceHandler.getAnnotation(position);
+                // Annotation exists -- select it and edit it
+                if (a != null) {
+                    mController.setCurrentAnnotation(a);
+                    pause();
+                    mController.setControllerMode(VideoControllerView.EDIT_ANNOTATION_MODE);
+                    mAnnotationSurfaceHandler.showAnnotationsAt(mMediaPlayer.getCurrentPosition());
+                    drawAnnotations();
+                } else if (mController.getCurrentAnnotation() == null) {
+                    // no annotation, tap to move on. -- only react to UP,
+                    // otherwise we go play and then to pause when ACTION_UP or MOVE happens.
+
+                    if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                        mStallPauseCounter = true;
+                    } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                        mStallPauseCounter = false;
+                        start();
+                    }
                 }
-                return true;
-            }
+                break;
+
+            case VideoControllerView.EDIT_ANNOTATION_MODE:
+            case VideoControllerView.NEW_ANNOTATION_MODE:
+
+                if (event.getAction() == MotionEvent.ACTION_DOWN) { // start dragging or changing
+                    // selection
+                    a = mAnnotationSurfaceHandler.getAnnotation(position);
+                    if (a != null && a != mController.getCurrentAnnotation()) {
+                        mController.saveCurrentAnnotation();
+                        mController.setCurrentAnnotation(a);
+                        mController.setControllerMode(VideoControllerView.EDIT_ANNOTATION_MODE);
+                    }
+                    // starting to drag doesn't require anything else.
+                } else if (event.getAction() == MotionEvent.ACTION_UP) { // end dragging
+                    mController.show();
+                } else { // keep dragging
+
+                    // if dragging on areas covered by controllers, hide them.
+                    if (mVideoTakesAllVerticalSpace && mTitleAreaHeight+10 > event.getY()) {
+                        mController.hide();
+                    } else if (mVideoTakesAllVerticalSpace && mControllerTopCoordinate - 10 < event.getY
+                            ()) {
+                        mController.hide();
+                    }
+                    mController.getCurrentAnnotation().setPosition(position);
+                }
+                mAnnotationSurfaceHandler.draw();
         }
+
+
+
         return true;
     }
 
 
     @Override
     public void onCompletion(MediaPlayer mp) {
-        mController.updatePausePlay();
+        mController.setControllerMode(VideoControllerView.PAUSE_MODE);
     }
 
     @Override
@@ -866,17 +902,11 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
 
     @Override
     public void onSeekComplete(MediaPlayer mediaPlayer) {
-        Log.i("onSeekComplete", "At position:" + mediaPlayer.getCurrentPosition());
         if (mSeekCompleteTask == PAUSE && mAnnotationsToShow != null) {
             int pos = mediaPlayer.getCurrentPosition();
             // now continuing the setup of annotation pause.
-            Log.i("onSeekComplete", "(onProgressChanged) pauses at " + pos);
 
         }
-    }
-
-    private boolean isEditingAnnotations() {
-        return (mController.annotationMode == NEW_ANNOTATION_MODE || mController.annotationMode == EDIT_ANNOTATION_MODE);
     }
 
     private static class AnnotationUpdateHandler extends Handler {
@@ -919,7 +949,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
 
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
-            if (isEditingAnnotations()) {
+            if (mController.isEditingAnnotations()) {
                 Annotation a = mController.getCurrentAnnotation();
                 a.setScaleFactor(a.getScaleFactor() * detector.getScaleFactor());
                 mAnnotationSurfaceHandler.draw();
@@ -936,7 +966,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
 
         @Override
         public void onScaleEnd(ScaleGestureDetector detector) {
-            if (isEditingAnnotations()) {
+            if (mController.isEditingAnnotations()) {
                 //mController.getCurrentAnnotation().
             }
             mPinching = WAS_PINCHING;
@@ -955,7 +985,12 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
 
         @Override
         public void run() {
-            counter += POLL_RATE_MILLISECONDS;
+            if (mController.controllerMode != VideoControllerView.ANNOTATION_PAUSE_MODE) {
+                return;
+            }
+            if (!mStallPauseCounter) {
+                counter += POLL_RATE_MILLISECONDS;
+            }
             if (counter < Annotation.ANNOTATION_SHOW_DURATION_MILLISECONDS && mController.isPausedForShowingAnnotation()) {
                 mController.setAnnotationPausedProgress((int) ((counter * 100) / Annotation.ANNOTATION_SHOW_DURATION_MILLISECONDS));
                 mPauseHandler.postDelayed(this, POLL_RATE_MILLISECONDS);
@@ -968,7 +1003,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
                     mUpdateHandler.sendEmptyMessage(0);
                     mAnnotationSurfaceHandler.select(null);
                     mAnnotationSurfaceHandler.draw();
-                    mController.setAnnotationPausedMode(false);
+                    mController.setControllerMode(VideoControllerView.PLAY_MODE);
                     if (mController.isShowing()) {
                         mController.show();
                     }

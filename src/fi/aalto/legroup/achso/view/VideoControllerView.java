@@ -30,7 +30,6 @@ import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -54,10 +53,10 @@ import android.widget.TextView;
 import java.lang.ref.WeakReference;
 import java.util.Formatter;
 import java.util.Locale;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.annotation.Annotation;
+import fi.aalto.legroup.achso.annotation.AnnotationSurfaceHandler;
 import fi.aalto.legroup.achso.annotation.EditorListener;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
@@ -65,7 +64,6 @@ import fi.aalto.legroup.achso.fragment.SemanticVideoPlayerFragment;
 import fi.aalto.legroup.achso.util.FloatPosition;
 
 import static fi.aalto.legroup.achso.util.App.appendLog;
-import static fi.aalto.legroup.achso.util.App.getScreenSize;
 
 /**
  * A view containing controls for a MediaPlayer. Typically contains the
@@ -97,7 +95,15 @@ import static fi.aalto.legroup.achso.util.App.getScreenSize;
  */
 public class VideoControllerView extends FrameLayout {
     private static final String TAG = "VideoControllerView";
+
+    public static final int PLAY_MODE = 0;
+    public static final int PAUSE_MODE = 1;
+    public static final int ANNOTATION_PAUSE_MODE = 2;
+    public static final int NEW_ANNOTATION_MODE = 3;
+    public static final int EDIT_ANNOTATION_MODE = 4;
+
     private static final int sDefaultTimeout = 3000;
+    private final AnnotationSurfaceHandler mAnnotationSurfaceHandler;
     private View.OnClickListener mPauseListener = new View.OnClickListener() {
         public void onClick(View v) {
             doPauseResume();
@@ -127,6 +133,8 @@ public class VideoControllerView extends FrameLayout {
             pos -= 1000; // milliseconds
             mPlayer.seekTo(pos, SemanticVideoPlayerFragment.DO_NOTHING);
             updateProgress();
+            mAnnotationSurfaceHandler.showAnnotationsAt(pos);
+            mAnnotationSurfaceHandler.draw();
 
             show(sDefaultTimeout);
         }
@@ -141,6 +149,8 @@ public class VideoControllerView extends FrameLayout {
             pos += 1000; // milliseconds
             mPlayer.seekTo(pos, SemanticVideoPlayerFragment.DO_NOTHING);
             updateProgress();
+            mAnnotationSurfaceHandler.showAnnotationsAt(pos);
+            mAnnotationSurfaceHandler.draw();
 
             show(sDefaultTimeout);
         }
@@ -201,7 +211,6 @@ public class VideoControllerView extends FrameLayout {
 
             mDragging = false;
             updateProgress();
-            updatePausePlay();
             //Log.i("VideoControllerView", "Stopped tracking touch");
             //show(sDefaultTimeout);
 
@@ -213,45 +222,42 @@ public class VideoControllerView extends FrameLayout {
     };
     private boolean mUseFastForward;
     private boolean mFromXml;
-    private boolean mListenersSet;
-    private View.OnClickListener mNextListener, mPrevListener;
     private ImageButton mPauseButton;
     private ImageButton mFfwdButton;
     private ImageButton mRewButton;
     private Button mAnnotationButton;
-    private Button mOkButton;
+    private Button mEditTextButton;
     private Button mKeepButton;
     private Button mCancelButton;
     private Button mDeleteButton;
-    public int annotationMode;
-    //private boolean mAnnotationModeEnabled;
+    public int controllerMode;
     private OnClickListener mAnnotationButtonListener = new OnClickListener() {
         @Override
         public void onClick(View v) {
             if (mPlayer == null) return;
-            if (annotationMode != SemanticVideoPlayerFragment.NORMAL_MODE) {
-                disableAnnotationMode();
+            if (controllerMode == ANNOTATION_PAUSE_MODE) {
+                setControllerMode(PAUSE_MODE);
             } else if (!mPlayer.isPlaying()) addNewAnnotation(null);
         }
     };
-    private boolean mAnnotationPauseEnabled;
     private Handler mHandler = new MessageHandler(this);
     private ProgressBar mAnnotationPausedProgress;
     private EditorListener mEditorListener;
     private Annotation mCurrentAnnotation;
-    private OnClickListener mOkListener = new OnClickListener() {
+    private OnClickListener mEditTextListener = new OnClickListener() {
         @Override
         public void onClick(View v) {
             mEditorListener.addTextToAnnotation(mCurrentAnnotation);
+            saveCurrentAnnotation();
             setCurrentAnnotation(null);
-            disableAnnotationMode();
+            setControllerMode(PAUSE_MODE);
         }
     };
     private OnClickListener mDeleteListener = new OnClickListener() {
         @Override
         public void onClick(View v) {
             mEditorListener.deleteAnnotation(mCurrentAnnotation);
-            disableAnnotationMode();
+            setControllerMode(PAUSE_MODE);
         }
     };
     private boolean mHideAnimationRunning = false;
@@ -264,11 +270,11 @@ public class VideoControllerView extends FrameLayout {
         public void onClick(View v) {
             if (mPlayer == null) return;
             if (mCurrentAnnotation != null) {
-                if (annotationMode == SemanticVideoPlayerFragment.NEW_ANNOTATION_MODE)
+                if (controllerMode == NEW_ANNOTATION_MODE)
                     mEditorListener.deleteAnnotation(mCurrentAnnotation);
                 else mEditorListener.revertAnnotationChanges(mCurrentAnnotation);
             }
-            disableAnnotationMode();
+            setControllerMode(PAUSE_MODE);
             setCurrentAnnotation(null);
         }
     };
@@ -289,41 +295,28 @@ public class VideoControllerView extends FrameLayout {
     private OnClickListener mKeepListener = new OnClickListener() {
         @Override
         public void onClick(View v) {
-            Annotation a = getCurrentAnnotation();
-            VideoDBHelper vdb = new VideoDBHelper(mContext);
-            vdb.update(a);
-            vdb.close();
+            saveCurrentAnnotation();
             setCurrentAnnotation(null);
-            disableAnnotationMode();
+            setControllerMode(PAUSE_MODE);
         }
     };
 
-    public VideoControllerView(Context context, AttributeSet attrs, EditorListener listener, boolean annotationModeAvailable) {
-        super(context, attrs);
-        mRoot = null;
-        mContext = context;
-        mUseFastForward = true;
-        mFromXml = true;
-        annotationMode = SemanticVideoPlayerFragment.NORMAL_MODE;
-        mAnnotationPauseEnabled = false;
-        mCurrentAnnotation = null;
-        mEditorListener = listener;
-        mCanAnnotate = annotationModeAvailable;
+    public void saveCurrentAnnotation() {
+        Annotation a = getCurrentAnnotation();
+        VideoDBHelper vdb = new VideoDBHelper(mContext);
+        vdb.update(a);
+        vdb.close();
     }
 
-    public VideoControllerView(Context context, boolean useFastForward, EditorListener listener, boolean annotationModeAvailable) {
+    public VideoControllerView(Context context, boolean useFastForward, EditorListener listener,
+                               boolean annotationModeAvailable,
+                               AnnotationSurfaceHandler annotationSurfaceHandler) {
         super(context);
         mContext = context;
         mUseFastForward = useFastForward;
         mEditorListener = listener;
         mCanAnnotate = annotationModeAvailable;
-        mAnnotationPauseEnabled = false;
-    }
-
-    public VideoControllerView(Context context, EditorListener listener, boolean annotationModeAvailable) {
-        this(context, true, listener, annotationModeAvailable);
-        mEditorListener = listener;
-        mCanAnnotate = annotationModeAvailable;
+        mAnnotationSurfaceHandler = annotationSurfaceHandler;
     }
 
     public void setVideoControllerShowHideListener(VideoControllerShowHideListener l) {
@@ -347,6 +340,11 @@ public class VideoControllerView extends FrameLayout {
     }
 
     public void setCurrentAnnotation(Annotation a) {
+        if (a == null && mCurrentAnnotation == null) {
+            return;
+        }
+        mAnnotationSurfaceHandler.select(a);
+        mAnnotationSurfaceHandler.draw();
         mCurrentAnnotation = a;
         if (a != null) {
             a.rememberState();
@@ -368,7 +366,6 @@ public class VideoControllerView extends FrameLayout {
 
     public void setMediaPlayer(MediaPlayerControl player) {
         mPlayer = player;
-        updatePausePlay();
     }
 
     /**
@@ -445,10 +442,10 @@ public class VideoControllerView extends FrameLayout {
             } else mAnnotationButton.setVisibility(View.GONE);
         }
 
-        mOkButton = (Button) v.findViewById(R.id.edit_annotation_button);
-        if (mOkButton != null) {
-            mOkButton.setVisibility(View.GONE);
-            mOkButton.setOnClickListener(mOkListener);
+        mEditTextButton = (Button) v.findViewById(R.id.edit_annotation_button);
+        if (mEditTextButton != null) {
+            mEditTextButton.setVisibility(View.GONE);
+            mEditTextButton.setOnClickListener(mEditTextListener);
         }
         mKeepButton = (Button) v.findViewById(R.id.keep_annotation_button);
         if (mKeepButton != null) {
@@ -527,6 +524,7 @@ public class VideoControllerView extends FrameLayout {
      */
     public void show(int timeout) {
         if (mShowing || mShowAnimationRunning) {
+            mHandler.sendEmptyMessage(SHOW_PROGRESS);
             return;
         }
 
@@ -560,7 +558,6 @@ public class VideoControllerView extends FrameLayout {
             }
 
             if (mControllerListener != null && mControllerListener.videoFillsVerticalSpace()) {
-                Log.i("VideoControllerView", "Start showing animation");
                 LinearLayout lo = (LinearLayout) findViewById(R.id.media_controllers);
                 lo.measure(0, 0);
                 TranslateAnimation slide = new TranslateAnimation(0.0f, 0.0f, lo.getMeasuredHeight(), 0.0f);
@@ -592,7 +589,6 @@ public class VideoControllerView extends FrameLayout {
             }
             mShowing = true;
         }
-        updatePausePlay();
 
         // cause the progress bar to be updated even if mShowing
         // was already true.  This happens, for example, if we're
@@ -636,7 +632,6 @@ public class VideoControllerView extends FrameLayout {
         }
         if (mControllerListener != null && mControllerListener.videoFillsVerticalSpace()) {
             // Animate the hiding of the controller
-            Log.i("VideoControllerView", "Start hiding animation");
             LinearLayout lo = (LinearLayout) findViewById(R.id.media_controllers);
             lo.measure(0, 0);
             TranslateAnimation slide = new TranslateAnimation(0.0f, 0.0f, 0.0f, lo.getMeasuredHeight());
@@ -717,19 +712,7 @@ public class VideoControllerView extends FrameLayout {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        //Log.i("VideoControllerView", "got onTouchEvent");
-        show(sDefaultTimeout);
-
-
-
-        //if (mPlayer.isPlaying() && mPlayer.canPause()) {
-        //    doPauseResume();
-        //}
-        if (isPausedForShowingAnnotation()) {
-            setAnnotationPausedMode(false);
-            mEditorListener.drawAnnotations();
-
-        }
+        // everything should be done in SemanticVideoPlayerFragment.
         return false;
     }
 
@@ -762,7 +745,7 @@ public class VideoControllerView extends FrameLayout {
         } else if (keyCode == KeyEvent.KEYCODE_MEDIA_PLAY) {
             if (uniqueDown && !mPlayer.isPlaying()) {
                 mPlayer.start();
-                updatePausePlay();
+                setControllerMode(PLAY_MODE);
                 show(sDefaultTimeout);
             }
             return true;
@@ -770,7 +753,7 @@ public class VideoControllerView extends FrameLayout {
                 || keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE) {
             if (uniqueDown && mPlayer.isPlaying()) {
                 mPlayer.pause();
-                updatePausePlay();
+                setControllerMode(PAUSE_MODE);
                 show(mInfinity);
             }
             return true;
@@ -790,17 +773,6 @@ public class VideoControllerView extends FrameLayout {
         return super.dispatchKeyEvent(event);
     }
 
-    public void updatePausePlay() {
-        if (mRoot == null || mPauseButton == null || mPlayer == null) {
-            return;
-        }
-
-        if (mPlayer.isPlaying()) {
-            mPauseButton.setImageResource(R.drawable.pause);
-        } else {
-            mPauseButton.setImageResource(R.drawable.play);
-        }
-    }
 
     public void doPauseResume() {
         if (mPlayer == null) {
@@ -809,12 +781,12 @@ public class VideoControllerView extends FrameLayout {
         if (mPlayer.isPlaying()) {
             mPlayer.pause();
             appendLog(String.format("Pausing playback at point %d", mPlayer.getCurrentPosition()));
+            setControllerMode(PAUSE_MODE);
         } else {
             mPlayer.start();
             appendLog(String.format("Starting playback at point %d", mPlayer.getCurrentPosition()));
-            disableAnnotationMode();
+            setControllerMode(PLAY_MODE);
         }
-        updatePausePlay();
         mEditorListener.drawAnnotations();
     }
 
@@ -865,23 +837,97 @@ public class VideoControllerView extends FrameLayout {
 
 
     public void fakeNewAnnotationModeForAnnotation(Annotation a) {
-        // Fake new annotation mode for existing annotation
+        // Fake new annotation mode for existing annotation -- this happens if screen is restored
+        // (because of rotation) during the creation of new annotation.
         setCurrentAnnotation(a);
-        editCurrentAnnotation();
+        setControllerMode(NEW_ANNOTATION_MODE);
         mCurrentAnnotationIsNew = true;
-        mDeleteButton.setVisibility(View.GONE);
-        annotationMode = SemanticVideoPlayerFragment.NEW_ANNOTATION_MODE;
     }
 
     //public boolean annotationModeIsEdit() {
     //    return mAnnotationModeEnabled && !mCurrentAnnotationIsNew;
     //}
 
-    public void setAnnotationPausedMode(Boolean b) {
-        //Log.i("VideoControllerView", "setAnnotationPausedMode:" + b);
-        mAnnotationPauseEnabled = b;
-        mAnnotationPausedProgress.setVisibility(b ? View.VISIBLE : View.GONE);
-        mAnnotationButton.setVisibility(b ? View.GONE : View.VISIBLE);
+    public void setControllerMode(int mode) {
+        switch (mode) {
+            case PLAY_MODE:
+                setCurrentAnnotation(null);
+                mAnnotationPausedProgress.setVisibility(View.GONE);
+                mRewButton.setVisibility(View.VISIBLE);
+                mPauseButton.setImageResource(R.drawable.pause);
+                mPauseButton.setVisibility(View.VISIBLE);
+                mFfwdButton.setVisibility(View.VISIBLE);
+                if (mCanAnnotate) {
+                    mAnnotationButton.setVisibility(View.VISIBLE);
+                }
+                mProgress.setVisibility(View.VISIBLE);
+                mCurrentTime.setVisibility(View.VISIBLE);
+                mEndTime.setVisibility(View.VISIBLE);
+
+                mEditTextButton.setVisibility(View.GONE);
+                mKeepButton.setVisibility(View.GONE);
+                mCancelButton.setVisibility(View.GONE);
+                mDeleteButton.setVisibility(View.GONE);
+                break;
+            case PAUSE_MODE:
+                setCurrentAnnotation(null);
+                mAnnotationPausedProgress.setVisibility(View.GONE);
+                mRewButton.setVisibility(View.VISIBLE);
+                mPauseButton.setImageResource(R.drawable.play);
+                mPauseButton.setVisibility(View.VISIBLE);
+                mFfwdButton.setVisibility(View.VISIBLE);
+                if (mCanAnnotate) {
+                    mAnnotationButton.setVisibility(View.VISIBLE);
+                }
+                mProgress.setVisibility(View.VISIBLE);
+                mCurrentTime.setVisibility(View.VISIBLE);
+                mEndTime.setVisibility(View.VISIBLE);
+
+                mEditTextButton.setVisibility(View.GONE);
+                mKeepButton.setVisibility(View.GONE);
+                mCancelButton.setVisibility(View.GONE);
+                mDeleteButton.setVisibility(View.GONE);
+                break;
+            case ANNOTATION_PAUSE_MODE:
+                mAnnotationPausedProgress.setVisibility(View.VISIBLE);
+                mAnnotationButton.setVisibility(View.GONE);
+                break;
+            case NEW_ANNOTATION_MODE:
+                mAnnotationPausedProgress.setVisibility(View.GONE);
+                mAnnotationButton.setVisibility(View.GONE);
+                mRewButton.setVisibility(View.GONE);
+                mPauseButton.setVisibility(View.GONE);
+                mFfwdButton.setVisibility(View.GONE);
+                mAnnotationButton.setVisibility(View.GONE);
+                mProgress.setVisibility(View.GONE);
+                mCurrentTime.setVisibility(View.GONE);
+                mEndTime.setVisibility(View.GONE);
+                mDeleteButton.setVisibility(View.GONE);
+                mEditTextButton.setVisibility(View.VISIBLE);
+                mKeepButton.setVisibility(View.VISIBLE);
+                mCancelButton.setVisibility(View.VISIBLE);
+                break;
+            case EDIT_ANNOTATION_MODE:
+                if (getCurrentAnnotation() == null) {
+                    Log.e("VideoControllerView", "Moved to EDIT_ANNOTATION_MODE without " +
+                            "annotation selected.");
+                }
+                mAnnotationPausedProgress.setVisibility(View.GONE);
+                mAnnotationButton.setVisibility(View.GONE);
+                mRewButton.setVisibility(View.GONE);
+                mPauseButton.setVisibility(View.GONE);
+                mFfwdButton.setVisibility(View.GONE);
+                mAnnotationButton.setVisibility(View.GONE);
+                mProgress.setVisibility(View.GONE);
+                mCurrentTime.setVisibility(View.GONE);
+                mEndTime.setVisibility(View.GONE);
+                mDeleteButton.setVisibility(View.VISIBLE);
+                mEditTextButton.setVisibility(View.VISIBLE);
+                mKeepButton.setVisibility(View.VISIBLE);
+                mCancelButton.setVisibility(View.VISIBLE);
+                break;
+        }
+        controllerMode = mode;
     }
 
     public void setAnnotationPausedProgress(int c) {
@@ -889,7 +935,7 @@ public class VideoControllerView extends FrameLayout {
     }
 
     public boolean isPausedForShowingAnnotation() {
-        return mAnnotationPauseEnabled;
+        return (controllerMode == ANNOTATION_PAUSE_MODE);
     }
 
     public void addAnnotationToPlace(FloatPosition place) {
@@ -899,68 +945,23 @@ public class VideoControllerView extends FrameLayout {
         addNewAnnotation(place);
     }
 
-    public void editCurrentAnnotation(){
-        annotationMode = SemanticVideoPlayerFragment.EDIT_ANNOTATION_MODE;
-        setAnnotationPausedMode(false);
-        mRewButton.setVisibility(View.GONE);
-        mPauseButton.setVisibility(View.GONE);
-        mFfwdButton.setVisibility(View.GONE);
-        mAnnotationButton.setVisibility(View.GONE);
-        mProgress.setVisibility(View.GONE);
-        mCurrentTime.setVisibility(View.GONE);
-        mEndTime.setVisibility(View.GONE);
-        mDeleteButton.setVisibility(View.VISIBLE);
-        mOkButton.setVisibility(View.VISIBLE);
-        mKeepButton.setVisibility(View.VISIBLE);
-        mCancelButton.setVisibility(View.VISIBLE);
-    }
 
     public void addNewAnnotation(FloatPosition place) {
-        annotationMode = SemanticVideoPlayerFragment.NEW_ANNOTATION_MODE;
-        setAnnotationPausedMode(false);
+        setControllerMode(NEW_ANNOTATION_MODE);
 
-        mRewButton.setVisibility(View.GONE);
-        mPauseButton.setVisibility(View.GONE);
-        mFfwdButton.setVisibility(View.GONE);
-        mAnnotationButton.setVisibility(View.GONE);
-        mProgress.setVisibility(View.GONE);
-        mCurrentTime.setVisibility(View.GONE);
-        mEndTime.setVisibility(View.GONE);
         if (place == null) {
             place = new FloatPosition((float) 0.5, (float) 0.5);
         }
         mEditorListener.newAnnotation(place);
         mCurrentAnnotationIsNew = true;
-        mDeleteButton.setVisibility(View.GONE);
-        mOkButton.setVisibility(View.VISIBLE);
-        mKeepButton.setVisibility(View.VISIBLE);
-        mCancelButton.setVisibility(View.VISIBLE);
     }
 
-    private void disableAnnotationMode() {
-        annotationMode = SemanticVideoPlayerFragment.NORMAL_MODE;
-        mRewButton.setVisibility(View.VISIBLE);
-        mPauseButton.setVisibility(View.VISIBLE);
-        mFfwdButton.setVisibility(View.VISIBLE);
-        if (mCanAnnotate) {
-            mAnnotationButton.setVisibility(View.VISIBLE);
-        }
-        mProgress.setVisibility(View.VISIBLE);
-        mCurrentTime.setVisibility(View.VISIBLE);
-        mEndTime.setVisibility(View.VISIBLE);
-
-        mOkButton.setVisibility(View.GONE);
-        mKeepButton.setVisibility(View.GONE);
-        mCancelButton.setVisibility(View.GONE);
-        mDeleteButton.setVisibility(View.GONE);
-    }
 
     public int getDuration() {
         return mPlayer.getDuration();
     }
 
     public void playerSeekTo(int position) {
-        Log.i("VideoControllerView", "playerSeekTo " + position);
         mPlayer.seekTo(position, SemanticVideoPlayerFragment.DO_NOTHING);
         if (mCurrentTime != null)
             mCurrentTime.setText(stringForTime(position));
@@ -969,14 +970,15 @@ public class VideoControllerView extends FrameLayout {
     public int getControllerTop() {
         LinearLayout lo = (LinearLayout) findViewById(R.id.media_controllers);
         if (lo != null) {
-            Log.i("VideoControllerView", "Found media_controllers, " +
-                            "root height: " + getRootView().getMeasuredHeight() +
-                    "controller height " + lo.getMeasuredHeight() );
             return getRootView().getMeasuredHeight() - lo.getMeasuredHeight();
         } else {
             Log.e("VideoControllerView", "media_controllers doesn't exist!");
             return 0;
         }
+    }
+
+    public boolean isEditingAnnotations() {
+        return (controllerMode == NEW_ANNOTATION_MODE || controllerMode == EDIT_ANNOTATION_MODE);
     }
 
     public interface VideoControllerShowHideListener {

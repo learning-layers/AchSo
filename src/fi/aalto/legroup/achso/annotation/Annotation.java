@@ -102,6 +102,8 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
         return this.mSelected;
     }
 
+    public void setSelected(boolean value) { mSelected = value; }
+
     public long getDuration() {
         return super.getDuration();
     }
@@ -161,8 +163,9 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
                                          Float posy, int wh, float scale) {
         int wh2 = wh / 2;
         int tilt = wh / 8;
-        int adjust = wh / 16;
-        int madjust = (int) ((wh / 16) * (scale * 2) );
+        int adjust = 4; //wh / 16;
+        int madjust = (int) (4 * (scale * 2) );
+        //int madjust = (int) ((wh / 16) * (scale * 2) );
         color.setStyle(Paint.Style.STROKE);
         color.setAntiAlias(true);
         color.setStrokeWidth(8);
@@ -211,6 +214,11 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
 
             mSize = (int) (mScale * ORIGINAL_SIZE);
             drawAnnotationRect(c, p, s, posx, posy, mSize, 1f);
+            if (isSelected()) {
+                p.setStrokeWidth(0);
+                p.setShadowLayer(2, 2, 2, mColorShadow);
+                c.drawLine(posx, posy + (mSize/2) + 2, c.getWidth()/2, c.getHeight() - 54, p);
+            }
 
             if (mText != null) SubtitleManager.addSubtitle(mText);
 
@@ -220,7 +228,8 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
     public RectF getBounds(SurfaceView drawnTo) {
         float x = getPosition().getX() * drawnTo.getWidth();
         float y = getPosition().getY() * drawnTo.getHeight();
-        return new RectF(x - mSize, y - mSize, x + mSize, y + mSize);
+        int s2 = mSize / 2;
+        return new RectF(x - s2, y - s2, x + s2, y + s2);
     }
 
     public void setScaleFactor(float scaleFactor) {
