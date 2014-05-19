@@ -24,7 +24,15 @@
 package fi.aalto.legroup.achso.database;
 
 import android.content.Context;
+import android.util.Log;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Iterator;
+
+import fi.aalto.legroup.achso.annotation.Annotation;
+import fi.aalto.legroup.achso.util.App;
 import fi.aalto.legroup.achso.util.FloatPosition;
 import fi.aalto.legroup.achso.util.xml.XmlObject;
 import fi.aalto.legroup.achso.util.xml.XmlSerializable;
@@ -112,6 +120,26 @@ public class AnnotationBase implements XmlSerializable {
         FloatPosition pos = getPosition();
         return new XmlObject("annotation").addSubObject("text", getText()).addSubObject("x_position", Float.toString(pos.getX())).addSubObject("y_position", Float.toString(pos.getY())).addSubObject("start_time", Long.toString(getStartTime())).addSubObject("duration", Long.toString(getDuration()));
     }
+
+
+    public JSONObject json_dump() {
+        JSONObject o = new JSONObject();
+        try {
+            o.put("videoid", mVideoId);
+            o.put("creator", mCreator);
+            o.put("starttime", mStartTime);
+            o.put("duration", mDuration);
+            o.put("position_x", mPosition.getX());
+            o.put("position_y", mPosition.getY());
+            o.put("text", mText);
+            o.put("scale", mScale);
+        } catch (JSONException e) {
+            Log.i("SemanticVideo", "Error building json string.");
+            e.printStackTrace();
+        }
+        return o;
+    }
+
 
     public float getScaleFactor() {
         return mScale;

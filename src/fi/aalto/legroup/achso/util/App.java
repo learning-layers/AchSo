@@ -53,6 +53,7 @@ public class App extends Application {
     private static Context mContext;
     private static File mLogFile;
     public static Location last_location;
+    public static final int DEV_NULL = 3;
     public static final int CLVITRA2 = 2;
     public static final int CLVITRA = 1;
     public static final int AALTO_TEST_SERVER = 0;
@@ -62,7 +63,7 @@ public class App extends Application {
 
     public static boolean use_las = true;
     private static boolean use_log_file = false;
-    public static boolean allow_upload = false;
+    public static boolean allow_upload = true;
 
 
     public static Context getContext() {
@@ -140,7 +141,7 @@ public class App extends Application {
             }
         }
 
-        video_uploader = CLVITRA;
+        video_uploader = DEV_NULL; // CLVITRA
         metadata_uploader = AALTO_TEST_SERVER;
 
         if (use_las) {

@@ -80,7 +80,6 @@ public class UploaderService extends IntentService {
 
         Log.i("UploaderService", "Received intent to upload");
 
-        /*
 
         if (id != -1) {
             SemanticVideo sem_video = VideoDBHelper.getById(id);
@@ -94,6 +93,8 @@ public class UploaderService extends IntentService {
                 case App.AALTO_TEST_SERVER:
                     uploadVideoToAaltoTestService(sem_video);
                     break;
+                case App.DEV_NULL:
+                    uploadVideoToNowhere(sem_video);
             }
             switch (App.metadata_uploader) {
                 case App.CLVITRA2:
@@ -108,7 +109,6 @@ public class UploaderService extends IntentService {
             }
 
         }
-        */
     }
 
     /**
@@ -275,6 +275,40 @@ public class UploaderService extends IntentService {
         }
     }
 
+    private void uploadVideoToNowhere(SemanticVideo sem_video) {
+        final LocalBroadcastManager broadcast_manager = LocalBroadcastManager.getInstance(this);
+        final Context context = this;
+
+        //give an unique name to the video and xml files stored on server
+        String filename = sem_video.getKey();
+        if (filename == null || filename.isEmpty()) {
+            filename = sem_video.createKey();
+            VideoDBHelper vdb = new VideoDBHelper(context);
+            vdb.update(sem_video);
+            vdb.close();
+        }
+        Long traffic_id = sem_video.getId();
+        File file = new File(sem_video.getUri().getPath());
+        FileEntity fe = new FileEntity(file, "binary/octet-stream");
+        fe.setChunked(true);
+        PollableHttpEntity broadcasting_entity = enableProgressBroadcasting(fe, traffic_id);
+        sem_video.setUploadStatus(SemanticVideo.UPLOADING);
+        appendLog(String.format("Pretending to upload video %d as file %s",
+                sem_video.getId(), filename));
+
+        Log.i("UploaderService", "Pretending to send video file " + sem_video.getId());
+        Log.i("UploaderService", "response is ok! Move on.");
+        broadcasting_entity.getContentLength();
+        Intent endIntent = new Intent();
+        endIntent.setAction(VideoBrowserActivity.UploaderBroadcastReceiver.UPLOAD_END_ACTION);
+        endIntent.addCategory(Intent.CATEGORY_DEFAULT);
+        endIntent.putExtra(PARAM_OUT, traffic_id);
+        endIntent.putExtra(PARAM_WHAT, UPLOAD_END);
+        broadcast_manager.sendBroadcast(endIntent);
+    }
+
+
+
     private void uploadVideoToAaltoTestService(SemanticVideo sem_video) {
         // This is new video_uploader using the i5Cloud services
         // Now implemented a simple stub that sends video file as a PUT to some url.
@@ -343,6 +377,7 @@ public class UploaderService extends IntentService {
             vdb.close();
         }
         String json = sem_video.json_dump().toString();
+        Log.i("UploaderService", json);
 
         StringEntity se = null;
         try {

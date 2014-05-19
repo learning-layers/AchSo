@@ -83,24 +83,36 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
     public JSONObject json_dump() {
         JSONObject o = new JSONObject();
         try {
-            o.accumulate("title", mTitle);
-            o.accumulate("creator", mCreator);
-            o.accumulate("qr_code", mQrCode);
-            o.accumulate("created_at", mCreatedAt.getTime());
-            o.accumulate("video_uri", mUri.toString());
-            o.accumulate("genre", englishGenreStrings.get(mGenre));
-            o.accumulate("key", mKey);
+            o.put("title", mTitle);
+            o.put("creator", mCreator);
+            o.put("qr_code", mQrCode);
+            o.put("created_at", mCreatedAt.getTime());
+            o.put("video_uri", mUri.toString());
+            o.put("genre", englishGenreStrings.get(mGenre));
+            o.put("key", mKey);
             if (mLocation != null) {
-                o.accumulate("latitude", mLocation.getLatitude());
-                o.accumulate("longitude", mLocation.getLongitude());
-                o.accumulate("accuracy", mLocation.getAccuracy());
+                o.put("latitude", mLocation.getLatitude());
+                o.put("longitude", mLocation.getLongitude());
+                o.put("accuracy", mLocation.getAccuracy());
             } else {
-                o.accumulate("latitude", 0);
-                o.accumulate("longitude", 0);
-                o.accumulate("accuracy", 0);
+                o.put("latitude", 0);
+                o.put("longitude", 0);
+                o.put("accuracy", 0);
             }
-            o.accumulate("duration", mDuration);
-            o.accumulate("thumb_uri", "");
+            o.put("duration", mDuration);
+            o.put("thumb_uri", "");
+            VideoDBHelper vdb = new VideoDBHelper(App.getContext());
+            Iterator<Annotation> annotationIterator = vdb.getAnnotations(getId()).iterator();
+            //Map<String, Object> ann_map;
+            JSONObject ao;
+            while(annotationIterator.hasNext()) {
+                ao = annotationIterator.next().json_dump();
+                //ann_map = annotationIterator.next().getJSONReadyMapping();
+                //o.put("annotations", ann_map);
+                o.accumulate("annotations", ao);
+            }
+            vdb.close();
+
         } catch (JSONException e) {
             Log.i("SemanticVideo", "Error building json string.");
             e.printStackTrace();
@@ -307,7 +319,7 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
 
     public boolean prepareThumbnails() {
 
-        Log.i("VideoDBHelper", "Creating thumbnails from sv in " + getUri().getPath());
+        Log.i("SemanticVideo", "Creating thumbnails from sv in " + getUri().getPath());
         Bitmap mini = ThumbnailUtils.createVideoThumbnail(getUri().getPath(), MediaStore.Images.Thumbnails.MINI_KIND);
 
         Bitmap micro = ThumbnailUtils.createVideoThumbnail(getUri().getPath(), MediaStore.Images.Thumbnails.MICRO_KIND);

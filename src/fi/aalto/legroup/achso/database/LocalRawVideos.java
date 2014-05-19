@@ -23,10 +23,12 @@
 
 package fi.aalto.legroup.achso.database;
 
+import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -34,6 +36,8 @@ import android.util.Log;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import static android.provider.DocumentsContract.*;
 
 /**
  * This class provides access to video files stored on device. These may vary on device and it
@@ -60,26 +64,65 @@ public class LocalRawVideos {
         } else return null;
     }
 
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    public static String getRealPathFromURIKitKat(Context context, Uri contentUri) {
+        ContentResolver cr = context.getContentResolver();
+        Log.i("LocalRawVideos", "Running KitKat path finder ");
+        // Will return "image:x*"
+        String wholeID = getDocumentId(contentUri);
+        // Split at colon, use second item in the array
+        String id = wholeID.split(":")[1];
+        String[] column = { MediaStore.Video.Media.DATA };
+        // where id is equal to
+        String sel = MediaStore.Images.Media._ID + "=?";
+        Cursor cursor = cr.query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, column, sel,
+                new String[]{id}, null);
+        String filePath = "";
+        int columnIndex = cursor.getColumnIndex(column[0]);
+        if (cursor.moveToFirst()) {
+            filePath = cursor.getString(columnIndex);
+        }
+        cursor.close();
+        return filePath;
+    }
+
     public static String getRealPathFromURI(Context context, Uri contentUri) {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) { // KITKAT
+            return getRealPathFromURIKitKat(context, contentUri);
+        }
         ContentResolver cr = context.getContentResolver();
 
-        String data = MediaStore.Images.Media.DATA;
+        String data = MediaStore.MediaColumns.DATA;
         String[] da = {data};
         Cursor cursor = cr.query(contentUri, da, null, null, null);
-        if (cursor == null) {
-            data = MediaStore.Video.Media.DATA;
-            String[] da2 = {data};
-            cursor = cr.query(contentUri, da2, null, null, null);
-        }
+
         if (cursor != null) {
             int column_index = cursor.getColumnIndexOrThrow(data);
+            Log.i("LocalRawVideos", "Found column index: " + column_index + " of " + cursor.getColumnCount());
             cursor.moveToFirst();
+            Log.i("LocalRawVideos", "Found " + cursor.getCount() + " results.");
+
             String path = cursor.getString(column_index);
+            Log.i("LocalRawVideos", "Found string: " + path);
             cursor.close();
+
+            if (path == null) {
+                cursor = cr.query(contentUri, null, null, null, null);
+                cursor.moveToFirst();
+                for (int i=0; i < cursor.getColumnCount(); i++) {
+                    Log.i("LocalRawVideos", ""+ i + ":"+ cursor.getColumnName(i) + ": "+ cursor
+                            .getString(i));
+                }
+
+
+            }
+
             return path;
         } else {
             return null;
         }
+
     }
 
 
