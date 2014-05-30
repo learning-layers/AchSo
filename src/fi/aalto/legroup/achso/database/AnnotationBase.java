@@ -44,6 +44,7 @@ public class AnnotationBase implements XmlSerializable {
     protected String mText;
     protected float mScale;
     private String mCreator;
+    private String mVideoKey;
     private long mId;
     private long mStartTime;
     private long mDuration;
@@ -58,6 +59,7 @@ public class AnnotationBase implements XmlSerializable {
         mPosition = position;
         mText = text;
         mScale = scale;
+        mVideoKey = Long.toString(videoid);
     }
 
     public String getText() {
@@ -96,6 +98,15 @@ public class AnnotationBase implements XmlSerializable {
         return mVideoId;
     }
 
+    public String getVideoKey() {
+        return mVideoKey;
+    }
+
+    public void setVideoKey(String video_key) {
+        mVideoKey = video_key;
+    }
+
+
     public FloatPosition getPosition() {
         return mPosition;
     }
@@ -121,11 +132,12 @@ public class AnnotationBase implements XmlSerializable {
         return new XmlObject("annotation").addSubObject("text", getText()).addSubObject("x_position", Float.toString(pos.getX())).addSubObject("y_position", Float.toString(pos.getY())).addSubObject("start_time", Long.toString(getStartTime())).addSubObject("duration", Long.toString(getDuration()));
     }
 
-
+    // When giving the JSON dump, the internal id and mVideoId is omitted,
+    // as these won't be the same in another device
     public JSONObject json_dump() {
         JSONObject o = new JSONObject();
         try {
-            o.put("videoid", mVideoId);
+            o.put("video_key", mVideoKey);
             o.put("creator", mCreator);
             o.put("starttime", mStartTime);
             o.put("duration", mDuration);

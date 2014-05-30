@@ -34,6 +34,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.FileEntity;
@@ -42,13 +43,16 @@ import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 import java.util.UUID;
 
 import fi.aalto.legroup.achso.activity.VideoBrowserActivity;
+import fi.aalto.legroup.achso.annotation.Annotation;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.util.App;
@@ -69,6 +73,7 @@ public class UploaderService extends IntentService {
     public static final int UPLOAD_END = 2;
     public static final int UPLOAD_ERROR = 3;
 
+    public static final String AALTO_API_URL = "http://achso.aalto.fi/server/api/";
 
     public UploaderService() {
         super("AchSoUploaderService");
@@ -359,6 +364,47 @@ public class UploaderService extends IntentService {
 
     }
 
+    private String getUniqueKeyFromAaltoTestService(SemanticVideo sem_video) {
+        String key = "";
+        Long traffic_id = sem_video.getId();
+        String url = AALTO_API_URL + "get_unique_id";
+        HttpGet get = new HttpGet(url);
+
+        Log.i("UploaderService", "Asking new key for video:" + traffic_id);
+
+        key = getResponseString(get, traffic_id);
+
+        return key;
+    }
+
+    private String getResponseString(HttpGet get, Long traffic_id) {
+        String response_string = "";
+        HttpClient client = new DefaultHttpClient();
+        try {
+            HttpResponse response = client.execute(get);
+            HttpEntity responseEntity = response.getEntity();
+            if(responseEntity!=null) {
+                response_string = EntityUtils.toString(responseEntity);
+            }
+            Log.i("UploaderService", "received response: " + response_string);
+            appendLog("response:" + response_string);
+        } catch (ClientProtocolException e) {
+            announceError("Sorry, error in transfer.", traffic_id);
+            Log.i("UploaderService", "ClientProtocolException caught");
+            appendLog("ClientProtocolException caught");
+        } catch (IOException e) {
+            announceError("Sorry, couldn't connect to server.", traffic_id);
+            Log.i("UploaderService", "IOException caught:" + e.getMessage());
+            appendLog("IOException caught:" + e.getMessage());
+        } catch (IllegalStateException e) {
+            announceError("Bad or missing server name.", traffic_id);
+            Log.i("UploaderService", "IllegalStateException caught:" + e.getMessage());
+            appendLog("IllegalStateException caught:" + e.getMessage());
+            e.printStackTrace();
+        }
+        return response_string;
+    }
+
     private void uploadMetadataToAaltoTestService(SemanticVideo sem_video) {
         // This is new video_uploader using the i5Cloud services
         // Now implemented a simple stub that sends video file as a PUT to some url.
@@ -371,8 +417,13 @@ public class UploaderService extends IntentService {
         HttpPost post= new HttpPost(url);
         String key = sem_video.getKey();
         if (key == null || key.isEmpty()) {
-            key = sem_video.createKey();
+            key = getUniqueKeyFromAaltoTestService(sem_video);
             VideoDBHelper vdb = new VideoDBHelper(this);
+            List<Annotation> annotations = vdb.getAnnotations(traffic_id);
+            for (Annotation annotation: annotations) {
+                annotation.setVideoKey(key);
+                vdb.update(annotation);
+            }
             vdb.update(sem_video);
             vdb.close();
         }

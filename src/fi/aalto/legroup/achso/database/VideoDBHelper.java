@@ -64,6 +64,7 @@ public class VideoDBHelper extends SQLiteOpenHelper {
     public static final String KEY_POSITION_X = "xposition";
     public static final String KEY_POSITION_Y = "yposition";
     public static final String KEY_VIDEO_ID = "videoid";
+    public static final String KEY_VIDEO_KEY = "video_key";
     public static final String KEY_TEXT = "text";
     public static final String KEY_SCALE = "scale";
     public static final String KEY_ACCURACY = "accuracy";
@@ -72,7 +73,7 @@ public class VideoDBHelper extends SQLiteOpenHelper {
     public static final String KEY_PROVIDER = "provider";
     public static final String KEY_QRCODE = "qr_code";
     public static final String KEY_HASHKEY = "key";
-    private static final int DBVER = 14; // Increase this if you make changes to the database
+    private static final int DBVER = 15; // Increase this if you make changes to the database
     // structure
     private static final String DBNAME = "videoDB";
     private static final String TBL_VIDEO = "video";
@@ -337,6 +338,23 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         return ret;
     }
 
+    public List<Annotation> getAnnotations(String video_key) {
+        List<Annotation> ret = new ArrayList<Annotation>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] whereargs = {video_key};
+        Cursor c = db.query(TBL_ANNOTATION, null, KEY_VIDEO_KEY + "=?", whereargs, null, null,
+                null);
+        if (c.getCount() > 0) {
+            while (c.moveToNext()) {
+                ret.add(getAnnotationFromCursor(c));
+            }
+        }
+        c.close();
+        db.close();
+        return ret;
+    }
+
+
     public Annotation getAnnotationById(long videoId, long annotationId) {
         SQLiteDatabase db = this.getReadableDatabase();
         String[] whereargs = {Long.toString(videoId), Long.toString(annotationId)};
@@ -474,6 +492,7 @@ public class VideoDBHelper extends SQLiteOpenHelper {
                         KEY_TEXT + " TEXT, " +
                         KEY_SCALE + " FLOAT NOT NULL DEFAULT '1.0'," +
                         KEY_CREATOR + " TEXT, " +
+                        KEY_VIDEO_KEY + " TEXT, " +
                         "FOREIGN KEY(" + KEY_VIDEO_ID + ") REFERENCES " + TBL_VIDEO + "(" + KEY_ID + ")" +
                         ")"
         );
@@ -518,6 +537,12 @@ public class VideoDBHelper extends SQLiteOpenHelper {
                     Log.i("VideoDBHelper *** upgrade", "Upgrading annotation table to have " +
                             "creator -column");
                     db.execSQL("ALTER TABLE annotation ADD COLUMN "+ KEY_CREATOR + " TEXT");
+                    break;
+                case 14:
+                    Log.i("VideoDBHelper *** upgrade", "Upgrading annotation table to have " +
+                            "video_key -column");
+                    db.execSQL("ALTER TABLE annotation ADD COLUMN "+ KEY_VIDEO_KEY + " " +
+                            "TEXT");
                     break;
 
             }
