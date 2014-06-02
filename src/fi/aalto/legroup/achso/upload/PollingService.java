@@ -89,11 +89,12 @@ public class PollingService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         key = intent.getStringExtra(VIDEO_KEY);
         String user_id = intent.getStringExtra(USERID_PART);
-        if (key == null) {
-
+        if (key == null || key.isEmpty()) {
+            Log.e("PollingService", "PollingService called with empty key.");
+            return;
         }
 
-        Log.i("PollingService", "Received intent to poll occassionally");
+        Log.i("PollingService", "Received intent to poll for key "+ key);
         //http://137.226.58.27:9080/ClViTra_2.0/rest/videos/testuser/transcoded
 
         polling_path = "http://137.226.58.27:9080/ClViTra_2.0/rest/videos/" + user_id +
@@ -154,6 +155,13 @@ public class PollingService extends IntentService {
                             // modify video metadata to include new video url
                             Log.i("PollingService", "Found matching Video_URL:" + video_url);
                             SemanticVideo sem_video = VideoDBHelper.getByKey(key);
+                            if (sem_video == null) {
+                                // this thing is broken, don't try it again
+                                Log.e("PollingService", "Couldn't find matching video from local " +
+                                        "DB.");
+                                App.removePollingReminder(key);
+                                return;
+                            }
                             List<String> updated_fields = new ArrayList<String>();
                             sem_video.setRemoteVideo(video_url);
                             updated_fields.add("remote_video");
@@ -166,6 +174,7 @@ public class PollingService extends IntentService {
                                 vdb.update(sem_video);
                                 vdb.close();
                                 App.removePollingReminder(key);
+                                Log.i("PollingService", "Finalized video upload for "+ key);
                             }
                         } else {
                             // try again soon
@@ -176,7 +185,6 @@ public class PollingService extends IntentService {
                 };
                 poll_runner.run();
                 break;
-            default:
 
         }
 

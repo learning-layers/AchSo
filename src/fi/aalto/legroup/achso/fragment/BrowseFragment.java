@@ -74,6 +74,9 @@ import fi.aalto.legroup.achso.remote.RemoteFetchTask;
 import fi.aalto.legroup.achso.remote.RemoteResultCache;
 import fi.google.zxing.integration.android.IntentIntegrator;
 
+import static fi.aalto.legroup.achso.util.App.addPollingReminder;
+import static fi.aalto.legroup.achso.util.App.doPendingPolls;
+
 
 public class BrowseFragment extends Fragment implements AdapterView.OnItemClickListener,
         AdapterView.OnItemLongClickListener, ActionMode.Callback, AbsListView.MultiChoiceModeListener {
@@ -225,8 +228,15 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
             if (sv.inLocalDB()) {
                 mCallbacks.onLocalItemSelected(sv.getId());
             } else {
-                mCallbacks.onRemoteItemSelected(position, sv);
-                RemoteResultCache.setSelectedVideo(sv);
+                if (sv.getRemoteVideo() != null && !sv.getRemoteVideo().isEmpty()) {
+                    mCallbacks.onRemoteItemSelected(position, sv);
+                    RemoteResultCache.setSelectedVideo(sv);
+                } else {
+                    Log.i("BrowseFragment", "Launching polling intent");
+                    addPollingReminder(sv.getKey(), "testuser");
+                    doPendingPolls();
+
+                }
             }
         } else if (getVideoAdapter().getItemViewType(position) == VideoThumbAdapter
                     .ITEM_TYPE_RECORD_BUTTON) {

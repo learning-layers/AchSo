@@ -193,7 +193,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
             mTitleAreaHeight = mTitleArea.getMeasuredHeight();
             mControllerTopCoordinate = 0; // we get proper value when video is initialized
             // buttons are initialized
-            setVideo(semantic_video.getUri()); // restoring continues in onPrepared -- when video
+            setVideo(semantic_video); // restoring continues in onPrepared -- when video
             // player is ready
 
 
@@ -201,7 +201,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
         } else if (mMediaPlayer == null && mVideoId != -1) {
             mMediaPlayer = createMediaPlayer();
             SemanticVideo semantic_video = VideoDBHelper.getById(mVideoId);
-            setVideo(semantic_video.getUri());
+            setVideo(semantic_video);
         }
         if (mBufferProgress != null && mVideoId != -1) {
             mBufferProgress.setVisibility(View.GONE);
@@ -571,8 +571,13 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     }
 
 
-    public void setVideo(Uri uri) {
-        Log.i("SemanticVideoPlayerFragment", "Setting video to uri:" + uri.toString());
+    public void setVideo(SemanticVideo sem) {
+        Uri uri;
+        if (sem.inLocalDB()) {
+            uri = sem.getUri();
+        } else {
+            uri = Uri.parse(sem.getRemoteVideo());
+        }
         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         try {
             mMediaPlayer.setDataSource(getActivity(), uri);

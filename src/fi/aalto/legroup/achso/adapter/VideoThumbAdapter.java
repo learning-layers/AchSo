@@ -200,6 +200,10 @@ public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
                 vh.thumbnail_land.setVisibility(View.GONE);
             }
         } else {
+            BitmapDrawable thumb = (BitmapDrawable) res.getDrawable(R.drawable.circle);
+            setThumbBackground(vh.thumbnail_land, thumb);
+            vh.thumbnail_land.setVisibility(View.VISIBLE);
+            vh.thumbnail_port.setVisibility(View.GONE);
             v.putThumbnailTo(vh);
         }
         if (v.isNeverUploaded()) {
