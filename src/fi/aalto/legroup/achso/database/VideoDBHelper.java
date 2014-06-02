@@ -73,7 +73,9 @@ public class VideoDBHelper extends SQLiteOpenHelper {
     public static final String KEY_PROVIDER = "provider";
     public static final String KEY_QRCODE = "qr_code";
     public static final String KEY_HASHKEY = "key";
-    private static final int DBVER = 15; // Increase this if you make changes to the database
+    public static final String KEY_REMOTE_VIDEO = "remote_video";
+    public static final String KEY_REMOTE_THUMBNAIL = "remote_thumbnail";
+    private static final int DBVER = 16; // Increase this if you make changes to the database
     // structure
     private static final String DBNAME = "videoDB";
     private static final String TBL_VIDEO = "video";
@@ -149,10 +151,22 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         return null;
     }
 
-    public static SemanticVideo getByUri(Uri uri) {
+
+    public static SemanticVideo getByKey(String key) {
+        if (key == null) return null;
         if (mLocalVideoCache == null) return null;
         for (SemanticVideo v : mLocalVideoCache) {
-            if (v.getUri().equals(uri)) return v;
+            if (key.equals(v.getKey())) return v;
+        }
+        return null;
+    }
+
+
+    public static SemanticVideo getByUri(Uri uri) {
+        if (uri == null) return null;
+        if (mLocalVideoCache == null) return null;
+        for (SemanticVideo v : mLocalVideoCache) {
+            if (uri.equals(v.getUri())) return v;
         }
         return null;
     }
@@ -205,6 +219,8 @@ public class VideoDBHelper extends SQLiteOpenHelper {
 
         cv.put(KEY_QRCODE, sv.getQrCode());
         cv.put(KEY_CREATOR, sv.getCreator());
+        cv.put(KEY_REMOTE_VIDEO, sv.getRemoteVideo());
+        cv.put(KEY_REMOTE_THUMBNAIL, sv.getRemoteThumbnail());
         return cv;
     }
 
@@ -218,6 +234,7 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         cv.put(KEY_TEXT, a.getText());
         cv.put(KEY_SCALE, a.getScaleFactor());
         cv.put(KEY_CREATOR, a.getCreator());
+        cv.put(KEY_VIDEO_KEY, a.getVideoKey());
         return cv;
     }
 
@@ -291,7 +308,7 @@ public class VideoDBHelper extends SQLiteOpenHelper {
     }
 
     private void delete(SemanticVideo sv) {
-        List<Annotation> videoAnnotations = getAnnotations(sv.getId());
+        List<Annotation> videoAnnotations = getAnnotationsById(sv.getId());
         for (Annotation a : videoAnnotations) {
             delete(a); // Again, these could be merged to one database transaction
         }
@@ -316,13 +333,14 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         if (text == null) text = "";
         float scale = c.getFloat(i++);
         String creator = c.getString(i++);
+        String video_key = c.getString(i++);
         Annotation a = new Annotation(mContext, vid, starttime, text, new FloatPosition(x, y),
-                scale, creator);
+                scale, creator, video_key);
         ((AnnotationBase) a).setId(id);
         return a;
     }
 
-    public List<Annotation> getAnnotations(long videoid) {
+    public List<Annotation> getAnnotationsById(long videoid) {
         List<Annotation> ret = new ArrayList<Annotation>();
         SQLiteDatabase db = this.getReadableDatabase();
         String[] whereargs = {Long.toString(videoid)};
@@ -338,7 +356,7 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         return ret;
     }
 
-    public List<Annotation> getAnnotations(String video_key) {
+    public List<Annotation> getAnnotationsByKey(String video_key) {
         List<Annotation> ret = new ArrayList<Annotation>();
         SQLiteDatabase db = this.getReadableDatabase();
         String[] whereargs = {video_key};
@@ -404,6 +422,7 @@ public class VideoDBHelper extends SQLiteOpenHelper {
                     //Log.d("DateFormatter", e.toString());
                 }
                 int genreInt = c.getInt(i++);
+                SemanticVideo.Genre genre = SemanticVideo.Genre.values()[genreInt];
                 Uri uri = Uri.parse(c.getString(i++));
                 byte[] minib = c.getBlob(i++);
                 byte[] microb = c.getBlob(i++);
@@ -436,10 +455,17 @@ public class VideoDBHelper extends SQLiteOpenHelper {
                 if (!c.isNull(i)) {
                     key = c.getString(i++);
                 }
+                String remote_video = null;
+                if (!c.isNull(i)) {
+                    remote_video = c.getString(i++);
+                }
+                String remote_thumbnail = null;
+                if (!c.isNull(i)) {
+                    remote_thumbnail = c.getString(i++);
+                }
 
-
-                ret.add(new SemanticVideo(id, title, createdat, uri, genreInt, mini, micro,
-                        qrCode, loc, uploadStatus, creator, key));
+                ret.add(new SemanticVideo(id, title, createdat, uri, genre, mini, micro,
+                        qrCode, loc, uploadStatus, creator, key, remote_video, remote_thumbnail));
             }
         }
         c.close();
@@ -479,6 +505,8 @@ public class VideoDBHelper extends SQLiteOpenHelper {
                         KEY_PROVIDER + " TEXT, " +
                         KEY_QRCODE + " TEXT, " +
                         KEY_HASHKEY + " TEXT, " +
+                        KEY_REMOTE_VIDEO + " TEXT, " +
+                        KEY_REMOTE_THUMBNAIL + " TEXT, " +
                         "FOREIGN KEY(" + KEY_GENRE + ") REFERENCES " + TBL_GENRE + "(" + KEY_ID + ")" +
                         ")"
         );
@@ -542,6 +570,14 @@ public class VideoDBHelper extends SQLiteOpenHelper {
                     Log.i("VideoDBHelper *** upgrade", "Upgrading annotation table to have " +
                             "video_key -column");
                     db.execSQL("ALTER TABLE annotation ADD COLUMN "+ KEY_VIDEO_KEY + " " +
+                            "TEXT");
+                    break;
+                case 15:
+                    Log.i("VideoDBHelper *** upgrade", "Upgrading annotation table to have " +
+                            "video_key -column");
+                    db.execSQL("ALTER TABLE video ADD COLUMN " + KEY_REMOTE_VIDEO + " " +
+                            "TEXT");
+                    db.execSQL("ALTER TABLE video ADD COLUMN "+ KEY_REMOTE_THUMBNAIL + " " +
                             "TEXT");
                     break;
 

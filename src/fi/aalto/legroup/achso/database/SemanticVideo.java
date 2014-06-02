@@ -23,9 +23,11 @@
 
 package fi.aalto.legroup.achso.database;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.UUID;
 
 import android.content.Context;
@@ -38,11 +40,15 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.util.Pair;
 
+import com.squareup.picasso.Picasso;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import fi.aalto.legroup.achso.R;
+import fi.aalto.legroup.achso.adapter.VideoThumbAdapter;
 import fi.aalto.legroup.achso.annotation.Annotation;
+import fi.aalto.legroup.achso.remote.RemoteAnnotation;
 import fi.aalto.legroup.achso.util.App;
 import fi.aalto.legroup.achso.util.TextSettable;
 import fi.aalto.legroup.achso.util.xml.XmlConverter;
@@ -58,8 +64,9 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
     public static final int UPLOADED = 1;
     public static final int UPLOADING = 2;
     public static final int UPLOAD_ERROR = 3;
+    public static final int PROCESSING_VIDEO = 4;
 
-    protected long mId;
+    protected long mId; // id in device's own, local database
 	protected String mTitle;
 	protected String mCreator;
 	protected String mQrCode;
@@ -71,9 +78,13 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
     protected int mUploadStatus;
     protected boolean mInLocalDB;
     protected boolean mInCloud;
-    protected String mKey;
+    protected String mKey; // id in cloud database
 	protected Location mLocation;
     protected Long mDuration;
+    protected String mRemoteVideo;
+    protected String mRemoteThumbnail;
+    private List<RemoteAnnotation> mRemoteAnnotations;
+    private List<Annotation> mAnnotations;
 
     @Override
     public void setText(String text) {
@@ -87,7 +98,6 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
             o.put("creator", mCreator);
             o.put("qr_code", mQrCode);
             o.put("created_at", mCreatedAt.getTime());
-            o.put("video_uri", mUri.toString());
             o.put("genre", englishGenreStrings.get(mGenre));
             o.put("key", mKey);
             if (mLocation != null) {
@@ -100,9 +110,62 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
                 o.put("accuracy", 0);
             }
             o.put("duration", mDuration);
-            o.put("thumb_uri", "");
+            o.put("thumb_uri", mRemoteThumbnail);
+            o.put("video_uri", mRemoteVideo);
             VideoDBHelper vdb = new VideoDBHelper(App.getContext());
-            Iterator<Annotation> annotationIterator = vdb.getAnnotations(getId()).iterator();
+            Iterator<Annotation> annotationIterator = vdb.getAnnotationsById(getId()).iterator();
+            //Map<String, Object> ann_map;
+            JSONObject ao;
+            while(annotationIterator.hasNext()) {
+                ao = annotationIterator.next().json_dump();
+                //ann_map = annotationIterator.next().getJSONReadyMapping();
+                //o.put("annotations", ann_map);
+                o.accumulate("annotations", ao);
+            }
+            vdb.close();
+
+        } catch (JSONException e) {
+            Log.i("SemanticVideo", "Error building json string.");
+            e.printStackTrace();
+        }
+        return o;
+    }
+
+    public JSONObject json_dump(List<String> fields) {
+        JSONObject o = new JSONObject();
+        try {
+            if (fields.contains("title")) {
+                o.put("title", mTitle);
+            }
+            if (fields.contains("title")) {
+                o.put("creator", mCreator);
+            }
+            if (fields.contains("title")) {
+                o.put("qr_code", mQrCode);
+            }
+            if (fields.contains("title")) {
+                o.put("created_at", mCreatedAt.getTime());
+            }
+            if (fields.contains("title")) {
+                o.put("genre", englishGenreStrings.get(mGenre));
+            }
+            o.put("key", mKey);
+            if (fields.contains("location")) {
+                if (mLocation != null) {
+                    o.put("latitude", mLocation.getLatitude());
+                    o.put("longitude", mLocation.getLongitude());
+                    o.put("accuracy", mLocation.getAccuracy());
+                } else {
+                    o.put("latitude", 0);
+                    o.put("longitude", 0);
+                    o.put("accuracy", 0);
+                }
+            }
+            o.put("duration", mDuration);
+            o.put("thumb_uri", mRemoteThumbnail);
+            o.put("video_uri", mRemoteVideo);
+            VideoDBHelper vdb = new VideoDBHelper(App.getContext());
+            Iterator<Annotation> annotationIterator = vdb.getAnnotationsById(getId()).iterator();
             //Map<String, Object> ann_map;
             JSONObject ao;
             while(annotationIterator.hasNext()) {
@@ -143,15 +206,13 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
         englishGenreStrings.put(Genre.SiteOverview, App.getContext().getString(R.string.site_overview_genre_english));
 	}
 
-    protected SemanticVideo(long id, String title, Date createdat, Long duration, Uri uri,
-                            int genreInt, Bitmap mini, Bitmap micro, String qrcode,
-                            Location location, int uploadStatus, String creator, String key) {
+    public SemanticVideo(long id, String title, Date createdat, Long duration, Uri uri, Genre genre, Bitmap mini, Bitmap micro, String qrcode, Location location, int uploadStatus, String creator, String key, String remote_video, String remote_thumbnail) {
         this.mId = id;
         this.mTitle = title;
         this.mCreatedAt = createdat;
         this.mUri = uri;
         this.mQrCode = qrcode;
-        this.mGenre = Genre.values()[genreInt];
+        this.mGenre = (genre != null) ? genre : Genre.GoodWork;
         this.mUploadStatus = uploadStatus;
         this.mThumbMini = mini;
         this.mThumbMicro = micro;
@@ -161,32 +222,38 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
         this.mInLocalDB = true;
         this.mInCloud = (uploadStatus == UPLOADED);
         this.mKey = key;
+        this.mRemoteVideo = remote_video;
+        this.mRemoteThumbnail = remote_thumbnail;
+        this.mRemoteAnnotations = null;
+        this.mAnnotations = null;
+
     }
 
 	// Constructor for VideoDBHelper to reconstruct SemanticVideo object from
 	// the database
-	protected SemanticVideo(long id, String title, Date createdat, Uri uri,
-			int genreInt, Bitmap mini, Bitmap micro, String qrcode,
-			Location location, int uploadStatus, String creator, String key) {
-        this(id, title, createdat, null, uri, genreInt, mini, micro, qrcode, location,
-                uploadStatus, creator, key);
+	public SemanticVideo(long id, String title, Date createdat, Uri uri,
+			Genre genre, Bitmap mini, Bitmap micro, String qrcode,
+			Location location, int uploadStatus, String creator, String key, String remote_video, String remote_thumbnail) {
+        this(id, title, createdat, null, uri, genre, mini, micro, qrcode, location,
+                uploadStatus, creator, key, remote_video, remote_thumbnail);
 	}
 
     // This is used when creating SemanticVideo from local recording
 	public SemanticVideo(String title, Uri uri, Genre genre, String creator) {
-		this.mUri = uri;
-		this.mCreatedAt = new Date();
-		this.mTitle = title != null ? title : "Untitled";
-		this.mGenre = genre;
-		this.mLocation = App.last_location;
-		this.mQrCode = null;
-        this.mUploadStatus = NO_UPLOAD;
-		this.mCreator = creator;
-        this.mDuration = null;
-        this.mInLocalDB = true;
-        this.mInCloud = false;
-        this.mKey = null;
+        this(-1, title, new Date(), null, uri, genre, null, null, null, App.last_location,
+                NO_UPLOAD, creator, null, null, null);
 	}
+
+    // These are crippled videos from SeViAnno.
+    //sem = new SemanticVideo(title, video_url, thumb_url, author);
+    public SemanticVideo(String title, String remote_video, String remote_thumb,
+                         String creator) {
+        this(-1, title, null, null, null, Genre.GoodWork, null, null, null, null,
+                NO_UPLOAD, creator, null, remote_video, remote_thumb);
+        this.mInLocalDB = false;
+        this.mInLocalDB = true;
+    }
+
 
     public void extractRemoteDatas() {
         /*
@@ -218,6 +285,10 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
         return mDuration;
     }
 
+    public void setKey(String key) {
+        mKey = key;
+    }
+
     public boolean inCloud() {
         return mInCloud;
     }
@@ -246,7 +317,11 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
 		return mLocation;
 	}
 
-	public String getQrCode() {
+    public void setLocation(Location location) {
+        mLocation = location;
+    }
+
+    public String getQrCode() {
 		return mQrCode;
 	}
 
@@ -372,10 +447,59 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
         return (mUploadStatus == NO_UPLOAD);
     }
 
+    public boolean isProcessing() { return (mUploadStatus == PROCESSING_VIDEO); }
+
+
+    public String getRemoteVideo() {
+        return mRemoteVideo;
+    }
+    public String getRemoteThumbnail() {
+        return mRemoteThumbnail;
+    }
+
+    public void setRemoteVideo(String remote_video) {
+        mRemoteVideo = remote_video;
+    }
+    public void setRemoteThumbnail(String remote_thumb) {
+        mRemoteThumbnail = remote_thumb;
+    }
 
     public void setQrCode(String code) {
 		mQrCode = code;
 	}
+
+    public void setRemoteAnnotations(List<RemoteAnnotation> remoteAnnotations) {
+        mRemoteAnnotations = remoteAnnotations;
+    }
+
+
+    public List<Annotation> getAnnotations(Context ctx) {
+        if (mAnnotations == null) {
+            mAnnotations = new ArrayList<Annotation>();
+            if (mRemoteAnnotations != null) {
+                for (RemoteAnnotation ra : mRemoteAnnotations) {
+                    mAnnotations.add(new Annotation(ctx, ra.getVideo(), ra));
+                }
+            }
+        }
+        return mAnnotations;
+    }
+
+    public void putThumbnailTo(VideoThumbAdapter.ViewHolder thumbnail_holder) {
+        //Log.i("RemoteSemanticVideo", "Loading thumbnail from " + mThumbnailUri.toString() + ", " +
+        //        "putting to: " + thumbnail_holder.toString());
+        if (mRemoteThumbnail != null && !mRemoteThumbnail.isEmpty()) {
+            Picasso.with(App.getContext())
+                    .load(mRemoteThumbnail)
+                    .placeholder(R.drawable.circle)
+                    .error(R.drawable.cross)
+                    .resize(96,96)
+                    .centerInside()
+                    .into(thumbnail_holder);
+        }
+    }
+
+
 
     @Override
     public XmlObject getXmlObject(Context ctx) {
@@ -397,7 +521,7 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
                 .addSubObject("accuracy", Float.toString(getLocation().getAccuracy())));
         }
         VideoDBHelper vdb=new VideoDBHelper(ctx);
-        Iterator<Annotation> annotationIterator = vdb.getAnnotations(getId()).iterator();
+        Iterator<Annotation> annotationIterator = vdb.getAnnotationsById(getId()).iterator();
         XmlObject annXml=new XmlObject("annotations");
         while(annotationIterator.hasNext()) {
             annXml.addSubObject(annotationIterator.next().getXmlObject(ctx));

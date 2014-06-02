@@ -37,6 +37,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.HttpMultipartMode;
@@ -49,17 +50,19 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
-import java.util.UUID;
 
 import fi.aalto.legroup.achso.activity.VideoBrowserActivity;
 import fi.aalto.legroup.achso.annotation.Annotation;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
+import fi.aalto.legroup.achso.util.AaltoConnection;
 import fi.aalto.legroup.achso.util.App;
 import fi.aalto.legroup.achso.util.LasConnection;
 import fi.aalto.legroup.achso.util.xml.XmlConverter;
 
+import static fi.aalto.legroup.achso.util.App.addPollingReminder;
 import static fi.aalto.legroup.achso.util.App.appendLog;
+import static fi.aalto.legroup.achso.util.App.doPendingPolls;
 
 public class UploaderService extends IntentService {
 
@@ -73,7 +76,7 @@ public class UploaderService extends IntentService {
     public static final int UPLOAD_END = 2;
     public static final int UPLOAD_ERROR = 3;
 
-    public static final String AALTO_API_URL = "http://achso.aalto.fi/server/api/";
+
 
     public UploaderService() {
         super("AchSoUploaderService");
@@ -88,31 +91,40 @@ public class UploaderService extends IntentService {
 
         if (id != -1) {
             SemanticVideo sem_video = VideoDBHelper.getById(id);
-            switch (App.video_uploader) {
-                case App.CLVITRA2:
-                    uploadVideoToClViTra2Service(sem_video);
-                    break;
-                case App.CLVITRA:
-                    //uploadVideoToClViTra(sem_video);
-                    break;
-                case App.AALTO_TEST_SERVER:
-                    uploadVideoToAaltoTestService(sem_video);
-                    break;
-                case App.DEV_NULL:
-                    uploadVideoToNowhere(sem_video);
-            }
+            boolean metadata_success = false;
+            boolean video_success = false;
             switch (App.metadata_uploader) {
                 case App.CLVITRA2:
-                    uploadMetadataToClViTra2Service(sem_video);
+                    metadata_success = uploadMetadataToClViTra2Service(sem_video);
                     break;
                 case App.CLVITRA:
-                    uploadMetadataToClViTra(sem_video);
+                    metadata_success = uploadMetadataToClViTra(sem_video);
                     break;
                 case App.AALTO_TEST_SERVER:
-                    uploadMetadataToAaltoTestService(sem_video);
+                    metadata_success = uploadMetadataToAaltoTestService(sem_video);
                     break;
             }
-
+            if (metadata_success) {
+                switch (App.video_uploader) {
+                    case App.CLVITRA2:
+                        video_success = uploadVideoToClViTra2(sem_video);
+                        break;
+                    case App.CLVITRA:
+                        video_success = uploadVideoToClViTra(sem_video);
+                        break;
+                    case App.AALTO_TEST_SERVER:
+                        video_success = uploadVideoToAaltoTestService(sem_video);
+                        break;
+                    case App.DEV_NULL:
+                        video_success = uploadVideoToNowhere(sem_video);
+                }
+                if (video_success) {
+                    // start polling... maybe every 10s
+                    Log.i("UploaderService", "Launching polling intent");
+                    addPollingReminder(sem_video.getKey(), "testuser");
+                    doPendingPolls();
+                }
+            }
         }
     }
 
@@ -183,47 +195,59 @@ public class UploaderService extends IntentService {
         LocalBroadcastManager.getInstance(this).sendBroadcast(endIntent);
     }
 
-    private void uploadVideoToClViTra2Service(SemanticVideo sem_video) {
+
+    private boolean uploadVideoToClViTra2(SemanticVideo sem_video) {
         // This is new video_uploader using the i5Cloud services
         // Now implemented a simple stub that sends video file as a PUT to some url.
 
         // prepare file for sending
         Long traffic_id = sem_video.getId();
-        String url = "http://www.example.com/resource"; // replace this with something real
-        String token = ""; // replace this with something real
+        String url = "http://137.226.58.27:9080/ClViTra_2.0/rest/upload";
         HttpClient client = new DefaultHttpClient();
-        HttpPut put= new HttpPut(url);
-        File file = new File(sem_video.getUri().getPath());
-        FileEntity fe = new FileEntity(file, "binary/octet-stream");
-        fe.setChunked(true);
-        PollableHttpEntity broadcasting_entity = enableProgressBroadcasting(fe, traffic_id);
-        put.setEntity(broadcasting_entity);
+        HttpPost post = new HttpPost(url);
+        String file_path = sem_video.getUri().getPath();
+        String suffix = file_path.substring(file_path.lastIndexOf("."));
+        String file_name = sem_video.getKey() + suffix;
+        File file = new File(file_path);
 
-        put.setHeader("X-Auth-Token", token);
-        put.setHeader("Content-type", "application/x-www-form-urlencoded");
+        MultipartEntityBuilder multipart= MultipartEntityBuilder.create();
+        multipart.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+        multipart.addBinaryBody("file", file, ContentType.DEFAULT_BINARY,
+                file_name);
+        PollableHttpEntity broadcasting_entity = enableProgressBroadcasting(multipart.build(),
+                traffic_id);
+        post.setEntity(broadcasting_entity);
+
+        // String token = ""; // replace this with something real
+        //post.setHeader("X-Auth-Token", token);
+        //post.setHeader("User", App.login_state.getUser());
+        post.setHeader("User", "testuser");
         try {
-            Log.i("UploaderService", "sending PUT to " + url);
-            HttpResponse response = client.execute(put);
+            Log.i("UploaderService", "sending POST to " + url);
+            HttpResponse response = client.execute(post);
             Log.i("UploaderService", "response:" + response.getStatusLine().toString());
             appendLog("response:" + response.getStatusLine().toString());
+            return true;
         } catch (ClientProtocolException e) {
             announceError("Sorry, error in transfer.", traffic_id);
             Log.i("UploaderService", "ClientProtocolException caught");
             appendLog("ClientProtocolException caught");
+            return false;
         } catch (IOException e) {
             announceError("Sorry, couldn't connect to server.", traffic_id);
             Log.i("UploaderService", "IOException caught:" + e.getMessage());
             appendLog("IOException caught:" + e.getMessage());
+            return false;
         } catch (IllegalStateException e) {
             announceError("Bad or missing server name.", traffic_id);
             Log.i("UploaderService", "IllegalStateException caught:" + e.getMessage());
             appendLog("IllegalStateException caught:" + e.getMessage());
             e.printStackTrace();
+            return false;
         }
-        // hmm, what to do with the response?
     }
 
-    private void uploadVideoToClViTra(SemanticVideo sem_video) {
+    private boolean uploadVideoToClViTra(SemanticVideo sem_video) {
         final LocalBroadcastManager broadcast_manager = LocalBroadcastManager.getInstance(this);
         final Context context = this;
 
@@ -251,7 +275,11 @@ public class UploaderService extends IntentService {
 
         MultipartEntityBuilder multipartEntity = MultipartEntityBuilder.create();
         multipartEntity.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-        multipartEntity.addPart(userData, new FileBody(new File(sem_video.getUri().getPath())));
+        String file_path = sem_video.getUri().getPath();
+        String suffix = file_path.substring(file_path.lastIndexOf("."));
+        String file_name = sem_video.getKey() + suffix;
+        multipartEntity.addPart(userData, new FileBody(new File(file_path),
+                ContentType.DEFAULT_BINARY, file_name));
         //multipartEntity.addTextBody("source", "achso");
         multipartEntity.addBinaryBody("xml", XmlConverter.toXML(context, sem_video));
 
@@ -264,23 +292,27 @@ public class UploaderService extends IntentService {
             HttpResponse response = httpclient.execute(httppost);
             Log.i("UploaderService", "response:" + response.getStatusLine().toString());
             appendLog("response:" + response.getStatusLine().toString());
+            return true;
         } catch (ClientProtocolException e) {
             announceError("Sorry, error in transfer.", sem_video.getId());
             Log.i("UploaderService", "ClientProtocolException caught");
             appendLog("ClientProtocolException caught");
+            return false;
         } catch (IOException e) {
             announceError("Sorry, couldn't connect to server.", sem_video.getId());
             Log.i("UploaderService", "IOException caught:" + e.getMessage());
             appendLog("IOException caught:" + e.getMessage());
+            return false;
         } catch (IllegalStateException e) {
             announceError("Bad or missing server name.", sem_video.getId());
             Log.i("UploaderService", "IllegalStateException caught:" + e.getMessage());
             appendLog("IllegalStateException caught:" + e.getMessage());
             e.printStackTrace();
+            return false;
         }
     }
 
-    private void uploadVideoToNowhere(SemanticVideo sem_video) {
+    private boolean uploadVideoToNowhere(SemanticVideo sem_video) {
         final LocalBroadcastManager broadcast_manager = LocalBroadcastManager.getInstance(this);
         final Context context = this;
 
@@ -310,11 +342,12 @@ public class UploaderService extends IntentService {
         endIntent.putExtra(PARAM_OUT, traffic_id);
         endIntent.putExtra(PARAM_WHAT, UPLOAD_END);
         broadcast_manager.sendBroadcast(endIntent);
+        return true;
     }
 
 
 
-    private void uploadVideoToAaltoTestService(SemanticVideo sem_video) {
+    private boolean uploadVideoToAaltoTestService(SemanticVideo sem_video) {
         // This is new video_uploader using the i5Cloud services
         // Now implemented a simple stub that sends video file as a PUT to some url.
 
@@ -337,37 +370,42 @@ public class UploaderService extends IntentService {
             HttpResponse response = client.execute(put);
             Log.i("UploaderService", "response:" + response.getStatusLine().toString());
             appendLog("response:" + response.getStatusLine().toString());
+            return true;
         } catch (ClientProtocolException e) {
             announceError("Sorry, error in transfer.", traffic_id);
             Log.i("UploaderService", "ClientProtocolException caught");
             appendLog("ClientProtocolException caught");
+            return false;
         } catch (IOException e) {
             announceError("Sorry, couldn't connect to server.", traffic_id);
             Log.i("UploaderService", "IOException caught:" + e.getMessage());
             appendLog("IOException caught:" + e.getMessage());
+            return false;
         } catch (IllegalStateException e) {
             announceError("Bad or missing server name.", traffic_id);
             Log.i("UploaderService", "IllegalStateException caught:" + e.getMessage());
             appendLog("IllegalStateException caught:" + e.getMessage());
             e.printStackTrace();
+            return false;
         }
         // hmm, what to do with the response?
     }
 
 
-    private void uploadMetadataToClViTra2Service(SemanticVideo sem_video) {
+    private boolean uploadMetadataToClViTra2Service(SemanticVideo sem_video) {
         Log.i("UploaderService", "uploadMetadataToClViTra2Service -- not implemented");
+        return false;
     }
 
-    private void uploadMetadataToClViTra(SemanticVideo sem_video) {
+    private boolean uploadMetadataToClViTra(SemanticVideo sem_video) {
         Log.i("UploaderService", "uploadMetadataToClViTra -- not implemented");
-
+        return false;
     }
 
     private String getUniqueKeyFromAaltoTestService(SemanticVideo sem_video) {
         String key = "";
         Long traffic_id = sem_video.getId();
-        String url = AALTO_API_URL + "get_unique_id";
+        String url = AaltoConnection.API_URL + "get_unique_id";
         HttpGet get = new HttpGet(url);
 
         Log.i("UploaderService", "Asking new key for video:" + traffic_id);
@@ -386,8 +424,12 @@ public class UploaderService extends IntentService {
             if(responseEntity!=null) {
                 response_string = EntityUtils.toString(responseEntity);
             }
-            Log.i("UploaderService", "received response: " + response_string);
+            Log.i("UploaderService", "received response: ("+response.getStatusLine()
+                            .getStatusCode() + ") " + response_string);
             appendLog("response:" + response_string);
+            if (response.getStatusLine().getStatusCode() != 200) {
+                response_string = "";
+            }
         } catch (ClientProtocolException e) {
             announceError("Sorry, error in transfer.", traffic_id);
             Log.i("UploaderService", "ClientProtocolException caught");
@@ -405,23 +447,27 @@ public class UploaderService extends IntentService {
         return response_string;
     }
 
-    private void uploadMetadataToAaltoTestService(SemanticVideo sem_video) {
-        // This is new video_uploader using the i5Cloud services
-        // Now implemented a simple stub that sends video file as a PUT to some url.
-
-        // prepare file for sending
+    private boolean uploadMetadataToAaltoTestService(SemanticVideo sem_video) {
         Long traffic_id = sem_video.getId();
-        String url = "http://achso.aalto.fi/server/upload_data"; // replace this with something real
-        String token = ""; // replace this with something real
+        String url = "http://achso.aalto.fi/server/api/upload_video_metadata"; // replace this with something
+        // real
+        //String token = ""; // replace this with something real
         HttpClient client = new DefaultHttpClient();
         HttpPost post= new HttpPost(url);
         String key = sem_video.getKey();
-        if (key == null || key.isEmpty()) {
+        if (key == null || key.isEmpty() || key.length() > 64) {
             key = getUniqueKeyFromAaltoTestService(sem_video);
+            if (key == null || key.length()==0) {
+                Log.i("UploaderService", "Failed to get an unique key for video -- cancel upload");
+                return false;
+            }
             VideoDBHelper vdb = new VideoDBHelper(this);
-            List<Annotation> annotations = vdb.getAnnotations(traffic_id);
+            sem_video.setKey(key);
+            List<Annotation> annotations = vdb.getAnnotationsById(traffic_id);
             for (Annotation annotation: annotations) {
+                Log.i("UploaderService", "Setting annotation ( "+ annotation.getVideoKey() + " ) to use new key: " + key);
                 annotation.setVideoKey(key);
+                Log.i("UploaderService", "Now it is "+ annotation.getVideoKey());
                 vdb.update(annotation);
             }
             vdb.update(sem_video);
@@ -445,21 +491,68 @@ public class UploaderService extends IntentService {
             HttpResponse response = client.execute(post);
             Log.i("UploaderService", "response:" + response.getStatusLine().toString());
             appendLog("response:" + response.getStatusLine().toString());
+            return true;
         } catch (ClientProtocolException e) {
             announceError("Sorry, error in transfer.", traffic_id);
             Log.i("UploaderService", "ClientProtocolException caught");
             appendLog("ClientProtocolException caught");
+            return false;
         } catch (IOException e) {
             announceError("Sorry, couldn't connect to server.", traffic_id);
             Log.i("UploaderService", "IOException caught:" + e.getMessage());
             appendLog("IOException caught:" + e.getMessage());
+            return false;
         } catch (IllegalStateException e) {
             announceError("Bad or missing server name.", traffic_id);
             Log.i("UploaderService", "IllegalStateException caught:" + e.getMessage());
             appendLog("IllegalStateException caught:" + e.getMessage());
             e.printStackTrace();
+            return false;
         }
-        // hmm, what to do with the response?
+    }
+
+    static boolean updateVideoMetadataToAalto(SemanticVideo sem_video, List<String> fields) {
+        Long traffic_id = sem_video.getId();
+        String url = "http://achso.aalto.fi/server/api/update_video_metadata"; // replace this with
+        // something
+        // real
+        //String token = ""; // replace this with something real
+        HttpClient client = new DefaultHttpClient();
+        HttpPost post= new HttpPost(url);
+        String key = sem_video.getKey();
+        String json = sem_video.json_dump(fields).toString();
+        Log.i("UploaderService", json);
+
+        StringEntity se = null;
+        try {
+            se = new StringEntity(json, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        post.setEntity(se);
+        post.setHeader("Accept", "application/json");
+        post.setHeader("Content-type", "application/json");
+
+        try {
+            Log.i("UploaderService", "sending POST to " + url);
+            HttpResponse response = client.execute(post);
+            Log.i("UploaderService", "response:" + response.getStatusLine().toString());
+            appendLog("response:" + response.getStatusLine().toString());
+            return true;
+        } catch (ClientProtocolException e) {
+            Log.i("UploaderService", "ClientProtocolException caught");
+            appendLog("ClientProtocolException caught");
+            return false;
+        } catch (IOException e) {
+            Log.i("UploaderService", "IOException caught:" + e.getMessage());
+            appendLog("IOException caught:" + e.getMessage());
+            return false;
+        } catch (IllegalStateException e) {
+            Log.i("UploaderService", "IllegalStateException caught:" + e.getMessage());
+            appendLog("IllegalStateException caught:" + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
     }
 
 

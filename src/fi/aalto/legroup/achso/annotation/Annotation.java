@@ -63,9 +63,9 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
     private float mRememberedScaleFactor;
 
     public Annotation(Context ctx, long videoid, long starttime, String text,
-                      FloatPosition position, float scale, String creator) {
+                      FloatPosition position, float scale, String creator, String video_key) {
         super(videoid, starttime, ANNOTATION_SHOW_DURATION_MILLISECONDS, text, position, scale,
-                creator);
+                creator, video_key);
         mSelected = false;
         mVisible = false;
         mAlive = true;
@@ -75,7 +75,7 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
 
     public Annotation(Context ctx, SemanticVideo sv, AnnotationBase base) {
         super(-1, base.getStartTime(), base.getDuration(), base.getText(), base.getPosition(),
-                (float) 1.0, base.getCreator());
+                (float) 1.0, base.getCreator(), sv.getKey());
         mSelected = false;
         mVisible = false;
         mAlive = true;

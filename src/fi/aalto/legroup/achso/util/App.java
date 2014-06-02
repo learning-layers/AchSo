@@ -25,6 +25,8 @@ package fi.aalto.legroup.achso.util;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.location.Location;
 import android.location.LocationListener;
@@ -40,10 +42,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 
 import fi.aalto.legroup.achso.state.LasLoginState;
 import fi.aalto.legroup.achso.state.LoginState;
 import fi.aalto.legroup.achso.state.i5LoginState;
+import fi.aalto.legroup.achso.upload.PollingService;
 
 public class App extends Application {
 
@@ -60,8 +64,15 @@ public class App extends Application {
     public static final String DEFAULT_USERNAME = "achso_device_owner";
     public static int video_uploader;
     public static int metadata_uploader;
+    public static int video_id_service;
+    public static final String UPDATE_ANNOTATION = "update_annotation";
+    public static final String ADD_ANNOTATION = "add_annotation";
+    public static final String REMOVE_ANNOTATION = "remove_annotation";
+    public static final String UPDATE_VIDEO= "update_video";
+    public static final String FINALIZE_VIDEO= "finalize_video";
+    public static final String PENDING_POLLS = "aalto.legroup.achso.PENDING_POLLS";
 
-    public static boolean use_las = true;
+    public static boolean use_las = false;
     private static boolean use_log_file = false;
     public static boolean allow_upload = true;
 
@@ -125,6 +136,40 @@ public class App extends Application {
     }
 
 
+    public static void addPollingReminder(String key,
+                                        String user_id) {
+        SharedPreferences pending = mContext.getSharedPreferences(PENDING_POLLS,
+                Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = pending.edit();
+        editor.putString(key, user_id);
+        editor.commit();
+    }
+
+    public static void removePollingReminder(String key) {
+        SharedPreferences pending = mContext.getSharedPreferences(PENDING_POLLS,
+                Context.MODE_PRIVATE);
+        if (pending.getString(key, null) != null) {
+            SharedPreferences.Editor editor = pending.edit();
+            editor.putString(key, null);
+            editor.commit();
+        }
+    }
+
+
+    public static void doPendingPolls() {
+        SharedPreferences pending = mContext.getSharedPreferences(PENDING_POLLS,
+                Context.MODE_PRIVATE);
+        Map<String, ?> items = pending.getAll();
+        String user_id;
+        for (String key: items.keySet()) {
+            user_id = (String) items.get(key);
+            Intent pollingIntent = new Intent(App.getContext(), PollingService.class);
+            pollingIntent.putExtra(PollingService.VIDEO_KEY, key);
+            pollingIntent.putExtra(PollingService.USERID_PART, user_id);
+            App.getContext().startService(pollingIntent);
+        }
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -141,15 +186,21 @@ public class App extends Application {
             }
         }
 
-        video_uploader = DEV_NULL; // CLVITRA
+        video_uploader = CLVITRA2; //CLVITRA
         metadata_uploader = AALTO_TEST_SERVER;
+        video_id_service = AALTO_TEST_SERVER;
 
         if (use_las) {
-            login_state = new LasLoginState(mContext);
             connection = new LasConnection();
+            login_state = new LasLoginState(mContext);
         } else {
-            login_state = new i5LoginState(mContext);
-            connection = new i5Connection();
+            connection = new AaltoConnection();
+            login_state = new LasLoginState(mContext);
+            //login_state = new i5LoginState(mContext);
+            //connection = new i5Connection();
+        }
+        if (hasConnection()) {
+            doPendingPolls();
         }
 
         appendLog("Starting Ach so! -app on device " + android.os.Build.MODEL);
@@ -199,13 +250,16 @@ public class App extends Application {
 
     }
 
+
+
     public static String getUsername() {
         if (login_state != null) {
-            if (login_state.isIn())
+            if (login_state.isIn() || login_state.isTrying())
                 return login_state.getUser();
         }
         return DEFAULT_USERNAME;
     }
+
 }
 
 

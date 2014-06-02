@@ -62,7 +62,6 @@ import fi.aalto.legroup.achso.annotation.SubtitleManager;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.remote.RemoteResultCache;
-import fi.aalto.legroup.achso.remote.RemoteSemanticVideo;
 import fi.aalto.legroup.achso.util.Dialog;
 import fi.aalto.legroup.achso.util.FloatPosition;
 import fi.aalto.legroup.achso.view.AnnotatedSeekBar;
@@ -174,13 +173,12 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
             // Annotations for surface get set by constructor if there is proper videoId
             mAnnotationSurfaceHandler = new AnnotationSurfaceHandler(getActivity(), mAnnotationSurface, mVideoId);
             if (cached_remote_video) {
-                RemoteSemanticVideo rsv = (RemoteSemanticVideo) semantic_video;
-                mAnnotationSurfaceHandler.setAnnotations(rsv.getAnnotations(getActivity()));
+                mAnnotationSurfaceHandler.setAnnotations(semantic_video.getAnnotations(getActivity()));
             }
             // this shouldn't be necessary
             // else if (mStateBundle != null) {
             //    VideoDBHelper dbh = new VideoDBHelper(getActivity());
-            //    mAnnotationSurfaceHandler.setAnnotations(dbh.getAnnotations(mVideoId));
+            //    mAnnotationSurfaceHandler.setAnnotations(dbh.getAnnotationsById(mVideoId));
             //    dbh.close();
             //}
             mVideoSurfaceContainer = (RelativeLayout) getView().findViewById(R.id.video_surface_container);

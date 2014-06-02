@@ -67,7 +67,6 @@ import fi.aalto.legroup.achso.adapter.BrowsePagerAdapter;
 import fi.aalto.legroup.achso.adapter.VideoThumbAdapter;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
-import fi.aalto.legroup.achso.remote.RemoteSemanticVideo;
 import fi.aalto.legroup.achso.state.IntentDataHolder;
 import fi.aalto.legroup.achso.upload.UploaderService;
 import fi.aalto.legroup.achso.util.App;
@@ -227,7 +226,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
                 mCallbacks.onLocalItemSelected(sv.getId());
             } else {
                 mCallbacks.onRemoteItemSelected(position, sv);
-                RemoteResultCache.setSelectedVideo((RemoteSemanticVideo) sv);
+                RemoteResultCache.setSelectedVideo(sv);
             }
         } else if (getVideoAdapter().getItemViewType(position) == VideoThumbAdapter
                     .ITEM_TYPE_RECORD_BUTTON) {

@@ -41,8 +41,6 @@ import fi.aalto.legroup.achso.util.App;
 import fi.aalto.legroup.achso.util.FloatPosition;
 import fi.aalto.legroup.achso.view.VideoControllerView;
 
-import static fi.aalto.legroup.achso.util.App.appendLog;
-
 public class AnnotationSurfaceHandler {
 
     private SurfaceView mAnnotationSurface;
@@ -57,7 +55,7 @@ public class AnnotationSurfaceHandler {
         this.mAnnotationSurface = surface;
         VideoDBHelper vdb = new VideoDBHelper(c);
         mAnnotations = new ConcurrentLinkedQueue<Annotation>();
-        for (Annotation a : vdb.getAnnotations(videoid)) {
+        for (Annotation a : vdb.getAnnotationsById(videoid)) {
             mAnnotations.add(a);
         }
         vdb.close();
@@ -116,7 +114,8 @@ public class AnnotationSurfaceHandler {
     public Annotation addAnnotation(long time, FloatPosition pos) {
         VideoDBHelper vdb = new VideoDBHelper(mContext);
         Annotation a = new Annotation(mContext, mVideoId, time, "", pos, (float) 1.0,
-                App.getUsername());
+                App.getUsername(), null); // <--- !!! this null has to be replaced with proper
+                // key if we are annotating remote video
         a.setVisible(true);
         mAnnotations.add(a);
         vdb.insert(a);

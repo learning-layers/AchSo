@@ -29,6 +29,10 @@ import android.location.Location;
 import android.net.Uri;
 import android.util.Log;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -39,12 +43,15 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import fi.aalto.legroup.achso.annotation.Annotation;
 import fi.aalto.legroup.achso.database.SemanticVideo;
+import fi.aalto.legroup.achso.database.VideoDBHelper;
+import fi.aalto.legroup.achso.util.App;
 import fi.aalto.legroup.achso.util.xml.XmlConverter;
 import fi.aalto.legroup.achso.util.xml.XmlObject;
 import fi.aalto.legroup.achso.util.xml.XmlSerializableFactory;
 
-public class RemoteSemanticVideoFactory implements XmlSerializableFactory {
+public class SemanticVideoFactory implements XmlSerializableFactory {
     private SemanticVideo.Genre getGenreFromString(String str) {
         for (Map.Entry<SemanticVideo.Genre, String> e : SemanticVideo.genreStrings.entrySet()) {
             if (e.getValue().equals(str)) {
@@ -54,7 +61,7 @@ public class RemoteSemanticVideoFactory implements XmlSerializableFactory {
         return null;
     }
 
-    private SemanticVideo.Genre getGenreFromEnglishString(String str) {
+    private static SemanticVideo.Genre getGenreFromEnglishString(String str) {
         for (Map.Entry<SemanticVideo.Genre, String> e : SemanticVideo.englishGenreStrings.entrySet()) {
             if (e.getValue().equals(str)) {
                 return e.getKey();
@@ -64,18 +71,18 @@ public class RemoteSemanticVideoFactory implements XmlSerializableFactory {
     }
 
     @Override
-    public RemoteSemanticVideo fromXmlObject(XmlObject obj) {
+    public SemanticVideo fromXmlObject(XmlObject obj) {
         Log.i("RemoteSemanticVideoFactory", "Parsing xmlobject:" + obj.toString());
         String title = null;
         SemanticVideo.Genre genre = null;
         String qrcode = null;
         String creator = null;
-        Uri video_uri = null;
+        String remote_video = null;
         Date created_at = null;
         Location location = null;
         Bitmap image = null;
         String key = null;
-        Uri thumbnail_url = null;
+        String remote_thumbnail = null;
         List<RemoteAnnotation> remoteAnnotations = new ArrayList<RemoteAnnotation>();
         long duration = 0;
         if (!obj.getName().equals("video")) {
@@ -92,9 +99,9 @@ public class RemoteSemanticVideoFactory implements XmlSerializableFactory {
             } else if (name.equals("creator")) {
                 creator = o.getText();
             } else if (name.equals("video_uri")) {
-                video_uri = Uri.parse(o.getText());
+                remote_video = o.getText();
             } else if (name.equals("video_url")) {
-                video_uri = Uri.parse(o.getText());
+                remote_video = o.getText();
             } else if (name.equals("created_at")) {
                 created_at = new Date();
                 //SimpleDateFormat format = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
@@ -131,7 +138,7 @@ public class RemoteSemanticVideoFactory implements XmlSerializableFactory {
                 location.setLongitude(longitude);
                 location.setLatitude(latitude);
             } else if (name.equals("thumbnail")) {
-                thumbnail_url = Uri.parse(o.getText());
+                remote_thumbnail = o.getText();
             } else if (name.equals("thumb_image")) {
                 String encoding = o.getAttributes().get("encoding");
                 if (encoding != null && encoding.equals("base64")) {
@@ -153,12 +160,102 @@ public class RemoteSemanticVideoFactory implements XmlSerializableFactory {
                 key = o.getText();
             }
         }
-        RemoteSemanticVideo ret = new RemoteSemanticVideo(title, created_at, duration, video_uri,
-                genre == null ? 0 : genre.ordinal(), image, image, qrcode, location,
-                SemanticVideo.UPLOADED, creator, key, thumbnail_url, remoteAnnotations);
-        for (RemoteAnnotation ra : remoteAnnotations) {
-            ra.setVideo(ret);
+        SemanticVideo sem = new SemanticVideo(-1, title, created_at, duration, null,
+                genre, image, image, qrcode, location,
+                SemanticVideo.UPLOADED, creator, key, remote_video, remote_thumbnail);
+
+        if (remoteAnnotations != null && remoteAnnotations.size() > 0) {
+            sem.setRemoteAnnotations(remoteAnnotations);
+            for (RemoteAnnotation ra : remoteAnnotations) {
+                ra.setVideo(sem);
+            }
+
         }
-        return ret;
+        return sem;
+    }
+
+    public static SemanticVideo buildFromJSON(JSONObject obj) {
+        String title = null;
+        SemanticVideo.Genre genre = null;
+        String qrcode = null;
+        String creator = null;
+        String remote_video = null;
+        Date created_at = null;
+        Location location = null;
+        String key = null;
+        String remote_thumbnail = null;
+        long duration = 0;
+        try {
+            if (obj.has("title")) {
+                title = obj.getString("title");
+            }
+            if (obj.has("genre")) {
+                genre = getGenreFromEnglishString(obj.getString("genre"));
+            }
+            if (obj.has("qr_code")) {
+                qrcode = obj.getString("qr_code");
+            }
+            if (obj.has("creator")) {
+                creator = obj.getString("creator");
+            }
+            if (obj.has("video_uri")) {
+                remote_video = obj.getString("video_uri");
+            }
+            if (obj.has("thumb_uri")) {
+                remote_thumbnail = obj.getString("thumb_uri");
+                Log.i("SemanticVideoFactory", "Thumb uri: "+remote_thumbnail);
+            }
+            if (obj.has("created_at")) {
+                String datestring = obj.getString("created_at");
+                datestring = datestring.replaceAll("Z$", "+0000");
+                try {
+                    created_at = (new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")).parse
+                            (datestring);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                    created_at = new Date();
+                }
+            }
+            if (obj.has("location")) {
+                JSONArray location_array = obj.getJSONArray("location");
+                location = new Location("AchSo");
+                location.setLongitude(location_array.getDouble(0));
+                location.setLatitude(location_array.getDouble(1));
+            }
+            if (obj.has("key")) {
+                key = obj.getString("key");
+            }
+            if (obj.has("duration")) {
+                duration = obj.getLong("duration");
+            }
+
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+        SemanticVideo sv = VideoDBHelper.getByKey(key);
+        if (sv != null) { // Update objects that are also in local database
+            sv.setInCloud(true);
+            sv.setInLocalDB(true);
+            sv.setTitle(title);
+            sv.setGenre(genre);
+            sv.setQrCode(qrcode);
+            sv.setLocation(location);
+            sv.setUploadStatus(SemanticVideo.UPLOADED);
+            sv.setRemoteVideo(remote_video);
+            sv.setRemoteThumbnail(remote_thumbnail);
+            VideoDBHelper vdb = new VideoDBHelper(App.getContext());
+            vdb.update(sv);
+            vdb.close();
+        } else { // Create new objects, don't put them to local database
+            sv = new SemanticVideo(-1, title, created_at, duration, null, genre, null,
+                    null, qrcode, location, SemanticVideo.UPLOADED, creator, key, remote_video,
+                    remote_thumbnail);
+            sv.setInCloud(true);
+            sv.setInLocalDB(false);
+        }
+
+        return sv;
     }
 }

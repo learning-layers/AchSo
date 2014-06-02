@@ -62,5 +62,7 @@
             android:label="@string/title_activity_information"
         />
         <service android:name="fi.aalto.legroup.achso.upload.UploaderService"></service>
+        <service android:name="fi.aalto.legroup.achso.upload.PollingService"></service>
+
     </application>
 </manifest>

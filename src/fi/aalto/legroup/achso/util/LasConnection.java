@@ -40,8 +40,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import fi.aalto.legroup.achso.adapter.BrowsePagerAdapter;
 import fi.aalto.legroup.achso.database.SemanticVideo;
-import fi.aalto.legroup.achso.remote.RemoteSemanticVideo;
-import fi.aalto.legroup.achso.remote.RemoteSemanticVideoFactory;
+import fi.aalto.legroup.achso.remote.SemanticVideoFactory;
 import fi.aalto.legroup.achso.util.xml.XmlConverter;
 import fi.aalto.legroup.achso.util.xml.XmlObject;
 import i5.las.httpConnector.client.AccessDeniedException;
@@ -346,7 +345,7 @@ public class LasConnection implements Connection {
                 // "getMediaCreationTitles",
                 String titles[] = (String[]) this.invoke("mpeg7_multimediacontent_service", "getMediaCreationTitles", params);
                 String title, author, thumb_url, video_url;
-                RemoteSemanticVideo rsv;
+                SemanticVideo sem;
                 if (videoUrls != null && thumbUrls != null && titles != null) {
                     if (videoUrls.length == thumbUrls.length && videoUrls.length == titles.length) {
                         for (int i = 0; i < videoUrls.length; i++) {
@@ -360,8 +359,10 @@ public class LasConnection implements Connection {
                             } else {
                                 author = "";
                             }
-                            rsv = new RemoteSemanticVideo(title, video_url, thumb_url, author);
-                            videoList.add(rsv);
+                            Log.i("LasConnection", "Title: "+title+" video_url: " + video_url + "" +
+                                    " thumb_url: "+thumb_url + " author: " + author);
+                            sem = new SemanticVideo(title, video_url, thumb_url, author);
+                            videoList.add(sem);
 
                         }
 
@@ -495,7 +496,7 @@ public class LasConnection implements Connection {
         XmlObject xmlobj = XmlConverter.fromXml(xml);
         if (xmlobj != null) {
             for (XmlObject o : xmlobj.getSubObjects()) {
-                res.add(new RemoteSemanticVideoFactory().fromXmlObject(o));
+                res.add(new SemanticVideoFactory().fromXmlObject(o));
             }
         }
         return res;

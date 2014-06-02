@@ -32,7 +32,7 @@ public class RemoteAnnotation extends AnnotationBase {
 
     public RemoteAnnotation(long starttime, long duration, String text, FloatPosition position,
                             float scale, String creator) {
-        super(-1, starttime, duration, text, position, scale, creator);
+        super(-1, starttime, duration, text, position, scale, creator, null);
         mVideo = null;
     }
 

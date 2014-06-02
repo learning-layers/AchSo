@@ -54,7 +54,7 @@ import fi.aalto.legroup.achso.adapter.BrowsePagerAdapter;
 import fi.aalto.legroup.achso.adapter.VideoThumbAdapter;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.remote.RemoteResultCache;
-import fi.aalto.legroup.achso.remote.RemoteSemanticVideoFactory;
+import fi.aalto.legroup.achso.remote.SemanticVideoFactory;
 import fi.aalto.legroup.achso.util.xml.XmlConverter;
 import fi.aalto.legroup.achso.util.xml.XmlObject;
 
@@ -123,7 +123,7 @@ public class VideoSearchTask extends AsyncTask<String, Double, ArrayList<Semanti
                     JSONObject obj = searchResult.getJSONObject(i);
                     XmlObject xml = XmlConverter.fromXml(obj.getString("xml"));
                     //RemoteSemanticVideo rsv=new RemoteSemanticVideoFactory().fromXmlObject(xml);
-                    ret.add(new RemoteSemanticVideoFactory().fromXmlObject(xml));
+                    ret.add(new SemanticVideoFactory().fromXmlObject(xml));
                 }
             } catch (JSONException e) {
                 e.printStackTrace();

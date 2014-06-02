@@ -53,7 +53,6 @@ import java.util.concurrent.TimeUnit;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.database.SemanticVideo;
-import fi.aalto.legroup.achso.remote.RemoteSemanticVideo;
 import fi.aalto.legroup.achso.util.App;
 
 public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
@@ -201,22 +200,28 @@ public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
                 vh.thumbnail_land.setVisibility(View.GONE);
             }
         } else {
-            RemoteSemanticVideo rv = (RemoteSemanticVideo) v;
-            rv.putThumbnailTo(vh); //);
+            v.putThumbnailTo(vh);
         }
         if (v.isNeverUploaded()) {
             vh.uploadIcon.setColorFilter(null);
             vh.uploadIcon.setVisibility(View.GONE);
         } else if (v.isUploading()) {
             vh.progress.setVisibility(View.VISIBLE);
+            vh.uploadIcon.setVisibility(View.VISIBLE);
             vh.uploadIcon.setColorFilter(res.getColor(R.color.upload_icon_uploading));
         } else if (v.isUploadPending()) {
             vh.progress.setVisibility(View.VISIBLE);
+            vh.uploadIcon.setVisibility(View.VISIBLE);
             vh.uploadIcon.setColorFilter(res.getColor(R.color.upload_icon_pending));
         } else if (v.isUploaded()) {
             vh.progress.setVisibility(View.GONE);
             vh.uploadIcon.setColorFilter(null);
             vh.uploadIcon.setVisibility(View.GONE);
+            vh.cloudIcon.setColorFilter(null);
+        } else if (v.isProcessing()) {
+            vh.progress.setVisibility(View.GONE);
+            vh.uploadIcon.setVisibility(View.GONE);
+            vh.cloudIcon.setVisibility(View.VISIBLE);
         }
         if (v.inCloud()) {
             vh.cloudIcon.setVisibility(View.VISIBLE);

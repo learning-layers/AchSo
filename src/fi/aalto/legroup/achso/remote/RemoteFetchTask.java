@@ -29,18 +29,11 @@ import android.view.View;
 import android.widget.ProgressBar;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.List;
 
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.fragment.BrowseFragment;
-import fi.aalto.legroup.achso.remote.RemoteResultCache;
-import fi.aalto.legroup.achso.remote.RemoteSemanticVideoFactory;
 import fi.aalto.legroup.achso.util.App;
-import fi.aalto.legroup.achso.util.LasConnection;
-import fi.aalto.legroup.achso.util.i5Connection;
-import fi.aalto.legroup.achso.util.xml.XmlConverter;
-import fi.aalto.legroup.achso.util.xml.XmlObject;
 
 public class RemoteFetchTask extends AsyncTask<String, Double, List<SemanticVideo>> {
 

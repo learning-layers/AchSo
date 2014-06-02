@@ -50,7 +50,7 @@ Before uploading we create random uid in Ach so!, which will be used as a key in
 ---- calls to video service ----
 
 upload_video
-    """ This is used to send video for encoding/conversion """
+    This is used to send video for encoding/conversion 
     Request: POST.
     URL: http://<ip-address>/ClViTra_2.0/rest/upload
     What is sent: "File" as "multipart/form-data". File has filename, which is form of $key.[mp4,avi,mpg... whatever is the acceptable videofile suffix]. This filename (without suffix) will be used when querying the state of the processing, so remember it.
@@ -73,7 +73,7 @@ upload_video
         ...
 
 get_processing_state
-    """ This is used to check if the video $key has finished its encoding and to receive the uri to use when playing it. !!  
+    This is used to check if the video $key has finished its encoding and to receive the uri to use when playing it. !!  
     Request: GET
     URL: http://<ip-address>/ClViTra_2.0/rest/get_processing_state
     What is sent: "key":String, which is the unique filename that was sent when uploading video.
@@ -103,7 +103,7 @@ get_processing_state
 
 
 get_unique_id
-    """ Returns a new unique id. Semantic video can safely use this as an identifier and this identifier is used as a key to retrieve video metadata and annotations, and to retrieve the state of the video encoding process. """
+    Returns a new unique id. Semantic video can safely use this as an identifier and this identifier is used as a key to retrieve video metadata and annotations, and to retrieve the state of the video encoding process. 
     Request: GET
     What is sent: nothing
     headers:
@@ -113,7 +113,7 @@ get_unique_id
 
 
 upload_video_metadata
-    """ This is used to upload annotations and metadata for video. This is done before sending the actual video file, but the video uri and thumb uri have placeholders instead of actual values. When upload_video is completed, Ach so! polls server with get_processing_state until it receives 'finished' state as response, and then does update_metadata with new uri values.
+    This is used to upload annotations and metadata for video. This is done before sending the actual video file, but the video uri and thumb uri have placeholders instead of actual values. When upload_video is completed, Ach so! polls server with get_processing_state until it receives 'finished' state as response, and then does update_metadata with new uri values.
 
     Ach saves to its local preferences when unfinished video processing polling is activated, so that it can continue and finalize the video metadata next time Ach so is launched, in case that the Ach so is shut down while the processing in server side is still going on.   
 
@@ -214,9 +214,9 @@ upload_video_metadata
 
 
 update_video_metadata
-    """ Update some of the fields of the video -- those that are included in the sent json object (excluding 'key', it cannot be changed, it is used to find what video to change.). It is otherwise similar to upload_metadata. Annotations are not updated through this, they use 
+    Update some of the fields of the video -- those that are included in the sent json object (excluding 'key', it cannot be changed, it is used to find what video to change.). It is otherwise similar to upload_metadata. Annotations are not updated through this, they use 
     update_annotation or upload_annotation, with a video_key to link them to this video.
-     """
+     
     Request: POST.
     URL: http://???/update_video_metadata
     What is sent: "data" as UTF-8 StringEntity. 
@@ -266,7 +266,7 @@ update_video_metadata
         ...
 
 upload_annotation
-    """ This is used to upload new annotation for existing video. """
+    This is used to upload new annotation for existing video. 
 
     Request: POST.
     URL: http://???/upload_annotation
@@ -322,7 +322,7 @@ upload_annotation
 
 
 update_annotation
-    """ This is used to update attributes of existing annotation. Attributes are given as JSON object, and it needs only to include those fields that have changed."""
+    This is used to update attributes of existing annotation. Attributes are given as JSON object, and it needs only to include those fields that have changed.
 
     Request: POST.
     URL: http://???/update_annotation
@@ -371,7 +371,7 @@ update_annotation
 
 // Annotation listings
 get_annotations
-    """ List of annotations for given video_key """
+    List of annotations for given video_key 
     Request: GET
     URL: http://???/get_annotations
     What is sent: 
@@ -385,12 +385,12 @@ get_annotations
 // Video listings 
 
 get_videos
-    """ General interface for receiving list of videos that fill given conditions. 
+    General interface for receiving list of videos that fill given conditions. 
     For searches, searches should also look into annotations and return videos that include matching annotations.
     Even if community is empty, results should be filtered by those communities that the user can see.
     Recommended for: 
 
-    """
+    
     Request: GET
     URL: http://???/get_videos
     What is sent:
@@ -420,7 +420,7 @@ get_videos
 // Communities -- these are the groups/channels that are used to deduce video visibility and editing rights.
 
 add_community
-    """ Create a community that has access to videos """
+    Create a community that has access to videos 
     Request: POST.
     URL: http://???/add_community
     What is sent: 
@@ -437,7 +437,7 @@ add_community
         unique id of community, or empty if it already exists
 
 edit_community
-    """ Change community settings, only by moderator """
+    Change community settings, only by moderator 
     Request: POST.
     URL: http://???/edit_community
     What is sent:
@@ -455,8 +455,8 @@ edit_community
         unique id of community, or empty if it already exists
 
 join_community
-    """ Join user xx to a community. If closed community, this is done by authenticated user who is a moderator. Username for authenticated user is retrievable from X-auth-token?
-    """
+    Join user xx to a community. If closed community, this is done by authenticated user who is a moderator. Username for authenticated user is retrievable from X-auth-token?
+    
     Request: POST.
     URL: http://???/join_community
     What is sent: 
@@ -470,8 +470,8 @@ join_community
         "success" or "not allowed"
 
 leave_community
-    """ Leave from a community. User xx is removed from community. There should be checks that the X-auth-token points to same user xx or to a moderator?
-    """
+    Leave from a community. User xx is removed from community. There should be checks that the X-auth-token points to same user xx or to a moderator?
+    
     Request: POST.
     URL: http://???/leave_community
     What is sent: 
@@ -485,7 +485,7 @@ leave_community
         "success" or "not allowed"
 
 get_communities
-    """ Return a list of listable communities (no arguments), or list of provided user_id:s communities. List is a json object """
+    Return a list of listable communities (no arguments), or list of provided user_id:s communities. List is a json object 
     Request: GET
     URL: http://???/get_communities
     What is sent: 
@@ -499,7 +499,7 @@ get_communities
         notice that if user_id is not given, is_member and is_moderator can default to false.
 
 add_video_to_community
-    """ Add a video to belong for a community. It is then visible for community members Requires video_key and community_id as arguments. """
+    Add a video to belong for a community. It is then visible for community members Requires video_key and community_id as arguments. 
     Request: POST.
     URL: http://???/add_video_to_community
     What is sent: 
@@ -514,7 +514,7 @@ add_video_to_community
 
 
 remove_video_from_community
-    """ Video is no longer listed as belonging to a community. Requires video_key and community_id as arguments. """
+    Video is no longer listed as belonging to a community. Requires video_key and community_id as arguments. 
     Request: POST.
     URL: http://???/remove_video_from_community
     What is sent: 
@@ -529,7 +529,7 @@ remove_video_from_community
 
 
 get_videos_in_community
-    """ Return metadata of videos in community. User must be a member in community to get listing  """ 
+    Return metadata of videos in community. User must be a member in community to get listing  
     Request: GET
     URL: http://???/get_videos_in_community
     What is sent:

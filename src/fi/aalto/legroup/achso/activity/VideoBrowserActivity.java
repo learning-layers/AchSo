@@ -454,6 +454,8 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
         public static final String UPLOAD_PROGRESS_ACTION = "fi.aalto.legroup.achso.intent.action.UPLOAD_PROGRESS";
         public static final String UPLOAD_END_ACTION = "fi.aalto.legroup.achso.intent.action.UPLOAD_END";
         public static final String UPLOAD_ERROR_ACTION = "fi.aalto.legroup.achso.intent.action.UPLOAD_ERROR";
+        public static final String UPLOAD_FINALIZED_ACTION = "fi.aalto.legroup.achso.intent" +
+                ".action.UPLOAD_FINALIZED";
 
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -480,7 +482,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
                     ui.first.setProgress(percentage);
                 } else if (action.equals(UPLOAD_END_ACTION)) {
                     Log.i("UploaderBroadcastReceiver", "Received upload end action ");
-                    sv.setUploadStatus(SemanticVideo.UPLOADED);
+                    sv.setUploadStatus(SemanticVideo.PROCESSING_VIDEO);
                     sv.setInCloud(true);
 
                     VideoDBHelper vdb = new VideoDBHelper(context);
@@ -492,12 +494,19 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
 
                     Toast.makeText(context, getString(R.string.upload_successful), Toast.LENGTH_LONG).show();
                 } else if (action.equals(UPLOAD_ERROR_ACTION)) {
-                        Log.i("UploaderBroadcastReceiver", "Received upload error action ");
-                        sv.setUploadStatus(SemanticVideo.UPLOAD_ERROR);
-                        ui.first.setVisibility(View.GONE);
-                        ui.second.setVisibility(View.GONE);
-                        String errmsg = intent.getStringExtra(UploaderService.PARAM_ARG);
-                        Toast.makeText(context, errmsg, Toast.LENGTH_LONG).show();
+                    Log.i("UploaderBroadcastReceiver", "Received upload error action ");
+                    sv.setUploadStatus(SemanticVideo.UPLOAD_ERROR);
+                    ui.first.setVisibility(View.GONE);
+                    ui.second.setVisibility(View.GONE);
+                    String errmsg = intent.getStringExtra(UploaderService.PARAM_ARG);
+                    Toast.makeText(context, errmsg, Toast.LENGTH_LONG).show();
+                } else if (action.equals(UPLOAD_FINALIZED_ACTION)) {
+                    Log.i("UploaderBroadcastReceiver", "Received upload finalized action ");
+                    ui.first.setVisibility(View.GONE);
+                    ui.second.setVisibility(View.GONE);
+
+                    String errmsg = intent.getStringExtra(UploaderService.PARAM_ARG);
+                    Toast.makeText(context, errmsg, Toast.LENGTH_LONG).show();
                 }
             }
         }

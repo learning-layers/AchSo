@@ -51,9 +51,16 @@ public class LasLoginState implements LoginState {
     private Context ctx;
     private String mAuthToken;
     private boolean disable_autologin_for_session = false;
+    private LasConnection connection;
 
     public LasLoginState(Context ctx) {
+
         this.ctx = ctx;
+        try {
+            this.connection = (LasConnection) App.connection;
+        } catch (ClassCastException e) {
+            this.connection = new LasConnection();
+        }
     }
 
     public int getLoginStatus() {
@@ -211,8 +218,7 @@ public class LasLoginState implements LoginState {
     public void logout() {
         mUser = null;
         setState(LOGGED_OUT);
-        LasConnection lc = (LasConnection) App.connection;
-        lc.disconnect();
+        connection.disconnect();
         SharedPreferences prefs = ctx.getSharedPreferences("AchSoPrefs", 0);
         if (prefs.getBoolean("autologin", false)) {
             Editor edit = prefs.edit();
@@ -235,8 +241,7 @@ public class LasLoginState implements LoginState {
             pass = arg[1];
             Log.i("LasLoginTask", "Starting background logging in");
             // create the connection; the result will be a session id or an error message
-            LasConnection lc = (LasConnection) App.connection;
-            response = lc.connect(user, pass);
+            response = connection.connect(user, pass);
             //lc.disconnect();
             mUser = user;
             Log.i("LasLoginTask", "Received logging in response: " + response);

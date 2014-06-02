@@ -35,7 +35,7 @@ public class RemoteResultCache {
     static HashMap <Integer, List<SemanticVideo>> cache = new HashMap <Integer,
             List<SemanticVideo>>();
     static HashMap <Integer, Boolean> cache_has_result = new HashMap <Integer, Boolean>();
-    static RemoteSemanticVideo selected_video = null;
+    static SemanticVideo selected_video = null;
 
     public static void clearCache(int page) {
         List<SemanticVideo> list = cache.get(page);
@@ -66,11 +66,11 @@ public class RemoteResultCache {
     * Give easy access to selected remote video, make sure that this is set before starting video
      * player
     * */
-    public static RemoteSemanticVideo getSelectedVideo() {
+    public static SemanticVideo getSelectedVideo() {
         return selected_video;
     }
 
-    public static void setSelectedVideo(RemoteSemanticVideo video) {
+    public static void setSelectedVideo(SemanticVideo video) {
         selected_video = video;
     }
 

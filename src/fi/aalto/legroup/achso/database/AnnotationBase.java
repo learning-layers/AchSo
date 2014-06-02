@@ -51,7 +51,7 @@ public class AnnotationBase implements XmlSerializable {
     private FloatPosition mPosition;
 
     public AnnotationBase(long videoid, long starttime, long duration, String text,
-                          FloatPosition position, float scale, String creator) {
+                          FloatPosition position, float scale, String creator, String video_key) {
         mVideoId = videoid;
         mCreator = creator;
         mStartTime = starttime;
@@ -59,7 +59,7 @@ public class AnnotationBase implements XmlSerializable {
         mPosition = position;
         mText = text;
         mScale = scale;
-        mVideoKey = Long.toString(videoid);
+        mVideoKey = (video_key != null) ? video_key : Long.toString(videoid);
     }
 
     public String getText() {
