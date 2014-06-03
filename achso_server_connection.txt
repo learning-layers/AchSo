@@ -75,29 +75,29 @@ upload_video
 get_processing_state
     This is used to check if the video $key has finished its encoding and to receive the uri to use when playing it. !!  
     Request: GET
-    URL: http://<ip-address>/ClViTra_2.0/rest/get_processing_state
-    What is sent: "key":String, which is the unique filename that was sent when uploading video.
+    URL: http://<ip-address>/ClViTra_2.0/rest/{user}/{videoId}
+    What is sent: "videoId":String, which is the unique filename that was sent when uploading video, and "user": To which the video belongs.
 
     What is received:
-        200: (Success) "{'state':'finished', $video_format1:$video_uri1, $video_format2:$video_uri2, 'thumbnail':$thumbnail_uri}" 
+        200: (Success) "{'Video_Name':'Name', 'Video_URL':$video_uri, 'Thumbnail_URL':$thumbnail_uri,'Status':'Transcoded'}"
         -OR- 
-        "{'state':'processing' (optional:, 'progress':$percentage), 'thumbnail':$thumbnail_uri'}  
+        "{'state':'processing', 'thumbnail':$thumbnail_uri'}
         -OR- 
-        "{'state':'not found'}
-        -OR-
-        "{'state":'encoding failed', 'err':$err }
+        "{'status':'Not Found'}
+        
         404: URL not found.
         401: Unauthorized.
         500: Server Error.
 
     example:
-        http://merian.informatik.rwth-aachen.de:5080/ClViTra_2.0/rest/get_processing_state?key=ea901369-3ae0-42c6-aece-41151e474472
+        http://merian.informatik.rwth-aachen.de:5080/ClViTra_2.0/rest/videoDetail/testUser/ea901369-3ae0-42c6-aece-41151e474472
 
-        >"{'mp4':'http://tosini.informatik.rwth-aachen.de:8134/videos/ea901369-3ae0-42c6-aece-41151e474472.mp4', 'thumbnail':'http://tosini.informatik.rwth-aachen.de:8134/thumbnails/ea901369-3ae0-42c6-aece-41151e474472.jpg'}"
+        >"{'Video_Name':'Sample.mp4', 'Video_URL':'http://tosini.informatik.rwth-aachen.de:8134/videos/ea901369-3ae0-42c6-aece-41151e474472.mp4', 'Thumbnail_URL':'http://tosini.informatik.rwth-aachen.de:8134/thumbnails/ea901369-3ae0-42c6-aece-41151e474472.jpg','Status':'Transcoded'}"
+        
 
-        http://merian.informatik.rwth-aachen.de:5080/ClViTra_2.0/rest/get_processing_state?key=foobar
+        http://merian.informatik.rwth-aachen.de:5080/ClViTra_2.0/rest/videoDetail/testUser/foobar
 
-        >"not found"
+        >"{'Status':'Not Found'}"
 
 ---- Calls to Ach So data service ----
 
