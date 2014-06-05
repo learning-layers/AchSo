@@ -1,4 +1,37 @@
 
+Version 0.9.9
+- Fix for failure to import videos from device in KitKat.
+- Modifications to server API:
+    Added:
+    - get_unique_id
+    - add_community
+    - edit_community
+    - join_community
+    - leave_community
+    - get_communities
+    - add_video_to_community
+    - remove_video_from_community
+    - get_annotations
+    - get_videos
+    - get_videos_in_community
+
+    Renamed:
+    - upload_achso_data -> upload_video_metadata
+    - update_achso_data -> update_video_metadata
+    - upload_achso_annotation -> upload_annotation
+    - update_achso_annotation -> update_annotation
+    Implemented most of those to https://github.com/LeGroup/AchSoServer
+- Unified behavior of remote and local semanticvideos
+- Implemented upload process with ClViTra2 and Aalto AchSoServer: First ask key, assign key for
+video in device, send metadata to AchSoServer, send video to ClViTra2, start polling for finished
+video transcoding, get urls for transcoded video and thumbnail, patch metadata in AchSoServer to
+have video and thumbnail urls.
+- Added pending requests-preference to continue video finalizing process if it is still unfinished
+when the app shuts down.
+
+
+
+
 Version 0.9.8
 - Improvements on stability when showing and editing annotations that are near to each other, in time or in placement.
 - Vector-based annotation marker, scaling is prettier.
@@ -21,5 +54,7 @@ Version 0.9.5
 -Improved browsing of videos
 -Improved QR adding/searching workflow
 - Many, many minor fixes and improvements
+
+
 
 ... earlier version texts are dispersed around our documents.
