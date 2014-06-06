@@ -54,9 +54,23 @@ For AchSoService, there are several partial implementations. The one we are usin
 - [API implementation, all of the code](https://github.com/learning-layers/AchSoServer/blob/master/server.js)
 - test server's api: [http://achso.aalto.fi/server/api/](http://achso.aalto.fi/server/api/) 
 
-VideoInformation -service in LAS(?)
+VideoInformation -service in i5Cloud/AtlasLAS(?)
 
-- [http://dbis.rwth-aachen.de/~jahns/javadocs/videoinformation/i5/atlas/las/service/videoinformation/Videoinformation.html](http://dbis.rwth-aachen.de/~jahns/javadocs/videoinformation/i5/atlas/las/service/videoinformation/Videoinformation.html)
+- JavaDoc API [http://dbis.rwth-aachen.de/~jahns/javadocs/videoinformation/i5/atlas/las/service/videoinformation/Videoinformation.html](http://dbis.rwth-aachen.de/~jahns/javadocs/videoinformation/i5/atlas/las/service/videoinformation/Videoinformation.html)
+- Used through LasConnection:
+    ```java 
+    Object[] params = {username};
+    lasconnection.invoke("videoinformation","getVideoInformationFilterByCreator", params);
+    ```
+
+MPEG7MultimediaContentService in i5Cloud/AtlasLAS
+
+- JavaDoc API [http://www-i5.informatik.rwth-aachen.de/~atlas/module_build_3/JavaDoc//atlas_las_mpeg7-services/HEAD/javadoc/i5/atlas/las/service/mpeg7/multimediacontent/MPEG7MultimediaContentService.html](http://www-i5.informatik.rwth-aachen.de/~atlas/module_build_3/JavaDoc//atlas_las_mpeg7-services/HEAD/javadoc/i5/atlas/las/service/mpeg7/multimediacontent/MPEG7MultimediaContentService.html)
+- Used through LasConnection:
+    ```java 
+    Object[] params = {videoUrls};
+    lasconnection.invoke("mpeg7_multimediacontent_service","getMediaCreationTitles", params);
+    ```
 
 
 <a name="uploading_and_updating"></a>

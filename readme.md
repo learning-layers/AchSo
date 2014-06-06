@@ -4,6 +4,7 @@ See https://play.google.com/store/apps/details?id=fi.aalto.legroup.achso
 and
 http://developer.learning-layers.eu/tools/ach-so/
 
+See [achso_server_connection.md](achso_server_connection.md) for API reference.
 
 /**
  * Copyright 2013 Aalto university, see AUTHORS

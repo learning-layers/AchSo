@@ -176,9 +176,21 @@ Viewing the source code in </p>
 <li><a href="https://github.com/learning-layers/AchSoServer/blob/master/server.js">API implementation, all of the code</a></li>
 <li>test server's api: <a href="http://achso.aalto.fi/server/api/">http://achso.aalto.fi/server/api/</a> </li>
 </ul>
-<p>VideoInformation -service in LAS(?)</p>
+<p>VideoInformation -service in i5Cloud/AtlasLAS(?)</p>
 <ul>
-<li><a href="http://dbis.rwth-aachen.de/~jahns/javadocs/videoinformation/i5/atlas/las/service/videoinformation/Videoinformation.html">http://dbis.rwth-aachen.de/~jahns/javadocs/videoinformation/i5/atlas/las/service/videoinformation/Videoinformation.html</a></li>
+<li>JavaDoc API <a href="http://dbis.rwth-aachen.de/~jahns/javadocs/videoinformation/i5/atlas/las/service/videoinformation/Videoinformation.html">http://dbis.rwth-aachen.de/~jahns/javadocs/videoinformation/i5/atlas/las/service/videoinformation/Videoinformation.html</a></li>
+<li>Used through LasConnection:
+    <code>java 
+    Object[] params = {username};
+    lasconnection.invoke("videoinformation","getVideoInformationFilterByCreator", params);</code></li>
+</ul>
+<p>MPEG7MultimediaContentService in i5Cloud/AtlasLAS</p>
+<ul>
+<li>JavaDoc API <a href="http://www-i5.informatik.rwth-aachen.de/~atlas/module_build_3/JavaDoc//atlas_las_mpeg7-services/HEAD/javadoc/i5/atlas/las/service/mpeg7/multimediacontent/MPEG7MultimediaContentService.html">http://www-i5.informatik.rwth-aachen.de/~atlas/module_build_3/JavaDoc//atlas_las_mpeg7-services/HEAD/javadoc/i5/atlas/las/service/mpeg7/multimediacontent/MPEG7MultimediaContentService.html</a></li>
+<li>Used through LasConnection:
+    <code>java 
+    Object[] params = {videoUrls};
+    lasconnection.invoke("mpeg7_multimediacontent_service","getMediaCreationTitles", params);</code></li>
 </ul>
 <p><a name="uploading_and_updating"></a></p>
 <h2 id="uploading-and-updating">Uploading and updating</h2>
