@@ -2,6 +2,10 @@
 
 - [Ach so! server connection](#h1)
     - [Implementations](#implementations) 
+        - [ClViTra2.0](#clvitra20)
+        - [AchSoServer](#achsoserver)
+        - [MPEG7MultimediaContentService](#mpeg7multimediacontentservice)
+        - [VideoInformation -service](#videoinformation-service)
     - [Uploading and updating](#uploading_and_updating)
     - [Calls to VideoStorage](#calls_to_videostorage)
         - [upload_video](#upload_video)
@@ -40,6 +44,11 @@ If you have a server API that is doing something close to what is described here
 Implementations
 ---------------
 
+Now here things get confusing. 
+
+<a name="clvitra20"></a>
+
+### ClViTra2.0
 For VideoStorage, the actively developed implementation is 
 [ClViTra2.0](https://github.com/learning-layers/Cloud-Video-Transcoder).
 Viewing the source code in 
@@ -48,30 +57,45 @@ Viewing the source code in
 
 seems to be the best way to find out what it is doing. Changes in ClViTra2 should be reflected here, in this document.  
 
-For AchSoService, there are several partial implementations. The one we are using for development is lightweight Node.js server in Aalto, AchSoServer: 
+<a name="achsoserver"></a>
+
+### AchSoServer
+
+For AchSoService, there are several partial implementations. The one we are using for development is lightweight Node.js server in Aalto, **AchSoServer**: 
 
 - [AchSoServer in Github](https://github.com/learning-layers/AchSoServer)
 - [API implementation, all of the code](https://github.com/learning-layers/AchSoServer/blob/master/server.js)
 - test server's api: [http://achso.aalto.fi/server/api/](http://achso.aalto.fi/server/api/) 
 
-VideoInformation -service in i5Cloud/AtlasLAS(?)
+<a name="mpeg7multimediacontentservice"></a>
+
+### MPEG7MultimediaContentService
+
+*MPEG7MultimediaContentService* is a service used by Sevianno2.2 in i5Cloud/AtlasLAS environment. It is used to browse and show videos. In Sevianno it is called through lasAjaxClient-javascript library (http://dbis.rwth-aachen.de/gadgets/lib/las/lasAjaxClient.js). In Android and Java clients it is used through `http-connector-client.jar` and imported as `i5.las.httpConnector.client`, that I got from Petru.
+
+- even when doing Java, lasAjaxClient.js can be used to inspect how the calls to MPEG7MultimediaContentService are finally formulated. I havent found source for `i5.las.httpConnector.client`, but JavaDoc is [here](http://www-i5.informatik.rwth-aachen.de/~atlas/module_build_3/JavaDoc//atlas_las_http-connector/release_0_4-mobsos/javadoc/i5/las/httpConnector/client/Client.html).  
+
+- JavaDoc API (latest I found) [http://www-i5.informatik.rwth-aachen.de/~atlas/module_build_3/JavaDoc//atlas_las_mpeg7-services/HEAD/javadoc/i5/atlas/las/service/mpeg7/multimediacontent/MPEG7MultimediaContentService.html](http://www-i5.informatik.rwth-aachen.de/~atlas/module_build_3/JavaDoc//atlas_las_mpeg7-services/HEAD/javadoc/i5/atlas/las/service/mpeg7/multimediacontent/MPEG7MultimediaContentService.html)
+- Use through LasConnection:
+
+```java 
+Object[] params = {videoUrls};
+lasconnection.invoke("mpeg7_multimediacontent_service","getMediaCreationTitles", params);
+```
+
+<a name="videoinformation-service"></a>
+
+### VideoInformation -service
+
+*VideoInformation* -service is a  i5Cloud/AtlasLAS(?)
 
 - JavaDoc API [http://dbis.rwth-aachen.de/~jahns/javadocs/videoinformation/i5/atlas/las/service/videoinformation/Videoinformation.html](http://dbis.rwth-aachen.de/~jahns/javadocs/videoinformation/i5/atlas/las/service/videoinformation/Videoinformation.html)
-- Used through LasConnection:
-    ```java 
-    Object[] params = {username};
-    lasconnection.invoke("videoinformation","getVideoInformationFilterByCreator", params);
-    ```
+- Use through LasConnection:
 
-MPEG7MultimediaContentService in i5Cloud/AtlasLAS
-
-- JavaDoc API [http://www-i5.informatik.rwth-aachen.de/~atlas/module_build_3/JavaDoc//atlas_las_mpeg7-services/HEAD/javadoc/i5/atlas/las/service/mpeg7/multimediacontent/MPEG7MultimediaContentService.html](http://www-i5.informatik.rwth-aachen.de/~atlas/module_build_3/JavaDoc//atlas_las_mpeg7-services/HEAD/javadoc/i5/atlas/las/service/mpeg7/multimediacontent/MPEG7MultimediaContentService.html)
-- Used through LasConnection:
-    ```java 
-    Object[] params = {videoUrls};
-    lasconnection.invoke("mpeg7_multimediacontent_service","getMediaCreationTitles", params);
-    ```
-
+```java 
+Object[] params = {username};
+lasconnection.invoke("videoinformation","getVideoInformationFilterByCreator", params);
+```
 
 <a name="uploading_and_updating"></a>
 

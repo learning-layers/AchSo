@@ -122,7 +122,13 @@ body{font-size:16px;}
 }
 </style><title>achso_server_connection</title></head><body><ul>
 <li><a href="#h1">Ach so! server connection</a><ul>
-<li><a href="#implementations">Implementations</a> </li>
+<li><a href="#implementations">Implementations</a> <ul>
+<li><a href="#clvitra20">ClViTra2.0</a></li>
+<li><a href="#achsoserver">AchSoServer</a></li>
+<li><a href="#mpeg7multimediacontentservice">MPEG7MultimediaContentService</a></li>
+<li><a href="#videoinformation-service">VideoInformation -service</a></li>
+</ul>
+</li>
 <li><a href="#uploading_and_updating">Uploading and updating</a></li>
 <li><a href="#calls_to_videostorage">Calls to VideoStorage</a><ul>
 <li><a href="#upload_video">upload_video</a></li>
@@ -165,33 +171,49 @@ body{font-size:16px;}
 <p>If you have a server API that is doing something close to what is described here, please modify the description here to describe your API. If you have something that you are going to implement, but is not implemented yet, mention it here.</p>
 <p><a name="implementations"></a></p>
 <h2 id="implementations">Implementations</h2>
+<p>Now here things get confusing. </p>
+<p><a name="clvitra20"></a></p>
+<h3 id="clvitra2-0">ClViTra2.0</h3>
 <p>For VideoStorage, the actively developed implementation is 
 <a href="https://github.com/learning-layers/Cloud-Video-Transcoder">ClViTra2.0</a>.
 Viewing the source code in </p>
 <p><a href="https://github.com/learning-layers/Cloud-Video-Transcoder/tree/master/ClViTra_2.0/src/main/java/de/dbis/services">https://github.com/learning-layers/Cloud-Video-Transcoder/tree/master/ClViTra_2.0/src/main/java/de/dbis/services</a></p>
 <p>seems to be the best way to find out what it is doing. Changes in ClViTra2 should be reflected here, in this document.  </p>
-<p>For AchSoService, there are several partial implementations. The one we are using for development is lightweight Node.js server in Aalto, AchSoServer: </p>
+<p><a name="achsoserver"></a></p>
+<h3 id="achsoserver">AchSoServer</h3>
+<p>For AchSoService, there are several partial implementations. The one we are using for development is lightweight Node.js server in Aalto, <strong>AchSoServer</strong>: </p>
 <ul>
 <li><a href="https://github.com/learning-layers/AchSoServer">AchSoServer in Github</a></li>
 <li><a href="https://github.com/learning-layers/AchSoServer/blob/master/server.js">API implementation, all of the code</a></li>
 <li>test server's api: <a href="http://achso.aalto.fi/server/api/">http://achso.aalto.fi/server/api/</a> </li>
 </ul>
-<p>VideoInformation -service in i5Cloud/AtlasLAS(?)</p>
+<p><a name="mpeg7multimediacontentservice"></a></p>
+<h3 id="mpeg7multimediacontentservice">MPEG7MultimediaContentService</h3>
+<p><em>MPEG7MultimediaContentService</em> is a service used by Sevianno2.2 in i5Cloud/AtlasLAS environment. It is used to browse and show videos. In Sevianno it is called through lasAjaxClient-javascript library (http://dbis.rwth-aachen.de/gadgets/lib/las/lasAjaxClient.js). In Android and Java clients it is used through <code>http-connector-client.jar</code> and imported as <code>i5.las.httpConnector.client</code>, that I got from Petru.</p>
+<ul>
+<li>
+<p>even when doing Java, lasAjaxClient.js can be used to inspect how the calls to MPEG7MultimediaContentService are finally formulated. I havent found source for <code>i5.las.httpConnector.client</code>, but JavaDoc is <a href="http://www-i5.informatik.rwth-aachen.de/~atlas/module_build_3/JavaDoc//atlas_las_http-connector/release_0_4-mobsos/javadoc/i5/las/httpConnector/client/Client.html">here</a>.  </p>
+</li>
+<li>
+<p>JavaDoc API (latest I found) <a href="http://www-i5.informatik.rwth-aachen.de/~atlas/module_build_3/JavaDoc//atlas_las_mpeg7-services/HEAD/javadoc/i5/atlas/las/service/mpeg7/multimediacontent/MPEG7MultimediaContentService.html">http://www-i5.informatik.rwth-aachen.de/~atlas/module_build_3/JavaDoc//atlas_las_mpeg7-services/HEAD/javadoc/i5/atlas/las/service/mpeg7/multimediacontent/MPEG7MultimediaContentService.html</a></p>
+</li>
+<li>Use through LasConnection:</li>
+</ul>
+<pre><code class="java">Object[] params = {videoUrls};
+lasconnection.invoke(&quot;mpeg7_multimediacontent_service&quot;,&quot;getMediaCreationTitles&quot;, params);
+</code></pre>
+
+<p><a name="videoinformation-service"></a></p>
+<h3 id="videoinformation-service">VideoInformation -service</h3>
+<p><em>VideoInformation</em> -service is a  i5Cloud/AtlasLAS(?)</p>
 <ul>
 <li>JavaDoc API <a href="http://dbis.rwth-aachen.de/~jahns/javadocs/videoinformation/i5/atlas/las/service/videoinformation/Videoinformation.html">http://dbis.rwth-aachen.de/~jahns/javadocs/videoinformation/i5/atlas/las/service/videoinformation/Videoinformation.html</a></li>
-<li>Used through LasConnection:
-    <code>java 
-    Object[] params = {username};
-    lasconnection.invoke("videoinformation","getVideoInformationFilterByCreator", params);</code></li>
+<li>Use through LasConnection:</li>
 </ul>
-<p>MPEG7MultimediaContentService in i5Cloud/AtlasLAS</p>
-<ul>
-<li>JavaDoc API <a href="http://www-i5.informatik.rwth-aachen.de/~atlas/module_build_3/JavaDoc//atlas_las_mpeg7-services/HEAD/javadoc/i5/atlas/las/service/mpeg7/multimediacontent/MPEG7MultimediaContentService.html">http://www-i5.informatik.rwth-aachen.de/~atlas/module_build_3/JavaDoc//atlas_las_mpeg7-services/HEAD/javadoc/i5/atlas/las/service/mpeg7/multimediacontent/MPEG7MultimediaContentService.html</a></li>
-<li>Used through LasConnection:
-    <code>java 
-    Object[] params = {videoUrls};
-    lasconnection.invoke("mpeg7_multimediacontent_service","getMediaCreationTitles", params);</code></li>
-</ul>
+<pre><code class="java">Object[] params = {username};
+lasconnection.invoke(&quot;videoinformation&quot;,&quot;getVideoInformationFilterByCreator&quot;, params);
+</code></pre>
+
 <p><a name="uploading_and_updating"></a></p>
 <h2 id="uploading-and-updating">Uploading and updating</h2>
 <p>I have assumed 2 services to handle Ach so! videos. One is VideoStorage service (e.g. ClViTra2.0) and the other is the service that understands Ach so! metadata, AchSoService.</p>
