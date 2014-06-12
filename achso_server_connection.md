@@ -2,6 +2,7 @@
 
 - [Ach so! server connection](#h1)
     - [Implementations](#implementations) 
+        - [ClViTra](#clvitra)
         - [ClViTra2.0](#clvitra20)
         - [AchSoServer](#achsoserver)
         - [MPEG7MultimediaContentService](#mpeg7multimediacontentservice)
@@ -46,6 +47,16 @@ Implementations
 
 Now here things get confusing. 
 
+
+<a name="clvitra"></a>
+
+### ClViTra
+**CLViTra** is an existing implementation of idea of doing video transcoding in cloud. It is one possible way of implementing the tasks required from VideoStorage, but it is now deprecated and redone as ClViTra2.0 with more straightforward API. The first Ach So! server connections and AnViAnno used this as a receiving end for video uploads, so the code has some legacy cruft from that. 
+
+- [ClViTra](http://merian.informatik.rwth-aachen.de:5080/ClViTra/) 
+- No more actively developed?
+- Use ClViTra2.0 instead!
+
 <a name="clvitra20"></a>
 
 ### ClViTra2.0
@@ -59,7 +70,7 @@ For VideoStorage, the actively developed implementation is **ClViTra2.0**.
 
 ### AchSoServer
 
-For AchSoService, there are several partial implementations. The one we are using for development is lightweight Node.js server in Aalto, **AchSoServer**: 
+This document describes need for two services, VideoStorage and AchSoService. **AchSoServer** is a small lightweight implementation of AchSoService, for purpose of development and testing, but not for real secure use. It is implemented with Node.js and hosted in Aalto. It is 'cutting edge' for Ach so!: we need some service where to test if the planned interactions work as expected where we can modify the interactions easily. Then the API here is modified to reflect the improvements and the solid i5Cloud services should follow. 
 
 - [AchSoServer in Github](https://github.com/learning-layers/AchSoServer)
 - [API implementation, all of the code is in this file.](https://github.com/learning-layers/AchSoServer/blob/master/server.js)
@@ -95,14 +106,18 @@ Object res = client.invoke("mpeg7_multimediacontent_service","getMediaCreationTi
 
 ### VideoInformation -service
 
-*VideoInformation* -service is another service that provides some metadata about videos ins  i5Cloud/AtlasLAS(?)
+*VideoInformation* -service is another service to provide some metadata about videos uploaded to Sevianno/i5Cloud/AtlasLAS. It is supposed to be especially for Ach so! and it was actively developed by Kevin Jahns in January-February 2014.   
 
 - JavaDoc API [http://dbis.rwth-aachen.de/~jahns/javadocs/videoinformation/i5/atlas/las/service/videoinformation/Videoinformation.html](http://dbis.rwth-aachen.de/~jahns/javadocs/videoinformation/i5/atlas/las/service/videoinformation/Videoinformation.html)
 - Use through LasConnection:
 
 ```java 
+import i5.las.httpConnector.client.Client;
+
+client = new Client(lasHostname, lasPort, timeOutms, username, password);
+client.connect();
 Object[] params = {username};
-lasconnection.invoke("videoinformation","getVideoInformationFilterByCreator", params);
+Object res = client.invoke("videoinformation","getVideoInformationFilterByCreator", params);
 ```
 
 <a name="uploading_and_updating"></a>
