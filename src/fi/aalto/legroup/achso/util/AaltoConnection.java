@@ -95,7 +95,7 @@ public class AaltoConnection implements Connection {
                 break;
             case BrowsePagerAdapter.MY_VIDEOS:
                 params.add(new BasicNameValuePair("user_id", App.getUsername()));
-                res = runQuery("get_my_videos", params);
+                //res = runQuery("get_my_videos", params);
                 break;
             case BrowsePagerAdapter.RECOMMENDED:
                 break;

@@ -1,5 +1,6 @@
 
 Version 0.9.9
+- Fixed implicit requirements to be less strict: there should be 1000+ more compatible devices.
 - Fix for failure to import videos from device in KitKat.
 - Modifications to server API:
     Added:
