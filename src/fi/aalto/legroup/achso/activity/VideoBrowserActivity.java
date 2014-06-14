@@ -238,9 +238,9 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
         goToBrowsePage(mLastPage);
 
         //mViewPager.setCurrentItem()
-
-        if (getIntent() != null) {
-            onNewIntent(getIntent());
+        Intent intent = getIntent();
+        if (intent != null) {
+            onNewIntent(intent);
         }
 
     }
@@ -373,18 +373,29 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
     }
              */
 
+     /**
+      * Handles external calls with Intents that launch Ach so! and ask for some action to be
+      * completed. There is some legacy code about search action and a new (14.6.2014) addition
+      * for launching Ach so! recording through intent. These have to be reflected in
+      * AndroidManifest.xml to take effect.
+      * @param i
+      */
     @Override
     protected void onNewIntent(Intent i) {
         String action = i.getAction();
-        if (action != null && action.equals(Intent.ACTION_SEARCH)) {
-            String query = i.getStringExtra(SearchManager.QUERY);
-            if (query != null) {
-                if (mQuery != query) {
-                    mQuery = query;
-                    RemoteResultCache.clearCache(BrowsePagerAdapter.SEARCH);
+        if (action != null) {
+            if (action.equals(Intent.ACTION_SEARCH)) {
+                String query = i.getStringExtra(SearchManager.QUERY);
+                if (query != null) {
+                    if (mQuery != query) {
+                        mQuery = query;
+                        RemoteResultCache.clearCache(BrowsePagerAdapter.SEARCH);
+                    }
+                    mQueryType = TITLE_QUERY;
+                    goToBrowsePage(BrowsePagerAdapter.SEARCH);
                 }
-                mQueryType = TITLE_QUERY;
-                goToBrowsePage(BrowsePagerAdapter.SEARCH);
+            } else if (action.equals(LAUNCH_RECORDING)) {
+                launchRecording();
             }
         }
     }

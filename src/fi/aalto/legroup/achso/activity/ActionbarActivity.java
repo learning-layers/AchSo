@@ -78,6 +78,7 @@ public abstract class ActionbarActivity extends FragmentActivity {
     public static final int REQUEST_LOGIN = 7;
     public static final int API_VERSION = android.os.Build.VERSION.SDK_INT;
     private static final int REQUEST_VIDEO_FILE = 8;
+    public static final String LAUNCH_RECORDING = "fi.aalto.legroup.achso.action.RECORD";
 
     protected Menu mMenu;
     private Uri mVideoUri;

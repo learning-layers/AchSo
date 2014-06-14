@@ -1,4 +1,8 @@
 
+Version 0.9.10
+- Opened a public intent "fi.aalto.legroup.achso.action.RECORD" that can be used to start Ach so! video recording from other apps.
+- Further adjusted uses-feature -info to allow more devices that ought to see Ach so! in Play store, but were excluded because irrelevant oddities in cameras.
+
 Version 0.9.9
 - Fixed implicit requirements to be less strict: there should be 1000+ more compatible devices.
 - Fix for failure to import videos from device in KitKat.
@@ -57,5 +61,31 @@ Version 0.9.5
 - Many, many minor fixes and improvements
 
 
-
 ... earlier version texts are dispersed around our documents.
+
+
+Fixes for version 0.8.1:
+- Fixed Samsung GT-I9000 4.3.1 video recording returning null after record and crashing. From 4.3.1 >, device better support MediaStore.EXTRA_OUTPUT -argument.
+- Fixed critical bug that prevents installing in many devices.
+- Fixed video path to store in MOVIES not in PICTURES
+
+Fixes for version 0.8:
+- Added 'keep' button when editing annotations to give an easier choice when wanting to save changes, but not wanting to edit annotation text.
+- Annotation marker now maintains its correct position when bottom row buttons slide to view.
+- Show 'Offline' text on menubar instead of Login / Logout when network is not available
+- Can be set to login automatically on start, this is saved in SharedPreferences.
+- Playback pauses when jumping with timeline, because when playing and jumping to annotation marker, it would start 3 second pause, which feels confusing.
+- More visual feedback for 3 second pause if player buttons are visible - Annotation button changes to small progress bar.
+- Better looking add annotation -button.
+- Renamed classes, some methods and most layouts to better describe their purpose in Ach So!
+- Revised layout system to use less layout file versions for different screens and instead use <include> tags to provide those elements that need to adjust for different screens.
+- Simplified video playback layout methods to use same principle in each case and detect if all vertical space is used as a hint to hide/show buttons. This should be more general solution to layouts.
+- Provided logging to file in device. Log can be found in /Android/data/fi.aalto.legroup.achso/files/achso.log
+- Updated Finnish translation
+- Fixed misread x-coordinate for touch events on portrait mode videos in landscape view.
+- Fixed hiding borders in some small landscape views where the video almost fills the vertical space, but not enough to trigger border hiding.
+- Fixed subtitle position in small landscape views (still needs to improve on few devices).
+- Fixed missing templates for small but hi-res devices. (Sony xpiria)
+- Fixed issue with Samsung GT-I9195 not returning video path.
+- Fixed blocker issue with Samsung GT-P5110 and GT-P3110 not saving their recordings. Removed reliance of EXTRA_OUTPUT in recording intent and 1. did the workaround used in AnViAnno + delete temp recording afterwards. 2. Did another workaround based on finding the real path name and moving the file instead of rewriting, since that is very slow with larger videos.
+- Added notification if QR code is a link and made the link clickable.
