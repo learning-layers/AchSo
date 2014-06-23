@@ -96,6 +96,7 @@
     <string name="logged_in_as">Logged in as </string>
     <string name="connection_problem">Connection problem</string>
     <string name="authentication_problem">Authentication problem</string>
+    <string name="i5cloud_prefs">i5Cloud account</string>
     <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
     <!-- ENGLISH GENRES END -->
 

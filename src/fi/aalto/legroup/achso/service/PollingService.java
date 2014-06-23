@@ -21,55 +21,35 @@
  * limitations under the License.
  */
 
-package fi.aalto.legroup.achso.upload;
+package fi.aalto.legroup.achso.service;
 
 import android.app.IntentService;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
-import android.support.v4.content.LocalBroadcastManager;
-import android.util.Base64;
 import android.util.Log;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.FileEntity;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
-import fi.aalto.legroup.achso.activity.VideoBrowserActivity;
-import fi.aalto.legroup.achso.annotation.Annotation;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.util.App;
-import fi.aalto.legroup.achso.util.LasConnection;
-import fi.aalto.legroup.achso.util.xml.XmlConverter;
 
-import static fi.aalto.legroup.achso.upload.UploaderService.updateVideoMetadataToAalto;
-import static fi.aalto.legroup.achso.util.App.appendLog;
+import static fi.aalto.legroup.achso.service.UploaderService.updateVideoMetadataToAalto;
 
 public class PollingService extends IntentService {
 

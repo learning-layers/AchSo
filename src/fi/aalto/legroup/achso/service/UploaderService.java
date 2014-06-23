@@ -21,7 +21,7 @@
  * limitations under the License.
  */
 
-package fi.aalto.legroup.achso.upload;
+package fi.aalto.legroup.achso.service;
 
 import android.app.IntentService;
 import android.content.Context;
@@ -55,6 +55,7 @@ import fi.aalto.legroup.achso.activity.VideoBrowserActivity;
 import fi.aalto.legroup.achso.annotation.Annotation;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
+import fi.aalto.legroup.achso.upload.PollableHttpEntity;
 import fi.aalto.legroup.achso.util.AaltoConnection;
 import fi.aalto.legroup.achso.util.App;
 import fi.aalto.legroup.achso.util.LasConnection;

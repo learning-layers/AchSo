@@ -95,5 +95,6 @@
     <string name="logged_in_as">Logged in as </string>
     <string name="connection_problem">Connection problem</string>
     <string name="authentication_problem">Authentication problem</string>
+    <string name="i5cloud_prefs">i5Cloud account</string>
 
 </resources>

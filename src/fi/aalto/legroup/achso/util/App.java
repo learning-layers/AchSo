@@ -25,7 +25,6 @@ package fi.aalto.legroup.achso.util;
 
 import android.app.Application;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.location.Location;
@@ -46,8 +45,6 @@ import java.util.Map;
 
 import fi.aalto.legroup.achso.state.LasLoginState;
 import fi.aalto.legroup.achso.state.LoginState;
-import fi.aalto.legroup.achso.state.i5LoginState;
-import fi.aalto.legroup.achso.upload.PollingService;
 
 public class App extends Application {
 
@@ -149,6 +146,7 @@ public class App extends Application {
         SharedPreferences pending = mContext.getSharedPreferences(PENDING_POLLS,
                 Context.MODE_PRIVATE);
         if (pending.getString(key, null) != null) {
+            Log.i("App", "Removing polling pref. " + key);
             SharedPreferences.Editor editor = pending.edit();
             editor.putString(key, null);
             editor.commit();
@@ -163,10 +161,11 @@ public class App extends Application {
         String user_id;
         for (String key: items.keySet()) {
             user_id = (String) items.get(key);
-            Intent pollingIntent = new Intent(App.getContext(), PollingService.class);
-            pollingIntent.putExtra(PollingService.VIDEO_KEY, key);
-            pollingIntent.putExtra(PollingService.USERID_PART, user_id);
-            App.getContext().startService(pollingIntent);
+            removePollingReminder(key);
+            //Intent pollingIntent = new Intent(App.getContext(), PollingService.class);
+            //pollingIntent.putExtra(PollingService.VIDEO_KEY, key);
+            //pollingIntent.putExtra(PollingService.USERID_PART, user_id);
+            //App.getContext().startService(pollingIntent);
         }
     }
 

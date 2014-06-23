@@ -68,7 +68,7 @@ import fi.aalto.legroup.achso.adapter.VideoThumbAdapter;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.state.IntentDataHolder;
-import fi.aalto.legroup.achso.upload.UploaderService;
+import fi.aalto.legroup.achso.service.UploaderService;
 import fi.aalto.legroup.achso.util.App;
 import fi.aalto.legroup.achso.remote.RemoteFetchTask;
 import fi.aalto.legroup.achso.remote.RemoteResultCache;

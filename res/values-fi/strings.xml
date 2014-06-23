@@ -95,5 +95,6 @@
     <string name="logged_in_as">Kirjautunut nimellä </string>
     <string name="connection_problem">Yhteysongelma</string>
     <string name="authentication_problem">Tunnusongelma</string>
+    <string name="i5cloud_prefs">i5Cloud account</string>
 
 </resources>

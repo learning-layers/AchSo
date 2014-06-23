@@ -93,6 +93,7 @@
     <string name="logged_in_as">Eingeloggt als </string>
     <string name="connection_problem">Verbindungsproblem</string>
     <string name="authentication_problem">Authentifizierungsproblem</string>
+    <string name="i5cloud_prefs">i5Cloud account</string>
 
 
 </resources>
