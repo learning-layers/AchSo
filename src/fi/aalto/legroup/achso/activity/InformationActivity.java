@@ -38,6 +38,7 @@ import fi.aalto.legroup.achso.remote.RemoteResultCache;
 public class InformationActivity extends FragmentActivity {
 
     public boolean informationChanged = false;
+    public SemanticVideo semanticVideo;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -50,15 +51,14 @@ public class InformationActivity extends FragmentActivity {
         }
         if (savedInstanceState == null) {
             Long id = getIntent().getLongExtra(VideoViewerFragment.ARG_ITEM_ID, -1);
-            SemanticVideo sv;
             if (id == -1) {
-                sv = RemoteResultCache.getSelectedVideo();
+                semanticVideo = RemoteResultCache.getSelectedVideo();
             } else {
-                sv = VideoDBHelper.getById(id);
+                semanticVideo = VideoDBHelper.getById(id);
             }
             getSupportFragmentManager().
                     beginTransaction().
-                    replace(R.id.information_container, new InformationFragment(sv)).
+                    replace(R.id.information_container, new InformationFragment()).
                     commit();
         }
     }

@@ -45,7 +45,7 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.state.LoginState;
 import fi.aalto.legroup.achso.util.App;
 
-public class LoginActivity extends ActionbarActivity {
+public class OldLoginActivity extends ActionbarActivity {
 
     private final Context ctx = this;
 

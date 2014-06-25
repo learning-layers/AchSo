@@ -25,13 +25,19 @@ package fi.aalto.legroup.achso.service;
 import android.accounts.AbstractAccountAuthenticator;
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorResponse;
+import android.accounts.AccountManager;
 import android.accounts.NetworkErrorException;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.text.TextUtils;
 import android.util.Log;
+
+import java.util.ArrayList;
+
+import fi.aalto.legroup.achso.activity.AuthenticatorActivity;
 
 
 /**
@@ -40,10 +46,11 @@ import android.util.Log;
 public class AccountService extends Service {
 
     public static final String ACCOUNT_NAME = "sync";
-    private static final String TAG = "i5CloudAccountService";
     public static final String ACHSO_ACCOUNT_TYPE = "fi.aalto.legroup.achso.i5account";
     public static final String ACHSO_AUTH_TOKEN_TYPE = "i5cloud";
+    private static final String TAG = "i5CloudAccountService";
     private Authenticator mAuthenticator;
+    private Context mContext;
 
     /**
      * Obtain a handle to the {@link android.accounts.Account} used for sync in this application.
@@ -62,6 +69,11 @@ public class AccountService extends Service {
         return new Account(accountName, ACHSO_ACCOUNT_TYPE);
     }
 
+    public static String userSignIn(String userName, String userPass, String achsoAuthTokenType) {
+        // Here implement server calls
+        return null;
+    }
+
     @Override
     public void onCreate() {
         Log.i(TAG, "Service created");
@@ -78,47 +90,222 @@ public class AccountService extends Service {
         return mAuthenticator.getIBinder();
     }
 
+    // Authenticator implementation is based on
+    // https://udinic.wordpress.com/2013/04/24/write-your-own-android-authenticator/
+
     public class Authenticator extends AbstractAccountAuthenticator {
         public Authenticator(Context context) {
             super(context);
             Log.i(TAG, "Authenticator created");
+            mContext = context;
         }
 
+        /**
+         * From AbstractAccountAuthenticator documentation:
+         * Returns a Bundle that contains the Intent of the activity that can be used to edit
+         * the properties. In order to indicate success the activity should call response
+         * .setResult() with a non-null Bundle.
+         * __Parameters__
+         * @param response used to set the result for the request. If the Constants.INTENT_KEY is
+         * set in the bundle then this response field is to be used for sending future results
+         * if and when the Intent is started.
+         * @param accountType	the AccountType whose properties are to be edited.
+         * __Returns__
+         * @return a Bundle containing the result or the Intent to start to continue the request. If
+         * this is null then the request is considered to still be active and the result should
+         * be sent later using response.
+         */
         @Override
-        public Bundle editProperties(AccountAuthenticatorResponse accountAuthenticatorResponse, String s) {
+        public Bundle editProperties(AccountAuthenticatorResponse response, String accountType) {
             throw new UnsupportedOperationException();
         }
 
+        /**
+         * From AbstractAccountAuthenticator documentation:
+         * Adds an account of the specified accountType.
+         * __Parameters__
+         * @param response to send the result back to the AccountManager, will never be null
+         * @param accountType the type of account to add, will never be null
+         * @param authTokenType the type of auth token to retrieve after adding the account, may be null
+         * @param requiredFeatures a String array of authenticator-specific features that the added account must support, may be null
+         * @param options a Bundle of authenticator-specific options, may be null
+         * __Returns__
+         * @return a Bundle result or null if the result is to be returned via the response. The result will contain either:
+         * KEY_INTENT, or
+         * KEY_ACCOUNT_NAME and KEY_ACCOUNT_TYPE of the account that was added, or
+         * KEY_ERROR_CODE and KEY_ERROR_MESSAGE to indicate an error
+         * __Throws__
+         * @throws NetworkErrorException if the authenticator could not honor the request due to a network error
+         */
         @Override
-        public Bundle addAccount(AccountAuthenticatorResponse accountAuthenticatorResponse, String s, String s2, String[] strings, Bundle bundle) throws NetworkErrorException {
+        public Bundle addAccount(AccountAuthenticatorResponse response, String accountType,
+                                 String authTokenType, String[] requiredFeatures,
+                                 Bundle options) throws NetworkErrorException {
             Log.i(TAG, "addAccount called");
+            final Intent intent = new Intent(mContext, AuthenticatorActivity.class);
+            intent.putExtra(AuthenticatorActivity.ARG_ACCOUNT_TYPE, accountType);
+            intent.putExtra(AuthenticatorActivity.ARG_AUTH_TYPE, authTokenType);
+            intent.putExtra(AuthenticatorActivity.ARG_IS_ADDING_NEW_ACCOUNT, true);
+            intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
+            final Bundle bundle = new Bundle();
+            bundle.putParcelable(AccountManager.KEY_INTENT, intent);
+            return bundle;
+        }
+
+        /**
+         * From AbstractAccountAuthenticator documentation:
+         * Checks that the user knows the credentials of an account.
+         * __Parameters__
+         * @param response 	to send the result back to the AccountManager, will never be null
+         * @param account	the account whose credentials are to be checked, will never be null
+         * @param options	a Bundle of authenticator-specific options, may be null
+         * __Returns__
+         * @return a Bundle result or null if the result is to be returned via the response. The
+         * result will contain either:
+         * KEY_INTENT, or
+         * KEY_BOOLEAN_RESULT, true if the check succeeded, false otherwise
+         * KEY_ERROR_CODE and KEY_ERROR_MESSAGE to indicate an error
+         * __Throws__
+         * @throws NetworkErrorException	if the authenticator could not honor the request due
+         * to a network error
+         */
+        @Override
+        public Bundle confirmCredentials(AccountAuthenticatorResponse response, Account account,
+                                         Bundle options) throws NetworkErrorException {
+
             return null;
         }
 
+        /**
+         * Gets the authtoken for an account.
+         * __Parameters__
+         * @param response to send the result back to the AccountManager, will never be null
+         * @param account the account whose credentials are to be retrieved, will never be null
+         * @param authTokenType the type of auth token to retrieve, will never be null
+         * @param options a Bundle of authenticator-specific options, may be null
+         * __Returns__
+         * @return a Bundle result or null if the result is to be returned via the response. The result will contain either:
+         * KEY_INTENT, or
+         * KEY_ACCOUNT_NAME, KEY_ACCOUNT_TYPE, and KEY_AUTHTOKEN, or
+         * KEY_ERROR_CODE and KEY_ERROR_MESSAGE to indicate an error
+         * __Throws__
+         * @throws NetworkErrorException if the authenticator could not honor the request due to a network error
+         */
         @Override
-        public Bundle confirmCredentials(AccountAuthenticatorResponse accountAuthenticatorResponse, Account account, Bundle bundle) throws NetworkErrorException {
-            return null;
-        }
-
-        @Override
-        public Bundle getAuthToken(AccountAuthenticatorResponse accountAuthenticatorResponse, Account account, String s, Bundle bundle) throws NetworkErrorException {
+        public Bundle getAuthToken(AccountAuthenticatorResponse response, Account account,
+                                   String authTokenType, Bundle options) throws
+                NetworkErrorException {
             Log.i(TAG, "getAuthToken called");
+
+            // Extract the username and password from the Account Manager, and ask
+            // the server for an appropriate AuthToken.
+            final AccountManager am = AccountManager.get(mContext);
+
+            String authToken = am.peekAuthToken(account, authTokenType);
+
+            // Lets give another try to authenticate the user
+            if (TextUtils.isEmpty(authToken)) {
+                final String password = am.getPassword(account);
+                if (password != null) {
+                    authToken = userSignIn(account.name, password, authTokenType);
+                }
+            }
+
+            // If we get an authToken - we return it
+            if (!TextUtils.isEmpty(authToken)) {
+                final Bundle result = new Bundle();
+                result.putString(AccountManager.KEY_ACCOUNT_NAME, account.name);
+                result.putString(AccountManager.KEY_ACCOUNT_TYPE, account.type);
+                result.putString(AccountManager.KEY_AUTHTOKEN, authToken);
+                return result;
+            }
+
+            // If we get here, then we couldn't access the user's password - so we
+            // need to re-prompt them for their credentials. We do that by creating
+            // an intent to display our AuthenticatorActivity.
+            final Intent intent = new Intent(mContext, AuthenticatorActivity.class);
+            intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
+            intent.putExtra(AuthenticatorActivity.ARG_ACCOUNT_TYPE, account.type);
+            intent.putExtra(AuthenticatorActivity.ARG_AUTH_TYPE, authTokenType);
+            final Bundle bundle = new Bundle();
+            bundle.putParcelable(AccountManager.KEY_INTENT, intent);
+            return bundle;
+        }
+
+        /**
+         * From AbstractAccountAuthenticator documentation:
+         * Ask the authenticator for a localized label for the given authTokenType.
+         *
+         * __Parameters__
+         * @param authTokenType	the authTokenType whose label is to be returned,
+         * will never be null
+         * __Returns__
+         * @return the localized label of the auth token type, may be null if the type isn't known
+         */
+        @Override
+        public String getAuthTokenLabel(String authTokenType) {
+            return ACHSO_AUTH_TOKEN_TYPE; // we don't need localized labels for this (yet)
+        }
+
+        /**
+         * From AbstractAccountAuthenticator documentation:
+         * Update the locally stored credentials for an account.
+         * __Parameters__
+         * @param response to send the result back to the AccountManager, will never be null
+         * @param account the account whose credentials are to be updated, will never be null
+         * @param authTokenType the type of auth token to retrieve after updating the credentials, may be null
+         * @param options a Bundle of authenticator-specific options, may be null
+         * __Returns__
+         * @return a Bundle result or null if the result is to be returned via the response. The result will contain either:
+         * KEY_INTENT, or
+         * KEY_ACCOUNT_NAME and KEY_ACCOUNT_TYPE of the account that was added, or
+         * KEY_ERROR_CODE and KEY_ERROR_MESSAGE to indicate an error
+         * __Throws__
+         * @throws NetworkErrorException if the authenticator could not honor the request due to a network error
+         */
+        @Override
+        public Bundle updateCredentials(AccountAuthenticatorResponse response, Account account,
+                                        String authTokenType,
+                                        Bundle options) throws NetworkErrorException {
             throw new UnsupportedOperationException();
         }
 
+        /**
+         * From AbstractAccountAuthenticator documentation:
+         * Checks if the account supports all the specified authenticator specific features.
+         *
+         * __Parameters__
+         * @param response	to send the result back to the AccountManager, will never be null
+         * @param account	the account to check, will never be null
+         * @param features	an array of features to check, will never be null
+         * __Returns__
+         * @return Bundle result or null if the result is to be returned via the response.
+         * The result will contain either:
+         * KEY_INTENT, or
+         * KEY_BOOLEAN_RESULT, true if the account has all the features, false otherwise
+         * KEY_ERROR_CODE and KEY_ERROR_MESSAGE to indicate an error
+         *__Throws__
+         * @throws NetworkErrorException	if the authenticator could not honor the request due
+         * to a
+         * network error
+         */
         @Override
-        public String getAuthTokenLabel(String s) {
-            throw new UnsupportedOperationException();
-        }
+        public Bundle hasFeatures(AccountAuthenticatorResponse response, Account account,
+                                  String[] features) throws NetworkErrorException {
+            // we don't know about any features.
+            boolean got_features = true;
+            ArrayList<String> supported_features = new ArrayList<String>();
+            // put features we support to that list here:
 
-        @Override
-        public Bundle updateCredentials(AccountAuthenticatorResponse accountAuthenticatorResponse, Account account, String s, Bundle bundle) throws NetworkErrorException {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Bundle hasFeatures(AccountAuthenticatorResponse accountAuthenticatorResponse, Account account, String[] strings) throws NetworkErrorException {
-            throw new UnsupportedOperationException();
+            // ok then.
+            for (String s: features) {
+                if (!supported_features.contains(s)) {
+                    got_features = false;
+                }
+            }
+            final Bundle result = new Bundle();
+            result.putBoolean(AccountManager.KEY_BOOLEAN_RESULT, got_features);
+            return result;
         }
     }
 

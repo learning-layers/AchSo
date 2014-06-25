@@ -61,7 +61,7 @@ import java.util.List;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.activity.ActionbarActivity;
-import fi.aalto.legroup.achso.activity.LoginActivity;
+import fi.aalto.legroup.achso.activity.OldLoginActivity;
 import fi.aalto.legroup.achso.activity.VideoBrowserActivity;
 import fi.aalto.legroup.achso.adapter.BrowsePagerAdapter;
 import fi.aalto.legroup.achso.adapter.VideoThumbAdapter;
@@ -159,7 +159,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
                             .setPositiveButton(R.string.login, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    startActivity(new Intent(ctx, LoginActivity.class));
+                                    startActivity(new Intent(ctx, OldLoginActivity.class));
                                     dialog.dismiss();
                                 }
                             }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

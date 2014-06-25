@@ -56,10 +56,6 @@ public class InformationFragment extends ListFragment {
     public InformationFragment() {
     }
 
-    public InformationFragment(SemanticVideo video) {
-        mVideo = video;
-    }
-
     private HashMap<String, String> getData(int rId, String text) {
         HashMap<String, String> map = new HashMap<String, String>();
         map.put("lhs", getResources().getString(rId));
@@ -141,11 +137,12 @@ public class InformationFragment extends ListFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
-
+        mCtx = getActivity();
+        mVideo = ((InformationActivity) mCtx).semanticVideo; // this fragment works properly only
+        // when launched from InformationActivity
         mMaps = generateData();
         setAdapter();
 
-        mCtx = getActivity();
     }
 
     @Override

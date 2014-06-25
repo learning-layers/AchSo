@@ -395,6 +395,8 @@ public abstract class ActionbarActivity extends FragmentActivity {
     public void tryLogin() {
         AccountManager am = AccountManager.get(App.getContext());
         Log.i("App", "Accounts: " + am.getAccounts().length);
+
+
 /*
         Account a;
         for (int i = 0; i<am.getAccounts().length; i++) {
@@ -409,21 +411,29 @@ public abstract class ActionbarActivity extends FragmentActivity {
 
         }
 */
-        AccountManagerCallback<Bundle> callback = null;
+        AccountManagerCallback<Bundle> callback = new AccountManagerCallback<Bundle>() {
+            @Override
+            public void run(AccountManagerFuture<Bundle> bundleAccountManagerFuture) {
+                Log.i("ActionbarActivity", "AccountManagerCallback running");
+                try {
+                    Object o = bundleAccountManagerFuture.getResult();
+                    Log.i("ActionbarActivity", o.toString());
+                } catch (OperationCanceledException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (AuthenticatorException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
         Activity create_account_activity_launcher = this;
-        Handler callback_thread = null;
-        AccountManagerFuture<Bundle> amf = am.addAccount(AccountService.ACHSO_ACCOUNT_TYPE,
-                AccountService.ACHSO_AUTH_TOKEN_TYPE, null, null, create_account_activity_launcher, callback, callback_thread
+        Handler callback_thread = new Handler();
+
+        am.addAccount(AccountService.ACHSO_ACCOUNT_TYPE,
+                AccountService.ACHSO_AUTH_TOKEN_TYPE, null, null,
+                create_account_activity_launcher, callback, callback_thread
         );
-        try {
-            Object o = amf.getResult();
-        } catch (OperationCanceledException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (AuthenticatorException e) {
-            e.printStackTrace();
-        }
 
 
     }
