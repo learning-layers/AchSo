@@ -56,7 +56,6 @@ import fi.aalto.legroup.achso.fragment.BrowseFragment;
 import fi.aalto.legroup.achso.fragment.VideoViewerFragment;
 import fi.aalto.legroup.achso.pager.SwipeDisabledViewPager;
 import fi.aalto.legroup.achso.remote.RemoteResultCache;
-import fi.aalto.legroup.achso.state.IntentDataHolder;
 import fi.aalto.legroup.achso.state.LoginState;
 import fi.aalto.legroup.achso.service.UploaderService;
 import fi.aalto.legroup.achso.util.App;
@@ -66,7 +65,7 @@ import fi.google.zxing.integration.android.IntentResult;
 public class VideoBrowserActivity extends ActionbarActivity implements BrowseFragment.Callbacks
          {
 
-    private List<SemanticVideo> mSelectedVideosForQrCode;
+             private List<SemanticVideo> mSelectedVideosForQrCode;
     private UploaderBroadcastReceiver mLocalReceiver = null;
     private IntentFilter mLocalFilter = null;
     private AchSoBroadcastReceiver mReceiver = null;
@@ -89,7 +88,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
     public static final int QR_QUERY = 2;
 
 
-    public void setSelectedVideosForQrCode(HashMap<Integer, SemanticVideo> videos) {
+             public void setSelectedVideosForQrCode(HashMap<Integer, SemanticVideo> videos) {
         mSelectedVideosForQrCode = new ArrayList<SemanticVideo>();
         for (SemanticVideo v : videos.values()) {
             mSelectedVideosForQrCode.add(v);
@@ -288,8 +287,9 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
                 case IntentIntegrator.REQUEST_CODE:
                     IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
                     if (scanResult != null) {
-                        if (IntentDataHolder.From == ActionbarActivity.class) {
-                            if (!scanResult.getContents().equals(mQuery)) {
+                        if (App.getQrMode() == App.BROWSE_BY_QR) {
+                            if (scanResult.getContents() != null && !scanResult.getContents()
+                                    .equals(mQuery)) {
                                 mQuery = scanResult.getContents();
                                 RemoteResultCache.clearCache(BrowsePagerAdapter.SEARCH);
                             }

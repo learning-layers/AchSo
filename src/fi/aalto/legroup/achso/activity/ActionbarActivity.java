@@ -23,14 +23,6 @@
 
 package fi.aalto.legroup.achso.activity;
 
-import android.accounts.Account;
-import android.accounts.AccountManager;
-import android.accounts.AccountManagerCallback;
-import android.accounts.AccountManagerFuture;
-import android.accounts.AuthenticatorDescription;
-import android.accounts.AuthenticatorException;
-import android.accounts.OperationCanceledException;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
@@ -42,8 +34,6 @@ import android.content.SharedPreferences;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.Uri;
-import android.os.Bundle;
-import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.LocalBroadcastManager;
@@ -54,7 +44,6 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -65,8 +54,6 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.database.LocalRawVideos;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
-import fi.aalto.legroup.achso.service.AccountService;
-import fi.aalto.legroup.achso.state.IntentDataHolder;
 import fi.aalto.legroup.achso.state.LoginState;
 import fi.aalto.legroup.achso.util.App;
 import fi.google.zxing.integration.android.IntentIntegrator;
@@ -90,6 +77,7 @@ public abstract class ActionbarActivity extends FragmentActivity {
     public static final int REQUEST_LOGIN = 7;
     public static final int API_VERSION = android.os.Build.VERSION.SDK_INT;
     private static final int REQUEST_VIDEO_FILE = 8;
+    public static final int REQUEST_AUTHENTICATION_APPROVAL = 9;
     public static final String LAUNCH_RECORDING = "fi.aalto.legroup.achso.action.RECORD";
 
     protected Menu mMenu;
@@ -123,7 +111,7 @@ public abstract class ActionbarActivity extends FragmentActivity {
                 launchQrReading();
                 return true;
             case R.id.action_login:
-                tryLogin();
+                App.login_state.launchLoginActivity(this);
                 //startActivityForResult(new Intent(this, LoginActivity.class), REQUEST_LOGIN);
                 return true;
             case R.id.action_logout:
@@ -294,7 +282,7 @@ public abstract class ActionbarActivity extends FragmentActivity {
      */
     public void launchQrReading() {
         IntentIntegrator integrator = new IntentIntegrator(this);
-        IntentDataHolder.From = ActionbarActivity.class;
+        App.setQrMode(App.BROWSE_BY_QR);
         // propose the free version first, by default IntentIntegrator would propose paid one
         List<String> target_applications = Arrays.asList("com.google.zxing.client.android",  // Barcode Scanner
                 "com.srowen.bs.android.simple", // Barcode Scanner+ Simple
@@ -393,48 +381,6 @@ public abstract class ActionbarActivity extends FragmentActivity {
 
 
     public void tryLogin() {
-        AccountManager am = AccountManager.get(App.getContext());
-        Log.i("App", "Accounts: " + am.getAccounts().length);
-
-
-/*
-        Account a;
-        for (int i = 0; i<am.getAccounts().length; i++) {
-            a = am.getAccounts()[i];
-            Log.i("App", "Account: " + a.name + " "+ a.type + " " + a.toString());
-
-        }
-        AuthenticatorDescription ad;
-        for (int i = 0; i<am.getAuthenticatorTypes().length; i++) {
-            ad = am.getAuthenticatorTypes()[i];
-            Log.i("App", "AuthenticatorType: " + ad.type + " " + ad.packageName + " " + ad.toString());
-
-        }
-*/
-        AccountManagerCallback<Bundle> callback = new AccountManagerCallback<Bundle>() {
-            @Override
-            public void run(AccountManagerFuture<Bundle> bundleAccountManagerFuture) {
-                Log.i("ActionbarActivity", "AccountManagerCallback running");
-                try {
-                    Object o = bundleAccountManagerFuture.getResult();
-                    Log.i("ActionbarActivity", o.toString());
-                } catch (OperationCanceledException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (AuthenticatorException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-        Activity create_account_activity_launcher = this;
-        Handler callback_thread = new Handler();
-
-        am.addAccount(AccountService.ACHSO_ACCOUNT_TYPE,
-                AccountService.ACHSO_AUTH_TOKEN_TYPE, null, null,
-                create_account_activity_launcher, callback, callback_thread
-        );
-
 
     }
 
@@ -570,7 +516,14 @@ public abstract class ActionbarActivity extends FragmentActivity {
                 invalidateOptionsMenu();
                 Toast.makeText(getContext(), getString(R.string.login_successful), Toast.LENGTH_LONG).show();
                 break;
-
+            case REQUEST_AUTHENTICATION_APPROVAL:
+                // we can continue from where we drifted off...
+                if (resultCode == RESULT_OK) {
+                    App.login_state.resumeAuthentication(intent.getStringExtra("url"));
+                } else if (resultCode == RESULT_CANCELED) {
+                    App.login_state.logout();
+                }
+                break;
         }
     }
 

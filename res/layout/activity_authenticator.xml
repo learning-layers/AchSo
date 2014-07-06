@@ -8,7 +8,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="fi.aalto.legroup.achso.activity.AuthenticatorActivity">
+    tools:context="fi.aalto.legroup.achso.activity.i5OpenIdConnectAuthenticatorActivity">
 
     <!-- Login progress -->
     <ProgressBar
@@ -30,6 +30,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
+
+                <AutoCompleteTextView
+                    android:id="@+id/fullname"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/prompt_fullname"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:singleLine="true"/>
 
                 <AutoCompleteTextView
                     android:id="@+id/email"
@@ -65,14 +74,56 @@
                     android:maxLines="1"
                     android:singleLine="true"/>
 
+                <EditText
+                    android:id="@+id/password_confirm"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/confirm_pass"
+                    android:imeActionId="@+id/login"
+                    android:imeActionLabel="@string/action_sign_in_short"
+                    android:imeOptions="actionUnspecified"
+                    android:inputType="textPassword"
+                    android:maxLines="1"
+                    android:singleLine="true"/>
+
                 <Button
-                    android:id="@+id/email_sign_in_button"
+                    android:id="@+id/login_button"
                     style="?android:textAppearanceSmall"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:text="@string/action_sign_in"
+                    android:text="@string/login"
                     android:textStyle="bold"/>
+
+                <Button
+                    android:id="@+id/create_account_button"
+                    style="?android:textAppearanceSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/action_register"
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:id="@+id/register_mode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="@dimen/activity_vertical_margin"
+                    android:text="@string/action_register"
+                    android:focusable="true"
+                    android:textColor="@color/achso_blue"
+                    />
+
+                <TextView
+                    android:id="@+id/login_mode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="@dimen/activity_vertical_margin"
+                    android:text="@string/login"
+                    android:focusable="true"
+                    android:textColor="@color/achso_blue"
+                    />
+
 
             </LinearLayout>
     </ScrollView>

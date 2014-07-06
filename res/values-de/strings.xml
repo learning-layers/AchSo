@@ -94,6 +94,10 @@
     <string name="connection_problem">Verbindungsproblem</string>
     <string name="authentication_problem">Authentifizierungsproblem</string>
     <string name="i5cloud_prefs">i5Cloud account</string>
+    <string name="action_register">Create account</string>
+    <string name="prompt_fullname">Full name</string>
+    <string name="confirm_pass">Repeat password</string>
+    <string name="error_passwords_dont_match">Password doesn\'t match with verification</string>
 
 
 </resources>

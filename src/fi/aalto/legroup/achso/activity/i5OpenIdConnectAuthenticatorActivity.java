@@ -29,7 +29,6 @@ import android.accounts.AccountManager;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.ContentResolver;
 import android.content.CursorLoader;
@@ -48,6 +47,9 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -56,14 +58,15 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 import fi.aalto.legroup.achso.R;
-import fi.aalto.legroup.achso.service.AccountService;
+import fi.aalto.legroup.achso.service.i5OpenIdConnectAccountService;
+import fi.aalto.legroup.achso.state.i5OpenIdConnectLoginState;
 import fi.aalto.legroup.achso.util.App;
 
 /**
  * A login screen that offers login via email/password.
 
  */
-public class AuthenticatorActivity extends AccountAuthenticatorActivity implements
+public class i5OpenIdConnectAuthenticatorActivity extends AccountAuthenticatorActivity implements
         LoaderCallbacks<Cursor>{
 
     /**
@@ -73,17 +76,19 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
     private static final String[] DUMMY_CREDENTIALS = new String[]{
             "foo@example.com:hello", "bar@example.com:world"
     };
-    /**
-     * Keep track of the login task to ensure we can cancel it if requested.
-     */
-    private UserLoginTask mAuthTask = null;
 
     // UI references.
+    private AutoCompleteTextView mFullnameView;
     private AutoCompleteTextView mEmailView;
     private EditText mUsernameView;
     private EditText mPasswordView;
+    private EditText mPasswordConfirmView;
     private View mProgressView;
     private View mLoginFormView;
+    private TextView mRegisterModeLink;
+    private TextView mLoginModeLink;
+    private Button mLoginButton;
+    private Button mRegisterButton;
     private AccountManager mAccountManager;
 
     public final static String ARG_ACCOUNT_TYPE = "ACCOUNT_TYPE";
@@ -93,6 +98,10 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
     public static final String KEY_ERROR_MESSAGE = "ERR_MSG";
 
     public final static String PARAM_USER_PASS = "USER_PASS";
+    private static final String PARAM_USER_FULLNAME = "USER_FULLNAME";
+    private static final String PARAM_USER_EMAIL = "USER_EMAIL";
+    private boolean mNewAccount;
+    private boolean mRegisterMode;
 
 
     @Override
@@ -102,34 +111,148 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
 
         // Set up the login form.
         mAccountManager = AccountManager.get(App.getContext());
+        mFullnameView = (AutoCompleteTextView) findViewById(R.id.fullname);
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
         populateAutoComplete();
         mUsernameView = (EditText) findViewById(R.id.login_name);
         mPasswordView = (EditText) findViewById(R.id.password);
+        mPasswordConfirmView = (EditText) findViewById(R.id.password_confirm);
         Log.i("AuthenticatorActivity", "passwordview:" + mPasswordView);
+        mNewAccount = getIntent().getBooleanExtra(ARG_IS_ADDING_NEW_ACCOUNT, false);
+        mRegisterMode = mNewAccount;
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
                 if (id == R.id.login || id == EditorInfo.IME_NULL) {
                     //attemptLogin();
-                    submit();
+                    login();
                     return true;
                 }
                 return false;
             }
         });
-
-        Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
-        mEmailSignInButton.setOnClickListener(new OnClickListener() {
+        mRegisterModeLink = (TextView) findViewById(R.id.register_mode);
+        mRegisterModeLink.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                //attemptLogin();
-                submit();
+                toggleRegisterMode(true);
+            }
+        });
+        mLoginModeLink = (TextView) findViewById(R.id.login_mode);
+        mLoginModeLink.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                toggleRegisterMode(false);
             }
         });
 
+        mLoginButton = (Button) findViewById(R.id.login_button);
+        mLoginButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                login();
+            }
+        });
+        mRegisterButton = (Button) findViewById(R.id.create_account_button);
+        mRegisterButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                register();
+            }
+        });
+        toggleRegisterMode(mRegisterMode);
+
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
+    }
+
+    /**
+     * Switch between register / login mode
+     * @param register_mode true = switch to registering, false = switch to login.
+     */
+    private void toggleRegisterMode(boolean register_mode) {
+        if (register_mode) {
+            mRegisterMode = true;
+            mRegisterModeLink.setVisibility(View.GONE);
+            mLoginButton.setVisibility(View.GONE);
+            mLoginModeLink.setVisibility(View.VISIBLE);
+            mRegisterButton.setVisibility(View.VISIBLE);
+            mFullnameView.setVisibility(View.VISIBLE);
+            mPasswordConfirmView.setVisibility(View.VISIBLE);
+            mEmailView.setVisibility(View.VISIBLE);
+
+        } else {
+            mRegisterMode = false;
+            mRegisterModeLink.setVisibility(View.VISIBLE);
+            mLoginButton.setVisibility(View.VISIBLE);
+            mLoginModeLink.setVisibility(View.GONE);
+            mRegisterButton.setVisibility(View.GONE);
+            mFullnameView.setVisibility(View.GONE);
+            mPasswordConfirmView.setVisibility(View.GONE);
+            mEmailView.setVisibility(View.GONE);
+        }
+    }
+
+
+    private void register() {
+        final String fullname = mFullnameView.getText().toString();
+        final String email = mEmailView.getText().toString();
+        final String username = mUsernameView.getText().toString();
+        final String pass = mPasswordView.getText().toString();
+        final String pass_confirm = mPasswordConfirmView.getText().toString();
+
+        boolean cancel = false;
+        View focusView = null;
+
+
+        // Check for a valid password, if the user entered one.
+        if (!TextUtils.isEmpty(pass) && !isPasswordValid(pass)) {
+            mPasswordView.setError(getString(R.string.error_invalid_password));
+            focusView = mPasswordView;
+            cancel = true;
+        }
+        if (!pass.equals(pass_confirm)) {
+            mPasswordConfirmView.setError(getString(R.string.error_passwords_dont_match));
+            focusView = mPasswordConfirmView;
+            cancel = true;
+        }
+
+        // Check for a valid email address.
+        if (TextUtils.isEmpty(email)) {
+            mEmailView.setError(getString(R.string.error_field_required));
+            focusView = mEmailView;
+            cancel = true;
+        } else if (!isEmailValid(email)) {
+            mEmailView.setError(getString(R.string.error_invalid_email));
+            focusView = mEmailView;
+            cancel = true;
+        }
+
+        if (cancel) {
+            // There was an error; don't attempt login and focus the first
+            // form field with an error.
+            focusView.requestFocus();
+            return;
+        }
+        // do register
+        new AsyncTask<Void, Void, Intent>() {
+            @Override
+            protected Intent doInBackground(Void... params) {
+                String authtoken = i5OpenIdConnectLoginState.userRegister(fullname, email, username, pass);
+                final Intent res = new Intent();
+                res.putExtra(AccountManager.KEY_ACCOUNT_NAME, username);
+                res.putExtra(AccountManager.KEY_ACCOUNT_TYPE, i5OpenIdConnectAccountService.ACHSO_ACCOUNT_TYPE);
+                res.putExtra(AccountManager.KEY_AUTHTOKEN, authtoken);
+                res.putExtra(PARAM_USER_PASS, pass);
+                res.putExtra(PARAM_USER_FULLNAME, fullname);
+                res.putExtra(PARAM_USER_EMAIL, email);
+                return res;
+            }
+            @Override
+            protected void onPostExecute(Intent intent) {
+                finishRegister(intent);
+            }
+        }.execute();
     }
 
     private void populateAutoComplete() {
@@ -142,20 +265,40 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
         }
     }
 
+    private void finishRegister(Intent intent) {
+        String username = intent.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+        String password = intent.getStringExtra(PARAM_USER_PASS);
+        String account_type = intent.getStringExtra(AccountManager.KEY_ACCOUNT_TYPE);
+        String auth_token = intent.getStringExtra(AccountManager.KEY_AUTHTOKEN);
+        String auth_token_type = i5OpenIdConnectAccountService.ACHSO_AUTH_TOKEN_TYPE;
+        final Account account = new Account(username, account_type);
 
-    public void submit() {
-        final String userName = mUsernameView.getText().toString();
-        final String userPass = mPasswordView.getText().toString();
+        // Creating the account on the device and setting the auth token we got
+        // (Not setting the auth token will cause another call to the server to authenticate the user)
+        mAccountManager.addAccountExplicitly(account, password, null);
+        mAccountManager.setAuthToken(account, auth_token_type, auth_token);
+        Log.i("AuthenticatorActivity", "Registering a new account "+ account + " setting " +
+                "auth_token to " +
+                auth_token);
+        setAccountAuthenticatorResult(intent.getExtras());
+        setResult(RESULT_OK, intent);
+        Log.i("AuthenticatorActivity", "Finishing AuthenticatorActivity");
+        finish();
+    }
+
+
+    public void login() {
+        final String user_name = mUsernameView.getText().toString();
+        final String user_pass = mPasswordView.getText().toString();
         new AsyncTask<Void, Void, Intent>() {
             @Override
             protected Intent doInBackground(Void... params) {
-                String authtoken = AccountService.userSignIn(userName, userPass,
-                        AccountService.ACHSO_AUTH_TOKEN_TYPE);
+                String authtoken = i5OpenIdConnectLoginState.userSignIn(user_name, user_pass);
                 final Intent res = new Intent();
-                res.putExtra(AccountManager.KEY_ACCOUNT_NAME, userName);
-                res.putExtra(AccountManager.KEY_ACCOUNT_TYPE, AccountService.ACHSO_ACCOUNT_TYPE);
+                res.putExtra(AccountManager.KEY_ACCOUNT_NAME, user_name);
+                res.putExtra(AccountManager.KEY_ACCOUNT_TYPE, i5OpenIdConnectAccountService.ACHSO_ACCOUNT_TYPE);
                 res.putExtra(AccountManager.KEY_AUTHTOKEN, authtoken);
-                res.putExtra(PARAM_USER_PASS, userPass);
+                res.putExtra(PARAM_USER_PASS, user_pass);
                 return res;
             }
             @Override
@@ -164,22 +307,30 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
             }
         }.execute();
     }
+
     private void finishLogin(Intent intent) {
-        String accountName = intent.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
-        String accountPassword = intent.getStringExtra(PARAM_USER_PASS);
-        final Account account = new Account(accountName, intent.getStringExtra(AccountManager.KEY_ACCOUNT_TYPE));
-        if (getIntent().getBooleanExtra(ARG_IS_ADDING_NEW_ACCOUNT, false)) {
-            String authtoken = intent.getStringExtra(AccountManager.KEY_AUTHTOKEN);
-            String authtokenType = AccountService.ACHSO_AUTH_TOKEN_TYPE;
+        String username = intent.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+        String password = intent.getStringExtra(PARAM_USER_PASS);
+        String account_type = intent.getStringExtra(AccountManager.KEY_ACCOUNT_TYPE);
+        String auth_token = intent.getStringExtra(AccountManager.KEY_AUTHTOKEN);
+        String auth_token_type = i5OpenIdConnectAccountService.ACHSO_AUTH_TOKEN_TYPE;
+        final Account account = new Account(username, account_type);
+
+        if (mNewAccount) {
             // Creating the account on the device and setting the auth token we got
             // (Not setting the auth token will cause another call to the server to authenticate the user)
-            mAccountManager.addAccountExplicitly(account, accountPassword, null);
-            mAccountManager.setAuthToken(account, authtokenType, authtoken);
+            mAccountManager.addAccountExplicitly(account, password, null);
+            mAccountManager.setAuthToken(account, auth_token_type, auth_token);
+            Log.i("AuthenticatorActivity", "Adding an account "+ account + " setting authtoken to " +
+                    auth_token);
         } else {
-            mAccountManager.setPassword(account, accountPassword);
+            mAccountManager.setPassword(account, password);
+            mAccountManager.setAuthToken(account, auth_token_type, auth_token);
+            Log.i("AuthenticatorActivity", "Modifying an account " + password);
         }
         setAccountAuthenticatorResult(intent.getExtras());
         setResult(RESULT_OK, intent);
+        Log.i("AuthenticatorActivity", "Finishing AuthenticatorActivity");
         finish();
     }
     /**
@@ -187,6 +338,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
      * If there are form errors (invalid email, missing fields, etc.), the
      * errors are presented and no actual login attempt is made.
      */
+    /**
     public void attemptLogin() {
         if (mAuthTask != null) {
             return;
@@ -234,6 +386,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
             mAuthTask.execute((Void) null);
         }
     }
+    */
     private boolean isEmailValid(String email) {
         //TODO: Replace this with your own logic
         return email.contains("@");
@@ -280,6 +433,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
         }
     }
 
+    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
         return new CursorLoader(this,
@@ -357,16 +511,19 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
     private void addEmailsToAutoComplete(List<String> emailAddressCollection) {
         //Create adapter to tell the AutoCompleteTextView what to show in its dropdown list.
         ArrayAdapter<String> adapter =
-                new ArrayAdapter<String>(AuthenticatorActivity.this,
+                new ArrayAdapter<String>(i5OpenIdConnectAuthenticatorActivity.this,
                         android.R.layout.simple_dropdown_item_1line, emailAddressCollection);
 
         mEmailView.setAdapter(adapter);
     }
 
+}
+
     /**
      * Represents an asynchronous login/registration task used to authenticate
      * the user.
      */
+    /*
     public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
 
         private final String mEmail;
@@ -419,7 +576,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity implemen
             showProgress(false);
         }
     }
-}
-
+**/
 
 

@@ -82,13 +82,18 @@
         <activity
             android:name=".activity.InformationActivity"
             android:label="@string/title_activity_information" />
-        <activity android:name=".activity.AuthenticatorActivity"
-                  android:label="@string/title_activity_authenticator"
-                  android:windowSoftInputMode="adjustResize|stateVisible" />
+        <activity
+            android:name=".activity.ApprovalActivity"
+            android:label="@string/title_activity_approval" >
+        </activity>
+        <activity
+            android:name=".activity.i5OpenIdConnectAuthenticatorActivity"
+            android:label="@string/title_activity_authenticator"
+            android:windowSoftInputMode="adjustResize|stateVisible" />
 
         <service android:name=".service.UploaderService" />
         <service android:name=".service.PollingService" />
-        <service android:name=".service.AccountService" >
+        <service android:name=".service.i5OpenIdConnectAccountService" >
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator" />
             </intent-filter>
@@ -99,6 +104,5 @@
         </service>
 
     </application>
-
 
 </manifest>

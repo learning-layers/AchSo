@@ -45,23 +45,30 @@ import java.util.Map;
 
 import fi.aalto.legroup.achso.state.LasLoginState;
 import fi.aalto.legroup.achso.state.LoginState;
+import fi.aalto.legroup.achso.state.i5OpenIdConnectLoginState;
 
 public class App extends Application {
 
+    public static final int BROWSE_BY_QR = 0;
+    public static final int ATTACH_QR = 1;
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     public static LoginState login_state;
     public static Connection connection;
     private static Context mContext;
     private static File mLogFile;
     public static Location last_location;
-    public static final int DEV_NULL = 3;
+    private static int qr_mode;
+
+    //
+    private static final int I5OPENIDCONNECT = 5;
+    private static final int LASCONNECTION = 4;
+    public static final int AALTO_TEST_SERVER = 3;
     public static final int CLVITRA2 = 2;
     public static final int CLVITRA = 1;
-    public static final int AALTO_TEST_SERVER = 0;
+    public static final int DEV_NULL = 0;
+
+
     public static final String DEFAULT_USERNAME = "achso_device_owner";
-    public static int video_uploader;
-    public static int metadata_uploader;
-    public static int video_id_service;
     public static final String UPDATE_ANNOTATION = "update_annotation";
     public static final String ADD_ANNOTATION = "add_annotation";
     public static final String REMOVE_ANNOTATION = "remove_annotation";
@@ -72,6 +79,54 @@ public class App extends Application {
     public static boolean use_las = false;
     private static boolean use_log_file = false;
     public static boolean allow_upload = false;
+
+    public static int login_provider = I5OPENIDCONNECT;
+    public static int video_uploader = CLVITRA2;
+    public static int metadata_uploader = AALTO_TEST_SERVER;
+
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+
+        mContext = this;
+        if (use_log_file) {
+            mLogFile = new File(mContext.getExternalFilesDir(null), "achso.log");
+            if (!mLogFile.exists()) {
+                try {
+                    boolean ok = mLogFile.createNewFile();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        }
+        switch (login_provider) {
+            case I5OPENIDCONNECT:
+                login_state = new i5OpenIdConnectLoginState(mContext);
+                break;
+            case LASCONNECTION:
+                login_state = new LasLoginState(mContext);
+                break;
+            default:
+                login_state = new LasLoginState(mContext);
+        }
+
+
+        if (use_las) {
+            connection = new LasConnection();
+        } else {
+            connection = new AaltoConnection();
+        }
+        if (hasConnection()) {
+            doPendingPolls();
+        }
+
+        appendLog("Starting Ach so! -app on device " + android.os.Build.MODEL);
+        Log.i("App", "Starting Ach so! -app on device " + android.os.Build.MODEL);
+
+    }
 
 
     public static Context getContext() {
@@ -169,43 +224,6 @@ public class App extends Application {
         }
     }
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        mContext = this;
-        if (use_log_file) {
-            mLogFile = new File(mContext.getExternalFilesDir(null), "achso.log");
-            if (!mLogFile.exists()) {
-                try {
-                    boolean ok = mLogFile.createNewFile();
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        video_uploader = CLVITRA2; //CLVITRA
-        metadata_uploader = AALTO_TEST_SERVER;
-        video_id_service = AALTO_TEST_SERVER;
-
-        if (use_las) {
-            connection = new LasConnection();
-            login_state = new LasLoginState(mContext);
-        } else {
-            connection = new AaltoConnection();
-            login_state = new LasLoginState(mContext);
-            //login_state = new i5LoginState(mContext);
-            //connection = new i5Connection();
-        }
-        if (hasConnection()) {
-            doPendingPolls();
-        }
-
-        appendLog("Starting Ach so! -app on device " + android.os.Build.MODEL);
-        Log.i("App", "Starting Ach so! -app on device " + android.os.Build.MODEL);
-
-    }
 
 
     /**
@@ -259,6 +277,13 @@ public class App extends Application {
         return DEFAULT_USERNAME;
     }
 
+    public static void setQrMode(int mode) {
+        qr_mode = mode;
+    }
+
+    public static int getQrMode() {
+        return qr_mode;
+    }
 }
 
 

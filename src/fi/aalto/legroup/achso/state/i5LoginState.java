@@ -23,6 +23,7 @@
 
 package fi.aalto.legroup.achso.state;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -107,6 +108,11 @@ public class i5LoginState implements LoginState {
     public void logout() {
         mUser = null;
         setState(LOGGED_OUT);
+    }
+
+    @Override
+    public void launchLoginActivity(Activity host_activity) {
+
     }
 
     // Internal stuff, mostly:
@@ -215,6 +221,11 @@ public class i5LoginState implements LoginState {
                 }
             }.execute(user, pass);
         }
+    }
+
+    @Override
+    public void resumeAuthentication(String next_url) {
+
     }
 
 

@@ -23,6 +23,8 @@
 
 package fi.aalto.legroup.achso.state;
 
+import android.app.Activity;
+
 /**
  * Created by purma on 28.4.2014.
  */
@@ -49,7 +51,29 @@ public interface LoginState {
 
     void logout();
 
+    /**
+     * Starts the login procedure, which may include getting login information from
+     * AccountManager or launching some kind of login screen.
+     * @param host_activity - activity that is starting the login procedure
+     */
+    void launchLoginActivity(Activity host_activity);
+
     void autologinIfAllowed();
 
+    /**
+     * Do login with given credentials. Doesn't try to receive credentials from any other sources
+     * or deal with AccountManager.
+     * @param user - username
+     * @param pass - password
+     */
     void login(String user, String pass);
+
+    /**
+     * This gets called when there is authentication step that requires ApprovalActivity and its
+     * webview (e.g. for approving that openid identity can be used for another service). When
+     * ApprovalActivity is finished, it calls this with an url for the next step.
+     * It is up to the LoginState implementation what is done with this url.
+     * @param next_url url returned from ApprovalActivity. Can be useful.
+     */
+    void resumeAuthentication(String next_url);
 }

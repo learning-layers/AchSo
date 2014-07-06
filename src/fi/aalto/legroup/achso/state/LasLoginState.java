@@ -36,7 +36,6 @@ import android.widget.Toast;
 import java.util.concurrent.ExecutionException;
 
 import fi.aalto.legroup.achso.R;
-import fi.aalto.legroup.achso.activity.ActionbarActivity;
 import fi.aalto.legroup.achso.util.App;
 import fi.aalto.legroup.achso.util.LasConnection;
 
@@ -160,6 +159,11 @@ public class LasLoginState implements LoginState {
         }
     }
 
+    @Override
+    public void resumeAuthentication(String next_url) {
+
+    }
+
     public String getUser() {
         return mUser;
     }
@@ -226,6 +230,11 @@ public class LasLoginState implements LoginState {
             edit.apply();
         }
 
+
+    }
+
+    @Override
+    public void launchLoginActivity(Activity host_activity) {
 
     }
 

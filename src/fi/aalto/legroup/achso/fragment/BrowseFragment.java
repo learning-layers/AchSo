@@ -67,7 +67,6 @@ import fi.aalto.legroup.achso.adapter.BrowsePagerAdapter;
 import fi.aalto.legroup.achso.adapter.VideoThumbAdapter;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
-import fi.aalto.legroup.achso.state.IntentDataHolder;
 import fi.aalto.legroup.achso.service.UploaderService;
 import fi.aalto.legroup.achso.util.App;
 import fi.aalto.legroup.achso.remote.RemoteFetchTask;
@@ -189,7 +188,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
             case R.id.action_qr_to_video:
                 ((VideoBrowserActivity) getActivity()).setSelectedVideosForQrCode(mSelectedVideos);
                 IntentIntegrator integrator = new IntentIntegrator(getActivity());
-                IntentDataHolder.From = SemanticVideoPlayerFragment.class;
+                App.setQrMode(App.ATTACH_QR);
                 integrator.initiateScan(IntentIntegrator.ALL_CODE_TYPES);
                 mSelectedVideos.clear();
                 mode.finish();
