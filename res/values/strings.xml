@@ -95,5 +95,6 @@
 
     <string name="title_activity_approval">ApprovalActivity</string>
     <string name="hello_world">Hello world!</string>
+    <string name="Welcome">Welcome</string>
 
 </resources>

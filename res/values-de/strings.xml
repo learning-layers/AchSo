@@ -98,6 +98,7 @@
     <string name="prompt_fullname">Full name</string>
     <string name="confirm_pass">Repeat password</string>
     <string name="error_passwords_dont_match">Password doesn\'t match with verification</string>
+    <string name="Welcome">Welcome</string>
 
 
 </resources>

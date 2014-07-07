@@ -1,0 +1,380 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>html { font-size: 100%; overflow-y: scroll; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+
+body{
+  color:#444;
+  font-family:Georgia, Palatino, 'Palatino Linotype', Times, 'Times New Roman',
+              "Hiragino Sans GB", "STXihei", "微软雅黑", serif;
+  font-size:12px;
+  line-height:1.5em;
+  background:#fefefe;
+  width: 45em;
+  margin: 10px auto;
+  padding: 1em;
+  outline: 1300px solid #FAFAFA;
+}
+
+a{ color: #0645ad; text-decoration:none;}
+a:visited{ color: #0b0080; }
+a:hover{ color: #06e; }
+a:active{ color:#faa700; }
+a:focus{ outline: thin dotted; }
+a:hover, a:active{ outline: 0; }
+
+span.backtick {
+  border:1px solid #EAEAEA;
+  border-radius:3px;
+  background:#F8F8F8;
+  padding:0 3px 0 3px;
+}
+
+::-moz-selection{background:rgba(255,255,0,0.3);color:#000}
+::selection{background:rgba(255,255,0,0.3);color:#000}
+
+a::-moz-selection{background:rgba(255,255,0,0.3);color:#0645ad}
+a::selection{background:rgba(255,255,0,0.3);color:#0645ad}
+
+p{
+margin:1em 0;
+}
+
+img{
+max-width:100%;
+}
+
+h1,h2,h3,h4,h5,h6{
+font-weight:normal;
+color:#111;
+line-height:1em;
+}
+h4,h5,h6{ font-weight: bold; }
+h1{ font-size:2.5em; }
+h2{ font-size:2em; border-bottom:1px solid silver; padding-bottom: 5px; }
+h3{ font-size:1.5em; }
+h4{ font-size:1.2em; }
+h5{ font-size:1em; }
+h6{ font-size:0.9em; }
+
+blockquote{
+color:#666666;
+margin:0;
+padding-left: 3em;
+border-left: 0.5em #EEE solid;
+}
+hr { display: block; height: 2px; border: 0; border-top: 1px solid #aaa;border-bottom: 1px solid #eee; margin: 1em 0; padding: 0; }
+
+
+pre , code, kbd, samp { 
+  color: #000; 
+  font-family: monospace; 
+  font-size: 0.88em; 
+  border-radius:3px;
+  background-color: #F8F8F8;
+  border: 1px solid #CCC; 
+}
+pre { white-space: pre; white-space: pre-wrap; word-wrap: break-word; padding: 5px 12px;}
+pre code { border: 0px !important; padding: 0;}
+code { padding: 0 3px 0 3px; }
+
+b, strong { font-weight: bold; }
+
+dfn { font-style: italic; }
+
+ins { background: #ff9; color: #000; text-decoration: none; }
+
+mark { background: #ff0; color: #000; font-style: italic; font-weight: bold; }
+
+sub, sup { font-size: 75%; line-height: 0; position: relative; vertical-align: baseline; }
+sup { top: -0.5em; }
+sub { bottom: -0.25em; }
+
+ul, ol { margin: 1em 0; padding: 0 0 0 2em; }
+li p:last-child { margin:0 }
+dd { margin: 0 0 0 2em; }
+
+img { border: 0; -ms-interpolation-mode: bicubic; vertical-align: middle; }
+
+table { border-collapse: collapse; border-spacing: 0; }
+td { vertical-align: top; }
+
+@media only screen and (min-width: 480px) {
+body{font-size:14px;}
+}
+
+@media only screen and (min-width: 768px) {
+body{font-size:16px;}
+}
+
+@media print {
+  * { background: transparent !important; color: black !important; filter:none !important; -ms-filter: none !important; }
+  body{font-size:12pt; max-width:100%; outline:none;}
+  a, a:visited { text-decoration: underline; }
+  hr { height: 1px; border:0; border-bottom:1px solid black; }
+  a[href]:after { content: " (" attr(href) ")"; }
+  abbr[title]:after { content: " (" attr(title) ")"; }
+  .ir a:after, a[href^="javascript:"]:after, a[href^="#"]:after { content: ""; }
+  pre, blockquote { border: 1px solid #999; padding-right: 1em; page-break-inside: avoid; }
+  tr, img { page-break-inside: avoid; }
+  img { max-width: 100% !important; }
+  @page :left { margin: 15mm 20mm 15mm 10mm; }
+  @page :right { margin: 15mm 10mm 15mm 20mm; }
+  p, h2, h3 { orphans: 3; widows: 3; }
+  h2, h3 { page-break-after: avoid; }
+}
+</style><title>i5OpenIdConnectInAchSo</title></head><body><h1 id="about-authentication-process-in-ach-so-with-i5-openid-connect-server">About authentication process in Ach so! with i5 OpenId Connect -server</h1>
+<h2 id="overview">Overview</h2>
+<p><a href="http://openid.net/connect/">OpenId Connect</a> is a new combination of authentication protocol and identity information that can be used for web services to use single <strong>identity</strong> (single login) for multiple services that need not to know about each other. The actual authentication protocol is OAuth2, a popular and proven protocal, but OpenId Connect is a suggestion of using it in a certain way to better share the identity of authenticated user between services. My understanding is that the identity here means the metadata associated with user: real name, email etc.</p>
+<p>In our case we are testing using <a href="http://137.226.58.15:9085/openid-connect-server-webapp/">i5 OpenId Connect -server</a> (i5OIDC from now on) as an authentication server for Layers services. This entails that all services and clients follow certain steps for identifying their users and giving them access to resources. </p>
+<p>The first, and ongoing, problem is to differentiate between services and clients in i5OIDC authentication activities. There is a triangle, where services communicate with i5OIDC, clients communicate with i5OIDC and clients communicate with services. Documentation tends to focus on how services communicate with i5OIDC, and in some cases (<a href="http://openid.net/specs/openid-connect-basic-1_0.html">OpenID Connect Basic Client Implementer's Guide</a>, <a href="https://github.com/mitreid-connect/OpenID-Connect-Java-Spring-Server/blob/master/docs/OpenID_Connect_Diagrams.pdf">MitreID's Open Id Connect Diagrams</a>) the documentation calls the services using the authentication server as clients, which has caused quite a lot of confusion. Latest addition (7.7.) in <a href="https://github.com/learning-layers/Cloud-Video-Transcoder/blob/master/openidconnect.md">ClViTra openidconnect documentation</a> presents a case where clients communicate only to services, not making direct contact to i5OIDC. This is easiest approach for web apps and recommended way to go. This document wanders into more complicated approaches, that may be useful if the simple approach leads to unwanted behaviours, like background processes needing to display login pages.</p>
+<p>Next I try to tell the whole story of what happens with authentication: what  client, service and i5OIDC each are doing. I haven't seen such yet.  </p>
+<h2 id="web-app-case">Web app case</h2>
+<p>In a typical web application, the <em>client</em> is user's browser doing javascript -powered http-requests to <em>service</em>, which is a backend that constructs the responses to requests. In most of the web apps these are strongly coupled together: one of the tasks of the server is to generate the running clients into visitors' web browsers. In these normal cases the authentication goes like this:</p>
+<ul>
+<li>Service creates an anonymous web client for user: web client doesn't yet have any authentication information it can use.</li>
+<li>Web client asks service to authenticate it, to recognize it as something that can ask for specific controlled information. Specifically it asks the service to give it a <em>token</em>, an identifying secret piece of text, that it can use in future calls to service to tell who is calling. </li>
+<li>Service starts doing this by asking i5OIDC to authenticate the given client and sends i5OIDC the address where the i5OIDC should call back when it has authenticated the client. Remember it was the client who originally asked to authenticate itself. Client's request is not responded, but it is redirected  for i5OIDC to respond.  </li>
+<li>i5OIDC responds by showing login screen(s) for client, or if the original request is coming from already recognized user in i5OIDC, by calling to the address that the service gave to notify the success. When i5OIDC calls to the return address at the service, this call is done as communication between services, invisible to user, but also the responsibility to respond to client is implicitly moved back to service. </li>
+<li>When the service receives the success notification (a call to specific url that the service is watching), the notification includes a short <code>code</code> that the service cannot understand or connect to any client. It just knows that some user has successfully authenticated to the i5OIDC, and now that unknown user needs to get some robust means to identify itself also for the service. The service takes the short code for use in the next communication with i5OIDC, so that at i5OIDC can know which client this next communication is about.</li>
+<li>The service reacts to success notification and received code by formulating a token request for i5OIDC. This is basically saying 'give the user who sent that previous authentication (identified by code) a token (longer piece of code) that it can keep using to access my private data'. The request also includes some pre-defined information about what service is making the request , what kind of information the token should include etc.</li>
+<li>The i5OIDC responds to service by sending the requested token as <code>access token</code> to service. The response includes the token and some additional information, like if the token expires at some point.</li>
+<li>The service finally responds to the client who originally requested for token by forwarding the token to client. Even as the client is the closest part to the actual user in this process, this whole authentication discussion may remain invisible for the user. If the i5OIDC already knows that this browser is logged in and it has permission to give this information to the service, there is nothing to show for user about the debacle. The client silently stores the token for future use.     </li>
+</ul>
+<p>Now the client has this magical token. To be able to use it, the client has to include the token in calls to the service, e.g. if we call url '.../showMyVideos' the call has a Header where it reads 'Authorization=Bearer xxyyzz' where xxyyzz is a long random-looking string, the previously received <code>access_token</code>. In everyday browsing, the browser makes sure that the authorization is kept the same when browsing around the domain (not sure!), for ajax -calls it needs to be added by client for each call.</p>
+<p>The service should decide what to do with the token it receives with each request from client. It should, at least when first receiving a token, to validate it from i5OIDC -- to check if this is a real token and to what user it corresponds to. If there is no valid token, the service can deny to show the requested page. The validation is done by sending the token to i5OIDC. The way how example web service ClViTra does it is by asking user information about the token, and if it receives something it is valid and if not, then it isn't. Once validated, the server can try to remember that this token matches with this user. </p>
+<h2 id="case-ach-so">Case 'Ach so!'</h2>
+<p>The difference between service and client is murkier in Ach so!. Basically Ach so! is a client that tries to use different services, video upload service, video metadata service etc. In web app case all of the communication to i5OIDC went through service that the client was trying to use, and the service makes the orders for the tokens from i5OIDC. The problem now is that I don't know if the same token can work in several services, or if we should do the token negotiation a) once directly between Ach so! and i5OIDC, omitting the service from between, b) once with one service, and then use the token across other services or c) once for each service. I have for now implemented (a), by having 'Ach so!' client fake being a 'clvitra' service and doing the negotiation with i5OIDC by itself and then using the access_token it received to access actual clvitra resources. For stateless service this shouldn't be a problem. :) </p>
+<p>The choice to do (a) was based on older version of <a href="https://github.com/learning-layers/Cloud-Video-Transcoder/blob/master/openidconnect.md">ClViTra openidconnect documentation</a> (see section old documentation) which focuses on explaining how service authenticates to i5OIDC, so I implemented quite a lot of service into our client. The new version from 7.7. adds more about how clients should use the ClViTra2-service to obtain authentication, and this points that the clients are expected to do (b) or (c) from previous paragraph. Choice (b) would have been the easiest to implement, (c) is not much more complicated, but inelegant.  </p>
+<p>For Android app like Ach so! the i5OIDC authentication has the slight problem when client interaction may begin as requests that may not need any user interaction, but they may end up as going to login screens or permission grant pages. Starting a web view and loading a web page (e.g. http://137.226.58.15:9085/openid-connect-server-webapp/login ) breaks the experience of solid, contained app. Also Android has its own account management system, where login information and possible authentication tokens can be stored in devices settings, where they are presented nicely and can be managed in way that is uniform across accounts. To be able to use this and avoid login screens, the Ach so! authentication process does some own tricks:</p>
+<ul>
+<li>
+<p>When user logins (in future, if enabled, automatically when the app starts), the account information is get from device's AccountManager, if such exists.</p>
+</li>
+<li>
+<p>If account doesn't exist Ach so! presents a login screen, which uses Android UI elements, but duplicates the fields of i5OIDC login screen. Login information is sent to the form receiver at i5OIDC. There is also a registration link, that turns the page to duplicate i5OIDC's registration page. The results are sent to i5OIDC. If the registration/login was success, new account is created to AccountManager.  </p>
+</li>
+<li>
+<p>If account exists, it is used to fill the login info at i5OIDC automatically, without user doing anything.</p>
+</li>
+<li>
+<p>If there are several suitable accounts, user chooses one.</p>
+</li>
+<li>
+<p>In all cases Registration/login pages in i5OIDC have JSESSIONID cookies that are used later to recognize that the browser is the same that logged in. This cookie is stored.</p>
+</li>
+</ul>
+<p>Now the result of this dance is that the user is logged in to i5OIDC server before we try to ask the access token. This makes sure that the request for access token doesn't redirect to login screens and goes smoothly. Except that there is one case: In first time use the login process may need to ask if the user is ok with the specific service using the authentication. This is displayed in WebView, as it would be wrong to circumvent this.</p>
+<p>Also of note of Android apps is that the library used in ClViTra and examples,
+ <a href="http://connect2id.com/products/nimbus-oauth-openid-connect-sdk">nimbus.oauth2</a> doesn't work in Android (it assumes one often-used module to be higher version than android's module of same name.), but the library still manages to bring so many classes and abstraction levels on top of the actual requests it makes, so that it is difficult to see what there should be happening. </p>
+<p>In Ach so!, the authentication ping-pong is implemented without OAuth2 or OpenId Connect -specific libraries, by building the requests with standard blocks. (Remember that we are implementing the service stuff, where we ought to be implementing only the client stuff, which is well explained in new version of <a href="https://github.com/learning-layers/Cloud-Video-Transcoder/blob/master/openidconnect.md">ClViTra openidconnect documentation</a> ) The form of actual requests is now simple to explain -- simpler than with Nimbus-libraries, as they don't require knowing the OAuth2-jargon beforehand. </p>
+<p>The next sections are about explaining what the authentication steps require on low level http post- and get- requests for service, which should help anyone who wants or needs to implement the authentication ping-pong without support libraries or with e.g. jQuery or plain javascript.</p>
+<p>Both versions can be found from <a href="file:///Users/purma/github/AchSo/src/fi/aalto/legroup/achso/state/i5OpenIdConnectLoginState.java">src/fi/aalto/legroup/achso/state/i5OpenIdConnectLoginState.java</a>.</p>
+<h2 id="version-1-authentication-steps-for-services-and-clients-pretending-to-be-services">Version 1: Authentication steps for services and clients pretending to be services</h2>
+<p>This is based on the steps from the 'old version' part of <a href="https://github.com/learning-layers/Cloud-Video-Transcoder/blob/master/openidconnect.md">ClViTra openidconnect.md</a> and some misunderstandings about who is client and from whose perspective.</p>
+<h3 id="step-0-login-or-register-to-i5oidc">Step 0 -- Login or register to i5OIDC</h3>
+<p>Create a http-client and make it go to login page, and log in with correct credentials. Now the http-client has stored a cookie that ensures that if during the operation http-client ends up in i5OIDC, it can provide the session cookie to prove login status. Without the JSESSIONID -cookie the login doesn't stick.    </p>
+<h3 id="step-1-announcing-our-intentions-for-i5oidc">Step 1 -- Announcing our intentions for i5OIDC</h3>
+<h4 id="request">Request:</h4>
+<p>First we want to tell i5OIDC that we would like to be recognized as an client with identity and access to certain service. This is done with a GET -request, with following values:</p>
+<pre><code>Type: GET
+URL: http://137.226.58.15:9085/openid-connect-server-webapp/authorize
+Headers: &quot;Content-type: application/x-www-form-urlencoded&quot;
+Params: 
+    &quot;response_type&quot;:&quot;code&quot; // always this
+    &quot;client_id&quot;:&quot;clvitra&quot; // we are trying to get into clvitra
+    &quot;redirect_uri&quot;:&quot;http://137.226.58.27:9080/ClViTra_2.0/FileUpload.html&quot; 
+        // address where the response code (6 character string required for next step) is sent. The idea here is that if this whole operation was called by a web service, the web service may listen to this address, and when i5OIDC sends a request there, it can continue with the code there. In our case, you can put here just about anything that is safe, since we are explicitly not following the redirection, just taking note of the location where the redirection would go and parsing the code from the url. 
+    &quot;scope&quot;:&quot;openid+email+profile&quot; // what userinfo we finally would like to have
+    &quot;state&quot;:&quot;324fca49&quot; // random verification string -- this is a safety feature, the response should have the same string. 
+    &quot;nonce&quot;:&quot;76ace126&quot; // don't know what this is, random string here too. 
+</code></pre>
+
+<p>Example code from <a href="file:///Users/purma/github/AchSo/src/fi/aalto/legroup/achso/state/i5OpenIdConnectLoginState.java">i5OpenIdConnectLoginState</a>:</p>
+<pre><code class="java">String url = &quot;http://137.226.58.15:9085/openid-connect-server-webapp/authorize&quot;;
+String redirect_uri = &quot;http://137.226.58.27:9080/ClViTra_2.0/FileUpload.html&quot;;
+String client_id = &quot;clvitra&quot;;
+Bundle result = new Bundle();
+List&lt;NameValuePair&gt; pairs = new ArrayList&lt;NameValuePair&gt;();
+String state = UUID.randomUUID().toString().substring(0,8);
+String nonce = UUID.randomUUID().toString().substring(0,8);
+pairs.add(new BasicNameValuePair(&quot;response_type&quot;, &quot;code&quot;));
+pairs.add(new BasicNameValuePair(&quot;client_id&quot;, client_id));
+pairs.add(new BasicNameValuePair(&quot;redirect_uri&quot;, redirect_uri));
+pairs.add(new BasicNameValuePair(&quot;scope&quot;, &quot;openid+email+profile&quot;));
+pairs.add(new BasicNameValuePair(&quot;state&quot;, state));
+pairs.add(new BasicNameValuePair(&quot;nonce&quot;, nonce));
+
+String paramString = URLEncodedUtils.format(pairs, &quot;utf-8&quot;);
+if (!url.endsWith(&quot;?&quot;)) {
+    url += &quot;?&quot;;
+}
+url += paramString;
+
+HttpResponse response;
+HttpGet get = new HttpGet(url);
+// next lines are about disabling redirection, we don't follow 304:s.
+HttpParams params = new BasicHttpParams();
+HttpClientParams.setRedirecting(params, false);
+get.setParams(params);
+get.setHeader(&quot;Content-type&quot;, &quot;application/x-www-form-urlencoded&quot;);
+try {
+    response = http.execute(get);
+} catch (IOException e) {
+    e.printStackTrace();
+}
+</code></pre>
+
+<h4 id="response">Response:</h4>
+<p>What happens next is simple for web services, they are listening to redirect_uri and they get a request from i5OIDC aiming to that uri, with two parameters <code>code</code>and <code>state</code>. </p>
+<p><code>redirect_uri?code=abuT2a&amp;state=324fca49</code></p>
+<p>There are three ways to use this redirection: 1) Have your web service listen to redirect_uri, and when it gets called, get the code. 2) disable automatic redirection and when you get a state 304 (redirection) as a response from previous call, you can get the redirect_uri from Header:Location, and from there the parameters <code>code</code> and <code>state</code>.  3) Have javascript observing where the request it is being directed to, take the parameter from url (not sure if it can be made to work).</p>
+<p>State needs to match the state that was sent with request. Code is a short string that is needed in next step.  </p>
+<h3 id="step-2-asking-for-access-token">Step 2 -- Asking for access_token</h3>
+<h4 id="request_1">Request:</h4>
+<p>Now we get the actual access_token, as the i5OIDC knows that there is a logged in user and it knows that there is a service that wants to be responsive for this user. The access_token request is POST request:</p>
+<pre><code>Type: POST
+URL: http://137.226.58.15:9085/openid-connect-server-webapp/token
+Headers: 
+    &quot;Content-type: application/x-www-form-urlencoded&quot;
+    &quot;Authorization: Basic 324398example2423498329847827737dfs78775a5s56d&quot; 
+    // this is base64-encoded authentication for this specific service. Authentication is form 'id:secret', for clvitra it is 'clvitra:clvitra'
+
+Content: 
+    &quot;grant_type&quot;:&quot;authorization_code&quot; // always this
+    &quot;code&quot;:&quot;abuT2a&quot; // code received from previous step
+    &quot;redirect_uri&quot;:&quot;http://137.226.58.27:9080/ClViTra_2.0/FileUpload.html&quot; 
+        // Same as with step 1, either have an address you can listen to, or read the response. This time it is easier, as the data is in the response content, not in its address.
+</code></pre>
+
+<p>Example code from <a href="file:///Users/purma/github/AchSo/src/fi/aalto/legroup/achso/state/i5OpenIdConnectLoginState.java">i5OpenIdConnectLoginState</a>:</p>
+<pre><code class="java">String tokenEndpoint = &quot;http://137.226.58.15:9085/openid-connect-server-webapp/token&quot;;
+String target = &quot;http://137.226.58.27:9080/ClViTra_2.0/FileUpload.html&quot;;
+String client_id = &quot;clvitra&quot;;
+String auth = &quot;Basic &quot; + Base64.encodeToString((client_id + &quot;:&quot; + client_id).getBytes(), Base64.NO_WRAP);
+HttpPost post = new HttpPost(tokenEndpoint);
+post.setHeader(&quot;Content-type&quot;, &quot;application/x-www-form-urlencoded&quot;);
+post.setHeader(&quot;Authorization&quot;, auth);
+List&lt;NameValuePair&gt; pairs = new ArrayList&lt;NameValuePair&gt;();
+pairs.add(new BasicNameValuePair(&quot;grant_type&quot;, &quot;authorization_code&quot;));
+pairs.add(new BasicNameValuePair(&quot;code&quot;, code));
+pairs.add(new BasicNameValuePair(&quot;redirect_uri&quot;, target));
+try {
+    post.setEntity(new UrlEncodedFormEntity(pairs));
+} catch (UnsupportedEncodingException e) {
+    e.printStackTrace();
+}
+HttpResponse response;
+try {
+    response = http.execute(post);
+    InputStream content = response.getEntity().getContent();
+
+    BufferedReader buffer = new BufferedReader(new InputStreamReader(content));
+    String json_string = &quot;&quot;;
+    String s;
+    while ((s = buffer.readLine()) != null) {
+        json_string += s;
+    }
+    response.getEntity().consumeContent();
+    if (response.getStatusLine().getStatusCode() == 200) {
+        // this is what we want
+        return json_string;
+    } else {
+        return &quot;&quot;;
+    }
+} catch (IOException e) {
+    e.printStackTrace();
+}
+</code></pre>
+
+<h4 id="response_1">Response:</h4>
+<p>JSON string with <code>access_token</code>, <code>identity_token</code> and possibly other values.
+-- or error messages</p>
+<p>Remember to store the access token! It should have life longer than this one session.</p>
+<h3 id="step-3-asking-for-identity-information">Step 3 -- Asking for identity information</h3>
+<h4 id="request_2">Request:</h4>
+<pre><code>Type: GET
+URL: http://137.226.58.15:9085/openid-connect-server-webapp/userinfo
+Headers: 
+    &quot;Content-type: application/x-www-form-urlencoded&quot;
+    &quot;Authorization: Bearer 324398427423498329847827737dfs78775a5s56d...&quot; 
+    // string after Bearer is access_token received from previous step. 
+
+</code></pre>
+
+<p>Example code from <a href="file:///Users/purma/github/AchSo/src/fi/aalto/legroup/achso/state/i5OpenIdConnectLoginState.java">i5OpenIdConnectLoginState</a>:</p>
+<pre><code class="java">String json_string = &quot;&quot;;
+String url = &quot;http://137.226.58.15:9085/openid-connect-server-webapp/userinfo&quot;;
+HttpResponse response;
+HttpGet get = new HttpGet(url);
+get.setHeader(&quot;Content-type&quot;, &quot;application/x-www-form-urlencoded&quot;);
+get.setHeader(&quot;Authorization&quot;, &quot;Bearer &quot; + mAuthToken);
+try {
+    response = http.execute(get);
+    InputStream content = response.getEntity().getContent();
+
+    BufferedReader buffer = new BufferedReader(new InputStreamReader(content));
+    String s;
+    while ((s = buffer.readLine()) != null) {
+        json_string += s;
+    }
+    response.getEntity().consumeContent();
+} catch (IOException e) {
+    e.printStackTrace();
+}
+</code></pre>
+
+<h4 id="response_2">Response:</h4>
+<p>JSON string with userinfo: <code>preferred_username</code> (= login name), <code>name</code> (= full name), <code>email</code>.</p>
+<h2 id="version-2-authentication-steps-for-clients-who-rely-on-services">Version 2: Authentication steps for clients who rely on services:</h2>
+<p>As you can see, these are very much simpler than when communicating directly to i5OAIDC! If these are enough!</p>
+<h3 id="step-1-asking-for-authorization-from-clvitra2">Step 1 -- Asking for authorization from ClViTra2:</h3>
+<p>This step in fact is an exception to the division of labour where client talks to service and service talks to i5OIDC. Here client talks to service, and service gives an address in i5OIDC, and then client talks to i5OIDC. Version 1 above just makes the address to i5OIDC by itself and calls it. </p>
+<p>Request 1a:</p>
+<pre><code>Type: GET
+URL: http://137.226.58.27:9080/ClViTra_2.0/rest/openIDauth
+
+</code></pre>
+
+<p>Response 1a:</p>
+<pre><code>&quot;http://137.226.58.15:9085/openid-connect-server-webapp/authorize?response_type=code&amp;client_id=clvitra&amp;redirect_uri=http%3A%2F%2F137.226.58.27%3A9080%2FClViTra_2.0%2FFileUpload.html&amp;scope=openid+email+profile&amp;state=K_dIjaqMHT0I2w0b_IKOUlpNdD6e6YZ4V7I77qJcUxU&amp;nonce=x63Gjx7jqbzFFTCFe4Ujd2E_Ud0TEy08T1ERe_cGaAs&quot;
+</code></pre>
+
+<p>It is the url we need to go next.</p>
+<p>Request 1b:</p>
+<pre><code>Type: GET
+URL: http://137.226.58.15:9085/openid-connect-server-webapp/authorize?response_type=code&amp;client_id=clvitra&amp;redirect_uri=http%3A%2F%2F137.226.58.27%3A9080%2FClViTra_2.0%2FFileUpload.html&amp;scope=openid+email+profile&amp;state=K_dIjaqMHT0I2w0b_IKOUlpNdD6e6YZ4V7I77qJcUxU&amp;nonce=x63Gjx7jqbzFFTCFe4Ujd2E_Ud0TEy08T1ERe_cGaAs
+</code></pre>
+
+<p>Response 1b:
+(after possible login screens and permission to authenticate to service)</p>
+<pre><code>&quot;4935ti&quot; - string containing the `code`
+</code></pre>
+
+<h3 id="step-2-asking-for-auth-token-from-clvitra2">Step 2 -- Asking for auth token from ClViTra2</h3>
+<p>Request:</p>
+<pre><code>Type: GET
+URL: http://137.226.58.27:9080/ClViTra_2.0/rest/getAuthToken
+Headers: &quot;Code&quot;, $code (where $code is `code` from previous step.)
+</code></pre>
+
+<p>Response:</p>
+<pre><code>dsfdklak9987f56a55656s656d6saf65d6... -- authToken
+</code></pre>
+
+<h3 id="step-3-verifying-auth-token-from-clvitra2-and-getting-username">Step 3 -- Verifying auth token from ClViTra2 and getting username</h3>
+<p>Request:</p>
+<pre><code>Type: GET
+URL: http://137.226.58.27:9080/ClViTra_2.0/rest/verifyAccessToken
+Headers: &quot;AccessToken&quot;, $authToken (where $authToken is result of previous step.)
+</code></pre>
+
+<p>Response:</p>
+<pre><code>jukka -- username for holder of this (accepted) token.
+</code></pre>
+
+<h2 id="current-situation-and-open-questions">Current situation and open questions</h2>
+<p>It works, it can be implemented with various level of effort to all kinds of client/service combinations. Open questions:</p>
+<ul>
+<li>Is access_token for one service usable for other services, or should the authentication process be repeated (partly) for all services Ach so! wants to use?</li>
+<li>What is the future role for userinfo provided by i5OIDC? Services easily have overlapping user information, and certainly SSS will have lots of user information. Should we ignore userinfo and get richer data from SSS? Now, or at some point?</li>
+<li>Will there be web ui for changing userinfo? </li>
+<li>Will there be API for logging in or registering new accounts. Now I'm just hacking to forms, which is brittle solution.</li>
+</ul></body></html>

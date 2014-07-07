@@ -39,6 +39,7 @@ import android.os.Handler;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Base64;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -65,6 +66,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.activity.ActionbarActivity;
 import fi.aalto.legroup.achso.activity.ApprovalActivity;
 import fi.aalto.legroup.achso.util.App;
@@ -101,13 +103,16 @@ public class i5OpenIdConnectLoginState implements LoginState {
     public static final int AUTHENTICATION_FAILED = 3;
     private static final int ERROR = 4;
     private boolean disable_autologin_for_session;
+    private boolean mUserdataUpdated;
     private String mIdToken;
     private String mScope;
+    private String mTempState;
 
 
     public i5OpenIdConnectLoginState(Context ctx) {
         this.ctx = ctx;
         this.mIn = LOGGED_OUT;
+        this.mUserdataUpdated = false;
     }
 
     /** Sign in to Aachen's Open Id server. This must be run in a non-main thread!
@@ -236,7 +241,142 @@ public class i5OpenIdConnectLoginState implements LoginState {
     }
 
 
-    private static Bundle fetchAccessTokenStep1() {
+    /**
+     * First asks ClViTra to provide the authorization link, then follows it. The purpose is to
+     * receive the temporary short code required for creating the access token. There may be
+     * complications.
+     * Networking! Must be run in separate thread, not in main thread.
+     * @return Bundle:
+     *  "status":OK
+     *      "url": redirect_uri + code as url parameter
+     *  "status":APPROVAL_NEEDED
+     *      "url": url of approval page
+     *      "cookie_value": session_id cookie if such is required for getting to approval page
+     *      "cookie_url": domain for session_id cookie.
+     *  "status":AUTHENTICATION_FAILED
+     *      "status_code": response's status code, e.g. 304, 404
+     *      "html": response page dumped as string
+     *  "status":ERROR
+     *      "error": error message
+     *  "state": state -string sent to server. It will be compared to result.
+     */
+    private static Bundle getAuthorizationFromClViTra() {
+        Log.i(TAG, "getAuthorizationFromClViTra");
+        String url = "http://137.226.58.27:9080/ClViTra_2.0/rest/openIDauth";
+        Bundle result = new Bundle();
+        HttpResponse response = null;
+        HttpGet get = new HttpGet(url);
+        try {
+            response = http.execute(get);
+        } catch (IOException e) {
+            e.printStackTrace();
+            result.putInt("status", ERROR);
+            result.putString("error", e.getMessage());
+        }
+        if (response == null) {
+            result.putInt("status", ERROR);
+            result.putString("error", "null response");
+            return result;
+        }
+        InputStream content = null;
+        String auth_url = "";
+        try {
+            content = response.getEntity().getContent();
+            BufferedReader buffer = new BufferedReader(new InputStreamReader(content));
+            String s;
+            while ((s = buffer.readLine()) != null) {
+                auth_url += s;
+            }
+            response.getEntity().consumeContent();
+        } catch (IOException e) {
+            e.printStackTrace();
+            result.putInt("status", ERROR);
+            result.putString("error", e.getMessage());
+        }
+        // Find the state -parameter so we can verify it later.
+        Uri auth_uri = Uri.parse(auth_url);
+        Log.i(TAG, "Got auth uri: "+ auth_url);
+        result.putString("state", auth_uri.getQueryParameter("state"));
+
+        get = new HttpGet(auth_url);
+
+        HttpParams params = new BasicHttpParams();
+        HttpClientParams.setRedirecting(params, false);
+        get.setParams(params);
+
+
+        try {
+            response = http.execute(get);
+            Log.i(TAG, "Response (sent data) status code + reason : " + response.getStatusLine()
+                    .getStatusCode() + " " + response.getStatusLine().getReasonPhrase());
+            Header location = response.getFirstHeader("Location");
+            int status_code = response.getStatusLine().getStatusCode();
+            if (status_code == 302) {
+                // this should be redirecting to redirect_uri, with an access code in url parameters
+                // Main thread will launch the next step, resumeAuthentication with url
+                result.putInt("status", OK);
+                result.putString("url", location.getValue());
+            } else if (status_code == 200) {
+                // this is Approve Access -page.
+                Log.i(TAG, "Needs to ask approval before continuing");
+                String domain =  Uri.parse(auth_url).getHost();
+                Cookie cookie = null;
+                for (Cookie c: http.getCookieStore().getCookies()) {
+                    if (c.getDomain().equals(domain)) {
+                        cookie = c;
+                    }
+                }
+                // Main thread will launch ApprovalActivity, we need to provide arguments for it.
+                result.putInt("status", APPROVAL_NEEDED);
+                result.putString("url", auth_url);
+                if (cookie != null) {
+                    result.putString("cookie_value", cookie.getValue());
+                    result.putString("cookie_url", cookie.getDomain());
+                }
+            } else {
+                // Failing, provide something useful for debugging
+                Log.i(TAG, "Strange response: " + status_code);
+                result.putInt("status", AUTHENTICATION_FAILED);
+                result.putInt("status_code", status_code);
+                content = response.getEntity().getContent();
+                BufferedReader buffer = new BufferedReader(new InputStreamReader(content));
+                String html = "";
+                String s;
+                while ((s = buffer.readLine()) != null) {
+                    html += s;
+                }
+                Log.i(TAG, "Received html: " + html);
+                result.putString("html", html);
+            }
+            response.getEntity().consumeContent();
+        } catch (IOException e) {
+            e.printStackTrace();
+            result.putInt("status", ERROR);
+            result.putString("error", e.getMessage());
+        }
+        return result;
+    }
+
+    /**
+     * Gets the temporary short code required for creating the access token. There may be
+     * complications
+     * Networking! Must be run in separate thread, not in main thread.
+     * @return Bundle:
+     *  "status":OK
+     *      "url": redirect_uri + code as url parameter
+     *  "status":APPROVAL_NEEDED
+     *      "url": url of approval page
+     *      "cookie_value": session_id cookie if such is required for getting to approval page
+     *      "cookie_url": domain for session_id cookie.
+     *  "status":AUTHENTICATION_FAILED
+     *      "status_code": response's status code, e.g. 304, 404
+     *      "html": response page dumped as string
+     *  "status":ERROR
+     *      "error": error message
+     *  "state": state -string sent to server. It will be compared to result.
+     */
+    private static Bundle getAuthorizationFromi5OIDC() {
+        Log.i(TAG, "getAuthorizationFromi5OIDC");
         String url = "http://137.226.58.15:9085/openid-connect-server-webapp/authorize";
         // following addresses are kind of pointless, but we need some access-restricted service
         // url to start with.
@@ -315,14 +455,53 @@ public class i5OpenIdConnectLoginState implements LoginState {
             result.putInt("status", ERROR);
             result.putString("error", e.getMessage());
         }
+        result.putString("state", state);
         return result;
     }
 
     /**
-     * Asks AccessToken from OAuth2 server. Cannot be run in a main thread!
+     * Fetches the actual AccessToken using ClViTra-services interface. Cannot be run
+     * in a main thread!
      * @param code
      */
-    private static String fetchAccessTokenStep2(String code) {
+    private static String getAccessTokenFromClViTra(String code) {
+        Log.i(TAG, "getAccessTokenFromClViTra");
+        String url = "http://137.226.58.27:9080/ClViTra_2.0/rest/getAccessToken";
+        HttpGet get = new HttpGet(url);
+        get.setHeader("Code", code);
+        HttpResponse response;
+        try {
+            response = http.execute(get);
+            InputStream content = response.getEntity().getContent();
+
+            BufferedReader buffer = new BufferedReader(new InputStreamReader(content));
+            String auth_token = "";
+            String s;
+            while ((s = buffer.readLine()) != null) {
+                auth_token += s;
+            }
+            response.getEntity().consumeContent();
+            if (response.getStatusLine().getStatusCode() == 200) {
+                // this is what we want
+                return auth_token;
+            } else {
+                Log.i(TAG, "Response (sent data) status code + reason : " + response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase());
+                Log.i(TAG, auth_token);
+                return "";
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    /**
+     * Fetches the AccessToken from OAuth2 server, claims to be clvitra in order to do that.
+     * Cannot be run in a main thread!
+     * @param code
+     */
+    private static String getAccessTokenFromi5OIDC(String code) {
+        Log.i(TAG, "getAccessTokenFromi5OIDC");
         String tokenEndpoint = "http://137.226.58.15:9085/openid-connect-server-webapp/token";
         String target = "http://137.226.58.27:9080/ClViTra_2.0/FileUpload.html";
         String client_id = "clvitra";
@@ -352,17 +531,67 @@ public class i5OpenIdConnectLoginState implements LoginState {
             }
             response.getEntity().consumeContent();
             if (response.getStatusLine().getStatusCode() == 200) {
+                // this is what we want
                 return json_string;
             } else {
                 Log.i(TAG, "Response (sent data) status code + reason : " + response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase());
                 Log.i(TAG, json_string);
-                return "";
+                if (json_string == null || json_string.isEmpty()) return "";
+                JSONObject jObject = null;
+                try {
+                    jObject = new JSONObject(json_string);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                if (jObject == null) return "";
+
+                try {
+                    Log.i(TAG, "access_token: " + jObject.getString("access_token"));
+                    return jObject.getString("access_token");
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    return "";
+                }
+
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
         return "";
     }
+
+    /**
+     *
+     * @return json_string with the user data, or "", to be handled in main thread.
+     */
+    public String getUserDataFromi5OIDC() {
+        Log.i(TAG, "getUserDataFromi5OIDC");
+        String json_string = "";
+        String url = "http://137.226.58.15:9085/openid-connect-server-webapp/userinfo";
+        HttpResponse response;
+        HttpGet get = new HttpGet(url);
+        get.setHeader("Content-type", "application/x-www-form-urlencoded");
+        get.setHeader("Authorization", "Bearer " + mAuthToken);
+        try {
+            response = http.execute(get);
+            Log.i(TAG, "Response (sent data) status code + reason : " + response.getStatusLine()
+                    .getStatusCode() + " " + response.getStatusLine().getReasonPhrase());
+            InputStream content = response.getEntity().getContent();
+
+            BufferedReader buffer = new BufferedReader(new InputStreamReader(content));
+            String s;
+            while ((s = buffer.readLine()) != null) {
+                json_string += s;
+            }
+            Log.i(TAG, json_string);
+            response.getEntity().consumeContent();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return json_string;
+    }
+
 
     private void setState(int state) {
         if (state == LOGGED_OUT) {
@@ -483,14 +712,21 @@ public class i5OpenIdConnectLoginState implements LoginState {
     @Override
     public void resumeAuthentication(String next_url) {
         String code = null;
+        String state = null;
+        Log.i(TAG, "Got url:" + next_url);
         Uri uri = Uri.parse(next_url);
         code = uri.getQueryParameter("code");
+        state = uri.getQueryParameter("state");
+        if (state == null || !state.equals(mTempState)) {
+            Log.i(TAG, "Response state didn't match with requests state -parameter");
+            logout();
+            return;
+        }
         Log.i(TAG, "Got code: " + code);
         Log.i(TAG, "Upload authorization success: " + (code != null));
         new AuthTokenTask().execute(code);
-        //fetchAccessTokenStep2(code);
-
     }
+
 
     @Override
     public void autologinIfAllowed() {
@@ -528,14 +764,15 @@ public class i5OpenIdConnectLoginState implements LoginState {
                 am.setAuthToken(mAccount, ACHSO_AUTH_TOKEN_TYPE, session_id);
             }
             // But we don't have proper AccessToken yet.
-            return fetchAccessTokenStep1();
+            return getAuthorizationFromClViTra();
+            //return getAuthorizationFromi5OIDC();
         }
 
         protected void onPostExecute(Bundle b) {
             Log.i(TAG, "onPostExecute after VerifyLoginTask");
             int short_code_status = b.getInt("status");
             Log.i(TAG, "status:" + short_code_status);
-            Log.i(TAG, "My Activity is " + mActivity.toString());
+            mTempState = b.getString("state");
             switch (short_code_status) {
                 case OK:
                     resumeAuthentication(b.getString("url"));
@@ -587,8 +824,27 @@ public class i5OpenIdConnectLoginState implements LoginState {
         protected String doInBackground(String... code) {
             // this is run in its own thread: cannot access to UI,
             // deliver response and let onPostExecute handle it in main thread
-            return fetchAccessTokenStep2(code[0]);
+            //return getAccessTokenFromi5OIDC(code[0]);
+            return getAccessTokenFromClViTra(code[0]);
         }
+        protected void onPostExecute(String access_token) {
+            mAuthToken = access_token;
+            final AccountManager am = AccountManager.get(App.getContext());
+            am.setAuthToken(mAccount, ACHSO_AUTH_TOKEN_TYPE, mAuthToken);
+            new UserDataTask().execute();
+        }
+
+    }
+    private class UserDataTask extends AsyncTask<Void, Void, String> {
+
+
+        @Override
+        protected String doInBackground(Void... voids) {
+            // this is run in its own thread: cannot access to UI,
+            // deliver response and let onPostExecute handle it in main thread
+            return getUserDataFromi5OIDC();
+        }
+
         protected void onPostExecute(String json_string) {
             if (json_string == null || json_string.isEmpty()) return;
             JSONObject jObject = null;
@@ -600,15 +856,27 @@ public class i5OpenIdConnectLoginState implements LoginState {
             if (jObject == null) return;
 
             try {
-                Log.i(TAG, "access_token: " + jObject.getString("access_token"));
-                Log.i(TAG, "id_token: " + jObject.getString("id_token"));
-                Log.i(TAG, "token_type: " + jObject.getString("token_type"));
-                Log.i(TAG, "scope: " + jObject.getString("scope"));
-                mAuthToken = jObject.getString("access_token");
-                mIdToken = jObject.getString("id_token");
-                mScope = jObject.getString("scope");
+                Log.i(TAG, "name: " + jObject.getString("name"));
+                Log.i(TAG, "preferred_username: " + jObject.getString("preferred_username"));
+                Log.i(TAG, "email: " + jObject.getString("email"));
+                Log.i(TAG, "email_verified: " + jObject.getBoolean("email_verified"));
+                mEmail = jObject.getString("email");
+                mUser = jObject.getString("preferred_username");
+                mFullname = jObject.getString("name");
                 final AccountManager am = AccountManager.get(App.getContext());
-                am.setAuthToken(mAccount, ACHSO_AUTH_TOKEN_TYPE, mAuthToken);
+                String old_fullname = am.getUserData(mAccount, "fullname");
+                // Here we change device's account settings based on settings we get from server.
+                // It could often be otherwise around.
+                if (old_fullname == null || !old_fullname.equals(mFullname)) {
+                    am.setUserData(mAccount, "fullname", mFullname);
+                }
+                String old_email = am.getUserData(mAccount, "email");
+                if (old_email == null || !old_email.equals(mEmail)) {
+                    am.setUserData(mAccount, "email", mEmail);
+                }
+                if (mFullname!=null && !mFullname.isEmpty()) {
+                    Toast.makeText(ctx, ctx.getString(R.string.Welcome)+ ", "+mFullname, Toast.LENGTH_LONG).show();
+                }
 
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -618,6 +886,7 @@ public class i5OpenIdConnectLoginState implements LoginState {
         }
 
     }
+
 
 
 }
