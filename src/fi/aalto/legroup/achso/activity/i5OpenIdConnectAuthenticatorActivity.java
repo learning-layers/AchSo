@@ -68,6 +68,7 @@ import fi.aalto.legroup.achso.util.App;
  */
 public class i5OpenIdConnectAuthenticatorActivity extends AccountAuthenticatorActivity implements
         LoaderCallbacks<Cursor>{
+    private static final String TAG = "i5OpenIdConnectAuthenticatorActivity";
 
     /**
      * A dummy authentication store containing known user names and passwords.
@@ -91,9 +92,12 @@ public class i5OpenIdConnectAuthenticatorActivity extends AccountAuthenticatorAc
     private Button mRegisterButton;
     private AccountManager mAccountManager;
 
+    public static final String ARG_MESSAGE = "HELP_MESSAGE";
     public final static String ARG_ACCOUNT_TYPE = "ACCOUNT_TYPE";
     public final static String ARG_AUTH_TYPE = "AUTH_TYPE";
     public final static String ARG_IS_ADDING_NEW_ACCOUNT = "IS_ADDING_ACCOUNT";
+    public static final String ARG_PREFILLED_USERNAME = "PREFILLED_USERNAME";
+    public static final String ARG_PREFILLED_PASSWORD = "PREFILLED_PASSWORD";
 
     public static final String KEY_ERROR_MESSAGE = "ERR_MSG";
 
@@ -102,6 +106,8 @@ public class i5OpenIdConnectAuthenticatorActivity extends AccountAuthenticatorAc
     private static final String PARAM_USER_EMAIL = "USER_EMAIL";
     private boolean mNewAccount;
     private boolean mRegisterMode;
+    private TextView mMessageView;
+    private TextView mTitleView;
 
 
     @Override
@@ -111,14 +117,29 @@ public class i5OpenIdConnectAuthenticatorActivity extends AccountAuthenticatorAc
 
         // Set up the login form.
         mAccountManager = AccountManager.get(App.getContext());
+        mTitleView = (TextView) findViewById(R.id.login_title);
+        mMessageView = (TextView) findViewById(R.id.help_message);
+        String pre_message = getIntent().getStringExtra(ARG_MESSAGE);
+        if (pre_message != null) {
+            mMessageView.setText(pre_message);
+        }
         mFullnameView = (AutoCompleteTextView) findViewById(R.id.fullname);
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
         populateAutoComplete();
         mUsernameView = (EditText) findViewById(R.id.login_name);
         mPasswordView = (EditText) findViewById(R.id.password);
         mPasswordConfirmView = (EditText) findViewById(R.id.password_confirm);
-        Log.i("AuthenticatorActivity", "passwordview:" + mPasswordView);
+        Log.i(TAG, "passwordview:" + mPasswordView);
         mNewAccount = getIntent().getBooleanExtra(ARG_IS_ADDING_NEW_ACCOUNT, false);
+        String pre_password = getIntent().getStringExtra(ARG_PREFILLED_PASSWORD);
+        if (pre_password != null) {
+            mPasswordView.setText(pre_password);
+        }
+        String pre_username = getIntent().getStringExtra(ARG_PREFILLED_USERNAME);
+        if (pre_username != null) {
+            mUsernameView.setText(pre_username);
+        }
+
         mRegisterMode = mNewAccount;
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -172,7 +193,11 @@ public class i5OpenIdConnectAuthenticatorActivity extends AccountAuthenticatorAc
      */
     private void toggleRegisterMode(boolean register_mode) {
         if (register_mode) {
+            if (!mRegisterMode) {
+                mMessageView.setText("");
+            }
             mRegisterMode = true;
+            mTitleView.setText(getString(R.string.action_register));
             mRegisterModeLink.setVisibility(View.GONE);
             mLoginButton.setVisibility(View.GONE);
             mLoginModeLink.setVisibility(View.VISIBLE);
@@ -182,7 +207,11 @@ public class i5OpenIdConnectAuthenticatorActivity extends AccountAuthenticatorAc
             mEmailView.setVisibility(View.VISIBLE);
 
         } else {
+            if (mRegisterMode) {
+                mMessageView.setText("");
+            }
             mRegisterMode = false;
+            mTitleView.setText(getString(R.string.openid_login));
             mRegisterModeLink.setVisibility(View.VISIBLE);
             mLoginButton.setVisibility(View.VISIBLE);
             mLoginModeLink.setVisibility(View.GONE);
@@ -250,7 +279,15 @@ public class i5OpenIdConnectAuthenticatorActivity extends AccountAuthenticatorAc
             }
             @Override
             protected void onPostExecute(Intent intent) {
-                finishRegister(intent);
+                String authtoken = intent.getStringExtra(AccountManager.KEY_AUTHTOKEN);
+                Log.i(TAG, "Registration authtoken: " + authtoken);
+                if (authtoken != null) {
+                    finishRegister(intent);
+                } else {
+                    mMessageView.setText(getString(R.string.registration_failed_help_text));
+                }
+
+
             }
         }.execute();
     }
@@ -303,7 +340,13 @@ public class i5OpenIdConnectAuthenticatorActivity extends AccountAuthenticatorAc
             }
             @Override
             protected void onPostExecute(Intent intent) {
-                finishLogin(intent);
+                String authtoken = intent.getStringExtra(AccountManager.KEY_AUTHTOKEN);
+                Log.i(TAG, "Login authtoken: " + authtoken);
+                if (authtoken != null) {
+                    finishLogin(intent);
+                } else {
+                    mMessageView.setText(getString(R.string.login_failed_help_text));
+                }
             }
         }.execute();
     }

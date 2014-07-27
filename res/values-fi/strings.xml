@@ -101,5 +101,8 @@
     <string name="confirm_pass">Repeat password</string>
     <string name="error_passwords_dont_match">Password doesn\'t match with verification</string>
     <string name="Welcome">Welcome</string>
+    <string name="openid_login">Login to Learning Layers OIDC Server</string>
+    <string name="login_failed_help_text">Login failed. Verify your credentials.</string>
+    <string name="registration_failed_help_text">Registration failed for following reason:</string>
 
 </resources>

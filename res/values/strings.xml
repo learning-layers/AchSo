@@ -86,7 +86,7 @@
     <string name="connection_problem">Connection problem</string>
     <string name="authentication_problem">Authentication problem</string>
     <string name="i5cloud_prefs">i5Cloud account</string>
-    <string name="action_register">Create account</string>
+    <string name="action_register">Create new account</string>
     <string name="prompt_fullname">Full name</string>
     <string name="confirm_pass">Repeat password</string>
     <string name="error_passwords_dont_match">Password doesn\'t match with verification</string>
@@ -96,5 +96,8 @@
     <string name="title_activity_approval">ApprovalActivity</string>
     <string name="hello_world">Hello world!</string>
     <string name="Welcome">Welcome</string>
+    <string name="openid_login">Login to Learning Layers OIDC Server</string>
+    <string name="login_failed_help_text">Login failed. Verify your credentials.</string>
+    <string name="registration_failed_help_text">Registration failed for following reason:</string>
 
 </resources>

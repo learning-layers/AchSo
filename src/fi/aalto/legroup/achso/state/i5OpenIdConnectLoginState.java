@@ -107,7 +107,7 @@ public class i5OpenIdConnectLoginState implements LoginState {
     private String mIdToken;
     private String mScope;
     private String mTempState;
-
+    private static final String OIDCAPI = "http://cloud15.dbis.rwth-aachen.de:9085/oidc/";
 
     public i5OpenIdConnectLoginState(Context ctx) {
         this.ctx = ctx;
@@ -123,10 +123,10 @@ public class i5OpenIdConnectLoginState implements LoginState {
      */
     public static String userSignIn(String userName, String userPass) {
         // Here implement server calls
-        String login_form_action = "http://137.226.58.15:9085/openid-connect-server-webapp/j_spring_security_check";
-        String login_success_suffix = "openid-connect-server-webapp/";
+        String login_form_action = OIDCAPI + "j_spring_security_check";
+        String login_success_suffix = "oidc/";
         String login_fail_suffix = "login?error=failure";
-        String domain = "137.226.58.15";
+        String domain = "cloud15.dbis.rwth-aachen.de";
         boolean success = false;
         HttpResponse response = null;
         Cookie cookie = null;
@@ -135,6 +135,7 @@ public class i5OpenIdConnectLoginState implements LoginState {
         List<NameValuePair> pairs = new ArrayList<NameValuePair>();
         pairs.add(new BasicNameValuePair("j_username", userName));
         pairs.add(new BasicNameValuePair("j_password", userPass));
+        Log.i(TAG, "Logging in with " + userName + " : " + userPass);
         pairs.add(new BasicNameValuePair("submit", "1"));
         HttpPost post = new HttpPost(login_form_action);
         post.setParams(params);
@@ -152,25 +153,29 @@ public class i5OpenIdConnectLoginState implements LoginState {
             //for (Header h: headers) {
             //    Log.i(TAG, "Header (response): " + h.getName() + " value: " + h.getValue());
             //}
-            for (Cookie c: http.getCookieStore().getCookies()) {
-                //Log.i(TAG, "Cookie (after): " + c.getDomain() + " value: " + c.getValue());
-                if (c.getDomain().equals(domain)) {
-                    cookie = c;
-                    Log.i(TAG, "Found cookie:" + c.toString());
+            if (response.getStatusLine().getStatusCode() == 404) {
+                Log.i(TAG, "Authentication server doesn't respond.");
+            } else {
+                for (Cookie c : http.getCookieStore().getCookies()) {
+                    //Log.i(TAG, "Cookie (after): " + c.getDomain() + " value: " + c.getValue());
+                    if (c.getDomain().equals(domain)) {
+                        cookie = c;
+                        Log.i(TAG, "Found cookie:" + c.toString());
+                    }
+                }
+
+                String location = response.getFirstHeader("Location").getValue();
+                Log.i(TAG, "Pretty sure that location is: " + location);
+                if (location.endsWith(login_fail_suffix)) {
+                    Log.i(TAG, "Login failed");
+                } else if (location.endsWith(login_success_suffix)) {
+                    Log.i(TAG, "Success -- keep the cookie");
+                    success = true;
+                } else {
+                    Log.e(TAG, "Don't know what happened with login: " + location);
                 }
             }
             response.getEntity().consumeContent();
-
-            String location = response.getFirstHeader("Location").getValue();
-            Log.i(TAG, "Pretty sure that location is: " + location);
-            if (location.endsWith(login_fail_suffix)) {
-                Log.i(TAG, "Login failed");
-            } else if (location.endsWith(login_success_suffix)) {
-                Log.i(TAG, "Success -- keep the cookie");
-                success = true;
-            } else {
-                Log.e(TAG, "Don't know what happened with login: "+ location);
-            }
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -377,7 +382,7 @@ public class i5OpenIdConnectLoginState implements LoginState {
      */
     private static Bundle getAuthorizationFromi5OIDC() {
         Log.i(TAG, "getAuthorizationFromi5OIDC");
-        String url = "http://137.226.58.15:9085/openid-connect-server-webapp/authorize";
+        String url = OIDCAPI + "authorize";
         // following addresses are kind of pointless, but we need some access-restricted service
         // url to start with.
         String redirect_uri = "http://137.226.58.27:9080/ClViTra_2.0/FileUpload.html";
@@ -502,7 +507,7 @@ public class i5OpenIdConnectLoginState implements LoginState {
      */
     private static String getAccessTokenFromi5OIDC(String code) {
         Log.i(TAG, "getAccessTokenFromi5OIDC");
-        String tokenEndpoint = "http://137.226.58.15:9085/openid-connect-server-webapp/token";
+        String tokenEndpoint = OIDCAPI + "token";
         String target = "http://137.226.58.27:9080/ClViTra_2.0/FileUpload.html";
         String client_id = "clvitra";
         String auth = "Basic " + Base64.encodeToString((client_id + ":" + client_id).getBytes(), Base64.NO_WRAP);
@@ -568,7 +573,7 @@ public class i5OpenIdConnectLoginState implements LoginState {
     public String getUserDataFromi5OIDC() {
         Log.i(TAG, "getUserDataFromi5OIDC");
         String json_string = "";
-        String url = "http://137.226.58.15:9085/openid-connect-server-webapp/userinfo";
+        String url = OIDCAPI + "userinfo";
         HttpResponse response;
         HttpGet get = new HttpGet(url);
         get.setHeader("Content-type", "application/x-www-form-urlencoded");
@@ -813,7 +818,13 @@ public class i5OpenIdConnectLoginState implements LoginState {
             return session_id;
         }
         protected void onPostExecute(String code) {
-            setState(LOGGED_IN);
+            if (code != null && !code.isEmpty()) {
+                setState(LOGGED_IN);
+            } else {
+                Toast.makeText(ctx, "Login failed", Toast.LENGTH_LONG).show();
+                setState(LOGGED_OUT);
+
+            }
         }
 
     }

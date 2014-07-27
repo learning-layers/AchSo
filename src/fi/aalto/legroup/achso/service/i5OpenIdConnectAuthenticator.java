@@ -37,6 +37,7 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.activity.i5OpenIdConnectAuthenticatorActivity;
 import fi.aalto.legroup.achso.state.i5OpenIdConnectLoginState;
 
@@ -44,7 +45,7 @@ import fi.aalto.legroup.achso.state.i5OpenIdConnectLoginState;
 * Created by purma on 4.7.2014.
 */
 public class i5OpenIdConnectAuthenticator extends AbstractAccountAuthenticator {
-    private static final String TAG = "i5CloudAccountService";
+    private static final String TAG = "i5OpenIdConnectAuthenticator";
     private Context mContext;
 
 
@@ -163,10 +164,11 @@ public class i5OpenIdConnectAuthenticator extends AbstractAccountAuthenticator {
         final AccountManager am = AccountManager.get(mContext);
 
         String authToken = am.peekAuthToken(account, authTokenType);
+        String password = null;
 
         // Lets give another try to authenticate the user
         if (TextUtils.isEmpty(authToken)) {
-            final String password = am.getPassword(account);
+            password = am.getPassword(account);
             if (password != null) {
                 authToken = i5OpenIdConnectLoginState.userSignIn(account.name, password);
             }
@@ -188,7 +190,14 @@ public class i5OpenIdConnectAuthenticator extends AbstractAccountAuthenticator {
         intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
         intent.putExtra(i5OpenIdConnectAuthenticatorActivity.ARG_ACCOUNT_TYPE, account.type);
         intent.putExtra(i5OpenIdConnectAuthenticatorActivity.ARG_AUTH_TYPE, authTokenType);
-        intent.putExtra(i5OpenIdConnectAuthenticatorActivity.ARG_IS_ADDING_NEW_ACCOUNT, true);
+        intent.putExtra(i5OpenIdConnectAuthenticatorActivity.ARG_IS_ADDING_NEW_ACCOUNT, false);
+        intent.putExtra(i5OpenIdConnectAuthenticatorActivity.ARG_PREFILLED_USERNAME, account.name);
+        intent.putExtra(i5OpenIdConnectAuthenticatorActivity.ARG_PREFILLED_PASSWORD, password);
+        if (password != null) {
+            intent.putExtra(i5OpenIdConnectAuthenticatorActivity.ARG_MESSAGE,
+                    mContext.getString(R.string.login_failed_help_text));
+
+        }
         final Bundle bundle = new Bundle();
         bundle.putParcelable(AccountManager.KEY_INTENT, intent);
         return bundle;

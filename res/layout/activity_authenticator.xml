@@ -30,6 +30,23 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
+                <TextView
+                    android:id="@+id/login_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="@string/openid_login"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    android:textColor="@color/achso_yellow" />
+                <TextView
+                    android:id="@+id/help_message"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text=""
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textColor="@color/achso_red" />
+
 
                 <AutoCompleteTextView
                     android:id="@+id/fullname"
