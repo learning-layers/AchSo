@@ -21,7 +21,7 @@
         - [get_annotations](#get_annotations)
     - [Video listings](#Video_listings)
         - [get_videos](#get_videos)
-    - [Communities](#communities)
+    - [Communities](#communities) - moved to SSS
         - [add_community](#add_community)
         - [edit_community](#edit_community)
         - [join_community](#join_community)
@@ -628,8 +628,8 @@ Even if community is empty, results should be filtered by those communities that
 
 <a name="communities"></a>
 
-## Communities
-These are the groups/channels that are used to deduce video visibility and editing rights.
+## Communities -moved to SSS
+These are the groups/channels that are used to deduce video visibility and editing rights. The responsibility for this information has been moved to Social Semantic Service, so ignore this section. It has to be done in SSS in a way that all tools can use the same API.  
 
 <a name="add_community"></a>
 
