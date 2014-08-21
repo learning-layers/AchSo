@@ -170,7 +170,8 @@ public class i5OpenIdConnectAuthenticator extends AbstractAccountAuthenticator {
         if (TextUtils.isEmpty(authToken)) {
             password = am.getPassword(account);
             if (password != null) {
-                authToken = i5OpenIdConnectLoginState.userSignIn(account.name, password);
+                Bundle login_result = i5OpenIdConnectLoginState.userSignIn(account.name, password);
+                authToken = login_result.getString("session_id");
             }
         }
 

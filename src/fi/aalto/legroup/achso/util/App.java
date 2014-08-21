@@ -43,7 +43,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 
-import fi.aalto.legroup.achso.state.LasLoginState;
 import fi.aalto.legroup.achso.state.LoginState;
 import fi.aalto.legroup.achso.state.i5OpenIdConnectLoginState;
 
@@ -106,11 +105,6 @@ public class App extends Application {
             case I5OPENIDCONNECT:
                 login_state = new i5OpenIdConnectLoginState(mContext);
                 break;
-            case LASCONNECTION:
-                login_state = new LasLoginState(mContext);
-                break;
-            default:
-                login_state = new LasLoginState(mContext);
         }
 
 

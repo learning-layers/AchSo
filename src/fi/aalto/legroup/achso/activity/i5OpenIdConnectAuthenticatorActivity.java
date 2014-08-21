@@ -267,11 +267,13 @@ public class i5OpenIdConnectAuthenticatorActivity extends AccountAuthenticatorAc
         new AsyncTask<Void, Void, Intent>() {
             @Override
             protected Intent doInBackground(Void... params) {
-                String authtoken = i5OpenIdConnectLoginState.userRegister(fullname, email, username, pass);
+                Bundle register_result = i5OpenIdConnectLoginState.userRegister(fullname, email, username, pass);
+                // Add here what to do if fails or errors
+                String session_id = register_result.getString("session_id");
                 final Intent res = new Intent();
                 res.putExtra(AccountManager.KEY_ACCOUNT_NAME, username);
                 res.putExtra(AccountManager.KEY_ACCOUNT_TYPE, i5OpenIdConnectAccountService.ACHSO_ACCOUNT_TYPE);
-                res.putExtra(AccountManager.KEY_AUTHTOKEN, authtoken);
+                res.putExtra(AccountManager.KEY_AUTHTOKEN, session_id);
                 res.putExtra(PARAM_USER_PASS, pass);
                 res.putExtra(PARAM_USER_FULLNAME, fullname);
                 res.putExtra(PARAM_USER_EMAIL, email);
@@ -330,11 +332,13 @@ public class i5OpenIdConnectAuthenticatorActivity extends AccountAuthenticatorAc
         new AsyncTask<Void, Void, Intent>() {
             @Override
             protected Intent doInBackground(Void... params) {
-                String authtoken = i5OpenIdConnectLoginState.userSignIn(user_name, user_pass);
+                Bundle login_result = i5OpenIdConnectLoginState.userSignIn(user_name, user_pass);
+                // Add here what to do if fails or errors
+                String session_id = login_result.getString("session_id");
                 final Intent res = new Intent();
                 res.putExtra(AccountManager.KEY_ACCOUNT_NAME, user_name);
                 res.putExtra(AccountManager.KEY_ACCOUNT_TYPE, i5OpenIdConnectAccountService.ACHSO_ACCOUNT_TYPE);
-                res.putExtra(AccountManager.KEY_AUTHTOKEN, authtoken);
+                res.putExtra(AccountManager.KEY_AUTHTOKEN, session_id);
                 res.putExtra(PARAM_USER_PASS, user_pass);
                 return res;
             }

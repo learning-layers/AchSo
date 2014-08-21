@@ -49,6 +49,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
@@ -119,15 +120,16 @@ public class i5OpenIdConnectLoginState implements LoginState {
 
      * @param userName - String
      * @param userPass - String
-     * @return session_id - String
+     * @return Bundle (success*, session_id, error)
      */
-    public static String userSignIn(String userName, String userPass) {
+    public static Bundle userSignIn(String userName, String userPass) {
         // Here implement server calls
+        Bundle result = new Bundle();
+        result.putBoolean("success", false);
         String login_form_action = OIDCAPI + "j_spring_security_check";
         String login_success_suffix = "oidc/";
         String login_fail_suffix = "login?error=failure";
         String domain = "cloud15.dbis.rwth-aachen.de";
-        boolean success = false;
         HttpResponse response = null;
         Cookie cookie = null;
         HttpParams params = new BasicHttpParams();
@@ -143,6 +145,8 @@ public class i5OpenIdConnectLoginState implements LoginState {
         try {
             post.setEntity(new UrlEncodedFormEntity(pairs));
         } catch (UnsupportedEncodingException e) {
+            result.putBoolean("success", false);
+            result.putString("error", "Url encoding error when filling login form");
             e.printStackTrace();
         }
         try {
@@ -155,6 +159,7 @@ public class i5OpenIdConnectLoginState implements LoginState {
             //}
             if (response.getStatusLine().getStatusCode() == 404) {
                 Log.i(TAG, "Authentication server doesn't respond.");
+                result.putString("error", "Authentication server returns 404");
             } else {
                 for (Cookie c : http.getCookieStore().getCookies()) {
                     //Log.i(TAG, "Cookie (after): " + c.getDomain() + " value: " + c.getValue());
@@ -163,29 +168,26 @@ public class i5OpenIdConnectLoginState implements LoginState {
                         Log.i(TAG, "Found cookie:" + c.toString());
                     }
                 }
-
                 String location = response.getFirstHeader("Location").getValue();
                 Log.i(TAG, "Pretty sure that location is: " + location);
                 if (location.endsWith(login_fail_suffix)) {
                     Log.i(TAG, "Login failed");
-                } else if (location.endsWith(login_success_suffix)) {
+                    result.putString("failed", "Login failed");
+                } else if (location.endsWith(login_success_suffix) && cookie != null) {
                     Log.i(TAG, "Success -- keep the cookie");
-                    success = true;
+                    result.putString("session_id", cookie.getValue());
+                    result.putBoolean("success", true);
                 } else {
                     Log.e(TAG, "Don't know what happened with login: " + location);
+                    result.putString("error", "Unknown error");
                 }
             }
             response.getEntity().consumeContent();
-
         } catch (IOException e) {
+            result.putString("error", "IO exception");
             e.printStackTrace();
         }
-        if (cookie != null && success) {
-            return cookie.getValue();
-        } else {
-            return null;
-        }
-
+        return result;
     }
 
     /**
@@ -197,7 +199,9 @@ public class i5OpenIdConnectLoginState implements LoginState {
      * @param pass - String, optional for server, mandatory for us.
      * @return session_id - String
      */
-    public static String userRegister(String fullname, String email, String username, String pass) {
+    public static Bundle userRegister(String fullname, String email, String username, String pass) {
+        Bundle result = new Bundle();
+        result.putBoolean("success", false);
         String register_form_action = "http://cloud15.dbis.rwth-aachen.de:9086/register2.php";
         String registration_success_substring = "REGISTRATION WAS SUCCESSFUL";
         String registration_fail_substring = "Duplicate entry ";
@@ -230,8 +234,10 @@ public class i5OpenIdConnectLoginState implements LoginState {
             }
             if (html.contains(registration_success_substring)) {
                 success = true;
+                result.putBoolean("success", true);
             } else if (html.contains(registration_fail_substring)) {
                 success = false;
+                result.putString("fail", "Registration failed: Username exists already.");
             }
             response.getEntity().consumeContent();
             Log.i(TAG, html);
@@ -242,7 +248,7 @@ public class i5OpenIdConnectLoginState implements LoginState {
         if (success) {
             return userSignIn(username, pass);
         }
-        return null;
+        return result;
     }
 
 
@@ -762,11 +768,14 @@ public class i5OpenIdConnectLoginState implements LoginState {
             final AccountManager am = AccountManager.get(App.getContext());
             // Run Login process if necessary.
             if (mIn == LOGGED_OUT) {
-                String session_id;
-                Log.i(TAG, "Doing login.");
-                session_id = userSignIn(mUser, am.getPassword(mAccount));
-                // We are now logged in.
-                am.setAuthToken(mAccount, ACHSO_AUTH_TOKEN_TYPE, session_id);
+                Bundle login_result = userSignIn(mUser, am.getPassword(mAccount));
+                if (login_result.getBoolean("success")) {
+                    String session_id = login_result.getString("session_id");
+                    // We are now logged in.
+                    am.setAuthToken(mAccount, ACHSO_AUTH_TOKEN_TYPE, session_id);
+                } else {
+                    // let's do something else.
+                }
             }
             // But we don't have proper AccessToken yet.
             return getAuthorizationFromClViTra();
@@ -800,10 +809,10 @@ public class i5OpenIdConnectLoginState implements LoginState {
         }
     }
 
-    private class LoginTask extends AsyncTask<String, Void, String> {
+    private class LoginTask extends AsyncTask<String, Void, Bundle> {
 
         @Override
-        protected String doInBackground(String... arg) {
+        protected Bundle doInBackground(String... arg) {
             // this is run in its own thread: cannot access to UI,
             // deliver response and let onPostExecute handle it in main thread
 
@@ -811,19 +820,25 @@ public class i5OpenIdConnectLoginState implements LoginState {
             if (arg.length < 2) {
                 return null;
             }
-            String session_id = userSignIn(arg[0], arg[1]);
-            // We are now logged in.
-            final AccountManager am = AccountManager.get(App.getContext());
-            am.setAuthToken(mAccount, ACHSO_AUTH_TOKEN_TYPE, session_id);
-            return session_id;
+            Bundle login_result = userSignIn(arg[0], arg[1]);
+            if (login_result.getBoolean("success")) {
+                String session_id = login_result.getString("session_id");
+                // We are now logged in.
+                final AccountManager am = AccountManager.get(App.getContext());
+                am.setAuthToken(mAccount, ACHSO_AUTH_TOKEN_TYPE, session_id);
+            }
+            return login_result;
         }
-        protected void onPostExecute(String code) {
-            if (code != null && !code.isEmpty()) {
+        protected void onPostExecute(Bundle login_result) {
+            if (login_result.getBoolean("success")) {
                 setState(LOGGED_IN);
-            } else {
-                Toast.makeText(ctx, "Login failed", Toast.LENGTH_LONG).show();
+            } else if (login_result.getString("fail") != null) {
+                Toast.makeText(ctx, "Login failed: " + login_result.getString("fail"), Toast.LENGTH_LONG).show();
                 setState(LOGGED_OUT);
-
+            } else if (login_result.getString("error") != null) {
+                Toast.makeText(ctx, "Login error: " + login_result.getString("error"),
+                        Toast.LENGTH_LONG).show();
+                setState(LOGGED_OUT);
             }
         }
 

@@ -25,7 +25,6 @@ package fi.aalto.legroup.achso.fragment;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -61,7 +60,6 @@ import java.util.List;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.activity.ActionbarActivity;
-import fi.aalto.legroup.achso.activity.OldLoginActivity;
 import fi.aalto.legroup.achso.activity.VideoBrowserActivity;
 import fi.aalto.legroup.achso.adapter.BrowsePagerAdapter;
 import fi.aalto.legroup.achso.adapter.VideoThumbAdapter;
@@ -75,6 +73,7 @@ import fi.google.zxing.integration.android.IntentIntegrator;
 
 import static fi.aalto.legroup.achso.util.App.addPollingReminder;
 import static fi.aalto.legroup.achso.util.App.doPendingPolls;
+import static fi.aalto.legroup.achso.util.App.login_state;
 
 
 public class BrowseFragment extends Fragment implements AdapterView.OnItemClickListener,
@@ -152,13 +151,13 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
                 return true;
             case R.id.action_upload:
                 if (!App.login_state.isIn()) {
-                    final Context ctx = this.getActivity();
+                    final Activity activity = this.getActivity();
                     new AlertDialog.Builder(this.getActivity()).setTitle(R.string.not_loggedin_nag_title)
                             .setMessage(R.string.not_loggedin_nag_text)
                             .setPositiveButton(R.string.login, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    startActivity(new Intent(ctx, OldLoginActivity.class));
+                                    login_state.launchLoginActivity(activity);
                                     dialog.dismiss();
                                 }
                             }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
