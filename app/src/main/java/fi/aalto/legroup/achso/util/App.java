@@ -43,20 +43,22 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 
-import fi.aalto.legroup.achso.state.LasLoginState;
 import fi.aalto.legroup.achso.state.LoginState;
+import fi.aalto.legroup.achso.state.OIDCLoginState;
 import fi.aalto.legroup.achso.state.i5OpenIdConnectLoginState;
 
 public class App extends Application {
 
     public static final int BROWSE_BY_QR = 0;
     public static final int ATTACH_QR = 1;
+    public static final int API_VERSION = android.os.Build.VERSION.SDK_INT;
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     public static LoginState login_state;
     public static Connection connection;
     private static Context mContext;
     private static File mLogFile;
     public static Location last_location;
+    public static OIDCConfig oidc_config;
     private static int qr_mode;
 
     //
@@ -75,6 +77,9 @@ public class App extends Application {
     public static final String UPDATE_VIDEO= "update_video";
     public static final String FINALIZE_VIDEO= "finalize_video";
     public static final String PENDING_POLLS = "aalto.legroup.achso.PENDING_POLLS";
+
+    public static final String ACHSO_ACCOUNT_TYPE = "fi.aalto.legroup.achso.ll_oidc";
+
 
     public static boolean use_las = false;
     private static boolean use_log_file = false;
@@ -104,13 +109,9 @@ public class App extends Application {
         }
         switch (login_provider) {
             case I5OPENIDCONNECT:
-                login_state = new i5OpenIdConnectLoginState(mContext);
+                oidc_config = new OIDCConfig("OIDCsettings");
+                login_state = new OIDCLoginState(mContext);
                 break;
-            case LASCONNECTION:
-                login_state = new LasLoginState(mContext);
-                break;
-            default:
-                login_state = new LasLoginState(mContext);
         }
 
 
@@ -189,7 +190,7 @@ public class App extends Application {
 
 
     public static void addPollingReminder(String key,
-                                        String user_id) {
+                                          String user_id) {
         SharedPreferences pending = mContext.getSharedPreferences(PENDING_POLLS,
                 Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pending.edit();

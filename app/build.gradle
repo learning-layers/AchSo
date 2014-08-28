@@ -37,4 +37,23 @@ dependencies {
 
     // Android support library for backwards-compatibility
     compile "com.android.support:appcompat-v7:20.0.0"
+
+    // Google's OAuth library for OpenID Connect
+    // See https://code.google.com/p/google-oauth-java-client/wiki/Setup
+    compile('com.google.oauth-client:google-oauth-client:1.18.0-rc') {
+        exclude group: 'xpp3', module: 'xpp3'
+        exclude group: 'org.apache.httpcomponents', module: 'httpclient'
+        exclude group: 'junit', module: 'junit'
+        exclude group: 'com.google.android', module: 'android'
+    }
+
+    // Google's JSON parsing, could be replaced with Jackson
+    compile 'com.google.api-client:google-api-client-gson:1.19.0'
+
+    // For backwards compatibility, not necessarily needed
+    compile 'com.google.api-client:google-api-client-android:1.19.0'
+
+    // Easier HTTP requests, not necessarily needed
+    compile 'com.github.kevinsawicki:http-request:5.6'
+
 }

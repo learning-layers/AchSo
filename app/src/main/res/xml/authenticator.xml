@@ -2,7 +2,7 @@
 
 <!--This is for showing authenticator as a settings|accounts item.-->
 <account-authenticator xmlns:android="http://schemas.android.com/apk/res/android"
-                       android:accountType="fi.aalto.legroup.achso.i5account"
+                       android:accountType="fi.aalto.legroup.achso.ll_oidc"
                        android:icon="@drawable/ic_launcher"
                        android:smallIcon="@drawable/ic_launcher"
                        android:label="@string/i5cloud_prefs"

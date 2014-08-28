@@ -1,4 +1,8 @@
-# Created by http://www.gitignore.io
+# Don’t send server config
+app/src/main/assets/OIDCsettings.properties
+app/src/main/assets/OIDCsettings_layers.properties
+
+# Rest are created by http://www.gitignore.io
 
 ### Android ###
 # Built application files

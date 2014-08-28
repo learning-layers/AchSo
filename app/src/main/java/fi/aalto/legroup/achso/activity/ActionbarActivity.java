@@ -75,7 +75,6 @@ public abstract class ActionbarActivity extends FragmentActivity {
     public static final int REQUEST_QR_CODE_READ = 4;
     public static final int REQUEST_QR_CODE_FOR_EXISTING_VIDEO = 5;
     public static final int REQUEST_LOGIN = 7;
-    public static final int API_VERSION = android.os.Build.VERSION.SDK_INT;
     private static final int REQUEST_VIDEO_FILE = 8;
     public static final int REQUEST_AUTHENTICATION_APPROVAL = 9;
     public static final String LAUNCH_RECORDING = "fi.aalto.legroup.achso.action.RECORD";
@@ -112,7 +111,6 @@ public abstract class ActionbarActivity extends FragmentActivity {
                 return true;
             case R.id.action_login:
                 App.login_state.launchLoginActivity(this);
-                //startActivityForResult(new Intent(this, LoginActivity.class), REQUEST_LOGIN);
                 return true;
             case R.id.action_logout:
                 App.login_state.logout();
@@ -245,7 +243,7 @@ public abstract class ActionbarActivity extends FragmentActivity {
             // where they should return the path. This is reported Android 4.3.1 bug. So let them try the MediaStore.EXTRA_OUTPUT-way
 
 
-            if (API_VERSION >= 18) {
+            if (App.API_VERSION >= 18) {
                 mVideoUri = Uri.fromFile(output_file);
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, mVideoUri); //mVideoUri.toString()); // Set output location
             }
@@ -432,7 +430,7 @@ public abstract class ActionbarActivity extends FragmentActivity {
                     String videoPath = getSharedPreferences("AchSoPrefs", 0).getString("videoUri", null);
                     //Log.d("ActionBarActivity", "AchSoPrefs says that videoUri is " + videoPath);
 
-                    if (API_VERSION < 18) {
+                    if (App.API_VERSION < 18) {
                         // Version 3. find out the real path and do rename.
                         // This works, but not widely tested.
                         mVideoUri = Uri.parse(videoPath);

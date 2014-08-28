@@ -82,11 +82,29 @@
             android:name=".activity.i5OpenIdConnectAuthenticatorActivity"
             android:label="@string/title_activity_authenticator"
             android:windowSoftInputMode="adjustResize|stateVisible" />
+        <activity
+            android:name=".authenticator.OIDCAuthenticatorActivity"
+            android:label="@string/title_activity_authenticator"
+            />
+
+
 
         <service android:name=".service.UploaderService" />
         <service android:name=".service.PollingService" />
         <service
             android:name=".service.i5OpenIdConnectAccountService"
+            android:exported="false" >
+
+            <intent-filter>
+                <action android:name="android.accounts.AccountAuthenticator" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.accounts.AccountAuthenticator"
+                android:resource="@xml/authenticator" />
+        </service>
+        <service
+            android:name=".authenticator.OIDCAuthenticatorService"
             android:exported="false" >
 
             <intent-filter>
