@@ -45,6 +45,7 @@ import android.widget.SearchView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -62,10 +63,9 @@ import fi.aalto.legroup.achso.util.App;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
-public class VideoBrowserActivity extends ActionbarActivity implements BrowseFragment.Callbacks
-         {
+public class VideoBrowserActivity extends ActionbarActivity implements BrowseFragment.Callbacks {
 
-             private List<SemanticVideo> mSelectedVideosForQrCode;
+    private List<SemanticVideo> mSelectedVideosForQrCode;
     private UploaderBroadcastReceiver mLocalReceiver = null;
     private IntentFilter mLocalFilter = null;
     private AchSoBroadcastReceiver mReceiver = null;
@@ -87,10 +87,9 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
     public static final int TITLE_QUERY = 1;
     public static final int QR_QUERY = 2;
 
-
-             public void setSelectedVideosForQrCode(HashMap<Integer, SemanticVideo> videos) {
+    public void setSelectedVideosForQrCode(Collection<SemanticVideo> videos) {
         mSelectedVideosForQrCode = new ArrayList<SemanticVideo>();
-        for (SemanticVideo v : videos.values()) {
+        for (SemanticVideo v : videos) {
             mSelectedVideosForQrCode.add(v);
         }
     }

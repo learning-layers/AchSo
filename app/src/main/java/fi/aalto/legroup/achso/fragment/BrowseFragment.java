@@ -52,12 +52,15 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.zxing.integration.android.IntentIntegrator;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.activity.ActionbarActivity;
@@ -67,11 +70,10 @@ import fi.aalto.legroup.achso.adapter.BrowsePagerAdapter;
 import fi.aalto.legroup.achso.adapter.VideoThumbAdapter;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
-import fi.aalto.legroup.achso.service.UploaderService;
-import fi.aalto.legroup.achso.util.App;
 import fi.aalto.legroup.achso.remote.RemoteFetchTask;
 import fi.aalto.legroup.achso.remote.RemoteResultCache;
-import com.google.zxing.integration.android.IntentIntegrator;
+import fi.aalto.legroup.achso.service.UploaderService;
+import fi.aalto.legroup.achso.util.App;
 
 import static fi.aalto.legroup.achso.util.App.addPollingReminder;
 import static fi.aalto.legroup.achso.util.App.doPendingPolls;
@@ -99,7 +101,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
     int mPage = -1;
     String mQuery = "";
     int mQueryType = 0;
-    private HashMap<Integer, SemanticVideo> mSelectedVideos;
+    private Set<SemanticVideo> mSelectedVideos = new HashSet<SemanticVideo>();
     private ActionMode mActionMode = null;
     private AsyncTask<String, Double, List<SemanticVideo>> mFetchTask;
     private int mSeparatorPosition;
@@ -130,7 +132,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
     }
 
     @Override
-    public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+    public boolean onActionItemClicked(final ActionMode mode, MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_delete:
                 new AlertDialog.Builder(this.getActivity()).setTitle(R.string.deletion_title)
@@ -138,17 +140,20 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
                         .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
                                 VideoDBHelper vdb = new VideoDBHelper(getActivity());
-                                for (SemanticVideo sv : mSelectedVideos.values()) {
+                                for (SemanticVideo sv : mSelectedVideos) {
                                     vdb.delete(sv);
                                 }
                                 vdb.close();
                                 mSelectedVideos.clear();
                                 refreshLocalVideos();
+                                mode.finish();
                             }
-                        }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                    }
-                }).show();
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                mode.finish();
+                            }
+                        }).show();
                 return true;
             case R.id.action_upload:
                 if (!App.login_state.isIn()) {
@@ -168,8 +173,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
                         }
                     }).create().show();
                 } else {
-                    for (int pos : mSelectedVideos.keySet()) {
-                        SemanticVideo sv = mSelectedVideos.get(pos);
+                    for (SemanticVideo sv : mSelectedVideos) {
                         sv.setUploadStatus(SemanticVideo.UPLOAD_PENDING);
                         Intent uploadIntent = new Intent(getActivity(), UploaderService.class);
                         uploadIntent.putExtra(UploaderService.PARAM_IN, sv.getId());
@@ -203,7 +207,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
         mActionMode = mode;
         SemanticVideo sv = (SemanticVideo) getVideoAdapter().getItem(position);
         if (checked) {
-            mSelectedVideos.put(position, sv);
+            mSelectedVideos.add(sv);
         } else {
             mSelectedVideos.remove(sv);
         }
@@ -262,19 +266,19 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
         super.onCreate(savedInstanceState);
         setRetainInstance(true); // Needed for AsyncTask to survive orientation/activity change
 
-
-        mSelectedVideos = new HashMap<Integer, SemanticVideo>();
         if (VideoDBHelper.getVideoCache() == null) {
             VideoDBHelper vdb = new VideoDBHelper(getActivity());
             vdb.updateVideoCache(mSortBy, true);
             vdb.close();
         }
+
         if (getArguments() != null) {
             Bundle args = getArguments();
             mPage = args.getInt("page_id");
             mQuery = args.getString("query");
             mQueryType = args.getInt("query_type");
         }
+
         mUsesGrid = App.isTablet();
     }
 
