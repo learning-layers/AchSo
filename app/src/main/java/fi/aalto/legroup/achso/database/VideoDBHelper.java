@@ -473,15 +473,6 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         return ret;
     }
 
-    public int getNumberOfVideosToday() {
-        SQLiteDatabase db = getReadableDatabase();
-        Cursor c = db.query(TBL_VIDEO, null, KEY_CREATED_AT + ">= date('now','start of day')", null, null, null, null);
-        int ret = c.getCount();
-        c.close();
-        db.close();
-        return ret;
-    }
-
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE " + TBL_GENRE + "(" +

@@ -31,6 +31,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.Uri;
@@ -43,12 +46,14 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.google.zxing.integration.android.IntentIntegrator;
+
 import java.io.File;
-import java.text.SimpleDateFormat;
+import java.io.IOException;
+import java.text.DateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.database.LocalRawVideos;
@@ -56,7 +61,6 @@ import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.state.LoginState;
 import fi.aalto.legroup.achso.util.App;
-import com.google.zxing.integration.android.IntentIntegrator;
 
 import static fi.aalto.legroup.achso.util.App.appendLog;
 import static fi.aalto.legroup.achso.util.App.getContext;
@@ -307,18 +311,52 @@ public abstract class ActionbarActivity extends FragmentActivity {
                 }).create();
     }
 
-
-    protected long createSemanticVideo(Uri video_uri) {
+    /**
+     * TODO: Creating video objects might not be this activity's job, since it's not view-related.
+     * Encapsulate this functionality into a factory class?
+     */
+    protected long createSemanticVideo(Uri videoUri) {
         VideoDBHelper vdb = new VideoDBHelper(this);
-        int count = vdb.getNumberOfVideosToday();
-        String dayname = new SimpleDateFormat("EEEE", Locale.ENGLISH).format(new Date());
         String creator = null;
+
         if (App.login_state.isIn()) {
             creator = App.login_state.getUser();
         }
-        String vid_name = ordinal(count + 1) + " video of " + dayname;
-        SemanticVideo newvideo = new SemanticVideo(vid_name, video_uri,
+
+        // Generate a location and time based name for the video if we have a location and Geocoder
+        // is available, otherwise just a time-based name.
+
+        Location location = App.last_location;
+        String locationString = null;
+        String videoName;
+
+        if (Geocoder.isPresent() && location != null) {
+            Geocoder geocoder = new Geocoder(this);
+
+            try {
+                Address address = geocoder.getFromLocation(location.getLatitude(),
+                        location.getLongitude(), 1).get(0);
+                locationString = address.getAddressLine(0);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        Date now = new Date();
+        DateFormat dateFormat = android.text.format.DateFormat.getDateFormat(this);
+        DateFormat timeFormat = android.text.format.DateFormat.getTimeFormat(this);
+        String dateString = dateFormat.format(now);
+        String timeString = timeFormat.format(now);
+
+        if (locationString == null) {
+            videoName = dateString + " " + timeString;
+        } else {
+            videoName = String.format("%s, %s %s", locationString, dateString, timeString);
+        }
+
+        SemanticVideo newvideo = new SemanticVideo(videoName, videoUri,
                 SemanticVideo.Genre.values()[0], creator);
+
         if (VideoDBHelper.getByUri(newvideo.getUri()) != null) {
             Log.i("ActionbarActivity", "Video already exists, abort! Abort!");
             vdb.close();
@@ -330,9 +368,12 @@ public abstract class ActionbarActivity extends FragmentActivity {
             vdb.close();
             return -1;
         }
+
         vdb.insert(newvideo);
         vdb.close();
-        appendLog(String.format("Created video %s to uri %s", vid_name, video_uri.toString()));
+
+        appendLog(String.format("Created video %s to uri %s", videoName, videoUri.toString()));
+
         return newvideo.getId();
     }
 
@@ -383,12 +424,12 @@ public abstract class ActionbarActivity extends FragmentActivity {
     }
 
     /**
-         * Handle responses from launched activities
-         *
-         * @param requestCode
-         * @param resultCode
-         * @param intent
-         */
+     * Handle responses from launched activities
+     *
+     * @param requestCode
+     * @param resultCode
+     * @param intent
+     */
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         switch (requestCode) {
@@ -522,20 +563,6 @@ public abstract class ActionbarActivity extends FragmentActivity {
                     App.login_state.logout();
                 }
                 break;
-        }
-    }
-
-
-    private static String ordinal(int i) {
-        String[] suffixes = new String[]{"th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th"};
-        switch (i % 100) {
-            case 11:
-            case 12:
-            case 13:
-                return i + "th";
-            default:
-                return i + suffixes[i % 10];
-
         }
     }
 
