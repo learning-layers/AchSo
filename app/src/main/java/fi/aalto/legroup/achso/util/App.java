@@ -24,15 +24,18 @@
 package fi.aalto.legroup.achso.util;
 
 import android.app.Application;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.Looper;
 import android.util.Log;
 
 import java.io.BufferedWriter;

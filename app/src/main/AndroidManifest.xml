@@ -28,6 +28,11 @@
         android:name="android.hardware.location"
         android:required="false" />
 
+    <!-- For the Google Maps API -->
+    <uses-feature
+        android:glEsVersion="0x00020000"
+        android:required="true" />
+
     <application
         android:name=".util.App"
         android:allowBackup="true"
@@ -93,6 +98,13 @@
                 android:name="android.accounts.AccountAuthenticator"
                 android:resource="@xml/authenticator" />
         </service>
+
+        <meta-data android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+
+        <meta-data
+            android:name="com.google.android.maps.v2.API_KEY"
+            android:value="@string/google_maps_api_key"/>
 
     </application>
 

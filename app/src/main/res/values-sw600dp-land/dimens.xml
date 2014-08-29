@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Weights for landscape layouts with a larger and a smaller fragment side by side. -->
+    <integer name="activity_larger_fragment_weight">2</integer>
+    <integer name="activity_smaller_fragment_weight">1</integer>
+</resources>

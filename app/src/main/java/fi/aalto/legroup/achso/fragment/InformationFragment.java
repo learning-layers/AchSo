@@ -23,23 +23,16 @@
 
 package fi.aalto.legroup.achso.fragment;
 
-import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.v4.app.ListFragment;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
-import android.widget.SimpleAdapter;
+import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.TwoLineListItem;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.google.api.client.util.Strings;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.activity.InformationActivity;
@@ -47,120 +40,114 @@ import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.util.Dialog;
 
-public class InformationFragment extends ListFragment {
+public class InformationFragment extends Fragment {
 
-    private SemanticVideo mVideo;
-    private List<? extends Map<String, ?>> mMaps;
-    private Context mCtx;
+    public final String TAG = this.getClass().getSimpleName();
 
-    public InformationFragment() {
-    }
+    TextView titleField;
+    TextView genreField;
+    TextView creatorField;
+    TextView qrCodeField;
+    TextView uploadedField;
 
-    private HashMap<String, String> getData(int rId, String text) {
-        HashMap<String, String> map = new HashMap<String, String>();
-        map.put("lhs", getResources().getString(rId));
-        map.put("rhs", text);
-        return map;
-    }
-
-    private String firstLetterToUppercase(String str) {
-        char[] arr = str.toCharArray();
-        arr[0] = Character.toUpperCase(arr[0]);
-        return new String(arr);
-    }
-
-    private ArrayList<HashMap<String, String>> generateData() {
-        ArrayList<HashMap<String, String>> maps = new ArrayList<HashMap<String, String>>();
-        maps.add(getData(R.string.semanticvideo_title, mVideo.getTitle()));
-        maps.add(getData(R.string.semanticvideo_genre, mVideo.getGenreText()));
-        maps.add(getData(R.string.semanticvideo_creator, mVideo.getCreator() == null ?
-                getResources().getString(R.string.semanticvideo_unknown_creator) :
-                mVideo.getCreator()));
-        maps.add(getData(R.string.semanticvideo_qrcode, mVideo.getQrCode() == null ? getResources().getString(R.string.semanticvideo_no_qr) : mVideo.getQrCode()));
-        maps.add(getData(R.string.semanticvideo_uploaded, firstLetterToUppercase(Boolean.toString(mVideo.isUploaded()))));
-        maps.add(getData(R.string.semanticvideo_latitude, mVideo.getLocation() == null ?
-                getResources().getString(R.string.semanticvideo_unknown_location) :
-                Double.toString(mVideo.getLocation().getLatitude())));
-        maps.add(getData(R.string.semanticvideo_longitude, mVideo.getLocation() == null ?
-                getResources().getString(R.string.semanticvideo_unknown_location) :
-                Double.toString(mVideo.getLocation().getLongitude())));
-        maps.add(getData(R.string.semanticvideo_accuracy, mVideo.getLocation() == null ?
-                getResources().getString(R.string.semanticvideo_unknown_location) :
-                Double.toString(mVideo.getLocation().getAccuracy())));
-        return maps;
-    }
-
-    private void setAdapter() {
-        setListAdapter(new SimpleAdapter(getActivity(),
-                mMaps,
-                android.R.layout.simple_list_item_2,
-                new String[]{"lhs", "rhs"},
-                new int[]{android.R.id.text1, android.R.id.text2}));
-    }
-
-    private AlertDialog getAction(String key, String value) {
-        if (key.equals(getString(R.string.semanticvideo_title))) {
-            return Dialog.getTextSetterDialog(mCtx, mVideo, value, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    mMaps = generateData();
-                    setAdapter();
-                    ((InformationActivity) getActivity()).informationChanged = true;
-                }
-            }, mVideo);
-        } else if (key.equals(getString(R.string.semanticvideo_genre))) {
-            return Dialog.getGenreDialog(mCtx, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    mVideo.setGenre(SemanticVideo.Genre.values()[which]);
-                    VideoDBHelper dbh = new VideoDBHelper(mCtx);
-                    dbh.update(mVideo);
-                    dbh.close();
-
-                    mMaps = generateData();
-                    setAdapter();
-                    ((InformationActivity) getActivity()).informationChanged = true;
-
-                    dialog.dismiss();
-                }
-            }, new DialogInterface.OnCancelListener() {
-                @Override
-                public void onCancel(DialogInterface dialogInterface) {
-                    // default behavior is fine -- OnCancelListener is required here,
-                    // but it's abstract class and cannot be used without overriding something.
-                }
-            });
-        } else return null;
-    }
+    ImageButton titleEditButton;
+    ImageButton genreEditButton;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
-        mCtx = getActivity();
-        mVideo = ((InformationActivity) mCtx).semanticVideo; // this fragment works properly only
-        // when launched from InformationActivity
-        mMaps = generateData();
-        setAdapter();
-
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_information, container, false);
     }
 
     @Override
-    public void onListItemClick(final ListView l, View view, int position, long id) {
-        TwoLineListItem li = (TwoLineListItem) view;
-        TextView li1 = li.getText1();
-        TextView li2 = li.getText2();
-        CharSequence cs1 = li1 != null ? li1.getText() : null;
-        CharSequence cs2 = li2 != null ? li2.getText() : null;
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
-        AlertDialog actionDialog = getAction(cs1 != null ? cs1.toString() : "", cs2 != null ? cs2.toString() : "");
-        if (actionDialog != null) {
-            actionDialog.show();
+        titleField = (TextView) view.findViewById(R.id.titleField);
+        genreField = (TextView) view.findViewById(R.id.genreField);
+        creatorField = (TextView) view.findViewById(R.id.creatorField);
+        qrCodeField = (TextView) view.findViewById(R.id.qrCodeField);
+        uploadedField = (TextView) view.findViewById(R.id.uploadedField);
+
+        titleEditButton = (ImageButton) view.findViewById(R.id.titleEditButton);
+        genreEditButton = (ImageButton) view.findViewById(R.id.genreEditButton);
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        final InformationActivity activity = (InformationActivity) getActivity();
+        final SemanticVideo video = activity.getVideo();
+
+        populateInformationFromVideo(video);
+
+        titleEditButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Dialog.getTextSetterDialog(activity, video, video.getTitle(),
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                populateInformationFromVideo(video);
+                            }
+                        }, video).show();
+            }
+        });
+
+        genreEditButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Dialog.getGenreDialog(activity,
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                video.setGenre(SemanticVideo.Genre.values()[which]);
+                                VideoDBHelper dbh = new VideoDBHelper(activity);
+                                dbh.update(video);
+                                dbh.close();
+
+                                populateInformationFromVideo(video);
+                            }
+                        }, new DialogInterface.OnCancelListener() {
+                            @Override
+                            public void onCancel(DialogInterface dialogInterface) {
+
+                            }
+                        }).show();
+            }
+        });
+    }
+
+    private void populateInformationFromVideo(SemanticVideo video) {
+        String creator = video.getCreator();
+        String qrCode = video.getQrCode();
+        String uploaded;
+
+        if (Strings.isNullOrEmpty(creator)) {
+            creator = getString(R.string.semanticvideo_unknown_creator);
         }
+
+        if (Strings.isNullOrEmpty(qrCode)) {
+            qrCode = getString(R.string.semanticvideo_no_qr);
+        }
+
+        if (video.isUploaded()) {
+            uploaded = getString(R.string.yes);
+        } else {
+            uploaded = getString(R.string.no);
+        }
+
+        titleField.setText(video.getTitle());
+        genreField.setText(video.getGenreText());
+        creatorField.setText(creator);
+        qrCodeField.setText(qrCode);
+        uploadedField.setText(uploaded);
     }
 }

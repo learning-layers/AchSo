@@ -7,4 +7,8 @@
     <style name="AppBaseTheme" parent="android:Theme.Holo">
     </style>
     -->
+    <style name="InformationLabel">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
 </resources>

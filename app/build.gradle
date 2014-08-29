@@ -35,6 +35,11 @@ dependencies {
     // TODO: Convert these into Maven dependencies for easier management
     compile fileTree(dir: 'libs', include: ['*.jar'])
 
+    // Google Play Services APIs. Android Studio will warn about this being an older version, but
+    // don't listen to it. This one works fine; it will also work on devices that can't update the
+    // services for some reason.
+    compile 'com.google.android.gms:play-services:4.+'
+
     // Android support library for backwards-compatibility
     compile "com.android.support:appcompat-v7:20.0.0"
 
