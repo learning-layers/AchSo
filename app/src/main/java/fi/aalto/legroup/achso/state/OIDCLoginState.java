@@ -67,7 +67,6 @@ public class OIDCLoginState implements LoginState {
     private int mCurrentState;
     private Account mAccount;
     private boolean disable_autologin_for_session;
-    private Activity mTempHostActivity;
     private final int AUTH_ERROR = 0;
     private final int AUTH_INTENT_RECEIVED = 1;
     private final int AUTH_SUCCESS = 2;
@@ -125,7 +124,6 @@ public class OIDCLoginState implements LoginState {
     public void launchLoginActivity(final Activity host_activity) {
         // Grab all our accounts
         Log.i(TAG, "launchLoginActivity called");
-        mTempHostActivity = host_activity;
         final Account availableAccounts[] = accountManager.getAccountsByType(App.ACHSO_ACCOUNT_TYPE);
 
         switch (availableAccounts.length) {
@@ -183,7 +181,7 @@ public class OIDCLoginState implements LoginState {
     }
 
     @Override
-    public void autologinIfAllowed(Activity host_activity) {
+    public void autologinIfAllowed() {
         // we probably have logged in already
         Log.d(TAG, "Checking if autologin is necessary.");
         if (!disable_autologin_for_session) {
@@ -193,9 +191,7 @@ public class OIDCLoginState implements LoginState {
             Log.d(TAG, "autologin: " + autologin + " account_name:" + account_name + " " +
                     "connection: " + App.hasConnection());
             if (autologin && !account_name.isEmpty() && App.hasConnection()) {
-                // store host activity temporarily, so that LoginTask can use it.
                 Log.d(TAG, "Starting autologin.");
-                mTempHostActivity = host_activity;
                 final Account availableAccounts[] = accountManager.getAccountsByType(App.ACHSO_ACCOUNT_TYPE);
                 for (int i=0; i < availableAccounts.length; i++) {
                     Log.d(TAG, "Found account: " + availableAccounts[i].name + ", " +
@@ -239,7 +235,8 @@ public class OIDCLoginState implements LoginState {
     }
 
     private void launchLoginScreenIntent(Intent intent) {
-        mTempHostActivity.startActivity(intent);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        App.getContext().startActivity(intent);
     }
 
     private void finishLogin(Account account, Map user_info) {

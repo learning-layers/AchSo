@@ -122,7 +122,7 @@ public class App extends Application {
             doPendingPolls();
         }
 
-
+        App.login_state.autologinIfAllowed();
 
         appendLog("Starting Ach so! -app on device " + android.os.Build.MODEL);
         Log.i("App", "Starting Ach so! -app on device " + android.os.Build.MODEL);

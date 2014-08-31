@@ -73,6 +73,7 @@ public class OIDCAuthenticatorActivity extends AccountAuthenticatorActivity {
     private AccountManager accountManager;
     private Account account;
     private boolean isNewAccount;
+    private String mLastCode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,12 +94,8 @@ public class OIDCAuthenticatorActivity extends AccountAuthenticatorActivity {
         // Fetch the authentication URL that was given to us by the calling activity
         String authUrl = extras.getString(KEY_AUTH_URL);
 
-        Log.d(TAG, String.format("Initiated activity for getting authorisation with URL '%s'.",
-                authUrl));
-
         // Initialise the WebView
         WebView webView = (WebView) findViewById(R.id.WebView);
-        webView.getSettings().setJavaScriptEnabled(true);
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -121,9 +118,15 @@ public class OIDCAuthenticatorActivity extends AccountAuthenticatorActivity {
 
                     Log.d(TAG, String.format("Got Authorization Token '%s'.", authToken));
 
-                    // Request the ID token
-                    RequestIdTokenTask task = new RequestIdTokenTask();
-                    task.execute(authToken);
+                    // for some reason the page with "code" is received twice,
+                    // but the code works only once. I can't now find the reason why it is
+                    // loaded twice, but we can make sure that the ID token is requested only once.
+                    if (mLastCode == null || !authToken.equals(mLastCode)) {
+                        mLastCode = authToken;
+                        // Request the ID token
+                        RequestIdTokenTask task = new RequestIdTokenTask();
+                        task.execute(authToken);
+                    }
 
                 } else if (parameterNames.contains("error")) {
                     view.stopLoading();
@@ -147,7 +150,10 @@ public class OIDCAuthenticatorActivity extends AccountAuthenticatorActivity {
                 }
             }
         });
+        Log.d(TAG, String.format("Initiated activity for getting authorisation with URL '%s'.",
+                authUrl));
         webView.loadUrl(authUrl);
+        webView.getSettings().setJavaScriptEnabled(true);
 
     }
 
@@ -187,6 +193,7 @@ public class OIDCAuthenticatorActivity extends AccountAuthenticatorActivity {
             if (wasSuccess) {
                 // The account manager still wants the following information back
                 Log.d(TAG, "Returning from Activity, 1.");
+                Log.i(TAG, "isFinishing: " + isFinishing() + " isCancelled: " + isCancelled());
                 Intent intent = new Intent();
 
                 intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, account.name);
@@ -200,8 +207,7 @@ public class OIDCAuthenticatorActivity extends AccountAuthenticatorActivity {
                 //showErrorDialog("Could not get ID Token.");
                 Log.i(TAG, "Could not get ID Token. Would show dialog, " +
                         "but not sure if activity is still on.");
-                Log.i(TAG, "isFinishing: " + isFinishing() + " isDestroyed: " + isDestroyed() +
-                        "isCancelled: " + isCancelled());
+                Log.i(TAG, "isFinishing: " + isFinishing() + " isCancelled: " + isCancelled());
             }
         }
     }
