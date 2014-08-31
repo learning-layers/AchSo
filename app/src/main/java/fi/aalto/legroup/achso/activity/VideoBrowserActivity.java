@@ -103,7 +103,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
     @SuppressLint("NewApi")
     public boolean onCreateOptionsMenu(Menu menu) {
         Log.i("VideoBrowserActivity", "Inflating options menu - VideoBrowserActivity");
-        App.login_state.autologinIfAllowed();
+        App.login_state.autologinIfAllowed(this);
         initMenu(menu);
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         final MenuItem si = menu.findItem(R.id.action_search);

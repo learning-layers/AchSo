@@ -29,11 +29,13 @@ import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
@@ -42,6 +44,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 import fi.aalto.legroup.achso.R;
@@ -56,19 +59,23 @@ public class OIDCLoginState implements LoginState {
 
     private final String TAG = this.getClass().getSimpleName();
     private final AccountManager accountManager;
-    private final Context ctx;
+    private final Context mContext;
     private String mAuthToken;
     private String mUser;
     private String mFullname;
     private String mEmail;
-    private int mIn;
+    private int mCurrentState;
     private Account mAccount;
     private boolean disable_autologin_for_session;
+    private Activity mTempHostActivity;
+    private final int AUTH_ERROR = 0;
+    private final int AUTH_INTENT_RECEIVED = 1;
+    private final int AUTH_SUCCESS = 2;
 
     public OIDCLoginState(Context ctx) {
         accountManager = AccountManager.get(ctx);
-        mIn = LOGGED_OUT;
-        this.ctx = ctx;
+        mCurrentState = LOGGED_OUT;
+        this.mContext = ctx;
         disable_autologin_for_session = false;
     }
 
@@ -79,17 +86,17 @@ public class OIDCLoginState implements LoginState {
 
     @Override
     public boolean isIn() {
-        return (mIn == LOGGED_IN);
+        return (mCurrentState == LOGGED_IN);
     }
 
     @Override
     public boolean isOut() {
-        return (mIn == LOGGED_OUT);
+        return (mCurrentState == LOGGED_OUT);
     }
 
     @Override
     public boolean isTrying() {
-        return (mIn == TRYING_TO_LOG_IN);
+        return (mCurrentState == TRYING_TO_LOG_IN);
     }
 
     @Override
@@ -104,7 +111,7 @@ public class OIDCLoginState implements LoginState {
 
     @Override
     public int getState() {
-        return mIn;
+        return mCurrentState;
     }
 
     @Override
@@ -115,16 +122,16 @@ public class OIDCLoginState implements LoginState {
     }
 
     @Override
-    public void launchLoginActivity(Activity host_activity) {
+    public void launchLoginActivity(final Activity host_activity) {
         // Grab all our accounts
         Log.i(TAG, "launchLoginActivity called");
-        final Activity host = host_activity;
+        mTempHostActivity = host_activity;
         final Account availableAccounts[] = accountManager.getAccountsByType(App.ACHSO_ACCOUNT_TYPE);
 
         switch (availableAccounts.length) {
             // No account has been created, let's create one now
             case 0:
-                accountManager.addAccount(App.ACHSO_ACCOUNT_TYPE, OIDCAuthenticator.TOKEN_TYPE_ID, null, null, host, new AccountManagerCallback<Bundle>() {
+                accountManager.addAccount(App.ACHSO_ACCOUNT_TYPE, OIDCAuthenticator.TOKEN_TYPE_ID, null, null, host_activity, new AccountManagerCallback<Bundle>() {
                             @Override
                             public void run(AccountManagerFuture<Bundle> futureManager) {
                                 // Unless the account creation was cancelled, try logging in again
@@ -145,7 +152,7 @@ public class OIDCLoginState implements LoginState {
                                 }
                                 final Account accounts[] = accountManager.getAccountsByType(App.ACHSO_ACCOUNT_TYPE);
                                 if (accounts.length > 0) {
-                                    launchLoginActivity(host);
+                                    launchLoginActivity(host_activity);
                                 } else {
                                     Log.e(TAG, "addAccount failed to create new account.");
                                 }
@@ -155,7 +162,7 @@ public class OIDCLoginState implements LoginState {
 
             // There's just one account, let's use that
             case 1:
-                new ApiTask().execute(availableAccounts[0]);
+                new LoginTask().execute(availableAccounts[0]);
                 break;
 
             // Multiple accounts, let the user pick one
@@ -166,18 +173,40 @@ public class OIDCLoginState implements LoginState {
                     name[i] = availableAccounts[i].name;
                 }
 
-                new AlertDialog.Builder(host_activity).setTitle("Choose an account").setAdapter(new ArrayAdapter<String>(host, android.R.layout.simple_list_item_1, name), new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int selectedAccount) {
-                                new ApiTask().execute(availableAccounts[selectedAccount]);
-                            }
-                        }).create().show();
+                new AlertDialog.Builder(host_activity).setTitle("Choose an account").setAdapter(new ArrayAdapter<String>(host_activity, android.R.layout.simple_list_item_1, name), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int selectedAccount) {
+                        new LoginTask().execute(availableAccounts[selectedAccount]);
+                    }
+                }).create().show();
         }
     }
 
     @Override
-    public void autologinIfAllowed() {
-
+    public void autologinIfAllowed(Activity host_activity) {
+        // we probably have logged in already
+        Log.d(TAG, "Checking if autologin is necessary.");
+        if (!disable_autologin_for_session) {
+            SharedPreferences prefs = mContext.getSharedPreferences("AchSoPrefs", 0);
+            boolean autologin = prefs.getBoolean("autologin", false);
+            String account_name = prefs.getString("account_name", "");
+            Log.d(TAG, "autologin: " + autologin + " account_name:" + account_name + " " +
+                    "connection: " + App.hasConnection());
+            if (autologin && !account_name.isEmpty() && App.hasConnection()) {
+                // store host activity temporarily, so that LoginTask can use it.
+                Log.d(TAG, "Starting autologin.");
+                mTempHostActivity = host_activity;
+                final Account availableAccounts[] = accountManager.getAccountsByType(App.ACHSO_ACCOUNT_TYPE);
+                for (int i=0; i < availableAccounts.length; i++) {
+                    Log.d(TAG, "Found account: " + availableAccounts[i].name + ", " +
+                            "matching it with " + account_name );
+                    if (availableAccounts[i].name.equals(account_name)) {
+                        Log.d(TAG, "Launching loginTask from autologin.");
+                        new LoginTask().execute(availableAccounts[i]);
+                    }
+                }
+            }
+        }
     }
 
     @Override
@@ -193,54 +222,103 @@ public class OIDCLoginState implements LoginState {
     private void setState(int new_state) {
         if (new_state == LOGGED_OUT) {
             mUser = null;
-        } else if (new_state == LOGGED_IN && new_state != mIn) {
-            disable_autologin_for_session = true;
+        } else if (new_state == LOGGED_IN && new_state != mCurrentState) {
+            disable_autologin_for_session = true; // don't try to login anymore
         }
         Intent intent = new Intent();
         if (new_state == LOGGED_OUT) {
+            Log.i(TAG, "LOGGED OUT.");
             intent.setAction(LOGIN_FAILED);
-            LocalBroadcastManager.getInstance(ctx).sendBroadcast(intent);
+            LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
         } else if (new_state == LOGGED_IN) {
+            Log.i(TAG, "LOGGED IN.");
             intent.setAction(LOGIN_SUCCESS);
-            LocalBroadcastManager.getInstance(ctx).sendBroadcast(intent);
+            LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
         }
-
-        mIn = new_state;
-        Log.i(TAG, "LoginState set to " + new_state + ". Should update the icon next. ");
+        mCurrentState = new_state;
     }
 
-    private class ApiTask extends AsyncTask<Account, Void, Map> {
+    private void launchLoginScreenIntent(Intent intent) {
+        mTempHostActivity.startActivity(intent);
+    }
 
+    private void finishLogin(Account account, Map user_info) {
+        // remember this account as a working account for this login session.
+        mAccount = account;
+
+        // put userInfo to easily accessible places in LoginState
+        mFullname = user_info.get("name").toString();
+        mEmail = user_info.get("email").toString();
+        mUser = user_info.get("preferred_username").toString();
+        Toast.makeText(mContext, mContext.getString(R.string.Welcome) + ", " +
+                mFullname, Toast.LENGTH_LONG).show();
+
+        // Remember how to login for future
+        SharedPreferences prefs = mContext.getSharedPreferences("AchSoPrefs", 0);
+        boolean autologin = prefs.getBoolean("autologin", false);
+        SharedPreferences.Editor editable_prefs = prefs.edit();
+        editable_prefs.putBoolean("autologin", true);
+        editable_prefs.putString("account_name", mAccount.name);
+        editable_prefs.apply();
+
+        // launch UI update calls etc.
+        setState(LOGGED_IN);
+
+    }
+
+
+    private class LoginTask extends AsyncTask<Account, Void, Bundle> {
         /**
          * Makes the API request. We could use the OIDCUtils.getUserInfo() method, but we'll do it
          * like this to illustrate making generic API requests.
          */
+        @SuppressLint("NewApi")
         @Override
-        protected Map doInBackground(Account... args) {
-            Account account = args[0];
+        protected Bundle doInBackground(Account... accounts) {
+            Bundle bundle = new Bundle();
+            Account account = accounts[0];
+            bundle.putParcelable("account", account);
             String idToken = null;
-            Log.i(TAG, "Executing ApiTask.");
+            Intent intent = null;
+            Log.d(TAG, "Executing ApiTask.");
 
             try {
+                // Signature for getAuthToken has changed in API 14.
                 AccountManagerFuture<Bundle> futureManager;
                 if (App.API_VERSION >= 14) {
-                     futureManager = accountManager.getAuthToken(account, OIDCAuthenticator.TOKEN_TYPE_ID, null, true, null,
-                            null);
+                    futureManager = accountManager.getAuthToken(account, OIDCAuthenticator.TOKEN_TYPE_ID, null, true, null, null);
                 } else {
                     futureManager = accountManager.getAuthToken(account, OIDCAuthenticator.TOKEN_TYPE_ID, true, null, null);
                 }
-                idToken = futureManager.getResult().getString(AccountManager.KEY_AUTHTOKEN);
-                Log.i(TAG, "idToken: " + idToken);
+                Bundle auth_result = futureManager.getResult();
+                idToken = auth_result.getString(AccountManager.KEY_AUTHTOKEN);
+                intent = (Intent) auth_result.get(AccountManager.KEY_INTENT);
+                Log.d(TAG, "idToken: " + idToken);
+                bundle.putBundle("auth_result", auth_result);
             } catch (Exception e) {
                 e.printStackTrace();
+                bundle.putInt("success", AUTH_ERROR);
+                bundle.putString("error", "problem with account manager");
             }
-
-            try {
-                return APIUtility.getJson(App.getContext(), App.oidc_config.userInfoUrl, idToken);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
+            if (idToken != null) {
+                try {
+                    bundle.putSerializable("user_info", (java.io.Serializable) APIUtility.getJson(App.getContext(), App.oidc_config.userInfoUrl, idToken));
+                    bundle.putInt("success", AUTH_SUCCESS);
+                } catch (IOException e) {
+                    Log.e(TAG, "Received IO Error: " + e.getMessage());
+                    //e.printStackTrace();
+                    bundle.putInt("success", AUTH_ERROR);
+                    bundle.putString("error", "server failed to give userInfo: "+ e.getMessage());
+                }
+            } else if (intent != null) {
+                Log.i(TAG, "Received intent to display login screen");
+                bundle.putInt("success", AUTH_INTENT_RECEIVED);
+            } else {
+                bundle.putString("error", "missing idToken");
+                bundle.putInt("success", AUTH_ERROR);
+                Log.i(TAG, "Authentication had problems");
             }
+            return bundle;
         }
 
         @Override
@@ -252,13 +330,23 @@ public class OIDCLoginState implements LoginState {
          * Processes the API's response.
          */
         @Override
-        protected void onPostExecute(Map result) {
-            if (result == null) {
-                setState(LOGGED_OUT);
-            } else {
-                Toast.makeText(ctx, ctx.getString(R.string.Welcome) + ", " + result.toString(),
-                        Toast.LENGTH_LONG).show();
-                setState(LOGGED_IN);
+        protected void onPostExecute(Bundle bundle) {
+            switch(bundle.getInt("success", AUTH_ERROR)) {
+                case AUTH_SUCCESS:
+                    Map user_info = (Map) bundle.getSerializable("user_info");
+                    Account account = bundle.getParcelable("account");
+                    finishLogin(account, user_info);
+                    break;
+                case AUTH_INTENT_RECEIVED:
+                    Bundle auth_result = bundle.getBundle("auth_result");
+                    Intent intent = (Intent) auth_result.get(AccountManager.KEY_INTENT);
+                    Log.i(TAG, "Couldn't finish without user interaction: launching login screen.");
+                    launchLoginScreenIntent(intent);
+                    break;
+                case AUTH_ERROR:
+                    String error = bundle.getString("error");
+                    Toast.makeText(mContext, "Login error: "+ error, Toast.LENGTH_LONG).show();
+                    setState(LOGGED_OUT);
             }
         }
 

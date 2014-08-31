@@ -45,7 +45,6 @@ import java.util.Map;
 
 import fi.aalto.legroup.achso.state.LoginState;
 import fi.aalto.legroup.achso.state.OIDCLoginState;
-import fi.aalto.legroup.achso.state.i5OpenIdConnectLoginState;
 
 public class App extends Application {
 
@@ -62,7 +61,7 @@ public class App extends Application {
     private static int qr_mode;
 
     //
-    private static final int I5OPENIDCONNECT = 5;
+    private static final int OIDC_AUTHENTICATION = 5;
     private static final int LASCONNECTION = 4;
     public static final int AALTO_TEST_SERVER = 3;
     public static final int CLVITRA2 = 2;
@@ -85,7 +84,7 @@ public class App extends Application {
     private static boolean use_log_file = false;
     public static boolean allow_upload = false;
 
-    public static int login_provider = I5OPENIDCONNECT;
+    public static int login_provider = OIDC_AUTHENTICATION;
     public static int video_uploader = CLVITRA2;
     public static int metadata_uploader = AALTO_TEST_SERVER;
 
@@ -108,12 +107,11 @@ public class App extends Application {
             }
         }
         switch (login_provider) {
-            case I5OPENIDCONNECT:
+            case OIDC_AUTHENTICATION:
                 oidc_config = new OIDCConfig("OIDCsettings");
                 login_state = new OIDCLoginState(mContext);
                 break;
         }
-
 
         if (use_las) {
             connection = new LasConnection();
@@ -123,6 +121,8 @@ public class App extends Application {
         if (hasConnection()) {
             doPendingPolls();
         }
+
+
 
         appendLog("Starting Ach so! -app on device " + android.os.Build.MODEL);
         Log.i("App", "Starting Ach so! -app on device " + android.os.Build.MODEL);

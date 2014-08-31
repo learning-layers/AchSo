@@ -99,7 +99,6 @@ public class OIDCAuthenticatorActivity extends AccountAuthenticatorActivity {
         // Initialise the WebView
         WebView webView = (WebView) findViewById(R.id.WebView);
         webView.getSettings().setJavaScriptEnabled(true);
-        webView.loadUrl(authUrl);
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -148,6 +147,8 @@ public class OIDCAuthenticatorActivity extends AccountAuthenticatorActivity {
                 }
             }
         });
+        webView.loadUrl(authUrl);
+
     }
 
     /**
@@ -185,16 +186,22 @@ public class OIDCAuthenticatorActivity extends AccountAuthenticatorActivity {
         protected void onPostExecute(Boolean wasSuccess) {
             if (wasSuccess) {
                 // The account manager still wants the following information back
+                Log.d(TAG, "Returning from Activity, 1.");
                 Intent intent = new Intent();
 
                 intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, account.name);
                 intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, account.type);
 
                 setAccountAuthenticatorResult(intent.getExtras());
+                Log.d(TAG, "Returning from Activity, 2: AccountAuthenticatorResult set.");
                 setResult(RESULT_OK, intent);
                 finish();
             } else {
-                showErrorDialog("Could not get ID Token.");
+                //showErrorDialog("Could not get ID Token.");
+                Log.i(TAG, "Could not get ID Token. Would show dialog, " +
+                        "but not sure if activity is still on.");
+                Log.i(TAG, "isFinishing: " + isFinishing() + " isDestroyed: " + isDestroyed() +
+                        "isCancelled: " + isCancelled());
             }
         }
     }

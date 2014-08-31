@@ -87,7 +87,8 @@ public class OIDCAuthenticator extends AbstractAccountAuthenticator {
 
         Bundle result = new Bundle();
 
-        Intent intent = createIntentForAuthorization(response);
+        Intent intent = createIntentForAuthorization();
+        intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
 
         // We're creating a new account, not just renewing our authorisation
         intent.putExtra(OIDCAuthenticatorActivity.KEY_IS_NEW_ACCOUNT, true);
@@ -124,7 +125,8 @@ public class OIDCAuthenticator extends AbstractAccountAuthenticator {
                 Log.d(TAG, "Refresh token empty, launching intent for renewing authorisation.");
 
                 Bundle result = new Bundle();
-                Intent intent = createIntentForAuthorization(response);
+                Intent intent = createIntentForAuthorization();
+                intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
 
                 // Provide the account that we need re-authorised
                 intent.putExtra(OIDCAuthenticatorActivity.KEY_ACCOUNT_OBJECT, account);
@@ -189,7 +191,7 @@ public class OIDCAuthenticator extends AbstractAccountAuthenticator {
     /**
      * Create an intent for showing the authorisation web page.
      */
-    private Intent createIntentForAuthorization(AccountAuthenticatorResponse response) {
+    private Intent createIntentForAuthorization() {
         Intent intent = new Intent(context, OIDCAuthenticatorActivity.class);
 
         // Generate a new authorisation URL
@@ -204,24 +206,28 @@ public class OIDCAuthenticator extends AbstractAccountAuthenticator {
 
         intent.putExtra(OIDCAuthenticatorActivity.KEY_AUTH_URL, authUrl);
 
-        intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
         return intent;
     }
 
     @Override
     public Bundle hasFeatures(AccountAuthenticatorResponse response, Account account,
                               String[] features) throws NetworkErrorException {
+
+        Log.i(TAG, "hasFeatures reached");
         return null;
     }
 
     @Override
     public Bundle editProperties(AccountAuthenticatorResponse response, String accountType) {
+        Log.i(TAG, "editProperties reached");
         return null;
     }
 
     @Override
     public Bundle confirmCredentials(AccountAuthenticatorResponse response, Account account,
                                      Bundle options) throws NetworkErrorException {
+
+        Log.i(TAG, "confirmCredentials reached");
         return null;
     }
 
@@ -229,6 +235,8 @@ public class OIDCAuthenticator extends AbstractAccountAuthenticator {
     public Bundle updateCredentials(AccountAuthenticatorResponse response, Account account,
                                     String authTokenType, Bundle options)
                                     throws NetworkErrorException {
+
+        Log.i(TAG, "updateCredentials reached");
         return null;
     }
 

@@ -28,6 +28,8 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
 
+import fi.aalto.legroup.achso.authenticator.OIDCAuthenticator;
+
 /**
  * The service that lets Android know about the custom Authenticator.
  *

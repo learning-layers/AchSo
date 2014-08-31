@@ -58,7 +58,11 @@ public interface LoginState {
      */
     void launchLoginActivity(Activity host_activity);
 
-    void autologinIfAllowed();
+    /**
+     * Check if the conditions for automatic login are fulfilled and try to login if they are.
+     * @param host_activity
+     */
+    void autologinIfAllowed(Activity host_activity);
 
     /**
      * Do login with given credentials. Doesn't try to receive credentials from any other sources
