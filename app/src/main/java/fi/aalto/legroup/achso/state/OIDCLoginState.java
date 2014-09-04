@@ -117,6 +117,11 @@ public class OIDCLoginState implements LoginState {
     public void logout() {
         Log.i(TAG, "Logout called");
 
+        SharedPreferences prefs = mContext.getSharedPreferences("AchSoPrefs", 0);
+        SharedPreferences.Editor editable_prefs = prefs.edit();
+        editable_prefs.putBoolean("autologin", false);
+        editable_prefs.putString("account_name", "");
+        editable_prefs.apply();
         setState(LOGGED_OUT);
     }
 
@@ -252,7 +257,6 @@ public class OIDCLoginState implements LoginState {
 
         // Remember how to login for future
         SharedPreferences prefs = mContext.getSharedPreferences("AchSoPrefs", 0);
-        boolean autologin = prefs.getBoolean("autologin", false);
         SharedPreferences.Editor editable_prefs = prefs.edit();
         editable_prefs.putBoolean("autologin", true);
         editable_prefs.putString("account_name", mAccount.name);
