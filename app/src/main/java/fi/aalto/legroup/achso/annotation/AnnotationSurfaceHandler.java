@@ -49,17 +49,17 @@ public class AnnotationSurfaceHandler {
     private Context mContext;
     private IncomingAnnotationMarker mIncoming;
 
-    public AnnotationSurfaceHandler(Context c, SurfaceView surface, long videoid) {
+    public AnnotationSurfaceHandler(Context c, SurfaceView surface, long videoId) {
         Log.i("AnnotationSurfaceHandler", "Creating instance of AnnotationSurfaceHandler");
         mContext = c;
         this.mAnnotationSurface = surface;
         VideoDBHelper vdb = new VideoDBHelper(c);
         mAnnotations = new ConcurrentLinkedQueue<Annotation>();
-        for (Annotation a : vdb.getAnnotationsById(videoid)) {
+        for (Annotation a : vdb.getAnnotationsById(videoId)) {
             mAnnotations.add(a);
         }
         vdb.close();
-        mVideoId = videoid;
+        mVideoId = videoId;
     }
 
     public void draw() {
@@ -98,17 +98,6 @@ public class AnnotationSurfaceHandler {
         TextView sv = SubtitleManager.getSubtitleTextView();
         // add here code to analyse if subtitles overlap with annotations and move subtitles if necessary
 
-    }
-
-    public void drawIncoming() {
-        SurfaceHolder sh = mAnnotationSurface.getHolder();
-        if (sh != null) {
-            Canvas c = sh.lockCanvas();
-            if (c!= null) {
-                mIncoming.draw(c);
-                sh.unlockCanvasAndPost(c);
-            }
-        }
     }
 
     public Annotation addAnnotation(long time, FloatPosition pos) {
@@ -248,45 +237,35 @@ public class AnnotationSurfaceHandler {
         return result;
     }
 
-
-    public void hideAnnotationsNotAppearingBetween(long prev_moment, long now) {
-        for (final Annotation a : getAnnotations()) {
-            final long aTime = a.getStartTime();
-            a.setVisible((now >= aTime && prev_moment < aTime && a.isAlive()));
-        }
-
-    }
-
     public void hideAllAnnotations() {
         for (final Annotation a : getAnnotations()) {
             a.setVisible(false);
         }
     }
 
-    public int incomingAnnotations(long pos, int pollRateMilliseconds) {
-        int d, min_d = 500;
-        for (final Annotation a : getAnnotations()) {
-            d = (int) (a.getStartTime() - pos);
-            if (d > 0 && d <= pollRateMilliseconds && d < min_d) {
-                min_d = d;
-            }
-        }
-        if (min_d != 500) {
-            return min_d;
-        } else {
-            return -1;
-        }
-    }
-
     public List<Annotation> getAnnotationsAt(long pos) {
         List<Annotation> result = new ArrayList<Annotation>();
-        for (final Annotation a : getAnnotations()) {
-            if (pos == a.getStartTime()) {
+
+        for (final Annotation a : mAnnotations) {
+            if (pos >= a.getStartTime() && ! a.isSeen()) {
+                a.setSeen(true);
                 result.add(a);
             } else {
                 a.setVisible(false);
             }
         }
+
         return result;
     }
+
+    public void resetSeenFlagsAfterSeek(long pos) {
+        for (Annotation annotation : mAnnotations) {
+            if (annotation.getStartTime() > pos) {
+                annotation.setSeen(false);
+            } else {
+                annotation.setSeen(true);
+            }
+        }
+    }
+
 }

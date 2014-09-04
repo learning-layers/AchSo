@@ -24,15 +24,11 @@
 package fi.aalto.legroup.achso.annotation;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.Rect;
 import android.graphics.RectF;
-import android.util.Log;
 import android.view.SurfaceView;
 
 import fi.aalto.legroup.achso.R;
@@ -43,7 +39,6 @@ import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.util.FloatPosition;
 import fi.aalto.legroup.achso.util.TextSettable;
 
-import static fi.aalto.legroup.achso.util.App.allow_upload;
 import static fi.aalto.legroup.achso.util.App.appendLog;
 
 public class Annotation extends AnnotationBase implements TextSettable, SerializableToDB {
@@ -61,6 +56,7 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
     private boolean mAlive;
     private FloatPosition mRememberedPosition;
     private float mRememberedScaleFactor;
+    private boolean mIsSeen = false;
 
     public Annotation(Context ctx, long videoid, long starttime, String text,
                       FloatPosition position, float scale, String creator, String video_key) {
@@ -110,6 +106,14 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
 
     public boolean isVisible() {
         return mVisible;
+    }
+
+    public boolean isSeen() {
+        return mIsSeen;
+    }
+
+    public void setSeen(boolean mIsSeen) {
+        this.mIsSeen = mIsSeen;
     }
 
     public void setVisible(boolean visible) {

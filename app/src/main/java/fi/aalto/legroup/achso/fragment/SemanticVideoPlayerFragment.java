@@ -33,7 +33,6 @@ import android.media.MediaPlayer.OnVideoSizeChangedListener;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -51,12 +50,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.util.List;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.annotation.Annotation;
 import fi.aalto.legroup.achso.annotation.AnnotationSurfaceHandler;
+import fi.aalto.legroup.achso.annotation.AnnotationTimer;
 import fi.aalto.legroup.achso.annotation.EditorListener;
 import fi.aalto.legroup.achso.annotation.SubtitleManager;
 import fi.aalto.legroup.achso.database.SemanticVideo;
@@ -71,12 +70,11 @@ import static fi.aalto.legroup.achso.util.App.appendLog;
 import static fi.aalto.legroup.achso.util.App.getContext;
 
 
-public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHolder.Callback, MediaPlayer.OnPreparedListener, VideoControllerView.MediaPlayerControl, View.OnTouchListener, MediaPlayer.OnCompletionListener, OnErrorListener, OnVideoSizeChangedListener, EditorListener, MediaPlayer.OnBufferingUpdateListener, VideoControllerView.VideoControllerShowHideListener, MediaPlayer.OnInfoListener, MediaPlayer.OnSeekCompleteListener {
+public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHolder.Callback, MediaPlayer.OnPreparedListener, VideoControllerView.MediaPlayerControl, View.OnTouchListener, MediaPlayer.OnCompletionListener, OnErrorListener, OnVideoSizeChangedListener, EditorListener, MediaPlayer.OnBufferingUpdateListener, VideoControllerView.VideoControllerShowHideListener, MediaPlayer.OnInfoListener, MediaPlayer.OnSeekCompleteListener, AnnotationTimer.Listener {
 
     public static final int DO_NOTHING = 0;
     public static final int PAUSE = 1;
-    private static final int POLL_RATE_MILLISECONDS = 200;
-    private static final int POLL_RATE_MILLISECONDS_ACCURATE = 20;
+    private static final int PAUSE_COUNTER_REFRESH_INTERVAL = 200;
     private static final int IS_PINCHING = 1;
     private static final int WAS_PINCHING = 2;
     private static final int NO_PINCH = 0;
@@ -85,11 +83,11 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     private RelativeLayout mVideoSurfaceContainer;
     private MediaPlayer mMediaPlayer;
     private VideoControllerView mController;
+    private AnnotationTimer mAnnotationTimer;
     private AnnotationSurfaceHandler mAnnotationSurfaceHandler;
     private LinearLayout mTitleArea;
     private ProgressBar mBufferProgress;
     private int mBufferPercentage = 0;
-    private AnnotationUpdateHandler mUpdateHandler = null;
     private long mVideoId;
     private long mLastPos = 0;
     private Handler mPauseHandler;
@@ -98,9 +96,6 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     private boolean mCanEditAnnotations;
     private boolean mVideoTakesAllVerticalSpace = false;
     private ScaleGestureDetector mScaleGestureDetector;
-    private int mSeekCompleteTask;
-    private List<Annotation> mAnnotationsToShow;
-    private boolean mCarefulProgress;
     private int mTitleAreaHeight;
     private int mControllerTopCoordinate;
     private boolean mStallPauseCounter;
@@ -138,13 +133,26 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
         mTitleArea = (LinearLayout) getActivity().findViewById(R.id.video_title_area);
 
         Bundle args = getArguments();
+
         if (mBufferProgress == null) {
             mBufferProgress = (ProgressBar) getView().findViewById(R.id.video_buffer_progress);
         }
+
         Log.i("SemanticVideoPlayerFragment", "resuming: args has content: " + (args != null) + " " +
                 "we have bundle: " + (mStateBundle != null));
 
-        if (args != null && mController == null && mMediaPlayer == null) {
+        mMediaPlayer = new MediaPlayer();
+        mMediaPlayer.setOnCompletionListener(this);
+        mMediaPlayer.setOnErrorListener(this);
+        mMediaPlayer.setOnVideoSizeChangedListener(this);
+        mMediaPlayer.setOnBufferingUpdateListener(this);
+        mMediaPlayer.setOnPreparedListener(this);
+        mMediaPlayer.setOnInfoListener(this);
+        mMediaPlayer.setOnSeekCompleteListener(this);
+
+        mAnnotationTimer = new AnnotationTimer(this, mMediaPlayer);
+
+        if (args != null && mController == null) {
             Log.i("SemanticVideoPlayerFragment", "(onResume) Building fragment from args etc.");
 
             // Current video & id
@@ -182,11 +190,11 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
             //    dbh.close();
             //}
             mVideoSurfaceContainer = (RelativeLayout) getView().findViewById(R.id.video_surface_container);
-            mMediaPlayer = createMediaPlayer();
-            mUpdateHandler = new AnnotationUpdateHandler(this, mMediaPlayer);
+
             if (mStateBundle != null) {
                 mCanEditAnnotations = mStateBundle.getBoolean("canAnnotate");
             } // otherwise it is true, set by constructor
+
             mController = new VideoControllerView(getActivity(), true, this, mCanEditAnnotations,
                     mAnnotationSurfaceHandler);
             mController.setVideoControllerShowHideListener(this);
@@ -195,14 +203,11 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
             // buttons are initialized
             setVideo(semantic_video); // restoring continues in onPrepared -- when video
             // player is ready
-
-
-
-        } else if (mMediaPlayer == null && mVideoId != -1) {
-            mMediaPlayer = createMediaPlayer();
+        } else if (mVideoId != -1) {
             SemanticVideo semantic_video = VideoDBHelper.getById(mVideoId);
             setVideo(semantic_video);
         }
+
         if (mBufferProgress != null && mVideoId != -1) {
             mBufferProgress.setVisibility(View.GONE);
         }
@@ -217,8 +222,12 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
 
     public void onPause() {
         super.onPause();
+
         mAnnotationSurfaceHandler.stopRectangleAnimation();
+        mAnnotationTimer.destroy();
+
         Log.i("SemanticVideoPlayerFragment", "onPause, saving state to bundle, please.");
+
         if (mMediaPlayer != null) {
             mStateBundle = addFragmentDetailsToSaveState(new Bundle());
             mMediaPlayer.release();
@@ -342,7 +351,6 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
             annotationsToShow = mAnnotationSurfaceHandler.getAnnotationsAppearingBetween(position - 10, position);
         }
         mAnnotationSurfaceHandler.showMultiple(annotationsToShow);
-        mUpdateHandler.sendEmptyMessage(0);
 
         SubtitleManager.updateVisibleSubtitles();
 
@@ -459,75 +467,21 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     }
 
 
-    /**
-     * Called repeatedly as the video is playing or when it jumps to specific positions
-     *
-     * @param pos position in milliseconds?
-     */
-    public void onProgressChanged(long pos) {
-        if (mMediaPlayer.isPlaying()) {
-            if (!mCarefulProgress) {
-                if (mLastPos != pos) {
-                    final List<Annotation> annotationsToShow = mAnnotationSurfaceHandler.getAnnotationsAt(pos);
-                    if (!annotationsToShow.isEmpty()) {
-                        pauseOnAnnotation(annotationsToShow, pos);
-                    }
-                }
-                int incoming = mAnnotationSurfaceHandler.incomingAnnotations(pos, POLL_RATE_MILLISECONDS);
-                if (incoming > 0) {
-                    mCarefulProgress = true;
-                } else {
-                    // progress as usual
-                    mCarefulProgress = false;
-                }
-            } else {
-                // careful progress
-                final List<Annotation> annotationsToShow = mAnnotationSurfaceHandler.getAnnotationsAppearingBetween(mLastPos, pos);
-                if (!annotationsToShow.isEmpty()) {
-                    pauseOnAnnotation(annotationsToShow, pos);
-                }
-            }
-        } else {
-            // paused by user
-            mAnnotationSurfaceHandler.hideAnnotationsNotAppearingBetween(mLastPos, pos);
-        }
-        mLastPos = pos;
-        mAnnotationSurfaceHandler.draw();
-    }
 
-
-
-    private void pauseOnAnnotation(List<Annotation> annotationsToShow, long pos) {
+    private void pauseOnAnnotations(List<Annotation> annotationsToShow) {
         // start annotation pause mode. AnnotationPauseCounter will eventually end it.
-        mAnnotationsToShow = annotationsToShow;
         mStallPauseCounter = false;
         mController.setControllerMode(VideoControllerView.ANNOTATION_PAUSE_MODE);
-        mAnnotationSurfaceHandler.showMultiple(mAnnotationsToShow);
+        mAnnotationSurfaceHandler.showMultiple(annotationsToShow);
         pause();
         mPauseHandler = new Handler();
-        mPauseHandler.postDelayed(new AnnotationPauseCounter(mAnnotationsToShow), POLL_RATE_MILLISECONDS);
-        mCarefulProgress = (mAnnotationSurfaceHandler.incomingAnnotations(pos,
-                POLL_RATE_MILLISECONDS) > 0) ;
-
+        mPauseHandler.postDelayed(new AnnotationPauseCounter(annotationsToShow), PAUSE_COUNTER_REFRESH_INTERVAL);
     }
 
 
 
     public void setEditableAnnotations(boolean editableAnnotations) {
         mCanEditAnnotations = editableAnnotations;
-    }
-
-
-    private MediaPlayer createMediaPlayer() {
-        MediaPlayer mp = new MediaPlayer();
-        mp.setOnCompletionListener(this);
-        mp.setOnErrorListener(this);
-        mp.setOnVideoSizeChangedListener(this);
-        mp.setOnBufferingUpdateListener(this);
-        mp.setOnPreparedListener(this);
-        mp.setOnInfoListener(this);
-        mp.setOnSeekCompleteListener(this);
-        return mp;
     }
 
 
@@ -557,19 +511,12 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
                 }
             }
             mVideoSurfaceContainer.setLayoutParams(host_lp);
-
-
         }
 
         mVideoSurface.setLayoutParams(lp);
         mAnnotationSurface.setLayoutParams(lp);
         Log.i("SemanticVideoPlayerFragment", String.format("recalculated video/annotation surface size, w:%d h:%d", lp.width, lp.height));
     }
-
-    public boolean videoIsPortrait() {
-        return (mMediaPlayer.getVideoHeight() > mMediaPlayer.getVideoWidth());
-    }
-
 
     public void setVideo(SemanticVideo sem) {
         Uri uri;
@@ -616,8 +563,6 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
         mMediaPlayer.start();
         mAnnotationSurfaceHandler.select(null);
         mAnnotationSurfaceHandler.hideAllAnnotations();
-        onProgressChanged(mMediaPlayer.getCurrentPosition());
-        mUpdateHandler.sendEmptyMessageDelayed(0, POLL_RATE_MILLISECONDS);
         mController.setControllerMode(VideoControllerView.PLAY_MODE);
         mController.hide();
         //ViewGroup area = (ViewGroup) rootView.findViewById(R.id.video_title_area);
@@ -625,6 +570,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
         //area_host.removeView(area);
         //area_host.addView(area);
 
+        mAnnotationTimer.start();
     }
 
     @Override
@@ -636,6 +582,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
             return;
         }
         mMediaPlayer.pause();
+        mAnnotationTimer.stop();
     }
 
     @Override
@@ -665,7 +612,6 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
 
         mLastPos = pos; // if mLastPos had a smaller value than pos, jump to pos would trigger all
         // annotations in between to be visible when playback continues.
-        mSeekCompleteTask = do_after_seek;
         mMediaPlayer.seekTo(pos);
         mAnnotationSurfaceHandler.draw();
     }
@@ -720,7 +666,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
         }
 
         // preparations
-        Annotation a = null;
+        Annotation a;
         float width_diff = ((getView().getWidth() / 2) - (mVideoSurface.getWidth() / 2));
         float height_diff = ((getView().getHeight() / 2) - (mVideoSurface.getHeight() / 2));
         float x = (event.getX() - width_diff) / mVideoSurface.getWidth();
@@ -814,8 +760,6 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
                 mAnnotationSurfaceHandler.draw();
         }
 
-
-
         return true;
     }
 
@@ -823,6 +767,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     @Override
     public void onCompletion(MediaPlayer mp) {
         mController.setControllerMode(VideoControllerView.PAUSE_MODE);
+        mAnnotationTimer.stop();
     }
 
     @Override
@@ -905,47 +850,19 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
 
     @Override
     public void onSeekComplete(MediaPlayer mediaPlayer) {
-        if (mSeekCompleteTask == PAUSE && mAnnotationsToShow != null) {
-            int pos = mediaPlayer.getCurrentPosition();
-            // now continuing the setup of annotation pause.
-
-        }
+        int pos = mediaPlayer.getCurrentPosition();
+        mAnnotationSurfaceHandler.resetSeenFlagsAfterSeek(pos);
     }
 
-    private static class AnnotationUpdateHandler extends Handler {
-        private final WeakReference<SemanticVideoPlayerFragment> mFragment;
-        private final WeakReference<MediaPlayer> mMediaPlayer;
+    @Override
+    public void onAnnotationTimerTick(long playbackPosition) {
+        List<Annotation> annotations = mAnnotationSurfaceHandler.getAnnotationsAt(playbackPosition);
 
-        AnnotationUpdateHandler(SemanticVideoPlayerFragment fragment, MediaPlayer player) {
-            mFragment = new WeakReference<SemanticVideoPlayerFragment>(fragment);
-            mMediaPlayer = new WeakReference<MediaPlayer>(player);
+        if ( ! annotations.isEmpty()) {
+            pauseOnAnnotations(annotations);
         }
 
-        @Override
-        public void handleMessage(Message msg) {
-            MediaPlayer mp = mMediaPlayer.get();
-            SemanticVideoPlayerFragment pf = mFragment.get();
-            if (mp == null || pf == null) {
-                return;
-            }
-            try {
-                if (mp.isPlaying()) {
-                    pf.onProgressChanged(mp.getCurrentPosition());
-                    if (pf.mCarefulProgress) {
-                        //Log.i("AnnotationUpdateHandler",
-                        //        "careful steps:" + mp.getCurrentPosition());
-                        sendEmptyMessageDelayed(0, POLL_RATE_MILLISECONDS_ACCURATE);
-                    } else {
-                        //Log.i("AnnotationUpdateHandler", "bold steps:" + mp.getCurrentPosition());
-                        sendEmptyMessageDelayed(0, POLL_RATE_MILLISECONDS);
-                    }
-
-                }
-            } catch (IllegalStateException e) {
-                mFragment.clear();
-                mMediaPlayer.clear();
-            }
-        }
+        mAnnotationSurfaceHandler.draw();
     }
 
     public class simpleOnScaleGestureListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
@@ -992,18 +909,18 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
                 return;
             }
             if (!mStallPauseCounter) {
-                counter += POLL_RATE_MILLISECONDS;
+                counter += PAUSE_COUNTER_REFRESH_INTERVAL;
             }
             if (counter < Annotation.ANNOTATION_SHOW_DURATION_MILLISECONDS && mController.isPausedForShowingAnnotation()) {
                 mController.setAnnotationPausedProgress((int) ((counter * 100) / Annotation.ANNOTATION_SHOW_DURATION_MILLISECONDS));
-                mPauseHandler.postDelayed(this, POLL_RATE_MILLISECONDS);
+                mPauseHandler.postDelayed(this, PAUSE_COUNTER_REFRESH_INTERVAL);
             } else {
                 for (Annotation a : mAnnotationsToShow) {
                     a.setVisible(false);
                 }
                 if (mMediaPlayer != null) { // Fragment may be closed during the wait
                     mMediaPlayer.start();
-                    mUpdateHandler.sendEmptyMessage(0);
+                    mAnnotationTimer.start();
                     mAnnotationSurfaceHandler.select(null);
                     mAnnotationSurfaceHandler.draw();
                     mController.setControllerMode(VideoControllerView.PLAY_MODE);
