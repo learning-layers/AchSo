@@ -1,3 +1,0 @@
-Use markdown-formatted file instead. ( https://github
-.com/learning-layers/AchSo/blob/master/achso_server_connection.md )
-
