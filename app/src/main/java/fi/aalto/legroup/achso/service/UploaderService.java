@@ -65,6 +65,9 @@ import static fi.aalto.legroup.achso.util.App.addPollingReminder;
 import static fi.aalto.legroup.achso.util.App.appendLog;
 import static fi.aalto.legroup.achso.util.App.doPendingPolls;
 
+/**
+ * TODO: Production URLs should be moved to secrets.xml.
+ */
 public class UploaderService extends IntentService {
 
     public static final String PARAM_IN = "in";

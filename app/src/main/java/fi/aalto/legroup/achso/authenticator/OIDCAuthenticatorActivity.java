@@ -46,6 +46,7 @@ import java.util.Set;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.util.App;
+import fi.aalto.legroup.achso.util.OIDCConfig;
 import fi.aalto.legroup.achso.util.OIDCUtils;
 
 /**
@@ -169,8 +170,13 @@ public class OIDCAuthenticatorActivity extends AccountAuthenticatorActivity {
             Log.d(TAG, "Requesting ID token.");
 
             try {
-                response = OIDCUtils.requestTokens(App.oidc_config.authorizationServerUrl,
-                        App.oidc_config.tokenServerUrl, App.oidc_config.redirectUrl, App.oidc_config.clientId, App.oidc_config.clientSecret, authToken);
+                response = OIDCUtils.requestTokens(
+                        OIDCConfig.getAuthorizationServerUrl(OIDCAuthenticatorActivity.this),
+                        OIDCConfig.getTokenServerUrl(OIDCAuthenticatorActivity.this),
+                        OIDCConfig.getRedirectUrl(OIDCAuthenticatorActivity.this),
+                        OIDCConfig.getClientId(OIDCAuthenticatorActivity.this),
+                        OIDCConfig.getClientSecret(OIDCAuthenticatorActivity.this),
+                        authToken);
             } catch (IOException e) {
                 Log.e(TAG, "Could not get response.");
                 e.printStackTrace();
@@ -242,7 +248,7 @@ public class OIDCAuthenticatorActivity extends AccountAuthenticatorActivity {
         Map userInfo = Collections.emptyMap();
 
         try {
-            userInfo = OIDCUtils.getUserInfo(App.oidc_config.userInfoUrl, response.getIdToken());
+            userInfo = OIDCUtils.getUserInfo(OIDCConfig.getUserInfoUrl(this), response.getIdToken());
         } catch (IOException e) {
             Log.e(TAG, "Could not get UserInfo.");
             e.printStackTrace();

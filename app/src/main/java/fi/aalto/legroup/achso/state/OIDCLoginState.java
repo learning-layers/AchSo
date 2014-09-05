@@ -51,6 +51,7 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.authenticator.OIDCAuthenticator;
 import fi.aalto.legroup.achso.util.APIUtility;
 import fi.aalto.legroup.achso.util.App;
+import fi.aalto.legroup.achso.util.OIDCConfig;
 
 /**
  * Created by purma on 25.8.2014.
@@ -303,7 +304,7 @@ public class OIDCLoginState implements LoginState {
             }
             if (idToken != null) {
                 try {
-                    bundle.putSerializable("user_info", (java.io.Serializable) APIUtility.getJson(App.getContext(), App.oidc_config.userInfoUrl, idToken));
+                    bundle.putSerializable("user_info", (java.io.Serializable) APIUtility.getJson(App.getContext(), OIDCConfig.getUserInfoUrl(mContext), idToken));
                     bundle.putInt("success", AUTH_SUCCESS);
                 } catch (IOException e) {
                     Log.e(TAG, "Received IO Error: " + e.getMessage());

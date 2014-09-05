@@ -51,6 +51,9 @@ import fi.aalto.legroup.achso.util.App;
 
 import static fi.aalto.legroup.achso.service.UploaderService.updateVideoMetadataToAalto;
 
+/**
+ * TODO: Production URLs should be moved to secrets.xml.
+ */
 public class PollingService extends IntentService {
 
     public static final String AALTO_API_URL = "http://achso.aalto.fi/server/api/";

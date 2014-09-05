@@ -39,6 +39,7 @@ import com.google.api.client.auth.openidconnect.IdTokenResponse;
 import java.io.IOException;
 
 import fi.aalto.legroup.achso.util.App;
+import fi.aalto.legroup.achso.util.OIDCConfig;
 import fi.aalto.legroup.achso.util.OIDCUtils;
 
 /**
@@ -141,8 +142,12 @@ public class OIDCAuthenticator extends AbstractAccountAuthenticator {
                 IdTokenResponse tokenResponse;
 
                 try {
-                    tokenResponse = OIDCUtils.refreshTokens(App.oidc_config.authorizationServerUrl,
-                            App.oidc_config.tokenServerUrl, App.oidc_config.clientId, App.oidc_config.clientSecret, refreshToken);
+                    tokenResponse = OIDCUtils.refreshTokens(
+                            OIDCConfig.getAuthorizationServerUrl(context),
+                            OIDCConfig.getTokenServerUrl(context),
+                            OIDCConfig.getClientId(context),
+                            OIDCConfig.getClientSecret(context),
+                            refreshToken);
 
                     Log.d(TAG, "Got new tokens.");
 
@@ -195,12 +200,13 @@ public class OIDCAuthenticator extends AbstractAccountAuthenticator {
         Intent intent = new Intent(context, OIDCAuthenticatorActivity.class);
 
         // Generate a new authorisation URL
-        String authUrl = OIDCUtils.newAuthorizationUrl(App.oidc_config.authorizationServerUrl,
-                App.oidc_config.tokenServerUrl,
-                App.oidc_config.redirectUrl,
-                App.oidc_config.clientId,
-                App.oidc_config.clientSecret,
-                App.oidc_config.scopes);
+        String authUrl = OIDCUtils.newAuthorizationUrl(
+                OIDCConfig.getAuthorizationServerUrl(context),
+                OIDCConfig.getTokenServerUrl(context),
+                OIDCConfig.getRedirectUrl(context),
+                OIDCConfig.getClientId(context),
+                OIDCConfig.getClientSecret(context),
+                OIDCConfig.getScopes(context));
 
         Log.d(TAG, String.format("Created new intent with authorisation URL '%s'.", authUrl));
 

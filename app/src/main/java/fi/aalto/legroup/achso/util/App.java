@@ -59,7 +59,6 @@ public class App extends Application {
     public static Connection connection;
     private static Context mContext;
     private static File mLogFile;
-    public static OIDCConfig oidc_config;
     private static int qr_mode;
 
     private static Location lastLocation;
@@ -114,7 +113,6 @@ public class App extends Application {
         }
         switch (login_provider) {
             case OIDC_AUTHENTICATION:
-                oidc_config = new OIDCConfig("OIDCsettings");
                 login_state = new OIDCLoginState(mContext);
                 break;
         }

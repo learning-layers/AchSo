@@ -23,63 +23,32 @@
 
 package fi.aalto.legroup.achso.util;
 
-import android.content.res.AssetManager;
-import android.util.Log;
+import android.content.Context;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
+import fi.aalto.legroup.achso.R;
 
 public class OIDCConfig {
 
-    private final static String TAG = "OIDCConfig";
-
-    // These are the defaults and won't be accepted by any server. You should put real values to
-    // assets/OIDCsettings.properties
-    public String clientId = "foobar";
-    public String clientSecret = "xyzzy";
-
-    public String authorizationServerUrl = "https://www.example.com/oauth2/authorize";
-    public String tokenServerUrl = "https://www.example.com/oauth2/token";
-    public String userInfoUrl = "https://www.example.com/oauth2/userinfo";
-
-    // This URL doesn't really have a use with native apps and basically just signifies the end
-    // of the authorisation process. It doesn't have to be a real URL, but it does have to be the
-    // same URL that is registered with your provider.
-    public String redirectUrl = "app://achso.legroup.aalto.fi";
-
-    // The `offline_access` scope enables us to request Refresh Tokens, so we don't have to ask the
-    // user to authorise us again every time the tokens expire. Some providers might have an
-    // `offline` scope instead. If you get an `invalid_scope` error when trying to authorise the
-    // app, try changing it to `offline`.
-    public String[] scopes = {"openid", "profile", "offline_access"};
-
-    public OIDCConfig(String file_name) {
-        Properties props=new Properties();
-        AssetManager assetManager = App.getContext().getAssets();
-        InputStream inputStream = null;
-        try {
-            inputStream = assetManager.open(file_name + ".properties");
-            props.load(inputStream);
-        } catch (IOException e) {
-            Log.e(TAG, "Couldn't find OIDC settings from assets/" + file_name +
-                    ".properties");
-            e.printStackTrace();
-        }
-        clientId = props.getProperty("clientId", clientId);
-        clientSecret = props.getProperty("clientSecret", clientSecret);
-        authorizationServerUrl = props.getProperty("authorizationServerUrl", authorizationServerUrl);
-        tokenServerUrl = props.getProperty("tokenServerUrl", tokenServerUrl);
-        userInfoUrl = props.getProperty("userInfoUrl", userInfoUrl);
-        redirectUrl = props.getProperty("redirectUrl", redirectUrl);
-        String scope_string = props.getProperty("scopes", "openid, profile, offline_access");
-        scope_string = scope_string.replace(" ", "");
-        scopes = scope_string.split(",");
-        Log.i(TAG, clientId);
-        Log.i(TAG, clientSecret);
-        Log.i(TAG, authorizationServerUrl);
-        Log.i(TAG, tokenServerUrl);
-        Log.i(TAG, redirectUrl);
-        Log.i(TAG, scopes.toString());
+    public static String getClientId(Context context) {
+        return context.getString(R.string.oidcClientId);
     }
+    public static String getClientSecret(Context context) {
+        return context.getString(R.string.oidcClientSecret);
+    }
+    public static String getAuthorizationServerUrl(Context context) {
+        return context.getString(R.string.oidcAuthorizationServerUrl);
+    }
+    public static String getTokenServerUrl(Context context) {
+        return context.getString(R.string.oidcTokenServerUrl);
+    }
+    public static String getUserInfoUrl(Context context) {
+        return context.getString(R.string.oidcUserInfoUrl);
+    }
+    public static String getRedirectUrl(Context context) {
+        return context.getString(R.string.oidcRedirectUrl);
+    }
+    public static String[] getScopes(Context context) {
+        return context.getResources().getStringArray(R.array.oidcScopes);
+    }
+
 }
