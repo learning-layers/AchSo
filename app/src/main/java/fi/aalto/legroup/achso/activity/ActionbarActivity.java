@@ -233,7 +233,7 @@ public abstract class ActionbarActivity extends FragmentActivity {
     public void launchRecording() {
         File output_file = LocalRawVideos.getNewOutputFile();
         if (output_file != null) {
-            App.getLocation();
+            App.startRequestingLocationUpdates();
             Intent intent = new Intent(android.provider.MediaStore.ACTION_VIDEO_CAPTURE);
             SharedPreferences.Editor e = getSharedPreferences("AchSoPrefs", 0).edit();
             e.putString("videoUri", output_file.getAbsolutePath());
@@ -326,7 +326,7 @@ public abstract class ActionbarActivity extends FragmentActivity {
         // Generate a location and time based name for the video if we have a location and Geocoder
         // is available, otherwise just a time-based name.
 
-        Location location = App.last_location;
+        Location location = App.getLastLocation();
         String locationString = null;
         String videoName;
 
@@ -355,7 +355,7 @@ public abstract class ActionbarActivity extends FragmentActivity {
         }
 
         SemanticVideo newvideo = new SemanticVideo(videoName, videoUri,
-                SemanticVideo.Genre.values()[0], creator);
+                SemanticVideo.Genre.values()[0], creator, location);
 
         if (VideoDBHelper.getByUri(newvideo.getUri()) != null) {
             Log.i("ActionbarActivity", "Video already exists, abort! Abort!");

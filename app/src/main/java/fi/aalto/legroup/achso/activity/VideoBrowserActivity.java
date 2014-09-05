@@ -46,7 +46,6 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 
 import fi.aalto.legroup.achso.R;
@@ -229,8 +228,8 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
             mLastPage = BrowsePagerAdapter.MY_VIDEOS;
             mViewPager.setSwipeEnabled(true);
             mPagerAdapter.setSearchPageAvailable(false);
-            App.getLocation();
         }
+
         goToBrowsePage(mLastPage);
 
         //mViewPager.setCurrentItem()

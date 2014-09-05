@@ -24,19 +24,19 @@
 package fi.aalto.legroup.achso.util;
 
 import android.app.Application;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.os.Looper;
 import android.util.Log;
+
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -59,9 +59,12 @@ public class App extends Application {
     public static Connection connection;
     private static Context mContext;
     private static File mLogFile;
-    public static Location last_location;
     public static OIDCConfig oidc_config;
     private static int qr_mode;
+
+    private static Location lastLocation;
+    private static LocationListener locationListener;
+    private static GoogleApiClient locationApiClient;
 
     //
     private static final int OIDC_AUTHENTICATION = 5;
@@ -231,47 +234,52 @@ public class App extends Application {
 
 
     /**
-     * Location should be asked when starting the app and when starting recording. It can be
-     * battery-consuming operation, so don't do it too often.
+     * Location updates should be requested when recording starts. This should give us enough time
+     * to fetch an accurate location.
      */
-    public static void getLocation() {
+    public static void startRequestingLocationUpdates() {
         // NOTE: There's a small possibility that the location could not be retrieved before the
         // video recording is finished. Is this acceptable or is there a need for a waiting dialog?
 
-        final LocationManager locationManager = (LocationManager) mContext.getSystemService(Context
-                .LOCATION_SERVICE);
+        locationApiClient = new GoogleApiClient.Builder(mContext)
+                .useDefaultAccount()
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
+                    @Override
+                    public void onConnected(Bundle connectionHint) {
+                        LocationRequest locationRequest = LocationRequest.create()
+                                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
-        // Define a listener that responds to location updates
-        LocationListener locationListener = new LocationListener() {
-            public void onLocationChanged(Location location) {
-                // Called when a new location is found by the network location provider.
-                last_location = location;
-                Log.i("LocationListener", "Found location: " + location.toString());
-                //Toast.makeText(mContext, "Found location: " + location.toString(),
-                //        Toast.LENGTH_LONG).show();
-                // take location only once
-                locationManager.removeUpdates(this);
-            }
+                        locationListener = new LocationListener() {
+                            public void onLocationChanged(Location location) {
+                                lastLocation = location;
+                            }
+                        };
 
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-            }
+                        LocationServices.FusedLocationApi.requestLocationUpdates(locationApiClient,
+                                locationRequest, locationListener);
+                    }
 
-            public void onProviderEnabled(String provider) {
-            }
+                    @Override
+                    public void onConnectionSuspended(int cause) {}
+                })
+                .build();
 
-            public void onProviderDisabled(String provider) {
-            }
-        };
-
-        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-        } else if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
-        }
-
+        locationApiClient.connect();
     }
 
+    /**
+     * When recording has finished, ask for the location via this method, so we'll stop listening
+     * for further location updates.
+     */
+    public static Location getLastLocation() {
+        if (locationApiClient != null && locationListener != null) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(locationApiClient,
+                    locationListener);
+        }
 
+        return lastLocation;
+    }
 
     public static String getUsername() {
         if (login_state != null) {

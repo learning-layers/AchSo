@@ -239,8 +239,8 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
 	}
 
     // This is used when creating SemanticVideo from local recording
-	public SemanticVideo(String title, Uri uri, Genre genre, String creator) {
-        this(-1, title, new Date(), null, uri, genre, null, null, null, App.last_location,
+	public SemanticVideo(String title, Uri uri, Genre genre, String creator, Location location) {
+        this(-1, title, new Date(), null, uri, genre, null, null, null, location,
                 NO_UPLOAD, creator, null, null, null);
 	}
 
