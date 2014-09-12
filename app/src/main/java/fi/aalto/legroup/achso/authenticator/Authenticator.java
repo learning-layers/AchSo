@@ -38,7 +38,6 @@ import com.google.api.client.auth.openidconnect.IdTokenResponse;
 
 import java.io.IOException;
 
-import fi.aalto.legroup.achso.util.App;
 import fi.aalto.legroup.achso.util.OIDCConfig;
 import fi.aalto.legroup.achso.util.OIDCUtils;
 
@@ -54,7 +53,7 @@ import fi.aalto.legroup.achso.util.OIDCUtils;
  *
  * @author Leo Nikkilä
  */
-public class OIDCAuthenticator extends AbstractAccountAuthenticator {
+public class Authenticator extends AbstractAccountAuthenticator {
 
     private final String TAG = this.getClass().getSimpleName();
 
@@ -65,8 +64,7 @@ public class OIDCAuthenticator extends AbstractAccountAuthenticator {
     public static final String TOKEN_TYPE_ACCESS = "fi.aalto.legroup.achso.TOKEN_TYPE_ACCESS";
     public static final String TOKEN_TYPE_REFRESH = "fi.aalto.legroup.achso.TOKEN_TYPE_REFRESH";
 
-
-    public OIDCAuthenticator(Context context) {
+    public Authenticator(Context context) {
         super(context);
         this.context = context;
 
@@ -88,11 +86,10 @@ public class OIDCAuthenticator extends AbstractAccountAuthenticator {
 
         Bundle result = new Bundle();
 
-        Intent intent = createIntentForAuthorization();
-        intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
+        Intent intent = createIntentForAuthorization(response);
 
         // We're creating a new account, not just renewing our authorisation
-        intent.putExtra(OIDCAuthenticatorActivity.KEY_IS_NEW_ACCOUNT, true);
+        intent.putExtra(AuthenticatorActivity.KEY_IS_NEW_ACCOUNT, true);
 
         result.putParcelable(AccountManager.KEY_INTENT, intent);
 
@@ -126,14 +123,12 @@ public class OIDCAuthenticator extends AbstractAccountAuthenticator {
                 Log.d(TAG, "Refresh token empty, launching intent for renewing authorisation.");
 
                 Bundle result = new Bundle();
-                Intent intent = createIntentForAuthorization();
-                intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
+                Intent intent = createIntentForAuthorization(response);
 
                 // Provide the account that we need re-authorised
-                intent.putExtra(OIDCAuthenticatorActivity.KEY_ACCOUNT_OBJECT, account);
+                intent.putExtra(AuthenticatorActivity.KEY_ACCOUNT_OBJECT, account);
 
                 result.putParcelable(AccountManager.KEY_INTENT, intent);
-
                 return result;
             } else {
                 // Got a refresh token, let's use it to get a fresh set of tokens
@@ -143,10 +138,10 @@ public class OIDCAuthenticator extends AbstractAccountAuthenticator {
 
                 try {
                     tokenResponse = OIDCUtils.refreshTokens(
-                            OIDCConfig.getAuthorizationServerUrl(context),
                             OIDCConfig.getTokenServerUrl(context),
                             OIDCConfig.getClientId(context),
                             OIDCConfig.getClientSecret(context),
+                            OIDCConfig.getScopes(context),
                             refreshToken);
 
                     Log.d(TAG, "Got new tokens.");
@@ -165,7 +160,7 @@ public class OIDCAuthenticator extends AbstractAccountAuthenticator {
             }
         }
 
-        Log.e(TAG, String.format("Returning token '%s' of type '%s'.", token, authTokenType));
+        Log.d(TAG, String.format("Returning token '%s' of type '%s'.", token, authTokenType));
 
         Bundle result = new Bundle();
 
@@ -196,8 +191,8 @@ public class OIDCAuthenticator extends AbstractAccountAuthenticator {
     /**
      * Create an intent for showing the authorisation web page.
      */
-    private Intent createIntentForAuthorization() {
-        Intent intent = new Intent(context, OIDCAuthenticatorActivity.class);
+    private Intent createIntentForAuthorization(AccountAuthenticatorResponse response) {
+        Intent intent = new Intent(context, AuthenticatorActivity.class);
 
         // Generate a new authorisation URL
         String authUrl = OIDCUtils.newAuthorizationUrl(
@@ -210,7 +205,8 @@ public class OIDCAuthenticator extends AbstractAccountAuthenticator {
 
         Log.d(TAG, String.format("Created new intent with authorisation URL '%s'.", authUrl));
 
-        intent.putExtra(OIDCAuthenticatorActivity.KEY_AUTH_URL, authUrl);
+        intent.putExtra(AuthenticatorActivity.KEY_AUTH_URL, authUrl);
+        intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
 
         return intent;
     }
@@ -218,22 +214,17 @@ public class OIDCAuthenticator extends AbstractAccountAuthenticator {
     @Override
     public Bundle hasFeatures(AccountAuthenticatorResponse response, Account account,
                               String[] features) throws NetworkErrorException {
-
-        Log.i(TAG, "hasFeatures reached");
         return null;
     }
 
     @Override
     public Bundle editProperties(AccountAuthenticatorResponse response, String accountType) {
-        Log.i(TAG, "editProperties reached");
         return null;
     }
 
     @Override
     public Bundle confirmCredentials(AccountAuthenticatorResponse response, Account account,
                                      Bundle options) throws NetworkErrorException {
-
-        Log.i(TAG, "confirmCredentials reached");
         return null;
     }
 
@@ -241,8 +232,6 @@ public class OIDCAuthenticator extends AbstractAccountAuthenticator {
     public Bundle updateCredentials(AccountAuthenticatorResponse response, Account account,
                                     String authTokenType, Bundle options)
                                     throws NetworkErrorException {
-
-        Log.i(TAG, "updateCredentials reached");
         return null;
     }
 

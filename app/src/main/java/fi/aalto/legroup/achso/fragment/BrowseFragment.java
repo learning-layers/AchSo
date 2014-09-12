@@ -25,7 +25,6 @@ package fi.aalto.legroup.achso.fragment;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -64,6 +63,7 @@ import java.util.Set;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.activity.ActionbarActivity;
+import fi.aalto.legroup.achso.activity.LoginActivity;
 import fi.aalto.legroup.achso.activity.VideoBrowserActivity;
 import fi.aalto.legroup.achso.adapter.BrowsePagerAdapter;
 import fi.aalto.legroup.achso.adapter.VideoThumbAdapter;
@@ -73,9 +73,6 @@ import fi.aalto.legroup.achso.remote.RemoteFetchTask;
 import fi.aalto.legroup.achso.remote.RemoteResultCache;
 import fi.aalto.legroup.achso.service.UploaderService;
 import fi.aalto.legroup.achso.util.App;
-
-import static fi.aalto.legroup.achso.util.App.addPollingReminder;
-import static fi.aalto.legroup.achso.util.App.doPendingPolls;
 
 
 public class BrowseFragment extends Fragment implements AdapterView.OnItemClickListener,
@@ -103,7 +100,6 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
     private Set<SemanticVideo> mSelectedVideos = new HashSet<SemanticVideo>();
     private ActionMode mActionMode = null;
     private AsyncTask<String, Double, List<SemanticVideo>> mFetchTask;
-    private int mSeparatorPosition;
     private TextView mUrl;
     private LinearLayout mUrlArea;
     private TextView mUrlLabel;
@@ -155,34 +151,20 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
                         }).show();
                 return true;
             case R.id.action_upload:
-                if (!App.login_state.isIn()) {
-                    final Context ctx = this.getActivity();
-                    new AlertDialog.Builder(this.getActivity()).setTitle(R.string.not_loggedin_nag_title)
-                            .setMessage(R.string.not_loggedin_nag_text)
-                            .setPositiveButton(R.string.login, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    App.login_state.launchLoginActivity(getActivity());
-                                    dialog.dismiss();
-                                }
-                            }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                        }
-                    }).create().show();
+                if (!App.loginManager.isLoggedIn()) {
+                    Toast.makeText(getActivity(), R.string.not_loggedin_nag_text,
+                            Toast.LENGTH_LONG).show();
+
+                    Intent loginIntent = new Intent(getActivity(), LoginActivity.class);
+                    getActivity().startActivity(loginIntent);
                 } else {
                     for (SemanticVideo sv : mSelectedVideos) {
                         sv.setUploadStatus(SemanticVideo.UPLOAD_PENDING);
                         Intent uploadIntent = new Intent(getActivity(), UploaderService.class);
                         uploadIntent.putExtra(UploaderService.PARAM_IN, sv.getId());
-                        if (App.allow_upload) {
-                            getActivity().startService(uploadIntent);
-                        } else {
-                            Toast.makeText(App.getContext(), "Uploading is temporarily switched off. It " +
-                                    "will be enabled in future version.",  Toast.LENGTH_LONG).show();
-                        }
+                        getActivity().startService(uploadIntent);
                     }
+
                     refreshLocalVideos();
                     mSelectedVideos.clear();
                     mode.finish();
@@ -233,11 +215,6 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
                 if (sv.getRemoteVideo() != null && !sv.getRemoteVideo().isEmpty()) {
                     mCallbacks.onRemoteItemSelected(position, sv);
                     RemoteResultCache.setSelectedVideo(sv);
-                } else {
-                    Log.i("BrowseFragment", "Launching polling intent");
-                    addPollingReminder(sv.getKey(), "testuser");
-                    doPendingPolls();
-
                 }
             }
         } else if (getVideoAdapter().getItemViewType(position) == VideoThumbAdapter
@@ -349,7 +326,9 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
         }
 
         refreshLocalVideos();
-        refreshRemoteVideos();
+
+        if (App.loginManager.isLoggedIn()) refreshRemoteVideos();
+
         if (mContainerState != null) {
             if (mUsesGrid) {
                 mVideoGrid.onRestoreInstanceState(mContainerState);
@@ -458,7 +437,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
     }
 
     private void startRemoteVideoFetch() {
-        if (App.hasConnection() && (App.login_state.isIn() || App.login_state.isTrying())) {
+        if (App.loginManager.isLoggedIn() || App.loginManager.isLoggingIn()) {
             mNoConnectionMessage.setVisibility(LinearLayout.GONE);
             mRemoteProgress.setVisibility(LinearLayout.VISIBLE);
 

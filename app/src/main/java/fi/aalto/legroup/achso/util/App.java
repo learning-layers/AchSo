@@ -46,16 +46,17 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 
-import fi.aalto.legroup.achso.state.LoginState;
-import fi.aalto.legroup.achso.state.OIDCLoginState;
+import fi.aalto.legroup.achso.state.LoginManager;
 
 public class App extends Application {
+    
+    public static ConnectivityManager connectivityManager;
 
     public static final int BROWSE_BY_QR = 0;
     public static final int ATTACH_QR = 1;
     public static final int API_VERSION = android.os.Build.VERSION.SDK_INT;
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    public static LoginState login_state;
+    public static LoginManager loginManager;
     public static Connection connection;
     private static Context mContext;
     private static File mLogFile;
@@ -93,13 +94,15 @@ public class App extends Application {
     public static int video_uploader = CLVITRA2;
     public static int metadata_uploader = AALTO_TEST_SERVER;
 
-
     @Override
     public void onCreate() {
         super.onCreate();
-
-
         mContext = this;
+
+        connectivityManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+
+        loginManager = new LoginManager(this);
+
         if (use_log_file) {
             mLogFile = new File(mContext.getExternalFilesDir(null), "achso.log");
             if (!mLogFile.exists()) {
@@ -111,37 +114,19 @@ public class App extends Application {
                 }
             }
         }
-        switch (login_provider) {
-            case OIDC_AUTHENTICATION:
-                login_state = new OIDCLoginState(mContext);
-                break;
-        }
 
         if (use_las) {
             connection = new LasConnection();
         } else {
             connection = new AaltoConnection();
         }
-        if (hasConnection()) {
+        if (isConnected()) {
             doPendingPolls();
         }
-
-        App.login_state.autologinIfAllowed();
 
         appendLog("Starting Ach so! -app on device " + android.os.Build.MODEL);
         Log.i("App", "Starting Ach so! -app on device " + android.os.Build.MODEL);
 
-    }
-
-
-    public static Context getContext() {
-        return mContext;
-    }
-
-    public static boolean hasConnection() {
-        ConnectivityManager cm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
     }
 
     public static void appendLog(String text) {
@@ -234,6 +219,8 @@ public class App extends Application {
     /**
      * Location updates should be requested when recording starts. This should give us enough time
      * to fetch an accurate location.
+     *
+     * TODO: Move location stuff into its own class.
      */
     public static void startRequestingLocationUpdates() {
         // NOTE: There's a small possibility that the location could not be retrieved before the
@@ -279,14 +266,6 @@ public class App extends Application {
         return lastLocation;
     }
 
-    public static String getUsername() {
-        if (login_state != null) {
-            if (login_state.isIn() || login_state.isTrying())
-                return login_state.getUser();
-        }
-        return DEFAULT_USERNAME;
-    }
-
     public static void setQrMode(int mode) {
         qr_mode = mode;
     }
@@ -294,6 +273,20 @@ public class App extends Application {
     public static int getQrMode() {
         return qr_mode;
     }
+
+    public static boolean isConnected() {
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        return networkInfo != null && networkInfo.isConnected();
+    }
+
+    public static boolean isDisconnected() {
+        return ! isConnected();
+    }
+
+    public static Context getContext() {
+        return mContext.getApplicationContext();
+    }
+
 }
 
 

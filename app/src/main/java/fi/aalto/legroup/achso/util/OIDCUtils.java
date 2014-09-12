@@ -38,12 +38,12 @@ import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.http.BasicAuthentication;
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.json.gson.GsonFactory;
-import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A layer of syntactic sugar around the google-oauth-java-client library to simplify using OpenID
@@ -136,10 +136,7 @@ public class OIDCUtils {
         IdTokenResponse response = IdTokenResponse.execute(request);
         String idToken = response.getIdToken();
 
-        boolean tokenIsValid = isValidIdToken(authorizationServerUrl, tokenServerUrl, clientId,
-                                              clientSecret, idToken);
-
-        if (tokenIsValid) {
+        if (isValidIdToken(clientId, idToken)) {
             Log.d(TAG, String.format("Got ID Token '%s'.", idToken));
             Log.d(TAG, String.format("Got Access Token '%s'.", response.getAccessToken()));
             Log.d(TAG, String.format("Got Refresh Token '%s'.", response.getRefreshToken()));
@@ -156,27 +153,21 @@ public class OIDCUtils {
      * Note that the Token Server may require you to use the `offline_access` scope to receive
      * Refresh Tokens.
      */
-    public static IdTokenResponse refreshTokens(String authorizationServerUrl,
-                                                String tokenServerUrl, String clientId,
-                                                String clientSecret, String refreshToken)
-                                                throws IOException {
+    public static IdTokenResponse refreshTokens(String tokenServerUrl, String clientId,
+                                                String clientSecret, String[] scopes,
+                                                String refreshToken) throws IOException {
 
-        AuthorizationCodeFlow flow = new AuthorizationCodeFlow.Builder(
-                BearerToken.authorizationHeaderAccessMethod(),
+        List<String> scopesList = Arrays.asList(scopes);
+
+        RefreshTokenRequest request = new RefreshTokenRequest(
                 AndroidHttp.newCompatibleTransport(),
                 new GsonFactory(),
                 new GenericUrl(tokenServerUrl),
-                new BasicAuthentication(clientId, clientSecret),
-                clientId,
-                authorizationServerUrl
-        ).build();
-
-        RefreshTokenRequest request = new RefreshTokenRequest(
-                flow.getTransport(),
-                flow.getJsonFactory(),
-                new GenericUrl(flow.getTokenServerEncodedUrl()),
                 refreshToken
         );
+
+        request.setClientAuthentication(new BasicAuthentication(clientId, clientSecret));
+        request.setScopes(scopesList);
 
         return IdTokenResponse.execute(request);
     }
@@ -185,46 +176,26 @@ public class OIDCUtils {
      * Verifies an ID Token.
      * TODO: Look into verifying the token issuer as well?
      */
-    public static boolean isValidIdToken(String authorizationServerUrl, String tokenServerUrl,
-                                         String clientId, String clientSecret,
-                                         String tokenString) throws IOException {
+    public static boolean isValidIdToken(String clientId, String tokenString) throws IOException {
 
-        AuthorizationCodeFlow flow = new AuthorizationCodeFlow.Builder(
-                BearerToken.authorizationHeaderAccessMethod(),
-                AndroidHttp.newCompatibleTransport(),
-                new GsonFactory(),
-                new GenericUrl(tokenServerUrl),
-                new BasicAuthentication(clientId, clientSecret),
-                clientId,
-                authorizationServerUrl
-        ).build();
-        Log.i(TAG, "Verifying token validity. flow id: " + flow.getClientId());
-
-        List<String> audiences = Arrays.asList(flow.getClientId());
-        IdTokenVerifier.Builder builder = new IdTokenVerifier.Builder();
-        IdTokenVerifier verifier = builder.setAudience(audiences).build();
+        List<String> audiences = Arrays.asList(clientId);
+        IdTokenVerifier verifier = new IdTokenVerifier.Builder().setAudience(audiences).build();
 
         IdToken idToken = IdToken.parse(new GsonFactory(), tokenString);
-        long now_seconds = builder.getClock().currentTimeMillis();
-        long authorized_at = idToken.getPayload().getAuthorizationTimeSeconds() * 1000;
-        Log.i(TAG, "Now seconds: " + now_seconds + " authorized at: " + authorized_at);
-        if (now_seconds < authorized_at) {
-            Log.e(TAG, "Device's clock is set wrong, identification tokens get impossible time: " +
-                    " Identification is sent after it has been accepted. :( ");
-        }
+
         return verifier.verify(idToken);
     }
 
     /**
      * Gets user information from the UserInfo endpoint.
      */
-    public static Map getUserInfo(String userInfoUrl, String idToken) throws IOException {
+    public static JsonObject getUserInfo(String userInfoUrl, String idToken) throws IOException {
         HttpRequest request = new HttpRequest(userInfoUrl, HttpRequest.METHOD_GET);
         request = prepareApiRequest(request, idToken);
 
         if (request.ok()) {
             String jsonString = request.body();
-            return new Gson().fromJson(jsonString, Map.class);
+            return new JsonParser().parse(jsonString).getAsJsonObject();
         } else {
             throw new IOException(request.message());
         }

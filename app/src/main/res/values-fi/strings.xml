@@ -92,7 +92,7 @@
     <string name="code_added_to_videos">Koodi lisätty valittuihin videoihin</string>
     <string name="upload_successful">Lähetys on valmis.</string>
     <string name="buffering">Puskuroi...</string>
-    <string name="logged_in_as">Kirjautunut nimellä </string>
+    <string name="logged_in_as">Kirjautunut nimellä %s.</string>
     <string name="connection_problem">Yhteysongelma</string>
     <string name="authentication_problem">Tunnusongelma</string>
     <string name="i5cloud_prefs">i5Cloud account</string>
@@ -107,5 +107,7 @@
 
     <string name="yes">Kyllä</string>
     <string name="no">Ei</string>
+    <string name="logged_out">Logged out.</string>
+    <string name="login_error">Could not log in: %s</string>
 
 </resources>

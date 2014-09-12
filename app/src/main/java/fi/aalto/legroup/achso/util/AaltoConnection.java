@@ -26,6 +26,8 @@ package fi.aalto.legroup.achso.util;
 
 import android.util.Log;
 
+import com.google.gson.JsonObject;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -94,8 +96,9 @@ public class AaltoConnection implements Connection {
             case BrowsePagerAdapter.LATEST:
                 break;
             case BrowsePagerAdapter.MY_VIDEOS:
-                params.add(new BasicNameValuePair("user_id", App.getUsername()));
-                //res = runQuery("get_my_videos", params);
+                JsonObject userInfo = App.loginManager.getUserInfo();
+                String userId = userInfo.get("sub").getAsString();
+                params.add(new BasicNameValuePair("user_id", userId));
                 break;
             case BrowsePagerAdapter.RECOMMENDED:
                 break;

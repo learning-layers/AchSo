@@ -38,6 +38,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import com.google.api.client.auth.openidconnect.IdTokenResponse;
+import com.google.gson.JsonObject;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -63,7 +64,7 @@ import fi.aalto.legroup.achso.util.OIDCUtils;
  *
  * @author Leo Nikkilä
  */
-public class OIDCAuthenticatorActivity extends AccountAuthenticatorActivity {
+public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 
     private final String TAG = this.getClass().getSimpleName();
 
@@ -171,11 +172,11 @@ public class OIDCAuthenticatorActivity extends AccountAuthenticatorActivity {
 
             try {
                 response = OIDCUtils.requestTokens(
-                        OIDCConfig.getAuthorizationServerUrl(OIDCAuthenticatorActivity.this),
-                        OIDCConfig.getTokenServerUrl(OIDCAuthenticatorActivity.this),
-                        OIDCConfig.getRedirectUrl(OIDCAuthenticatorActivity.this),
-                        OIDCConfig.getClientId(OIDCAuthenticatorActivity.this),
-                        OIDCConfig.getClientSecret(OIDCAuthenticatorActivity.this),
+                        OIDCConfig.getAuthorizationServerUrl(AuthenticatorActivity.this),
+                        OIDCConfig.getTokenServerUrl(AuthenticatorActivity.this),
+                        OIDCConfig.getRedirectUrl(AuthenticatorActivity.this),
+                        OIDCConfig.getClientId(AuthenticatorActivity.this),
+                        OIDCConfig.getClientSecret(AuthenticatorActivity.this),
                         authToken);
             } catch (IOException e) {
                 Log.e(TAG, "Could not get response.");
@@ -245,7 +246,7 @@ public class OIDCAuthenticatorActivity extends AccountAuthenticatorActivity {
         }
 
         // Get the user information so we can grab the `preferred_username`
-        Map userInfo = Collections.emptyMap();
+        JsonObject userInfo = new JsonObject();
 
         try {
             userInfo = OIDCUtils.getUserInfo(OIDCConfig.getUserInfoUrl(this), response.getIdToken());
@@ -254,8 +255,8 @@ public class OIDCAuthenticatorActivity extends AccountAuthenticatorActivity {
             e.printStackTrace();
         }
 
-        if (userInfo.containsKey("preferred_username")) {
-            accountName = (String) userInfo.get("preferred_username");
+        if (userInfo.has("preferred_username")) {
+            accountName = userInfo.get("preferred_username").getAsString();
         }
 
         account = new Account(String.format("%s (%s)", accountName, accountId), App.ACHSO_ACCOUNT_TYPE);
@@ -268,13 +269,13 @@ public class OIDCAuthenticatorActivity extends AccountAuthenticatorActivity {
     }
 
     private void setTokens(IdTokenResponse response) {
-        accountManager.setAuthToken(account, OIDCAuthenticator.TOKEN_TYPE_ID, response.getIdToken());
-        accountManager.setAuthToken(account, OIDCAuthenticator.TOKEN_TYPE_ACCESS, response.getAccessToken());
-        accountManager.setAuthToken(account, OIDCAuthenticator.TOKEN_TYPE_REFRESH, response.getRefreshToken());
+        accountManager.setAuthToken(account, Authenticator.TOKEN_TYPE_ID, response.getIdToken());
+        accountManager.setAuthToken(account, Authenticator.TOKEN_TYPE_ACCESS, response.getAccessToken());
+        accountManager.setAuthToken(account, Authenticator.TOKEN_TYPE_REFRESH, response.getRefreshToken());
     }
 
     private void showErrorDialog(String message) {
-        new AlertDialog.Builder(OIDCAuthenticatorActivity.this)
+        new AlertDialog.Builder(AuthenticatorActivity.this)
                 .setTitle("Sorry, there was an error")
                 .setMessage(message)
                 .setCancelable(true)

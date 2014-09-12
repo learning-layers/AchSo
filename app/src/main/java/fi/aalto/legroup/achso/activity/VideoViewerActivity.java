@@ -23,7 +23,6 @@
 
 package fi.aalto.legroup.achso.activity;
 
-import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
@@ -48,7 +47,7 @@ public class VideoViewerActivity extends ActionbarActivity {
     private int mVideoPositionInSearchCache;
     private SemanticVideoPlayerFragment mPlayerFragment;
     private IntentFilter mFilter;
-    private BroadcastReceiver mReceiver;
+    private GlobalBroadcastReceiver mReceiver;
     protected boolean show_record() {return true;}
     protected boolean show_login() {return false;}
     protected boolean show_qr() {return false;}
