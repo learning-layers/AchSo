@@ -312,8 +312,7 @@ public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
 
         @Override
         public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom loadedFrom) {
-            BitmapDrawable thumb = new BitmapDrawable(App.getContext().getResources(),
-                    bitmap);
+            BitmapDrawable thumb = new BitmapDrawable(mContext.getResources(), bitmap);
             if (thumb.getIntrinsicWidth() > thumb.getIntrinsicHeight()) {
                 setThumbBackground(this.thumbnail_land, thumb);
                 this.thumbnail_land.setVisibility(View.VISIBLE);

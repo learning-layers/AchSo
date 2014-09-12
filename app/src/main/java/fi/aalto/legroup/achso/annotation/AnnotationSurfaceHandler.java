@@ -112,7 +112,7 @@ public class AnnotationSurfaceHandler {
         }
 
         // FIXME: This null has to be replaced with a proper key if we're annotating a remote video
-        Annotation a = new Annotation(mContext, mVideoId, time, "", pos, 1.0f, creator, null);
+        Annotation a = new Annotation(mVideoId, time, "", pos, 1.0f, creator, null);
 
         a.setVisible(true);
         mAnnotations.add(a);
