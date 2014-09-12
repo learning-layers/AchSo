@@ -261,13 +261,10 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
 	}
 
     public String getKey() {
-        return this.mKey;
-    }
-
-    public String createKey() {
         if (this.mKey == null || this.mKey.isEmpty()) {
             mKey = UUID.randomUUID().toString();
         }
+
         return mKey;
     }
 
