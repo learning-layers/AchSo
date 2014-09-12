@@ -77,10 +77,6 @@
             android:name=".activity.InformationActivity"
             android:label="@string/title_activity_information" />
         <activity
-            android:name=".authenticator.AuthenticatorActivity"
-            android:label="@string/title_activity_authenticator"
-            />
-        <activity
             android:name=".activity.LoginActivity"
             android:label="@string/choose_account"
             />
