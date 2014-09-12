@@ -26,15 +26,9 @@ package fi.aalto.legroup.achso.util;
 import android.app.Application;
 import android.content.Context;
 import android.content.res.Configuration;
-import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.Bundle;
 
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
 import com.squareup.okhttp.OkHttpClient;
 
 import fi.aalto.legroup.achso.R;
@@ -59,11 +53,9 @@ public class App extends Application {
     public static OkHttpClient httpClient;
     public static AuthenticatedHttpClient authenticatedHttpClient;
     public static Connection connection;
+    public static LocationManager locationManager;
 
     private static int qr_mode;
-    private static Location lastLocation;
-    private static LocationListener locationListener;
-    private static GoogleApiClient locationApiClient;
 
     public static final String ACHSO_ACCOUNT_TYPE = "fi.aalto.legroup.achso.ll_oidc";
 
@@ -86,6 +78,8 @@ public class App extends Application {
 
         connection = new AaltoConnection();
 
+        locationManager = new LocationManager(this);
+
         videoUploader = new ClViTra2VideoUploader(getString(R.string.clvitra2Url));
         metadataUploader = new DummyMetadataUploader();
     }
@@ -106,56 +100,6 @@ public class App extends Application {
         Configuration c = singleton.getResources().getConfiguration();
         int size = c.screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK;
         return (size == Configuration.SCREENLAYOUT_SIZE_SMALL || size == Configuration.SCREENLAYOUT_SIZE_NORMAL);
-    }
-
-    /**
-     * Location updates should be requested when recording starts. This should give us enough time
-     * to fetch an accurate location.
-     *
-     * TODO: Move location stuff into its own class.
-     */
-    public static void startRequestingLocationUpdates() {
-        // NOTE: There's a small possibility that the location could not be retrieved before the
-        // video recording is finished. Is this acceptable or is there a need for a waiting dialog?
-
-        locationApiClient = new GoogleApiClient.Builder(singleton)
-                .useDefaultAccount()
-                .addApi(LocationServices.API)
-                .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
-                    @Override
-                    public void onConnected(Bundle connectionHint) {
-                        LocationRequest locationRequest = LocationRequest.create()
-                                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-
-                        locationListener = new LocationListener() {
-                            public void onLocationChanged(Location location) {
-                                lastLocation = location;
-                            }
-                        };
-
-                        LocationServices.FusedLocationApi.requestLocationUpdates(locationApiClient,
-                                locationRequest, locationListener);
-                    }
-
-                    @Override
-                    public void onConnectionSuspended(int cause) {}
-                })
-                .build();
-
-        locationApiClient.connect();
-    }
-
-    /**
-     * When recording has finished, ask for the location via this method, so we'll stop listening
-     * for further location updates.
-     */
-    public static Location getLastLocation() {
-        if (locationApiClient != null && locationListener != null) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(locationApiClient,
-                    locationListener);
-        }
-
-        return lastLocation;
     }
 
     public static void setQrMode(int mode) {

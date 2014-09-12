@@ -222,7 +222,7 @@ public abstract class ActionbarActivity extends FragmentActivity {
     public void launchRecording() {
         File output_file = LocalRawVideos.getNewOutputFile();
         if (output_file != null) {
-            App.startRequestingLocationUpdates();
+            App.locationManager.startLocationUpdates();
             Intent intent = new Intent(android.provider.MediaStore.ACTION_VIDEO_CAPTURE);
             SharedPreferences.Editor e = getSharedPreferences("AchSoPrefs", 0).edit();
             e.putString("videoUri", output_file.getAbsolutePath());
@@ -314,7 +314,7 @@ public abstract class ActionbarActivity extends FragmentActivity {
         // Generate a location and time based name for the video if we have a location and Geocoder
         // is available, otherwise just a time-based name.
 
-        Location location = App.getLastLocation();
+        Location location = App.locationManager.getLastLocation();
         String locationString = null;
         String videoName;
 
