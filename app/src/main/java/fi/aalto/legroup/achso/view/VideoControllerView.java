@@ -63,8 +63,6 @@ import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.fragment.SemanticVideoPlayerFragment;
 import fi.aalto.legroup.achso.util.FloatPosition;
 
-import static fi.aalto.legroup.achso.util.App.appendLog;
-
 /**
  * A view containing controls for a MediaPlayer. Typically contains the
  * buttons like "Play/Pause", "Rewind", "Fast Forward" and a progress
@@ -780,11 +778,9 @@ public class VideoControllerView extends FrameLayout {
         }
         if (mPlayer.isPlaying()) {
             mPlayer.pause();
-            appendLog(String.format("Pausing playback at point %d", mPlayer.getCurrentPosition()));
             setControllerMode(PAUSE_MODE);
         } else {
             mPlayer.start();
-            appendLog(String.format("Starting playback at point %d", mPlayer.getCurrentPosition()));
             setControllerMode(PLAY_MODE);
         }
         mEditorListener.drawAnnotations();

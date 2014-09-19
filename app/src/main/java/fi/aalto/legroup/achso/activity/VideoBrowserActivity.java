@@ -56,7 +56,7 @@ import fi.aalto.legroup.achso.fragment.BrowseFragment;
 import fi.aalto.legroup.achso.fragment.VideoViewerFragment;
 import fi.aalto.legroup.achso.pager.SwipeDisabledViewPager;
 import fi.aalto.legroup.achso.remote.RemoteResultCache;
-import fi.aalto.legroup.achso.state.LoginState;
+import fi.aalto.legroup.achso.state.LoginManager;
 import fi.aalto.legroup.achso.service.UploaderService;
 import fi.aalto.legroup.achso.util.App;
 import com.google.zxing.integration.android.IntentIntegrator;
@@ -67,7 +67,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
     private List<SemanticVideo> mSelectedVideosForQrCode;
     private UploaderBroadcastReceiver mLocalReceiver = null;
     private IntentFilter mLocalFilter = null;
-    private AchSoBroadcastReceiver mReceiver = null;
+    private GlobalBroadcastReceiver mReceiver = null;
     private IntentFilter mFilter = null;
     private String mQrResult = null;
     private String mQuery = null;
@@ -161,7 +161,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
         if (mFilter == null || mReceiver == null) {
             mFilter = new IntentFilter();
             mFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-            mReceiver = new AchSoBroadcastReceiver();
+            mReceiver = new GlobalBroadcastReceiver();
         }
         this.registerReceiver(mReceiver, mFilter);
         // Start receiving local broadcasts
@@ -171,8 +171,8 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
             mLocalFilter.addAction(UploaderBroadcastReceiver.UPLOAD_PROGRESS_ACTION);
             mLocalFilter.addAction(UploaderBroadcastReceiver.UPLOAD_END_ACTION);
             mLocalFilter.addAction(UploaderBroadcastReceiver.UPLOAD_ERROR_ACTION);
-            mLocalFilter.addAction(LoginState.LOGIN_SUCCESS);
-            mLocalFilter.addAction(LoginState.LOGIN_FAILED);
+            mLocalFilter.addAction(LoginManager.ACTION_LOGIN_STATE_CHANGED);
+            mLocalFilter.addAction(LoginManager.ACTION_LOGIN_ERROR);
             mLocalFilter.addCategory(Intent.CATEGORY_DEFAULT);
             mLocalReceiver = new UploaderBroadcastReceiver();
         }
@@ -421,7 +421,6 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
 
     @Override
     public void onDestroy() {
-        App.appendLog("Closing Ach So!");
         super.onDestroy();
     }
 
@@ -456,7 +455,7 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
         return (mQueryType == QR_QUERY);
     }
 
-    public class UploaderBroadcastReceiver extends AchSoLocalBroadcastReceiver {
+    public class UploaderBroadcastReceiver extends LocalBroadcastReceiver {
         public static final String UPLOAD_START_ACTION = "fi.aalto.legroup.achso.intent.action.UPLOAD_START";
         public static final String UPLOAD_PROGRESS_ACTION = "fi.aalto.legroup.achso.intent.action.UPLOAD_PROGRESS";
         public static final String UPLOAD_END_ACTION = "fi.aalto.legroup.achso.intent.action.UPLOAD_END";

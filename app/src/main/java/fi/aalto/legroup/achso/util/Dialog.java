@@ -40,8 +40,6 @@ import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.SerializableToDB;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
 
-import static fi.aalto.legroup.achso.util.App.appendLog;
-
 public class Dialog {
     private Dialog() {
     }
@@ -80,7 +78,7 @@ public class Dialog {
             public void onClick(DialogInterface dialog, int which) {
                 hideKeyboardAutomatically(ctx, input);
                 String new_value = getTextFromTextView(input);
-                appendLog(String.format("Changed text in TextView %s to: %s", input.toString(), new_value));
+
                 ts.setText(new_value);
 
                 VideoDBHelper dbh = new VideoDBHelper(ctx);

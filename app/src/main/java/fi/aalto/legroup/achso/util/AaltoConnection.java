@@ -26,6 +26,8 @@ package fi.aalto.legroup.achso.util;
 
 import android.util.Log;
 
+import com.google.gson.JsonObject;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -48,8 +50,6 @@ import java.util.List;
 import fi.aalto.legroup.achso.adapter.BrowsePagerAdapter;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.remote.SemanticVideoFactory;
-
-import static fi.aalto.legroup.achso.util.App.appendLog;
 
 public class AaltoConnection implements Connection {
 
@@ -94,8 +94,9 @@ public class AaltoConnection implements Connection {
             case BrowsePagerAdapter.LATEST:
                 break;
             case BrowsePagerAdapter.MY_VIDEOS:
-                params.add(new BasicNameValuePair("user_id", App.getUsername()));
-                //res = runQuery("get_my_videos", params);
+                JsonObject userInfo = App.loginManager.getUserInfo();
+                String userId = userInfo.get("sub").getAsString();
+                params.add(new BasicNameValuePair("user_id", userId));
                 break;
             case BrowsePagerAdapter.RECOMMENDED:
                 break;
@@ -153,19 +154,16 @@ public class AaltoConnection implements Connection {
                 response_string = EntityUtils.toString(responseEntity);
             }
             Log.i("UploaderService", "received response: (" + response.getStatusLine().getStatusCode() + ") " + response_string);
-            appendLog("response:" + response_string);
+
             if (response.getStatusLine().getStatusCode() != 200) {
                 response_string = "";
             }
         } catch (ClientProtocolException e) {
             Log.i("UploaderService", "ClientProtocolException caught");
-            appendLog("ClientProtocolException caught");
         } catch (IOException e) {
             Log.i("UploaderService", "IOException caught:" + e.getMessage());
-            appendLog("IOException caught:" + e.getMessage());
         } catch (IllegalStateException e) {
             Log.i("UploaderService", "IllegalStateException caught:" + e.getMessage());
-            appendLog("IllegalStateException caught:" + e.getMessage());
             e.printStackTrace();
         }
         return response_string;

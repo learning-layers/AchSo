@@ -36,10 +36,9 @@ import fi.aalto.legroup.achso.database.AnnotationBase;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.SerializableToDB;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
+import fi.aalto.legroup.achso.util.App;
 import fi.aalto.legroup.achso.util.FloatPosition;
 import fi.aalto.legroup.achso.util.TextSettable;
-
-import static fi.aalto.legroup.achso.util.App.appendLog;
 
 public class Annotation extends AnnotationBase implements TextSettable, SerializableToDB {
 
@@ -58,15 +57,15 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
     private float mRememberedScaleFactor;
     private boolean mIsSeen = false;
 
-    public Annotation(Context ctx, long videoid, long starttime, String text,
-                      FloatPosition position, float scale, String creator, String video_key) {
+    public Annotation(long videoid, long starttime, String text, FloatPosition position,
+                      float scale, String creator, String video_key) {
         super(videoid, starttime, ANNOTATION_SHOW_DURATION_MILLISECONDS, text, position, scale,
                 creator, video_key);
         mSelected = false;
         mVisible = false;
         mAlive = true;
         mOpacity = 100;
-        mColor = ctx.getResources().getColor(R.color.orange_square);
+        mColor = App.getContext().getResources().getColor(R.color.orange_square);
     }
 
     public Annotation(Context ctx, SemanticVideo sv, AnnotationBase base) {
@@ -159,7 +158,7 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
         if (mText != null && mVisible && text != null) {
             SubtitleManager.replaceSubtitle(mText, text);
         }
-        appendLog(String.format("Edited annotation text at %s to %s", this.toString(), text) );
+
         super.setText(text);
     }
 

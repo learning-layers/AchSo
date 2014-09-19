@@ -90,7 +90,7 @@
     <string name="code_added_to_videos">Ein Code wurde zu(m) Video(s) hinzugefügt.</string>
     <string name="upload_successful">Upload erfolgreich.</string>
     <string name="buffering">Zwischenspeicherung...</string>
-    <string name="logged_in_as">Eingeloggt als </string>
+    <string name="logged_in_as">Eingeloggt als %s.</string>
     <string name="connection_problem">Verbindungsproblem</string>
     <string name="authentication_problem">Authentifizierungsproblem</string>
     <string name="i5cloud_prefs">i5Cloud account</string>
@@ -105,5 +105,7 @@
 
     <string name="yes">Ja</string>
     <string name="no">Nein</string>
+    <string name="logged_out">Logged out.</string>
+    <string name="login_error">Could not log in: %s</string>
 
 </resources>

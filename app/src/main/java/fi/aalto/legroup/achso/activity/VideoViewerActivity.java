@@ -23,7 +23,6 @@
 
 package fi.aalto.legroup.achso.activity;
 
-import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
@@ -36,8 +35,6 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.fragment.SemanticVideoPlayerFragment;
 import fi.aalto.legroup.achso.fragment.VideoViewerFragment;
 
-import static fi.aalto.legroup.achso.util.App.appendLog;
-
 /**
  * This is the activity that hosts the actual video viewer/editor
  */
@@ -48,7 +45,7 @@ public class VideoViewerActivity extends ActionbarActivity {
     private int mVideoPositionInSearchCache;
     private SemanticVideoPlayerFragment mPlayerFragment;
     private IntentFilter mFilter;
-    private BroadcastReceiver mReceiver;
+    private GlobalBroadcastReceiver mReceiver;
     protected boolean show_record() {return true;}
     protected boolean show_login() {return false;}
     protected boolean show_qr() {return false;}
@@ -107,8 +104,6 @@ public class VideoViewerActivity extends ActionbarActivity {
 
         // Create the detail fragment and add it to the activity
         // using a fragment transaction.
-        appendLog(String.format("Opening video with id %d. ", mVideoId));
-
         Bundle arguments = new Bundle();
         if (mVideoId != -1) {
             arguments.putLong(VideoViewerFragment.ARG_ITEM_ID, mVideoId);

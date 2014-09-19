@@ -91,99 +91,6 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
         this.setTitle(text);
     }
 
-    public JSONObject json_dump() {
-        JSONObject o = new JSONObject();
-        try {
-            o.put("title", mTitle);
-            o.put("creator", mCreator);
-            o.put("qr_code", mQrCode);
-            o.put("created_at", mCreatedAt.getTime());
-            o.put("genre", englishGenreStrings.get(mGenre));
-            o.put("key", mKey);
-            if (mLocation != null) {
-                o.put("latitude", mLocation.getLatitude());
-                o.put("longitude", mLocation.getLongitude());
-                o.put("accuracy", mLocation.getAccuracy());
-            } else {
-                o.put("latitude", 0);
-                o.put("longitude", 0);
-                o.put("accuracy", 0);
-            }
-            o.put("duration", mDuration);
-            o.put("thumb_uri", mRemoteThumbnail);
-            o.put("video_uri", mRemoteVideo);
-            VideoDBHelper vdb = new VideoDBHelper(App.getContext());
-            Iterator<Annotation> annotationIterator = vdb.getAnnotationsById(getId()).iterator();
-            //Map<String, Object> ann_map;
-            JSONObject ao;
-            while(annotationIterator.hasNext()) {
-                ao = annotationIterator.next().json_dump();
-                //ann_map = annotationIterator.next().getJSONReadyMapping();
-                //o.put("annotations", ann_map);
-                o.accumulate("annotations", ao);
-            }
-            vdb.close();
-
-        } catch (JSONException e) {
-            Log.i("SemanticVideo", "Error building json string.");
-            e.printStackTrace();
-        }
-        return o;
-    }
-
-    public JSONObject json_dump(List<String> fields) {
-        JSONObject o = new JSONObject();
-        try {
-            if (fields.contains("title")) {
-                o.put("title", mTitle);
-            }
-            if (fields.contains("title")) {
-                o.put("creator", mCreator);
-            }
-            if (fields.contains("title")) {
-                o.put("qr_code", mQrCode);
-            }
-            if (fields.contains("title")) {
-                o.put("created_at", mCreatedAt.getTime());
-            }
-            if (fields.contains("title")) {
-                o.put("genre", englishGenreStrings.get(mGenre));
-            }
-            o.put("key", mKey);
-            if (fields.contains("location")) {
-                if (mLocation != null) {
-                    o.put("latitude", mLocation.getLatitude());
-                    o.put("longitude", mLocation.getLongitude());
-                    o.put("accuracy", mLocation.getAccuracy());
-                } else {
-                    o.put("latitude", 0);
-                    o.put("longitude", 0);
-                    o.put("accuracy", 0);
-                }
-            }
-            o.put("duration", mDuration);
-            o.put("thumb_uri", mRemoteThumbnail);
-            o.put("video_uri", mRemoteVideo);
-            VideoDBHelper vdb = new VideoDBHelper(App.getContext());
-            Iterator<Annotation> annotationIterator = vdb.getAnnotationsById(getId()).iterator();
-            //Map<String, Object> ann_map;
-            JSONObject ao;
-            while(annotationIterator.hasNext()) {
-                ao = annotationIterator.next().json_dump();
-                //ann_map = annotationIterator.next().getJSONReadyMapping();
-                //o.put("annotations", ann_map);
-                o.accumulate("annotations", ao);
-            }
-            vdb.close();
-
-        } catch (JSONException e) {
-            Log.i("SemanticVideo", "Error building json string.");
-            e.printStackTrace();
-        }
-        return o;
-    }
-
-
     public enum Genre {
         GoodWork, Problem, TrickOfTrade, SiteOverview
 	}
@@ -252,23 +159,6 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
                 NO_UPLOAD, creator, null, remote_video, remote_thumb);
         this.mInLocalDB = false;
         this.mInLocalDB = true;
-    }
-
-
-    public void extractRemoteDatas() {
-        /*
-        FFmpegMediaMetadataRetriever ffretriever=new FFmpegMediaMetadataRetriever();
-        try {
-            ffretriever.setDataSource(mUri.toString());
-            mDuration = Long.parseLong(ffretriever.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_DURATION));
-            mThumbMini = ffretriever.getFrameAtTime();
-            mThumbMicro=mThumbMini;
-        } catch(IllegalArgumentException e2) {
-            mDuration=0l;
-        }
-        ffretriever.release();
-        */
-        mDuration=0l;
     }
 
     public long getDuration(Context ctx) {
@@ -371,13 +261,10 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
 	}
 
     public String getKey() {
-        return this.mKey;
-    }
-
-    public String createKey() {
         if (this.mKey == null || this.mKey.isEmpty()) {
             mKey = UUID.randomUUID().toString();
         }
+
         return mKey;
     }
 

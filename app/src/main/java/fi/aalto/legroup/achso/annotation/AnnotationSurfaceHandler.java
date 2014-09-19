@@ -32,6 +32,8 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.TextView;
 
+import com.google.gson.JsonObject;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -102,13 +104,22 @@ public class AnnotationSurfaceHandler {
 
     public Annotation addAnnotation(long time, FloatPosition pos) {
         VideoDBHelper vdb = new VideoDBHelper(mContext);
-        Annotation a = new Annotation(mContext, mVideoId, time, "", pos, (float) 1.0,
-                App.getUsername(), null); // <--- !!! this null has to be replaced with proper
-                // key if we are annotating remote video
+        JsonObject userInfo = App.loginManager.getUserInfo();
+        String creator = null;
+
+        if (userInfo != null && userInfo.has("preferred_username")) {
+            creator = userInfo.get("preferred_username").getAsString();
+        }
+
+        // FIXME: This null has to be replaced with a proper key if we're annotating a remote video
+        Annotation a = new Annotation(mVideoId, time, "", pos, 1.0f, creator, null);
+
         a.setVisible(true);
         mAnnotations.add(a);
+
         vdb.insert(a);
         vdb.close();
+
         return a;
     }
 

@@ -66,10 +66,6 @@ import fi.aalto.legroup.achso.util.FloatPosition;
 import fi.aalto.legroup.achso.view.AnnotatedSeekBar;
 import fi.aalto.legroup.achso.view.VideoControllerView;
 
-import static fi.aalto.legroup.achso.util.App.appendLog;
-import static fi.aalto.legroup.achso.util.App.getContext;
-
-
 public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHolder.Callback, MediaPlayer.OnPreparedListener, VideoControllerView.MediaPlayerControl, View.OnTouchListener, MediaPlayer.OnCompletionListener, OnErrorListener, OnVideoSizeChangedListener, EditorListener, MediaPlayer.OnBufferingUpdateListener, VideoControllerView.VideoControllerShowHideListener, MediaPlayer.OnInfoListener, MediaPlayer.OnSeekCompleteListener, AnnotationTimer.Listener {
 
     public static final int DO_NOTHING = 0;
@@ -421,7 +417,6 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     public void newAnnotation(FloatPosition position) {
         Annotation ann = mAnnotationSurfaceHandler.addAnnotation(mMediaPlayer.getCurrentPosition(), position);
         mController.setCurrentAnnotation(ann);
-        appendLog(String.format("Added new annotation %s to video %d at time %d", ann.toString(), mVideoId, mMediaPlayer.getCurrentPosition()));
     }
 
     @Override
@@ -444,14 +439,12 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     public void deleteAnnotation(final Annotation a) {
         mAnnotationSurfaceHandler.removeAnnotation(a);
         mAnnotationSurfaceHandler.draw();
-        appendLog(String.format("Deleted annotation %s.", a.toString()));
     }
 
     @Override
     public void revertAnnotationChanges(final Annotation a) {
         a.revertToRemembered();
         mAnnotationSurfaceHandler.draw();
-        appendLog(String.format("Canceled annotation change for %s.", a.toString()));
     }
 
     @Override
@@ -776,25 +769,25 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
         mController.show();
         switch (extra) {
             case MediaPlayer.MEDIA_ERROR_IO:
-                Toast.makeText(getContext(), "Network error", Toast.LENGTH_LONG).show();
+                Toast.makeText(getActivity(), "Network error", Toast.LENGTH_LONG).show();
                 break;
             case MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK:
-                Toast.makeText(getContext(), "Video not valid for streaming", Toast.LENGTH_LONG).show();
+                Toast.makeText(getActivity(), "Video not valid for streaming", Toast.LENGTH_LONG).show();
                 break;
             case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
-                Toast.makeText(getContext(), "Media server died.", Toast.LENGTH_LONG).show();
+                Toast.makeText(getActivity(), "Media server died.", Toast.LENGTH_LONG).show();
                 break;
             case MediaPlayer.MEDIA_ERROR_TIMED_OUT:
-                Toast.makeText(getContext(), "Server timed out.", Toast.LENGTH_LONG).show();
+                Toast.makeText(getActivity(), "Server timed out.", Toast.LENGTH_LONG).show();
                 break;
             case MediaPlayer.MEDIA_ERROR_UNKNOWN:
-                Toast.makeText(getContext(), "Unknown error with media player.", Toast.LENGTH_LONG).show();
+                Toast.makeText(getActivity(), "Unknown error with media player.", Toast.LENGTH_LONG).show();
                 break;
             case MediaPlayer.MEDIA_ERROR_UNSUPPORTED:
-                Toast.makeText(getContext(), "Unsupported media format.", Toast.LENGTH_LONG).show();
+                Toast.makeText(getActivity(), "Unsupported media format.", Toast.LENGTH_LONG).show();
                 break;
             default:
-                Toast.makeText(getContext(), "Media player error: " + what, Toast.LENGTH_LONG).show();
+                Toast.makeText(getActivity(), "Media player error: " + what, Toast.LENGTH_LONG).show();
                 break;
         }
         return true;
@@ -812,13 +805,12 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
                 Log.i("SemanticVideoPlayerFragment", "MediaPlayer.MEDIA_INFO_BUFFERING_START");
                 mController.show();
                 mBufferProgress.setVisibility(View.VISIBLE);
-                Toast.makeText(getContext(), getString(R.string.buffering), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), getString(R.string.buffering), Toast.LENGTH_SHORT).show();
                 break;
             case MediaPlayer.MEDIA_INFO_BUFFERING_END:
                 Log.i("SemanticVideoPlayerFragment", "MediaPlayer.MEDIA_INFO_BUFFERING_END");
                 mBufferProgress.setVisibility(View.GONE);
                 mController.show();
-                //Toast.makeText(getContext(), "Buffering...", Toast.LENGTH_SHORT).show();
                 break;
             case MediaPlayer.MEDIA_INFO_NOT_SEEKABLE:
                 Log.i("SemanticVideoPlayerFragment", "MediaPlayer.MEDIA_INFO_NOT_SEEKABLE");

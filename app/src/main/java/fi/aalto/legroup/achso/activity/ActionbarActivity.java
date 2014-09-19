@@ -46,6 +46,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.google.gson.JsonObject;
 import com.google.zxing.integration.android.IntentIntegrator;
 
 import java.io.File;
@@ -59,11 +60,8 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.database.LocalRawVideos;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
-import fi.aalto.legroup.achso.state.LoginState;
+import fi.aalto.legroup.achso.state.LoginManager;
 import fi.aalto.legroup.achso.util.App;
-
-import static fi.aalto.legroup.achso.util.App.appendLog;
-import static fi.aalto.legroup.achso.util.App.getContext;
 
 /**
  * This activity is used to present the same actionbar buttons for every activity.
@@ -72,6 +70,8 @@ import static fi.aalto.legroup.achso.util.App.getContext;
  */
 
 public abstract class ActionbarActivity extends FragmentActivity {
+
+    private final String TAG = getClass().getSimpleName();
 
     public static final int REQUEST_VIDEO_CAPTURE = 1;
     public static final int REQUEST_SEMANTIC_VIDEO_GENRE = 2;
@@ -83,12 +83,11 @@ public abstract class ActionbarActivity extends FragmentActivity {
     public static final int REQUEST_AUTHENTICATION_APPROVAL = 9;
     public static final String LAUNCH_RECORDING = "fi.aalto.legroup.achso.action.RECORD";
 
-    protected Menu mMenu;
     private Uri mVideoUri;
     protected IntentFilter mFilter;
-    protected AchSoBroadcastReceiver mReceiver;
+    protected GlobalBroadcastReceiver mReceiver;
     protected IntentFilter mLocalFilter;
-    protected AchSoLocalBroadcastReceiver mLocalReceiver;
+    protected LocalBroadcastReceiver mLocalReceiver;
 
     protected boolean show_record() {return true;}
     protected boolean show_addvideo() {return true;}
@@ -114,10 +113,11 @@ public abstract class ActionbarActivity extends FragmentActivity {
                 launchQrReading();
                 return true;
             case R.id.action_login:
-                App.login_state.launchLoginActivity(this);
+                Intent intent = new Intent(this, LoginActivity.class);
+                startActivity(intent);
                 return true;
             case R.id.action_logout:
-                App.login_state.logout();
+                App.loginManager.logoutExplicitly();
                 invalidateOptionsMenu();
                 return true;
             case R.id.action_addvideo:
@@ -145,12 +145,9 @@ public abstract class ActionbarActivity extends FragmentActivity {
      */
 
     protected void initMenu(Menu menu) {
-        mMenu = menu;
         MenuInflater mi = getMenuInflater();
         mi.inflate(R.menu.main_menubar, menu);
-        if (show_login()) {
-            updateLoginMenuItem();
-        } else {
+        if (!show_login()) {
             menu.removeItem(R.id.action_login);
             menu.removeItem(R.id.action_logout);
             menu.removeItem(R.id.action_offline);
@@ -173,58 +170,50 @@ public abstract class ActionbarActivity extends FragmentActivity {
     /**
      * Each subclass has its own onCreateOptionsMenu that limits what is displayed in menu bar.
      * Most of them have login/logout/offline -area visible and this method makes sure it is set up correctly.
-     *
-     * @param menu
-     * @return
      */
-
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        mMenu = menu;
-        if (show_login()) {
-            updateLoginMenuItem();
+        MenuItem loginItem = menu.findItem(R.id.action_login);
+        MenuItem logoutItem = menu.findItem(R.id.action_logout);
+        MenuItem loadingItem = menu.findItem(R.id.menu_refresh);
+        MenuItem offlineItem = menu.findItem(R.id.action_offline);
+
+        boolean showLogin = false;
+        boolean showLogout = false;
+        boolean showLoading = false;
+        boolean showOffline = false;
+
+        switch (App.loginManager.getState()) {
+            case LOGGED_OUT:
+                showLogin = true;
+                break;
+
+            case LOGGED_IN:
+                showLogout = true;
+                break;
+
+            case LOGGING_IN:
+            case LOGGING_OUT:
+                showLoading = true;
+                break;
         }
+
+        if (App.isDisconnected()) {
+            showOffline = true;
+            showLogin = false;
+            showLogout = false;
+        }
+
+        try {
+            loginItem.setVisible(showLogin);
+            logoutItem.setVisible(showLogout);
+            loadingItem.setVisible(showLoading);
+            offlineItem.setVisible(showOffline);
+        } catch (NullPointerException e) {
+            Log.d(TAG, "Menu items not available.");
+        }
+
         return super.onPrepareOptionsMenu(menu);
-    }
-
-    /**
-     * Call this manually in resume/prepare methods to update correct mode to top right corner login buttons
-     */
-    private void updateLoginMenuItem() {
-        if (mMenu == null || !show_login()) {
-            //Log.i("ActionBarActivity", "Skipping icon update -- menu is null.");
-            return;
-        }
-        MenuItem loginItem = mMenu.findItem(R.id.action_login);
-        MenuItem logoutItem = mMenu.findItem(R.id.action_logout);
-        MenuItem loadingItem = mMenu.findItem(R.id.menu_refresh);
-        MenuItem offlineItem = mMenu.findItem(R.id.action_offline);
-
-        if (loginItem == null || logoutItem == null || loadingItem == null || offlineItem == null) {
-            Log.i("ActionBarActivity", "Skipping icon update -- they are not present. ");
-        } else {
-            if (!App.hasConnection()) {
-                loginItem.setVisible(false);
-                logoutItem.setVisible(false);
-                loadingItem.setVisible(false);
-                offlineItem.setVisible(true);
-            } else if (App.login_state.isIn()) {
-                loginItem.setVisible(false);
-                logoutItem.setVisible(true);
-                loadingItem.setVisible(false);
-                offlineItem.setVisible(false);
-            } else if (App.login_state.isOut()) {
-                loginItem.setVisible(true);
-                logoutItem.setVisible(false);
-                loadingItem.setVisible(false);
-                offlineItem.setVisible(false);
-            } else if (App.login_state.isTrying()) {
-                loginItem.setVisible(false);
-                logoutItem.setVisible(false);
-                loadingItem.setVisible(true);
-                offlineItem.setVisible(false);
-            }
-        }
     }
 
     /**
@@ -233,7 +222,7 @@ public abstract class ActionbarActivity extends FragmentActivity {
     public void launchRecording() {
         File output_file = LocalRawVideos.getNewOutputFile();
         if (output_file != null) {
-            App.startRequestingLocationUpdates();
+            App.locationManager.startLocationUpdates();
             Intent intent = new Intent(android.provider.MediaStore.ACTION_VIDEO_CAPTURE);
             SharedPreferences.Editor e = getSharedPreferences("AchSoPrefs", 0).edit();
             e.putString("videoUri", output_file.getAbsolutePath());
@@ -267,7 +256,6 @@ public abstract class ActionbarActivity extends FragmentActivity {
             // Intent without EXTRA_OUTPUT
             //Log.i("ActionBarActivity", "Storing video through prefs: " + output_file.getAbsolutePath());
             intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1); // High video quality
-            appendLog("Starting recording.");
             startActivityForResult(intent, REQUEST_VIDEO_CAPTURE);
 
         } else {
@@ -292,7 +280,6 @@ public abstract class ActionbarActivity extends FragmentActivity {
         );
         integrator.setTargetApplications(target_applications);
         integrator.initiateScan(IntentIntegrator.ALL_CODE_TYPES);
-        appendLog("Launched Qr Reading.");
     }
 
     private AlertDialog getLocationNotEnabledDialog() {
@@ -317,16 +304,17 @@ public abstract class ActionbarActivity extends FragmentActivity {
      */
     protected long createSemanticVideo(Uri videoUri) {
         VideoDBHelper vdb = new VideoDBHelper(this);
+        JsonObject userInfo = App.loginManager.getUserInfo();
         String creator = null;
 
-        if (App.login_state.isIn()) {
-            creator = App.login_state.getUser();
+        if (userInfo != null && userInfo.has("preferred_username")) {
+            creator = userInfo.get("preferred_username").getAsString();
         }
 
         // Generate a location and time based name for the video if we have a location and Geocoder
         // is available, otherwise just a time-based name.
 
-        Location location = App.getLastLocation();
+        Location location = App.locationManager.getLastLocation();
         String locationString = null;
         String videoName;
 
@@ -354,27 +342,25 @@ public abstract class ActionbarActivity extends FragmentActivity {
             videoName = String.format("%s, %s %s", locationString, dateString, timeString);
         }
 
-        SemanticVideo newvideo = new SemanticVideo(videoName, videoUri,
+        SemanticVideo video = new SemanticVideo(videoName, videoUri,
                 SemanticVideo.Genre.values()[0], creator, location);
 
-        if (VideoDBHelper.getByUri(newvideo.getUri()) != null) {
+        if (VideoDBHelper.getByUri(video.getUri()) != null) {
             Log.i("ActionbarActivity", "Video already exists, abort! Abort!");
             vdb.close();
             return -2;
         }
 
-        if (!newvideo.prepareThumbnails()) {
+        if (!video.prepareThumbnails()) {
             Log.i("ActionbarActivity", "Failed to create thumbnails, abort! Abort!");
             vdb.close();
             return -1;
         }
 
-        vdb.insert(newvideo);
+        vdb.insert(video);
         vdb.close();
 
-        appendLog(String.format("Created video %s to uri %s", videoName, videoUri.toString()));
-
-        return newvideo.getId();
+        return video.getId();
     }
 
     /**
@@ -388,15 +374,15 @@ public abstract class ActionbarActivity extends FragmentActivity {
         if (mFilter == null || mReceiver == null) {
             mFilter = new IntentFilter();
             mFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-            mReceiver = new AchSoBroadcastReceiver();
+            mReceiver = new GlobalBroadcastReceiver();
         }
         this.registerReceiver(mReceiver, mFilter);
         // Start receiving local broadcasts
         if (mLocalFilter == null || mLocalReceiver == null) {
             mLocalFilter = new IntentFilter();
-            mLocalFilter.addAction(LoginState.LOGIN_SUCCESS);
-            mLocalFilter.addAction(LoginState.LOGIN_FAILED);
-            mLocalReceiver = new AchSoLocalBroadcastReceiver();
+            mLocalFilter.addAction(LoginManager.ACTION_LOGIN_STATE_CHANGED);
+            mLocalFilter.addAction(LoginManager.ACTION_LOGIN_ERROR);
+            mLocalReceiver = new LocalBroadcastReceiver();
         }
         LocalBroadcastManager.getInstance(this).registerReceiver(mLocalReceiver, mLocalFilter);
     }
@@ -409,18 +395,12 @@ public abstract class ActionbarActivity extends FragmentActivity {
     public void onPause() {
         super.onPause();
         stopReceivingBroadcasts();
-
     }
 
     @Override
     public void onResume() {
         super.onResume();
         startReceivingBroadcasts();
-    }
-
-
-    public void tryLogin() {
-
     }
 
     /**
@@ -445,10 +425,10 @@ public abstract class ActionbarActivity extends FragmentActivity {
                     mVideoUri = Uri.parse(received_path);
                     long video_id = createSemanticVideo(mVideoUri);
                     if (video_id == -1) {
-                        Toast.makeText(getContext(), getString(R.string.unknown_format),
+                        Toast.makeText(this, getString(R.string.unknown_format),
                                 Toast.LENGTH_LONG).show();
                     } else if (video_id == -2) {
-                        Toast.makeText(getContext(), getString(R.string.video_already_exists),
+                        Toast.makeText(this, getString(R.string.video_already_exists),
                                 Toast.LENGTH_LONG).show();
                     } else {
                         Intent i = new Intent(this, GenreSelectionActivity.class);
@@ -467,7 +447,6 @@ public abstract class ActionbarActivity extends FragmentActivity {
                 if (resultCode == RESULT_OK) {
                     // Got video from camera. Starting genre selection activity
                     finishActivity(REQUEST_VIDEO_CAPTURE);
-                    appendLog("Finished recording.");
                     String videoPath = getSharedPreferences("AchSoPrefs", 0).getString("videoUri", null);
                     //Log.d("ActionBarActivity", "AchSoPrefs says that videoUri is " + videoPath);
 
@@ -508,7 +487,7 @@ public abstract class ActionbarActivity extends FragmentActivity {
                     } else {
                         // Version 1: intent wrote file to correct place at once.
                         if (intent == null && videoPath.isEmpty()) {
-                            Toast.makeText(getContext(), "Failed to save video.", Toast.LENGTH_LONG).show();
+                            Toast.makeText(this, "Failed to save video.", Toast.LENGTH_LONG).show();
                             super.onBackPressed();
                         } else if (intent != null && !intent.getDataString().isEmpty()) {
                             Log.d("ActionBarActivity", "Found better from intent: " + intent.getData());
@@ -528,10 +507,10 @@ public abstract class ActionbarActivity extends FragmentActivity {
                     long video_id = createSemanticVideo(mVideoUri);
 
                     if (video_id == -1) {
-                        Toast.makeText(getContext(), "Failed to create thumbnails - video itself is " +
+                        Toast.makeText(this, "Failed to create thumbnails - video itself is " +
                                 "somewhere in device.", Toast.LENGTH_LONG).show();
                     } else if (video_id == -2) {
-                        Toast.makeText(getContext(), getString(R.string.video_already_exists),
+                        Toast.makeText(this, getString(R.string.video_already_exists),
                                 Toast.LENGTH_LONG).show();
                     } else {
                         Intent i = new Intent(this, GenreSelectionActivity.class);
@@ -553,49 +532,74 @@ public abstract class ActionbarActivity extends FragmentActivity {
                 break;
             case REQUEST_LOGIN:
                 invalidateOptionsMenu();
-                Toast.makeText(getContext(), getString(R.string.login_successful), Toast.LENGTH_LONG).show();
-                break;
-            case REQUEST_AUTHENTICATION_APPROVAL:
-                // we can continue from where we drifted off...
-                if (resultCode == RESULT_OK) {
-                    App.login_state.resumeAuthentication(intent.getStringExtra("url"));
-                } else if (resultCode == RESULT_CANCELED) {
-                    App.login_state.logout();
-                }
+                Toast.makeText(this, getString(R.string.login_successful), Toast.LENGTH_LONG).show();
                 break;
         }
     }
 
     /**
-     * Receive changes in login state, other activities may add more intents that they recognize.
+     * Receive events broadcast by this application, e.g. login or upload states.
      */
-    public class AchSoBroadcastReceiver extends BroadcastReceiver {
+    public class LocalBroadcastReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (action != null && action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
-                updateLoginMenuItem();
-            }
-        }
-    }
-    /**
-     * Receive changes in login state, other activities may add more intents that they recognize.
-     */
-    public class AchSoLocalBroadcastReceiver extends BroadcastReceiver {
+            if (action == null) return;
 
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (action != null) {
-                if (action.equals(LoginState.LOGIN_SUCCESS)) {
-                    updateLoginMenuItem();
-                } else if (action.equals(LoginState.LOGIN_FAILED)) {
-                    updateLoginMenuItem();
+            if (action.equals(LoginManager.ACTION_LOGIN_STATE_CHANGED)) {
+                invalidateOptionsMenu();
+
+                switch (App.loginManager.getState()) {
+                    case LOGGED_IN:
+                        String name = App.loginManager.getUserInfo().get("name").getAsString();
+                        String welcome = String.format(getString(R.string.logged_in_as), name);
+
+                        Toast.makeText(ActionbarActivity.this, welcome,
+                                Toast.LENGTH_LONG).show();
+                        break;
+
+                    case LOGGED_OUT:
+                        Toast.makeText(ActionbarActivity.this, R.string.logged_out,
+                                Toast.LENGTH_LONG).show();
+                        break;
                 }
+            } else if (action.equals(LoginManager.ACTION_LOGIN_ERROR)) {
+                invalidateOptionsMenu();
+
+                String error = intent.getStringExtra(LoginManager.KEY_MESSAGE);
+                String message = String.format(getString(R.string.login_error), error);
+
+                Toast.makeText(ActionbarActivity.this, message,
+                        Toast.LENGTH_LONG).show();
             }
         }
+
     }
 
+    /**
+     * Receives events broadcast by other applications, e.g. network state.
+     */
+    public class GlobalBroadcastReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action == null) return;
+
+            if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+                // Try to automatically log in when connected and not logged in.
+                if (App.isConnected() && App.loginManager.isLoggedOut())
+                    App.loginManager.login();
+
+                // Log out when connectivity is lost, but remember auto-login
+                if (App.isDisconnected() && App.loginManager.isLoggedIn())
+                    App.loginManager.logout();
+
+                invalidateOptionsMenu();
+            }
+        }
+
+    }
 
 }

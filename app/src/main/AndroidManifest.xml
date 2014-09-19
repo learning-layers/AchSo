@@ -77,17 +77,13 @@
             android:name=".activity.InformationActivity"
             android:label="@string/title_activity_information" />
         <activity
-            android:name=".activity.ApprovalActivity"
-            android:label="@string/title_activity_approval" />
-        <activity
-            android:name=".authenticator.OIDCAuthenticatorActivity"
-            android:label="@string/title_activity_authenticator"
+            android:name=".activity.LoginActivity"
+            android:label="@string/choose_account"
             />
 
         <service android:name=".service.UploaderService" />
-        <service android:name=".service.PollingService" />
         <service
-            android:name=".authenticator.OIDCAuthenticatorService"
+            android:name=".authenticator.AuthenticatorService"
             android:exported="true" >
 
             <intent-filter>

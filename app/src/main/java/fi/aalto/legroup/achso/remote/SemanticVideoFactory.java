@@ -26,7 +26,6 @@ package fi.aalto.legroup.achso.remote;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
-import android.net.Uri;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -43,7 +42,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import fi.aalto.legroup.achso.annotation.Annotation;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.util.App;

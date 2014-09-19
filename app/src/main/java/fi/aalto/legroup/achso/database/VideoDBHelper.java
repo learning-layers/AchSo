@@ -334,8 +334,8 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         float scale = c.getFloat(i++);
         String creator = c.getString(i++);
         String video_key = c.getString(i++);
-        Annotation a = new Annotation(mContext, vid, starttime, text, new FloatPosition(x, y),
-                scale, creator, video_key);
+        Annotation a = new Annotation(vid, starttime, text, new FloatPosition(x, y), scale,
+                creator, video_key);
         ((AnnotationBase) a).setId(id);
         return a;
     }
