@@ -25,7 +25,6 @@ package fi.aalto.legroup.achso.util;
 
 import android.util.Log;
 
-import com.github.kevinsawicki.http.HttpRequest;
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
 import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
 import com.google.api.client.auth.oauth2.BearerToken;
@@ -40,6 +39,8 @@ import com.google.api.client.http.GenericUrl;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -177,7 +178,6 @@ public class OIDCUtils {
      * TODO: Look into verifying the token issuer as well?
      */
     public static boolean isValidIdToken(String clientId, String tokenString) throws IOException {
-
         List<String> audiences = Arrays.asList(clientId);
         IdTokenVerifier verifier = new IdTokenVerifier.Builder().setAudience(audiences).build();
 
@@ -190,26 +190,22 @@ public class OIDCUtils {
      * Gets user information from the UserInfo endpoint.
      */
     public static JsonObject getUserInfo(String userInfoUrl, String idToken) throws IOException {
-        HttpRequest request = new HttpRequest(userInfoUrl, HttpRequest.METHOD_GET);
-        request = prepareApiRequest(request, idToken);
+        Request request = new Request.Builder()
+                .url(userInfoUrl)
+                .header("Accept", "application/json")
+                .header("Authorization", "Bearer " + idToken)
+                .get()
+                .build();
 
-        if (request.ok()) {
-            String jsonString = request.body();
+        Response response = App.httpClient.newCall(request).execute();
+
+        if (response.isSuccessful()) {
+            String jsonString = response.body().string();
             return new JsonParser().parse(jsonString).getAsJsonObject();
         } else {
-            throw new IOException(request.message());
+            throw new IOException("Could not get user info: " + response.code() + " " +
+                    response.message());
         }
-    }
-
-    /**
-     * Prepares an arbitrary API request by injecting an ID Token into an HttpRequest. Uses an
-     * external library to make my life easier, but you can modify this to use whatever in case you
-     * don't like the (small) dependency.
-     */
-    public static HttpRequest prepareApiRequest(HttpRequest request, String idToken)
-            throws IOException {
-
-        return request.authorization("Bearer " + idToken).acceptJson();
     }
 
 }

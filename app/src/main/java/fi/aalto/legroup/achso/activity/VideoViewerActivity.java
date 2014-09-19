@@ -35,8 +35,6 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.fragment.SemanticVideoPlayerFragment;
 import fi.aalto.legroup.achso.fragment.VideoViewerFragment;
 
-import static fi.aalto.legroup.achso.util.App.appendLog;
-
 /**
  * This is the activity that hosts the actual video viewer/editor
  */
@@ -106,8 +104,6 @@ public class VideoViewerActivity extends ActionbarActivity {
 
         // Create the detail fragment and add it to the activity
         // using a fragment transaction.
-        appendLog(String.format("Opening video with id %d. ", mVideoId));
-
         Bundle arguments = new Bundle();
         if (mVideoId != -1) {
             arguments.putLong(VideoViewerFragment.ARG_ITEM_ID, mVideoId);

@@ -421,7 +421,6 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
 
     @Override
     public void onDestroy() {
-        App.appendLog("Closing Ach So!");
         super.onDestroy();
     }
 

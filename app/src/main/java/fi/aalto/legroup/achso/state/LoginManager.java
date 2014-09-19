@@ -8,11 +8,13 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.support.v4.content.LocalBroadcastManager;
 
-import com.github.kevinsawicki.http.HttpRequest;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
 
-import fi.aalto.legroup.achso.authenticator.Authenticator;
+import java.io.IOException;
+
 import fi.aalto.legroup.achso.util.App;
 import fi.aalto.legroup.achso.util.OIDCConfig;
 
@@ -172,29 +174,25 @@ public class LoginManager {
         protected String doInBackground(Account... accounts) {
             String userInfoUrl = OIDCConfig.getUserInfoUrl(context);
             Account account = accounts[0];
-            String token;
+
+            Request request = new Request.Builder()
+                    .url(userInfoUrl)
+                    .header("Accept", "application/json")
+                    .get()
+                    .build();
 
             try {
-                token = AccountManager.get(context).blockingGetAuthToken(account,
-                        Authenticator.TOKEN_TYPE_ID, true);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return "Couldn't fetch token: " + e.getMessage();
-            }
+                Response response = App.authenticatedHttpClient.execute(request, account);
 
-            HttpRequest request = new HttpRequest(userInfoUrl, HttpRequest.METHOD_GET);
-            request.header("Authorization", "Bearer " + token);
-            request.acceptJson();
-
-            try {
-                if (request.ok()) {
-                    String body = request.body();
+                if (response.isSuccessful()) {
+                    String body = response.body().string();
                     userInfo = new JsonParser().parse(body).getAsJsonObject();
                 } else {
                     return "Couldn't fetch user info: " +
-                            request.code() + " " + request.message();
+                            response.code() + " " + response.message();
                 }
-            } catch (HttpRequest.HttpRequestException e) {
+            } catch (IOException e) {
+                e.printStackTrace();
                 return "Couldn't fetch user info: " + e.getMessage();
             }
 

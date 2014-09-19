@@ -39,8 +39,6 @@ import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.util.FloatPosition;
 import fi.aalto.legroup.achso.util.TextSettable;
 
-import static fi.aalto.legroup.achso.util.App.appendLog;
-
 public class Annotation extends AnnotationBase implements TextSettable, SerializableToDB {
 
     public static final long ANNOTATION_SHOW_DURATION_MILLISECONDS = 3000;
@@ -159,7 +157,7 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
         if (mText != null && mVisible && text != null) {
             SubtitleManager.replaceSubtitle(mText, text);
         }
-        appendLog(String.format("Edited annotation text at %s to %s", this.toString(), text) );
+
         super.setText(text);
     }
 
