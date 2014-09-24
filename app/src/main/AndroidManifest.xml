@@ -78,8 +78,10 @@
             android:label="@string/title_activity_information" />
         <activity
             android:name=".activity.LoginActivity"
-            android:label="@string/choose_account"
-            />
+            android:label="@string/choose_account" />
+        <activity
+            android:name=".authenticator.AuthenticatorActivity"
+            android:label="@string/app_name" />
 
         <service android:name=".service.UploaderService" />
         <service
