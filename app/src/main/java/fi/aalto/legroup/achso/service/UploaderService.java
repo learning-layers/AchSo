@@ -30,18 +30,14 @@ import android.support.v4.content.LocalBroadcastManager;
 import fi.aalto.legroup.achso.activity.VideoBrowserActivity;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
-import fi.aalto.legroup.achso.upload.metadata.AbstractMetadataUploader;
-import fi.aalto.legroup.achso.upload.video.AbstractVideoUploader;
+import fi.aalto.legroup.achso.upload.Uploader;
 import fi.aalto.legroup.achso.util.App;
 
 /**
  * FIXME: Video and metadata are uploaded independently of each other.
  *        If one of them fails, we should undo the other, maybe?
- *
- * TODO: Make uploaders extend a parent class so that we can have a single set of listener methods?
  */
-public class UploaderService extends IntentService implements AbstractVideoUploader.UploadListener,
-        AbstractMetadataUploader.UploadListener {
+public class UploaderService extends IntentService {
 
     public static final String PARAM_IN = "in";
     public static final String PARAM_OUT = "out";
@@ -67,106 +63,15 @@ public class UploaderService extends IntentService implements AbstractVideoUploa
         if (id != -1) {
             SemanticVideo video = VideoDBHelper.getById(id);
 
-            App.metadataUploader.setUploadListener(this);
+            App.metadataUploader.setListener(new MetadataUploaderListener());
             App.metadataUploader.upload(video);
 
-            App.videoUploader.setUploadListener(this);
+            App.videoUploader.setListener(new VideoUploaderListener());
             App.videoUploader.upload(video);
         }
     }
 
-    /**
-     * Fired when the upload starts.
-     *
-     * @param video the video that is being uploaded
-     */
-    @Override
-    public void onVideoUploadStart(SemanticVideo video) {
-        Intent intent = new Intent();
-
-        intent.setAction(VideoBrowserActivity.UploaderBroadcastReceiver.UPLOAD_START_ACTION);
-        intent.addCategory(Intent.CATEGORY_DEFAULT);
-        intent.putExtra(PARAM_OUT, video.getId());
-        intent.putExtra(PARAM_WHAT, UPLOAD_START);
-
-        broadcastManager.sendBroadcast(intent);
-    }
-
-    /**
-     * Fired when the upload progresses.
-     *
-     * @param video   the video that is being uploaded
-     * @param percent upload progress as a percent value
-     */
-    @Override
-    public void onVideoUploadProgress(SemanticVideo video, int percent) {
-        Intent intent = new Intent();
-
-        intent.setAction(VideoBrowserActivity.UploaderBroadcastReceiver.UPLOAD_PROGRESS_ACTION);
-        intent.addCategory(Intent.CATEGORY_DEFAULT);
-        intent.putExtra(PARAM_OUT, video.getId());
-        intent.putExtra(PARAM_WHAT, UPLOAD_PROGRESS);
-        intent.putExtra(PARAM_ARG, percent);
-
-        broadcastManager.sendBroadcast(intent);
-    }
-
-    /**
-     * Fired when the upload finishes.
-     *
-     * @param video the video that was uploaded
-     */
-    @Override
-    public void onVideoUploadFinish(SemanticVideo video) {
-        Intent intent = new Intent();
-
-        intent.setAction(VideoBrowserActivity.UploaderBroadcastReceiver.UPLOAD_END_ACTION);
-        intent.addCategory(Intent.CATEGORY_DEFAULT);
-        intent.putExtra(PARAM_OUT, video.getId());
-        intent.putExtra(PARAM_WHAT, UPLOAD_END);
-
-        broadcastManager.sendBroadcast(intent);
-    }
-
-    /**
-     * Fired when an error occurs during the upload process.
-     *
-     * @param video        the video that was being uploaded
-     * @param errorMessage a message describing the error
-     */
-    @Override
-    public void onVideoUploadError(SemanticVideo video, String errorMessage) {
-        broadcastError(video, errorMessage);
-    }
-
-    /**
-     * Fired when the upload starts.
-     *
-     * @param video the video whose metadata is being uploaded
-     */
-    @Override
-    public void onMetadataUploadStart(SemanticVideo video) {}
-
-    /**
-     * Fired when the upload finishes.
-     *
-     * @param video the video whose metadata was uploaded
-     */
-    @Override
-    public void onMetadataUploadFinish(SemanticVideo video) {}
-
-    /**
-     * Fired when an error occurs during the upload process.
-     *
-     * @param video        the video whose metadata was being uploaded
-     * @param errorMessage a message describing the error
-     */
-    @Override
-    public void onMetadataUploadError(SemanticVideo video, String errorMessage) {
-        broadcastError(video, errorMessage);
-    }
-
-    private void broadcastError(SemanticVideo video, String errorMessage) {
+    protected void broadcastError(SemanticVideo video, String errorMessage) {
         Intent intent = new Intent();
 
         intent.setAction(VideoBrowserActivity.UploaderBroadcastReceiver.UPLOAD_ERROR_ACTION);
@@ -176,6 +81,103 @@ public class UploaderService extends IntentService implements AbstractVideoUploa
         intent.putExtra(PARAM_ARG, errorMessage);
 
         broadcastManager.sendBroadcast(intent);
+    }
+
+    protected class VideoUploaderListener implements Uploader.Listener {
+
+        /**
+         * Fired when the upload starts.
+         *
+         * @param video video whose data is being uploaded
+         */
+        @Override
+        public void onUploadStart(SemanticVideo video) {
+            Intent intent = new Intent();
+
+            intent.setAction(VideoBrowserActivity.UploaderBroadcastReceiver.UPLOAD_START_ACTION);
+            intent.addCategory(Intent.CATEGORY_DEFAULT);
+            intent.putExtra(PARAM_OUT, video.getId());
+            intent.putExtra(PARAM_WHAT, UPLOAD_START);
+
+            broadcastManager.sendBroadcast(intent);
+        }
+
+        /**
+         * Fired when the upload progresses. This is optional, and the listener should assume that
+         * the progress is indeterminate unless this is called.
+         *
+         * @param video      video whose data is being uploaded
+         * @param percentage percentage of data uploaded
+         */
+        @Override
+        public void onUploadProgress(SemanticVideo video, int percentage) {
+            Intent intent = new Intent();
+
+            intent.setAction(VideoBrowserActivity.UploaderBroadcastReceiver.UPLOAD_PROGRESS_ACTION);
+            intent.addCategory(Intent.CATEGORY_DEFAULT);
+            intent.putExtra(PARAM_OUT, video.getId());
+            intent.putExtra(PARAM_WHAT, UPLOAD_PROGRESS);
+            intent.putExtra(PARAM_ARG, percentage);
+
+            broadcastManager.sendBroadcast(intent);
+        }
+
+        /**
+         * Fired when the upload finishes.
+         *
+         * @param video video whose data was uploaded
+         */
+        @Override
+        public void onUploadFinish(SemanticVideo video) {
+            Intent intent = new Intent();
+
+            intent.setAction(VideoBrowserActivity.UploaderBroadcastReceiver.UPLOAD_END_ACTION);
+            intent.addCategory(Intent.CATEGORY_DEFAULT);
+            intent.putExtra(PARAM_OUT, video.getId());
+            intent.putExtra(PARAM_WHAT, UPLOAD_END);
+
+            broadcastManager.sendBroadcast(intent);
+        }
+
+        /**
+         * Fired if an error occurs during the upload process.
+         *
+         * @param video        video whose data was being uploaded
+         * @param errorMessage message describing the error
+         */
+        @Override
+        public void onUploadError(SemanticVideo video, String errorMessage) {
+            broadcastError(video, errorMessage);
+        }
+
+    }
+
+    protected class MetadataUploaderListener implements Uploader.Listener {
+
+        /**
+         * Fired if an error occurs during the upload process.
+         *
+         * @param video        video whose data was being uploaded
+         * @param errorMessage message describing the error
+         */
+        @Override
+        public void onUploadError(SemanticVideo video, String errorMessage) {
+            broadcastError(video, errorMessage);
+        }
+
+        /*
+         * The following events are not used by this uploader.
+         */
+
+        @Override
+        public void onUploadStart(SemanticVideo video) {}
+
+        @Override
+        public void onUploadProgress(SemanticVideo video, int percentage) {}
+
+        @Override
+        public void onUploadFinish(SemanticVideo video) {}
+
     }
 
 }

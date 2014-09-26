@@ -34,10 +34,9 @@ import com.squareup.okhttp.OkHttpClient;
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.networking.AuthenticatedHttpClient;
 import fi.aalto.legroup.achso.state.LoginManager;
-import fi.aalto.legroup.achso.upload.metadata.AbstractMetadataUploader;
-import fi.aalto.legroup.achso.upload.metadata.DummyMetadataUploader;
+import fi.aalto.legroup.achso.upload.DummyUploader;
+import fi.aalto.legroup.achso.upload.Uploader;
 import fi.aalto.legroup.achso.upload.metadata.SssMetadataUploader;
-import fi.aalto.legroup.achso.upload.video.AbstractVideoUploader;
 import fi.aalto.legroup.achso.upload.video.ClViTra2VideoUploader;
 
 public class App extends Application {
@@ -59,8 +58,8 @@ public class App extends Application {
 
     public static final String ACHSO_ACCOUNT_TYPE = "fi.aalto.legroup.achso.ll_oidc";
 
-    public static AbstractVideoUploader videoUploader;
-    public static AbstractMetadataUploader metadataUploader;
+    public static Uploader videoUploader;
+    public static Uploader metadataUploader;
 
     @Override
     public void onCreate() {
@@ -81,7 +80,7 @@ public class App extends Application {
         locationManager = new LocationManager(this);
 
         videoUploader = new ClViTra2VideoUploader(getString(R.string.clvitra2Url));
-        metadataUploader = new DummyMetadataUploader();
+        metadataUploader = new DummyUploader();
     }
 
     public static boolean isTablet() {

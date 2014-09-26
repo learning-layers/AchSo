@@ -10,6 +10,7 @@ import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 
 import fi.aalto.legroup.achso.database.SemanticVideo;
+import fi.aalto.legroup.achso.upload.Uploader;
 import fi.aalto.legroup.achso.util.App;
 
 /**
@@ -17,7 +18,7 @@ import fi.aalto.legroup.achso.util.App;
  *
  * @author Leo Nikkilä
  */
-public class SssMetadataUploader extends AbstractMetadataUploader {
+public class SssMetadataUploader extends Uploader {
 
     private final String TAG = getClass().getSimpleName();
 
@@ -48,7 +49,7 @@ public class SssMetadataUploader extends AbstractMetadataUploader {
         RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"),
                 jsonRequest.toString());
 
-        uploadListener.onMetadataUploadStart(video);
+        listener.onUploadStart(video);
 
         Request request = new Request.Builder()
                 .url(endpointUrl)
@@ -62,14 +63,13 @@ public class SssMetadataUploader extends AbstractMetadataUploader {
             JsonObject body = new JsonParser().parse(jsonBody).getAsJsonObject();
 
             if (response.isSuccessful()) {
-                uploadListener.onMetadataUploadFinish(video);
+                listener.onUploadFinish(video);
             } else {
                 String firstErrorMessage = body.getAsJsonArray("errorMsg").get(0).getAsString();
-                uploadListener.onMetadataUploadError(video, firstErrorMessage);
+                listener.onUploadError(video, firstErrorMessage);
             }
         } catch (Exception e) {
-            uploadListener.onMetadataUploadError(video, "Could not upload metadata: " +
-                    e.getMessage());
+            listener.onUploadError(video, "Could not upload metadata: " + e.getMessage());
         }
     }
 

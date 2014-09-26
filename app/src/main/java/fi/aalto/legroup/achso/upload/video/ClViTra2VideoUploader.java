@@ -16,12 +16,13 @@ import java.net.URLConnection;
 
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.networking.CountingRequestBody;
+import fi.aalto.legroup.achso.upload.Uploader;
 import fi.aalto.legroup.achso.util.App;
 
 /**
  * A new video uploader using the i5Cloud services.
  */
-public class ClViTra2VideoUploader extends AbstractVideoUploader {
+public class ClViTra2VideoUploader extends Uploader {
 
     private String endpointUrl;
 
@@ -86,26 +87,30 @@ public class ClViTra2VideoUploader extends AbstractVideoUploader {
         ProgressPollingTask progressTask = new ProgressPollingTask(video, countingBody, videoFile.length());
         progressTask.run();
 
-        uploadListener.onVideoUploadStart(video);
+        listener.onUploadStart(video);
 
         try {
             Account account = App.loginManager.getAccount();
             Response response = App.authenticatedHttpClient.execute(request, account);
 
             if (response.isSuccessful()) {
-                uploadListener.onVideoUploadFinish(video);
+                listener.onUploadFinish(video);
             } else {
-                uploadListener.onVideoUploadError(video, "Could not upload video: " +
+                listener.onUploadError(video, "Could not upload video: " +
                         response.code() + " " + response.message());
+                android.util.Log.e("uploader", response.body().string());
             }
         } catch (IOException e) {
-            uploadListener.onVideoUploadError(video, "Could not upload video: " + e.getMessage());
+            listener.onUploadError(video, "Could not upload video: " + e.getMessage());
             e.printStackTrace();
         } finally {
             progressTask.stop();
         }
     }
 
+    /**
+     * Task for polling the upload progress.
+     */
     protected class ProgressPollingTask implements Runnable {
 
         protected final static int POLLING_INTERVAL = 500;
@@ -144,7 +149,7 @@ public class ClViTra2VideoUploader extends AbstractVideoUploader {
             if (percentage > 100) percentage = 100;
             if (percentage < 0) percentage = 0;
 
-            uploadListener.onVideoUploadProgress(video, (int) percentage);
+            listener.onUploadProgress(video, (int) percentage);
 
             handler.postDelayed(this, POLLING_INTERVAL);
         }
