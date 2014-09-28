@@ -36,7 +36,6 @@ import fi.aalto.legroup.achso.networking.AuthenticatedHttpClient;
 import fi.aalto.legroup.achso.state.LoginManager;
 import fi.aalto.legroup.achso.upload.DummyUploader;
 import fi.aalto.legroup.achso.upload.Uploader;
-import fi.aalto.legroup.achso.upload.metadata.SssMetadataUploader;
 import fi.aalto.legroup.achso.upload.video.ClViTra2VideoUploader;
 
 public class App extends Application {

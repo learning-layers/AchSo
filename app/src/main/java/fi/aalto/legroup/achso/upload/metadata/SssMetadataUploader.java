@@ -27,18 +27,18 @@ public class SssMetadataUploader extends Uploader {
     /**
      * Constructs the uploader.
      *
-     * @param endpointUrl    the endpoint for the metadata post request
+     * @param endpointUrl the endpoint for the metadata post request
      */
     public SssMetadataUploader(String endpointUrl) {
         this.endpointUrl = endpointUrl;
     }
 
     /**
-     * Uploads the metadata of a video. Must call uploadListener.onMetadataUploadStart() when the
-     * upload starts, onMetadataUploadFinish() when done and onMetadataUploadError() if an error
-     * occurs.
+     * Uploads the data of a video. Must call listener.onUploadStart() when the upload starts,
+     * onUploadFinish() when done and onUploadError() if an error occurs. Calling onUploadProgress()
+     * is optional.
      *
-     * @param video the video whose metadata will be uploaded
+     * @param video the video whose data will be uploaded
      */
     @Override
     public void upload(SemanticVideo video) {

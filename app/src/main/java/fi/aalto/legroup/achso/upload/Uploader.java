@@ -20,10 +20,10 @@ public abstract class Uploader {
 
     /**
      * Uploads the data of a video. Must call listener.onUploadStart() when the upload starts,
-     * onUploadFinish() when done and onMetadataUploadError() if an error occurs. Calling
-     * onUploadProgress() is optional.
+     * onUploadFinish() when done and onUploadError() if an error occurs. Calling onUploadProgress()
+     * is optional.
      *
-     * @param video the video whose metadata will be uploaded
+     * @param video the video whose data will be uploaded
      */
     public abstract void upload(SemanticVideo video);
 
