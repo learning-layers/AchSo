@@ -34,6 +34,7 @@ import com.squareup.okhttp.OkHttpClient;
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.networking.AuthenticatedHttpClient;
 import fi.aalto.legroup.achso.state.LoginManager;
+import fi.aalto.legroup.achso.upload.DisabledUploader;
 import fi.aalto.legroup.achso.upload.DummyUploader;
 import fi.aalto.legroup.achso.upload.Uploader;
 import fi.aalto.legroup.achso.upload.video.ClViTra2VideoUploader;
@@ -78,7 +79,7 @@ public class App extends Application {
 
         locationManager = new LocationManager(this);
 
-        videoUploader = new ClViTra2VideoUploader(getString(R.string.clvitra2Url));
+        videoUploader = new DisabledUploader();
         metadataUploader = new DummyUploader();
     }
 
