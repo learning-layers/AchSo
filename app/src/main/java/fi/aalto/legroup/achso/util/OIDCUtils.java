@@ -138,10 +138,6 @@ public class OIDCUtils {
         String idToken = response.getIdToken();
 
         if (isValidIdToken(clientId, idToken)) {
-            Log.d(TAG, String.format("Got ID Token '%s'.", idToken));
-            Log.d(TAG, String.format("Got Access Token '%s'.", response.getAccessToken()));
-            Log.d(TAG, String.format("Got Refresh Token '%s'.", response.getRefreshToken()));
-
             return response;
         } else {
             throw new IOException("Invalid ID token returned: " + idToken);

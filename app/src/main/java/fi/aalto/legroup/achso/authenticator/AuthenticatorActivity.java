@@ -104,8 +104,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
             public void onPageStarted(WebView view, String urlString, Bitmap favicon) {
                 super.onPageStarted(view, urlString, favicon);
 
-                Log.d(TAG, String.format("WebView loading URL '%s'.", urlString));
-
                 Uri url = Uri.parse(urlString);
                 Set<String> parameterNames = url.getQueryParameterNames();
 
@@ -117,8 +115,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
                     view.stopLoading();
 
                     String authToken = url.getQueryParameter("code");
-
-                    Log.d(TAG, String.format("Got Authorization Token '%s'.", authToken));
 
                     // for some reason the page with "code" is received twice,
                     // but the code works only once. I can't now find the reason why it is
@@ -152,11 +148,8 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
                 }
             }
         });
-        Log.d(TAG, String.format("Initiated activity for getting authorisation with URL '%s'.",
-                authUrl));
-        webView.loadUrl(authUrl);
-        webView.getSettings().setJavaScriptEnabled(true);
 
+        webView.loadUrl(authUrl);
     }
 
     /**
@@ -166,9 +159,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
         @Override
         protected Boolean doInBackground(String... args) {
             String authToken = args[0];
-            IdTokenResponse response = null;
-
-            Log.d(TAG, "Requesting ID token.");
+            IdTokenResponse response;
 
             try {
                 response = OIDCUtils.requestTokens(
@@ -179,12 +170,10 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
                         OIDCConfig.getClientSecret(AuthenticatorActivity.this),
                         authToken);
             } catch (IOException e) {
-                Log.e(TAG, "Could not get response.");
+                Log.e(TAG, "Could not get token response.");
                 e.printStackTrace();
                 return false;
             }
-
-            Log.d(TAG, "Got response.");
 
             if (isNewAccount) {
                 createAccount(response);
@@ -199,29 +188,22 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
         protected void onPostExecute(Boolean wasSuccess) {
             if (wasSuccess) {
                 // The account manager still wants the following information back
-                Log.d(TAG, "Returning from Activity, 1.");
-                Log.i(TAG, "isFinishing: " + isFinishing() + " isCancelled: " + isCancelled());
                 Intent intent = new Intent();
 
                 intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, account.name);
                 intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, account.type);
 
                 setAccountAuthenticatorResult(intent.getExtras());
-                Log.d(TAG, "Returning from Activity, 2: AccountAuthenticatorResult set.");
+
                 setResult(RESULT_OK, intent);
                 finish();
             } else {
-                //showErrorDialog("Could not get ID Token.");
-                Log.i(TAG, "Could not get ID Token. Would show dialog, " +
-                        "but not sure if activity is still on.");
-                Log.i(TAG, "isFinishing: " + isFinishing() + " isCancelled: " + isCancelled());
+                showErrorDialog("Could not get ID Token.");
             }
         }
     }
 
     private void createAccount(IdTokenResponse response) {
-        Log.d(TAG, "Creating account.");
-
         // AccountManager expects that each account has a unique username. If a new account has the
         // same username as a previously created one, it will overwrite the older account.
         //
@@ -264,8 +246,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 
         // Store the tokens in the account
         setTokens(response);
-
-        Log.d(TAG, "Account created.");
     }
 
     private void setTokens(IdTokenResponse response) {
@@ -275,7 +255,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
     }
 
     private void showErrorDialog(String message) {
-        new AlertDialog.Builder(AuthenticatorActivity.this)
+        new AlertDialog.Builder(App.getContext())
                 .setTitle("Sorry, there was an error")
                 .setMessage(message)
                 .setCancelable(true)
