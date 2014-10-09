@@ -5,4 +5,4 @@
                        android:accountType="fi.aalto.legroup.achso.ll_oidc"
                        android:icon="@drawable/ic_launcher"
                        android:smallIcon="@drawable/ic_launcher"
-                       android:label="@string/i5cloud_prefs" />
+                       android:label="@string/tethys_prefs" />

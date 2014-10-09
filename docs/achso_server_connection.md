@@ -1,7 +1,7 @@
 
 
 - [Ach so! server connection](#h1)
-    - [Implementations](#implementations) 
+    - [Implementations](#implementations)
         - [ClViTra](#clvitra)
         - [ClViTra2.0](#clvitra20)
         - [AchSoServer](#achsoserver)
@@ -36,7 +36,7 @@
 Ach so! server connection
 =========================
 
-This is an API description of connections from Ach so! -Android client to servers. This document has two purposes: to collect Ach so! developers' suggestions what server APIs should provide and for server backend developers to document what exactly their API is providing and how to call its features. 
+This is an API description of connections from Ach so! -Android client to servers. This document has two purposes: to collect Ach so! developers' suggestions what server APIs should provide and for server backend developers to document what exactly their API is providing and how to call its features.
 
 If you have a server API that is doing something close to what is described here, please modify the description here to describe your API. If you have something that you are going to implement, but is not implemented yet, mention it here.
 
@@ -45,15 +45,15 @@ If you have a server API that is doing something close to what is described here
 Implementations
 ---------------
 
-Now here things get confusing. 
+Now here things get confusing.
 
 
 <a name="clvitra"></a>
 
 ### ClViTra
-**CLViTra** is an existing implementation of idea of doing video transcoding in cloud. It is one possible way of implementing the tasks required from VideoStorage, but it is now deprecated and redone as ClViTra2.0 with more straightforward API. The first Ach So! server connections and AnViAnno used this as a receiving end for video uploads, so the code has some legacy cruft from that. 
+**CLViTra** is an existing implementation of idea of doing video transcoding in cloud. It is one possible way of implementing the tasks required from VideoStorage, but it is now deprecated and redone as ClViTra2.0 with more straightforward API. The first Ach So! server connections and AnViAnno used this as a receiving end for video uploads, so the code has some legacy cruft from that.
 
-- [ClViTra](http://merian.informatik.rwth-aachen.de:5080/ClViTra/) 
+- [ClViTra](http://merian.informatik.rwth-aachen.de:5080/ClViTra/)
 - No more actively developed?
 - Use ClViTra2.0 instead!
 
@@ -70,30 +70,30 @@ For VideoStorage, the actively developed implementation is **ClViTra2.0**.
 
 ### AchSoServer
 
-This document describes need for two services, VideoStorage and AchSoService. **AchSoServer** is a small lightweight implementation of AchSoService, for purpose of development and testing, but not for real secure use. It is implemented with Node.js and hosted in Aalto. It is 'cutting edge' for Ach so!: we need some service where to test if the planned interactions work as expected where we can modify the interactions easily. Then the API here is modified to reflect the improvements and the solid i5Cloud services should follow. 
+This document describes need for two services, VideoStorage and AchSoService. **AchSoServer** is a small lightweight implementation of AchSoService, for purpose of development and testing, but not for real secure use. It is implemented with Node.js and hosted in Aalto. It is 'cutting edge' for Ach so!: we need some service where to test if the planned interactions work as expected where we can modify the interactions easily. Then the API here is modified to reflect the improvements and the solid Tethys services should follow.
 
 - [AchSoServer in Github](https://github.com/learning-layers/AchSoServer)
 - [API implementation, all of the code is in this file.](https://github.com/learning-layers/AchSoServer/blob/master/server.js)
 - running test server: [http://achso.aalto.fi/server/api/](http://achso.aalto.fi/server/api/)
 
-The idea is to use AchSoServer until the proper metadata services in i5Cloud catch up with API coverage. AchSoServer is not safe or durable for long-term solution, unless time and expenses are invested for making it so.   
+The idea is to use AchSoServer until the proper metadata services in Tethys catch up with API coverage. AchSoServer is not safe or durable for long-term solution, unless time and expenses are invested for making it so.
 
 <a name="mpeg7multimediacontentservice"></a>
 
 ### MPEG7MultimediaContentService
 
-*MPEG7MultimediaContentService* is a service used by Sevianno2.2 in i5Cloud/AtlasLAS environment. It is used to browse and show videos. In Sevianno it is called through lasAjaxClient-javascript library (http://dbis.rwth-aachen.de/gadgets/lib/las/lasAjaxClient.js). For Java clients it is available as `http-connector-client.jar` and then imported as `i5.las.httpConnector.client`. The .jar can be found from AchSo/libs, but the java source for that I don't have.  
+*MPEG7MultimediaContentService* is a service used by Sevianno2.2 in Tethys/AtlasLAS environment. It is used to browse and show videos. In Sevianno it is called through lasAjaxClient-javascript library (http://dbis.rwth-aachen.de/gadgets/lib/las/lasAjaxClient.js). For Java clients it is available as `http-connector-client.jar` and then imported as `i5.las.httpConnector.client`. The .jar can be found from AchSo/libs, but the java source for that I don't have.
 
 - [JavaDoc for MPEG7MultimediaContentService](http://www-i5.informatik.rwth-aachen.de/~atlas/module_build_3/JavaDoc//atlas_las_mpeg7-services/HEAD/javadoc/i5/atlas/las/service/mpeg7/multimediacontent/MPEG7MultimediaContentService.html) (latest I found)
 
 - [Sevianno in Github](https://github.com/learning-layers/sevianno), [Sevianno demo site](http://role-sandbox.eu/spaces/sevianno2.2) for observing server calls.
 
-- [lasAjaxClient.js](http://dbis.rwth-aachen.de/gadgets/lib/las/lasAjaxClient.js) -- javascript implementation for lasConnection, which is all the setup necessary for calling (old style?) LAS services. 
+- [lasAjaxClient.js](http://dbis.rwth-aachen.de/gadgets/lib/las/lasAjaxClient.js) -- javascript implementation for lasConnection, which is all the setup necessary for calling (old style?) LAS services.
 - [/libs/http-connector-client.jar](/libs/http-connector-client.jar) Java implementation for lasConnection. Source I don't have, but [here is JavaDoc](
-http://www-i5.informatik.rwth-aachen.de/~atlas/module_build_3/JavaDoc//atlas_las_http-connector/release_0_4-mobsos/javadoc/i5/las/httpConnector/client/Client.html)  
+http://www-i5.informatik.rwth-aachen.de/~atlas/module_build_3/JavaDoc//atlas_las_http-connector/release_0_4-mobsos/javadoc/i5/las/httpConnector/client/Client.html)
 - Use through Java http-connector-client:
 
-```java 
+```java
 import i5.las.httpConnector.client.Client;
 
 client = new Client(lasHostname, lasPort, timeOutms, username, password);
@@ -106,12 +106,12 @@ Object res = client.invoke("mpeg7_multimediacontent_service","getMediaCreationTi
 
 ### VideoInformation -service
 
-*VideoInformation* -service is another service to provide some metadata about videos uploaded to Sevianno/i5Cloud/AtlasLAS. It is supposed to be especially for Ach so! and it was actively developed by Kevin Jahns in January-February 2014.   
+*VideoInformation* -service is another service to provide some metadata about videos uploaded to Sevianno/Tethys/AtlasLAS. It is supposed to be especially for Ach so! and it was actively developed by Kevin Jahns in January-February 2014.
 
 - JavaDoc API [http://dbis.rwth-aachen.de/~jahns/javadocs/videoinformation/i5/atlas/las/service/videoinformation/Videoinformation.html](http://dbis.rwth-aachen.de/~jahns/javadocs/videoinformation/i5/atlas/las/service/videoinformation/Videoinformation.html)
 - Use through LasConnection:
 
-```java 
+```java
 import i5.las.httpConnector.client.Client;
 
 client = new Client(lasHostname, lasPort, timeOutms, username, password);
@@ -144,9 +144,9 @@ The workflow for modifying video metadata is following:
 * Prepare necessary authentication means for both services, AchSoService and VideoStorage.
 * If online: call upload_video_metadata with video key and changed fields (JSON object), if this returns `Ok`, we are done.
 * If offline:
-	* add changes (as a JSON string) to pending changes in AchSo prefs. 
+	* add changes (as a JSON string) to pending changes in AchSo prefs.
 	* When back online, send changes with `POST:$achsoservice_api/upload_video_metadata`. (Ach so! needs to do some cleaning to remove redundant changes before sending.)
-	* Note that this is vulnerable to conflicts, or older changes rewriting newer changes. We can see if it is worth working around with timestamps for modifications or such.) 
+	* Note that this is vulnerable to conflicts, or older changes rewriting newer changes. We can see if it is worth working around with timestamps for modifications or such.)
 
 The workflow for modifying existing annotation is following:
 
@@ -175,24 +175,24 @@ The workflow for adding annotation (for uploaded video) is following:
 
 ### upload_video
 
-This is used to send video for encoding/conversion 
+This is used to send video for encoding/conversion
 
 *Request:* POST
 
-*URL:* 
-	
+*URL:*
+
 	http://$videostorage_api/upload
-    eg. 
+    eg.
     http://$server/ClViTra_2.0/rest/upload
 
 
-*What is sent:* 
+*What is sent:*
 
 "File" as "multipart/form-data". File has filename, which is form of `$key.$suffix`, where `$suffix` is mp4,avi,mpg... This filename (without suffix) will be used when querying the state of the processing, so remember it.
 
 *Headers:* authentication token?
 
-*What is received:* 
+*What is received:*
 
     200: Success
     404: URL not found
@@ -201,7 +201,7 @@ This is used to send video for encoding/conversion
 
 *Example:*
 
-```java 
+```java
 HttpPost httppost = new HttpPost("http://merian.informatik.rwth-aachen.de:5080/ClViTra_2.0/rest/upload");
 httppost.setHeader("X-auth-token", "04ef789a010c6f252a9f572347cac345");
 MultipartEntityBuilder multipart_entity = MultipartEntityBuilder.create();
@@ -215,12 +215,12 @@ httpclient.execute(httppost);
 <a name="get_processing_state"></a>
 
 ### get_processing_state
-This is used to check if the video $key has finished its encoding and to receive the uri to use when playing it.  
+This is used to check if the video $key has finished its encoding and to receive the uri to use when playing it.
 
-*URL:* 
+*URL:*
 
     http://$videostorage_api/videoDetail/$user/$videoId
-    
+
     "user": Sender of the video,
     "videoId":String, which is the unique filename that was sent when uploading video, .
 
@@ -231,11 +231,11 @@ This is used to check if the video $key has finished its encoding and to receive
 *What is received:*
 
     200: (Success) "{'Video_Name':'Name', 'Video_URL':$video_uri, 'Thumbnail_URL':$thumbnail_uri,'Status':'Transcoded'}"
-    -OR- 
+    -OR-
     "{'state':'processing', 'thumbnail':$thumbnail_uri'}
-    -OR- 
+    -OR-
     "{'status':'Not Found'}
-    
+
     404: URL not found.
     401: Unauthorized.
     500: Server Error.
@@ -245,7 +245,7 @@ This is used to check if the video $key has finished its encoding and to receive
     http://merian.informatik.rwth-aachen.de:5080/ClViTra_2.0/rest/videoDetail/testUser/ea901369-3ae0-42c6-aece-41151e474472
 
     >"{'Video_Name':'Sample.mp4', 'Video_URL':'http://tosini.informatik.rwth-aachen.de:8134/videos/ea901369-3ae0-42c6-aece-41151e474472.mp4', 'Thumbnail_URL':'http://tosini.informatik.rwth-aachen.de:8134/thumbnails/ea901369-3ae0-42c6-aece-41151e474472.jpg','Status':'Transcoded'}"
-    
+
 
     http://merian.informatik.rwth-aachen.de:5080/ClViTra_2.0/rest/videoDetail/testUser/foobar
 
@@ -258,7 +258,7 @@ This is used to check if the video $key has finished its encoding and to receive
 <a name="get_unique_id"></a>
 
 ### get_unique_id
-Returns a new unique id. Semantic video can safely use this as an identifier and this identifier is used as a key to retrieve video metadata and annotations, and to retrieve the state of the video encoding process. 
+Returns a new unique id. Semantic video can safely use this as an identifier and this identifier is used as a key to retrieve video metadata and annotations, and to retrieve the state of the video encoding process.
 
 *Request:* GET
 
@@ -277,9 +277,9 @@ Returns a new unique id. Semantic video can safely use this as an identifier and
 ### upload_video_metadata[upload_video_metadata]
 This is used to upload annotations and metadata for video. This is done before sending the actual video file, but the video uri and thumb uri have placeholders instead of actual values. When upload_video is completed, Ach so! polls server with get_processing_state until it receives 'finished' state as response, and then does update_metadata with new uri values.
 
-Ach saves to its local preferences when unfinished video processing polling is activated, so that it can continue and finalize the video metadata next time Ach so is launched, in case that the Ach so is shut down while the processing in server side is still going on.   
+Ach saves to its local preferences when unfinished video processing polling is activated, so that it can continue and finalize the video metadata next time Ach so is launched, in case that the Ach so is shut down while the processing in server side is still going on.
 
-Communities is a list of community uids/keys. Usually adding and removing video to/from community is done through community api methods, but it is here for convenience, so that video can be created and shared with one call. 
+Communities is a list of community uids/keys. Usually adding and removing video to/from community is done through community api methods, but it is here for convenience, so that video can be created and shared with one call.
 
 *Request:* POST.
 
@@ -287,7 +287,7 @@ Communities is a list of community uids/keys. Usually adding and removing video 
 
     http://$achsoservice_api/upload_video_metadata
 
-*What is sent:* "data" as UTF-8 StringEntity. 
+*What is sent:* "data" as UTF-8 StringEntity.
 "data" is json-representation of SemanticVideo:
 
     SemanticVideo = json_object({
@@ -318,9 +318,9 @@ Communities is a list of community uids/keys. Usually adding and removing video 
 
 *Headers:*
 
-    authentication token? 
-    "Content-type":"application/json" 
-    "Accept":"application/json" 
+    authentication token?
+    "Content-type":"application/json"
+    "Accept":"application/json"
 
 In server side annotations should be saved as individual objects that have a reference to semantic video they belong to. It is easier to avoid conflicts when updating annotations. Annotation keys are created by server.
 
@@ -368,7 +368,7 @@ In server side annotations should be saved as individual objects that have a ref
             }
         ]
     }";
-    HttpPost httppost = new HttpPost("http://merian.informatik.rwth-aachen.de:5080/AchSoServer/rest/upload_video_metadata");        
+    HttpPost httppost = new HttpPost("http://merian.informatik.rwth-aachen.de:5080/AchSoServer/rest/upload_video_metadata");
     httppost.setHeader("X-auth-token", "04ef789a010c6f252a9f572347cac345");
     httppost.setHeader("Content-type", "application/json");
     httppost.setHeader("Accept":"application/json");
@@ -381,15 +381,15 @@ In server side annotations should be saved as individual objects that have a ref
 <a name="update_video_metadata"></a>
 
 ### update_video_metadata
-Update some of the fields of the video -- those that are included in the sent json object (excluding 'key', it cannot be changed, it is used to find what video to change.). It is otherwise similar to upload_metadata. Annotations are not updated through this, they use 
+Update some of the fields of the video -- those that are included in the sent json object (excluding 'key', it cannot be changed, it is used to find what video to change.). It is otherwise similar to upload_metadata. Annotations are not updated through this, they use
 update_annotation or upload_annotation, with a video_key to link them to this video.
- 
+
 *Request:* POST.
 
-*URL:* 
+*URL:*
 
     http://$achsoservice_api/update_video_metadata
-*What is sent*: field "data" where content is UTF-8 encoded JSON. 
+*What is sent*: field "data" where content is UTF-8 encoded JSON.
     data is partial json-representation of SemanticVideo:
 
     {
@@ -408,11 +408,11 @@ update_annotation or upload_annotation, with a video_key to link them to this vi
         thumb_uri: String
     }
 
-*Headers*: 
+*Headers*:
 
     authentication token?
-    "Content-type":"application/json" 
-    "Accept":"application/json" 
+    "Content-type":"application/json"
+    "Accept":"application/json"
 
 
 *What is received:*
@@ -430,7 +430,7 @@ update_annotation or upload_annotation, with a video_key to link them to this vi
         'video_uri': 'http://tosini.informatik.rwth-aachen.de:8134/videos/ea901369-3ae0-42c6-aece-41151e474472.mp4',
         'thumb_uri': 'http://tosini.informatik.rwth-aachen.de:8134/thumbnails/ea901369-3ae0-42c6-aece-41151e474472.jpg',
     }";
-    HttpPost httppost = new HttpPost("http://merian.informatik.rwth-aachen.de:5080/AchSoServer/rest/upload_video_metadata");        
+    HttpPost httppost = new HttpPost("http://merian.informatik.rwth-aachen.de:5080/AchSoServer/rest/upload_video_metadata");
     httppost.setHeader("X-auth-token", "04ef789a010c6f252a9f572347cac345");
     httppost.setHeader("Content-type", "application/json");
     httppost.setHeader("Accept":"application/json");
@@ -443,16 +443,16 @@ update_annotation or upload_annotation, with a video_key to link them to this vi
 
 <a name="upload_annotation"></a>
 
-### upload_annotation 
-This is used to upload new annotation for existing video. 
+### upload_annotation
+This is used to upload new annotation for existing video.
 
 *Request:* POST.
 
-*URL:* 
+*URL:*
 
     http://$achsoservice_api/upload_annotation
 
-*What is sent:* "data" as UTF-8 StringEntity. 
+*What is sent:* "data" as UTF-8 StringEntity.
 data is a json-representation of Annotation:
 
     Annotation = {
@@ -466,13 +466,13 @@ data is a json-representation of Annotation:
         video_key: String,
     }
 
-*Headers:* 
+*Headers:*
 
-    "X-auth-token":$token 
-    "Content-type":"application/json" 
-    "Accept":"application/json" 
+    "X-auth-token":$token
+    "Content-type":"application/json"
+    "Accept":"application/json"
 
-*What is received:* 
+*What is received:*
 
     200: Success.
     404: URL not found.
@@ -492,7 +492,7 @@ data is a json-representation of Annotation:
             'key': 'A2f-ea901369-3ae0-42c6-aece-41151e474472',
             'video_key': 'ea901369-3ae0-42c6-aece-41151e474472'
     }";
-    HttpPost httppost = new HttpPost("http://merian.informatik.rwth-aachen.de:5080/AchSoServer/rest/upload_annotation");        
+    HttpPost httppost = new HttpPost("http://merian.informatik.rwth-aachen.de:5080/AchSoServer/rest/upload_annotation");
     httppost.setHeader("X-auth-token", "04ef789a010c6f252a9f572347cac345");
     httppost.setHeader("Content-type", "application/json");
     httppost.setHeader("Accept":"application/json");
@@ -505,16 +505,16 @@ data is a json-representation of Annotation:
 
 <a name="update_annotation"></a>
 
-### update_annotation 
+### update_annotation
 This is used to update attributes of existing annotation. Attributes are given as JSON object, and it needs only to include those fields that have changed.
 
 *Request:* POST.
 
-*URL:* 
+*URL:*
 
     http://$achsoservice_api/update_annotation
 
-*What is sent:* "data" as UTF-8 StringEntity. 
+*What is sent:* "data" as UTF-8 StringEntity.
     "data" is a json-representation of Annotation:
 
     Annotation = {
@@ -527,11 +527,11 @@ This is used to update attributes of existing annotation. Attributes are given a
         scale: Number,
     }
 
-*Headers:* 
+*Headers:*
 
-    "X-auth-token":$token 
-    "Content-type":"application/json" 
-    "Accept":"application/json" 
+    "X-auth-token":$token
+    "Content-type":"application/json"
+    "Accept":"application/json"
 
 *What is received:*
 
@@ -542,14 +542,14 @@ This is used to update attributes of existing annotation. Attributes are given a
 
 *Example:*
 
-```java    
+```java
     json = "{
             'key': 'A2f-ea901369-3ae0-42c6-aece-41151e474472',
             'position_x': 0.6,
             'position_y': 0.2
     }";
 
-    HttpPost httppost = new HttpPost("http://merian.informatik.rwth-aachen.de:5080/AchSoServer/rest/upload_annotation");        
+    HttpPost httppost = new HttpPost("http://merian.informatik.rwth-aachen.de:5080/AchSoServer/rest/upload_annotation");
     httppost.setHeader("X-auth-token", "04ef789a010c6f252a9f572347cac345");
     httppost.setHeader("Content-type", "application/json");
     httppost.setHeader("Accept":"application/json");
@@ -562,43 +562,43 @@ This is used to update attributes of existing annotation. Attributes are given a
 
 <a name="annotation_listings"></a>
 
-## Annotation listings 
+## Annotation listings
 
 <a name="get_annotations"></a>
 
 ### get_annotations
-List of annotations for given video_key 
+List of annotations for given video_key
 
 *Request:* GET
 
-*URL:* 
+*URL:*
 
     http://$achsoservice_api/get_annotations
 
 *What is sent:*
 
-    video_key:String  
+    video_key:String
 
-*Headers:* 
+*Headers:*
 
-    "X-auth-token":$token 
+    "X-auth-token":$token
 *What is received:*
     JSON list of annotation objects, not ordered in any meaningful way
 
 <a name="video_listings"></a>
 
-## Video listings 
+## Video listings
 
 <a name="get_videos"></a>
 
 ### get_videos
-General interface for receiving list of videos that fill given conditions. 
+General interface for receiving list of videos that fill given conditions.
 For searches, searches should also look into annotations and return videos that include matching annotations.
 Even if community is empty, results should be filtered by those communities that the user can see.
 
 *Request:* GET
 
-*URL:* 
+*URL:*
 
     http://$achsoservice_api/get_videos
 *What is sent:*
@@ -610,16 +610,16 @@ Even if community is empty, results should be filtered by those communities that
     genre: "genre_id":String,
     batch_size: 30(default):Number,
     result_page: 1(default):Number,
-    sort_by:"date"(default)|"most_views", 
+    sort_by:"date"(default)|"most_views",
     sort_order:(default)descending|ascending
-    name:"community_name":String, 
-    listed:true|false|1|0:Boolean, 
+    name:"community_name":String,
+    listed:true|false|1|0:Boolean,
     open:true|false|1|0:Boolean,
-    moderators:[user_id,]<String> 
-*Headers:* 
+    moderators:[user_id,]<String>
+*Headers:*
 
-    "X-auth-token":$token 
-    "Accept":"application/json" 
+    "X-auth-token":$token
+    "Accept":"application/json"
 
 *What is received:*
 
@@ -629,26 +629,26 @@ Even if community is empty, results should be filtered by those communities that
 <a name="communities"></a>
 
 ## Communities -moved to SSS
-These are the groups/channels that are used to deduce video visibility and editing rights. The responsibility for this information has been moved to Social Semantic Service, so ignore this section. It has to be done in SSS in a way that all tools can use the same API.  
+These are the groups/channels that are used to deduce video visibility and editing rights. The responsibility for this information has been moved to Social Semantic Service, so ignore this section. It has to be done in SSS in a way that all tools can use the same API.
 
 <a name="add_community"></a>
 
 ### add_community
-Create a community that has access to videos 
+Create a community that has access to videos
 
 *Request:* POST.
 
-*URL:* 
+*URL:*
 
     http://$achsoservice_api/add_community
 *What is sent:*
 
-    JSON object, where:  
-    name:"name":String, 
-    listed:true|false|1|0:Boolean, 
+    JSON object, where:
+    name:"name":String,
+    listed:true|false|1|0:Boolean,
     open:true|false|1|0:Boolean,
-    moderators:[user_id,]:<String> 
-*Headers:* 
+    moderators:[user_id,]:<String>
+*Headers:*
 
     authentication token?
 
@@ -658,24 +658,24 @@ Create a community that has access to videos
 <a name="edit_community"></a>
 
 ### edit_community
-Change community settings, only by moderator 
+Change community settings, only by moderator
 
 *Request:* POST.
 
-*URL:* 
+*URL:*
 
     http://$achsoservice_api/edit_community
 *What is sent:*
 
     JSON object, where key is mandatory and others are optional:
     key:"stringid":String,
-    name:"community_name":String, 
-    listed:true|false|1|0:Boolean, 
+    name:"community_name":String,
+    listed:true|false|1|0:Boolean,
     open:true|false|1|0:Boolean,
-    moderators:[user_id,]<String> 
-*Headers:* 
+    moderators:[user_id,]<String>
+*Headers:*
 
-    authentication token? 
+    authentication token?
 
 *What is received:*
 
@@ -688,16 +688,16 @@ Join user xx to a community. If closed community, this is done by authenticated 
 
 *Request:* POST.
 
-*URL:* 
-    
+*URL:*
+
     http://$achsoservice_api/join_community
 *What is sent:*
 
-    name:"community_uid":String, 
+    name:"community_uid":String,
     user_id:"xx":String
-*Headers:* 
+*Headers:*
 
-    authentication token? 
+    authentication token?
 
 *What is received:*
 
@@ -710,16 +710,16 @@ Leave from a community. User xx is removed from community. There should be check
 
 *Request:* POST.
 
-*URL:* 
+*URL:*
 
     http://$achsoservice_api/leave_community
-*What is sent:* 
+*What is sent:*
 
-    name:"community_uid":String, 
+    name:"community_uid":String,
     user_id:"xx":String
-*Headers:* 
+*Headers:*
 
-    authentication token? 
+    authentication token?
 
 *What is received:*
 
@@ -728,20 +728,20 @@ Leave from a community. User xx is removed from community. There should be check
 <a name="get_communities"></a>
 
 ### get_communities
-Return a list of listable communities (no arguments), or list of provided user_id:s communities. List is a json object 
+Return a list of listable communities (no arguments), or list of provided user_id:s communities. List is a json object
 
 *Request:* GET
 
-*URL:* 
+*URL:*
 
     http://$achsoservice_api/get_communities
-*What is sent:* 
+*What is sent:*
 
     user_id:"xx":String (optional)
-*Headers:* 
+*Headers:*
 
-    authentication token? 
-    "Accept":"application/json" 
+    authentication token?
+    "Accept":"application/json"
 
 *What is received:*
 
@@ -752,20 +752,20 @@ notice that if user_id is not given, is_member and is_moderator can default to f
 <a name="add_video_to_community"></a>
 
 ### add_video_to_community
-Add a video to belong for a community. It is then visible for community members Requires video_key and community_id as arguments. 
+Add a video to belong for a community. It is then visible for community members Requires video_key and community_id as arguments.
 
 *Request:* POST.
 
-*URL:* 
-    
+*URL:*
+
     http://$achsoservice_api/add_video_to_community
-*What is sent:* 
+*What is sent:*
 
-    name:"community_id":String, 
+    name:"community_id":String,
     video_key:"xx":String
-*Headers:* 
+*Headers:*
 
-    authentication token? 
+    authentication token?
 
 *What is received:*
 
@@ -774,20 +774,20 @@ Add a video to belong for a community. It is then visible for community members 
 <a name="remove_video_from_community"></a>
 
 ### remove_video_from_community
-Video is no longer listed as belonging to a community. Requires video_key and community_id as arguments. 
+Video is no longer listed as belonging to a community. Requires video_key and community_id as arguments.
 
 *Request:* POST.
 
-*URL:* 
+*URL:*
 
     http://$achsoservice_api/remove_video_from_community
 *What is sent:*
 
-    name:"community_id":String, 
+    name:"community_id":String,
     video_key:"xx":String
-*Headers:* 
+*Headers:*
 
-    authentication token? 
+    authentication token?
 
 *What is received:*
 
@@ -796,20 +796,20 @@ Video is no longer listed as belonging to a community. Requires video_key and co
 <a name="get_videos_in_community"></a>
 
 ### get_videos_in_community
-Return metadata of videos in community. User must be a member in community to get listing  
+Return metadata of videos in community. User must be a member in community to get listing
 
 *Request:* GET
 
-*URL:* 
+*URL:*
 
     http://$achsoservice_api/get_videos_in_community
 *What is sent:*
 
     community_id:"xx":String,
-*Headers:* 
+*Headers:*
 
-    authentication token? 
-    "Accept":"application/json" 
+    authentication token?
+    "Accept":"application/json"
 *What is received:*
     JSON list of semantic video objects
 

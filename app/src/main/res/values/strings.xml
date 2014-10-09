@@ -87,7 +87,7 @@
     <string name="logged_in_as">Logged in as %s.</string>
     <string name="connection_problem">Connection problem</string>
     <string name="authentication_problem">Authentication problem</string>
-    <string name="i5cloud_prefs">i5Cloud account</string>
+    <string name="tethys_prefs">Tethys account</string>
     <string name="action_register">Create new account</string>
     <string name="prompt_fullname">Full name</string>
     <string name="confirm_pass">Repeat password</string>

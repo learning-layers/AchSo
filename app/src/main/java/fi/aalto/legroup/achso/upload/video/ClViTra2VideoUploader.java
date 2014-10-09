@@ -20,7 +20,7 @@ import fi.aalto.legroup.achso.upload.Uploader;
 import fi.aalto.legroup.achso.util.App;
 
 /**
- * A new video uploader using the i5Cloud services.
+ * A new video uploader using the Tethys services.
  */
 public class ClViTra2VideoUploader extends Uploader {
 
