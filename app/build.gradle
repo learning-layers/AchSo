@@ -8,8 +8,6 @@ android {
         applicationId "fi.aalto.legroup.achso"
         minSdkVersion 11
         targetSdkVersion 19
-        versionCode 15
-        versionName "0.9.10"
     }
 
     buildTypes {
@@ -28,6 +26,10 @@ android {
         exclude 'META-INF/DEPENDENCIES'
         exclude 'META-INF/NOTICE'
         exclude 'META-INF/LICENSE'
+    }
+
+    lintOptions {
+        abortOnError false
     }
 }
 
