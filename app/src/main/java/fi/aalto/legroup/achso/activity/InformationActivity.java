@@ -25,17 +25,12 @@ package fi.aalto.legroup.achso.activity;
 
 import android.app.ActionBar;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.location.Location;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
-import android.view.ActionProvider;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebView;
@@ -118,7 +113,7 @@ public class InformationActivity extends FragmentActivity
      */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add(R.string.about).setOnMenuItemClickListener(this);
+        menu.add(R.string.about_maps).setOnMenuItemClickListener(this);
         return true;
     }
 
@@ -132,7 +127,7 @@ public class InformationActivity extends FragmentActivity
         webView.loadDataWithBaseURL(null, licenceInfo, "text/plain", null, null);
 
         new AlertDialog.Builder(InformationActivity.this)
-                .setTitle(R.string.about)
+                .setTitle(R.string.about_maps)
                 .setView(webView)
                 .setNeutralButton(R.string.ok, new DialogInterface.OnClickListener() {
                     @Override

@@ -102,6 +102,7 @@
     <string name="no">No</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="about">About</string>
+    <string name="about_maps">About Maps</string>
     <string name="choose_account">Choose an account</string>
     <string name="logged_out">Logged out.</string>
     <string name="login_error">Could not log in: %s</string>

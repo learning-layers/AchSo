@@ -36,6 +36,10 @@
         android:title="Offline"
         android:showAsAction="ifRoom|withText"
     />
+    <item android:id="@+id/action_about"
+        android:title="About"
+        android:showAsAction="ifRoom|withText"
+    />
     <item android:id="@+id/menu_refresh"
         android:icon="@drawable/ic_menu_refresh"
         android:title=""
