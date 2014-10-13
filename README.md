@@ -1,7 +1,7 @@
 Ach So!
 =======
 
-*Android video recording and annotation app for construction.*
+**Android video recording and annotation app for construction.**
 
 - [Download from the Play Store.][play]
 - [Project description on the Learning Layers website.][layers]
@@ -31,6 +31,11 @@ into `integration`.
 
 When the changes in the `integration` branch are deemed stable, they will be
 merged into `master` and a new version will be released.
+
+Versioning
+----------
+
+Since v0.10.0, Ach So releases follow [semantic versioning][semver].
 
 Usage with Android Studio
 -------------------------
@@ -62,3 +67,4 @@ limitations under the License.
 [layers]: http://developer.learning-layers.eu/tools/ach-so/
 [thoughtbot]: https://github.com/thoughtbot/guides/tree/master/protocol/git
 [commit]: http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html
+[semver]: http://semver.org/
