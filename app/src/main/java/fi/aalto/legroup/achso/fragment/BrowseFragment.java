@@ -74,7 +74,9 @@ import fi.aalto.legroup.achso.remote.RemoteResultCache;
 import fi.aalto.legroup.achso.service.UploaderService;
 import fi.aalto.legroup.achso.util.App;
 
-
+/**
+ * The Fragment that represent the pages within the {@link fi.aalto.legroup.achso.activity.VideoBrowserActivity}.
+ */
 public class BrowseFragment extends Fragment implements AdapterView.OnItemClickListener,
         AdapterView.OnItemLongClickListener, ActionMode.Callback, AbsListView.MultiChoiceModeListener {
 
@@ -255,9 +257,15 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
             mQueryType = args.getInt("query_type");
         }
 
+        // based on this decision a different layout is chosen
         mUsesGrid = App.isTablet();
     }
 
+    /**
+     * Depending on the device width shows a grid layout (on tablet) or a list layout (if smartphone).
+     *
+     * {@inheritDoc}
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view;
