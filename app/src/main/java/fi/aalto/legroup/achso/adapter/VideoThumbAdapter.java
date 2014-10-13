@@ -55,6 +55,11 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.util.App;
 
+/**
+ * An adapter that builds the bridge between an array of {@link fi.aalto.legroup.achso.database.SemanticVideo}s
+ * and the View.
+ *
+ */
 public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
 
     private static final int ITEM_TYPE_VIDEO = 0;
@@ -78,6 +83,12 @@ public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
         mRemoteVideos = new ArrayList<SemanticVideo>();
     }
 
+    /**
+     * Decides which layout to show for a specific array entry. Basically calls {@link #getItemViewType(int)}
+     * to determine the type of the data and then inflates the according layout.
+     *
+     * {@inheritDoc}
+     */
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder vh;
@@ -295,6 +306,9 @@ public class VideoThumbAdapter extends ArrayAdapter<SemanticVideo> {
         this.addAll(mLocalVideos);
     }
 
+    /**
+     * Holds references to all views in a list or grid item.
+     */
     public class ViewHolder implements Target {
         public LinearLayout border;
         public TextView title;
