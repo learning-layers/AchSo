@@ -18,6 +18,7 @@
     <string name="delete">Delete</string>
     <string name="upload">Upload</string>
     <string name="qr_to_video">Add QR code</string>
+    <string name="view_video_info">Show details</string>
     <string name="deletion_title">Video deletion</string>
     <string name="deletion_question">Do you want to delete selected video(s) and annotation(s)?</string>
     <string name="first_page">All videos</string>
