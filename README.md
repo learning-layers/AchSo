@@ -15,7 +15,9 @@ The `master` branch should mirror the currently stable version, i.e. the one
 that is currently on Google Play.
 
 1. **Create a new branch based off `integration`** before starting work. Use a
-descriptive name like `feature/sharing` or `bugfix/issue-42`.
+traceable name like `feature/LL-123` ( or `feature/summary-of-feature`
+ if feature doesnt have JIRA-ticket) or `bugfix/LL-123` where the number
+  following prefix LL- is the JIRA ticket numnber.
 
 2. **Do your work in the new branch** and commit often with
 [good commit messages][commit]. Be aware of line lengths to avoid wrapping.
