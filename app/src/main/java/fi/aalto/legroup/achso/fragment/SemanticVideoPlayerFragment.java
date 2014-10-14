@@ -216,8 +216,6 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
         addFragmentDetailsToSaveState(saveState);
     }
 
-
-
     public void onPause() {
         super.onPause();
 

@@ -206,10 +206,10 @@ public class VideoControllerView extends FrameLayout {
             if (!asb.suggests_position) {
                 mPlayer.seekTo(progress, SemanticVideoPlayerFragment.DO_NOTHING);
             }
-            if (mCurrentTime != null)
+
+            if (mCurrentTime != null) {
                 mCurrentTime.setText(stringForTime(progress));
-
-
+            }
         }
 
         public void onStopTrackingTouch(SeekBar bar) {
