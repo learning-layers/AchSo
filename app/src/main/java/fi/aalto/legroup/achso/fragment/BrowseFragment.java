@@ -83,7 +83,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
         AdapterView.OnItemLongClickListener, ActionMode.Callback, AbsListView.MultiChoiceModeListener {
 
     protected static final String CONTAINER_STATE = "containerState";
-    public static final String ARG_ITEM_ID = "item_id";
+
     private static Callbacks sDummyCallbacks = new Callbacks() {
         @Override
         public void onLocalItemSelected(long id) {
@@ -192,8 +192,12 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
             case R.id.action_view_video_info:
                 SemanticVideo sv = mSelectedVideos.iterator().next();
                 Intent informationIntent = new Intent(getActivity(), InformationActivity.class);
-                informationIntent.putExtra(ARG_ITEM_ID, sv.getId());
-                getActivity().startActivityForResult(informationIntent, VideoViewerActivity.REQUEST_VIDEO_INFORMATION);
+
+                informationIntent.putExtra(VideoViewerFragment.ARG_ITEM_ID, sv.getId());
+
+                getActivity().startActivityForResult(informationIntent,
+                        VideoViewerActivity.REQUEST_VIDEO_INFORMATION);
+
                 return true;
             default:
                 return false;
