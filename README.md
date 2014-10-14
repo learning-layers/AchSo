@@ -15,9 +15,9 @@ The `master` branch should mirror the currently stable version, i.e. the one
 that is currently on Google Play.
 
 1. **Create a new branch based off `integration`** before starting work. Use a
-traceable name like `feature/LL-123` ( or `feature/summary-of-feature`
- if feature doesnt have JIRA-ticket) or `bugfix/LL-123` where the number
-  following prefix LL- is the JIRA ticket numnber.
+traceable name like `feature/LL-123` or `bugfix/LL-123`, where the number
+after the prefix is the issue number in JIRA. Use `feature/summary-of-feature`
+if the feature doesn’t have JIRA ticket.
 
 2. **Do your work in the new branch** and commit often with
 [good commit messages][commit]. Be aware of line lengths to avoid wrapping.
@@ -26,7 +26,9 @@ traceable name like `feature/LL-123` ( or `feature/summary-of-feature`
 related commits, use interactive rebase to squash them into commits that are
 cohesive and valuable.
 
-4. **Create a pull request** when your commits are clean.
+4. **Create a pull request against `integration`** when your commits are
+clean. If your pull request is mistargeted, against `master` for example,
+close it and create a new one.
 
 5. **Delete your working branch** after your changes have been merged back
 into `integration`.
