@@ -115,7 +115,6 @@ public class VideoControllerView extends FrameLayout {
         }
     };
 
-    private boolean visible = false;
     private static final int FADE_OUT = 1;
     private static final int SHOW_PROGRESS = 2;
     private final int mInfinity = 3600000;
