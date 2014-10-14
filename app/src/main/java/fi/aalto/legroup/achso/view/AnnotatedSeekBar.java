@@ -45,6 +45,10 @@ public class AnnotatedSeekBar extends SeekBar {
         mController = controller;
     }
 
+    public VideoControllerView getController() {
+        return this.mController;
+    }
+
     public OnSeekBarChangeListener seekBarChangeListener = new OnSeekBarChangeListener() {
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -57,7 +61,7 @@ public class AnnotatedSeekBar extends SeekBar {
                     mController.playerSeekTo(new_time);
                     // now there may be more than one annotations to show, get them as list
                     final List<Annotation> annotationsToShow = mAnnotationSurfaceHandler
-                            .getAnnotationsAppearingBetween(new_time-10, new_time);
+                            .getAnnotationsAppearingBetween(new_time - 10, new_time);
                     mAnnotationSurfaceHandler.showMultiple(annotationsToShow);
                 } else {
                     mAnnotationSurfaceHandler.show(null);
@@ -84,7 +88,7 @@ public class AnnotatedSeekBar extends SeekBar {
         if (w == 0) { // when called after rotate there is no width
             maxRange = 500;
         } else {
-            maxRange = (videoDuration / (this.getWidth() - (this.getThumbOffset()*2)
+            maxRange = (videoDuration / (this.getWidth() - (this.getThumbOffset() * 2)
             )) * 14;
         }
         for (Annotation a : mAnnotationSurfaceHandler.getAnnotations()) {
@@ -136,7 +140,7 @@ public class AnnotatedSeekBar extends SeekBar {
             if (mAnnotationSurfaceHandler.getAnnotations() != null) {
                 int video_duration = mController.getDuration();
                 for (Annotation a : mAnnotationSurfaceHandler.getAnnotations()) {
-                    int thumbx = (int) (((float) a.getStartTime() / video_duration ) * w) + this
+                    int thumbx = (int) (((float) a.getStartTime() / video_duration) * w) + this
                             .getThumbOffset();
                     c.drawCircle(thumbx, this.getHeight() / 2, 4.0f, p);
                     p.setColor(0x88EAB674);
