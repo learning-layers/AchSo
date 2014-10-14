@@ -114,10 +114,13 @@ public class VideoControllerView extends FrameLayout {
             show(sDefaultTimeout);
         }
     };
+
     private static final int FADE_OUT = 1;
     private static final int SHOW_PROGRESS = 2;
     private final int mInfinity = 3600000;
     private final int mAnimationLengthInMs = 100;
+    private boolean visible = false;
+
     StringBuilder mFormatBuilder;
     Formatter mFormatter;
     private MediaPlayerControl mPlayer;
@@ -163,6 +166,9 @@ public class VideoControllerView extends FrameLayout {
     private OnSeekBarChangeListener mSeekListener = new OnSeekBarChangeListener() {
         public void onStartTrackingTouch(SeekBar bar) {
             mSuperSeekListener.onStartTrackingTouch(bar);
+
+            AnnotatedSeekBar asb = (AnnotatedSeekBar) mProgress;
+            asb.getController().show();
             //Log.i("VIdeoControllerView", "Started tracking touch");
             // moving to annotation markers while play is on creates a confusing situation
             // as 3 second pause starts. So we always toggle pause on when we jump on timeline.
@@ -196,12 +202,14 @@ public class VideoControllerView extends FrameLayout {
             //Log.i("VideoControllerView", "OnProgressChanged called: " + progress);
             //mPlayer.seekTo(progress);
             AnnotatedSeekBar asb = (AnnotatedSeekBar) mProgress;
+
             if (!asb.suggests_position) {
                 mPlayer.seekTo(progress, SemanticVideoPlayerFragment.DO_NOTHING);
             }
-            if (mCurrentTime != null)
-                mCurrentTime.setText(stringForTime(progress));
 
+            if (mCurrentTime != null) {
+                mCurrentTime.setText(stringForTime(progress));
+            }
         }
 
         public void onStopTrackingTouch(SeekBar bar) {
@@ -526,6 +534,7 @@ public class VideoControllerView extends FrameLayout {
             return;
         }
 
+        this.visible = true;
         if (mPlayer == null) return;
         if (mHideAnimationRunning) {
             mHideAnimationRunning = false;
@@ -610,8 +619,6 @@ public class VideoControllerView extends FrameLayout {
     //}
 
 
-
-
     /**
      * Remove the controller from the screen.
      */
@@ -622,6 +629,8 @@ public class VideoControllerView extends FrameLayout {
         if (mAnchor == null) {
             return;
         }
+
+        this.visible = false;
 
         if (mShowAnimationRunning) {
             mShowAnimationRunning = false;
@@ -704,7 +713,6 @@ public class VideoControllerView extends FrameLayout {
             mEndTime.setText(stringForTime(duration));
         if (mCurrentTime != null)
             mCurrentTime.setText(stringForTime(position));
-
         return position;
     }
 
@@ -838,6 +846,10 @@ public class VideoControllerView extends FrameLayout {
         setCurrentAnnotation(a);
         setControllerMode(NEW_ANNOTATION_MODE);
         mCurrentAnnotationIsNew = true;
+    }
+
+    public boolean isVisible() {
+        return this.visible;
     }
 
     //public boolean annotationModeIsEdit() {

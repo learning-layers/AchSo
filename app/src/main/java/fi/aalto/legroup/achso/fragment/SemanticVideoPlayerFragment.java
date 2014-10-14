@@ -667,7 +667,6 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
         FloatPosition position = new FloatPosition(x, y);
 
         switch (mController.controllerMode) {
-
             case VideoControllerView.PLAY_MODE:
 
                 // Any touch on a playing video pauses it.
@@ -760,6 +759,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     @Override
     public void onCompletion(MediaPlayer mp) {
         mController.setControllerMode(VideoControllerView.PAUSE_MODE);
+        mController.show();
         mAnnotationTimer.stop();
     }
 
