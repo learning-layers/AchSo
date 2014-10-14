@@ -1,7 +1,7 @@
 Ach So!
 =======
 
-*Android video recording and annotation app for construction.*
+**Android video recording and annotation app for construction.**
 
 - [Download from the Play Store.][play]
 - [Project description on the Learning Layers website.][layers]
@@ -15,7 +15,9 @@ The `master` branch should mirror the currently stable version, i.e. the one
 that is currently on Google Play.
 
 1. **Create a new branch based off `integration`** before starting work. Use a
-descriptive name like `feature/sharing` or `bugfix/issue-42`.
+traceable name like `feature/LL-123` ( or `feature/summary-of-feature`
+ if feature doesnt have JIRA-ticket) or `bugfix/LL-123` where the number
+  following prefix LL- is the JIRA ticket numnber.
 
 2. **Do your work in the new branch** and commit often with
 [good commit messages][commit]. Be aware of line lengths to avoid wrapping.
@@ -31,6 +33,11 @@ into `integration`.
 
 When the changes in the `integration` branch are deemed stable, they will be
 merged into `master` and a new version will be released.
+
+Versioning
+----------
+
+Since v0.10.0, Ach So releases follow [semantic versioning][semver].
 
 Usage with Android Studio
 -------------------------
@@ -62,3 +69,4 @@ limitations under the License.
 [layers]: http://developer.learning-layers.eu/tools/ach-so/
 [thoughtbot]: https://github.com/thoughtbot/guides/tree/master/protocol/git
 [commit]: http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html
+[semver]: http://semver.org/
