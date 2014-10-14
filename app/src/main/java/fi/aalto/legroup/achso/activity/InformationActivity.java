@@ -30,6 +30,7 @@ import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.NavUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -91,6 +92,14 @@ public class InformationActivity extends FragmentActivity
 
             findViewById(R.id.unknownLocationText).setVisibility(View.GONE);
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        NavUtils.navigateUpFromSameTask(this);
+        return true;
+
     }
 
     public SemanticVideo getVideo() {
