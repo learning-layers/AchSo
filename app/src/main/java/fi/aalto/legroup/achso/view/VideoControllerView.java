@@ -114,6 +114,8 @@ public class VideoControllerView extends FrameLayout {
             show(sDefaultTimeout);
         }
     };
+
+    private boolean visible = false;
     private static final int FADE_OUT = 1;
     private static final int SHOW_PROGRESS = 2;
     private final int mInfinity = 3600000;
@@ -610,8 +612,6 @@ public class VideoControllerView extends FrameLayout {
     //}
 
 
-
-
     /**
      * Remove the controller from the screen.
      */
@@ -704,7 +704,6 @@ public class VideoControllerView extends FrameLayout {
             mEndTime.setText(stringForTime(duration));
         if (mCurrentTime != null)
             mCurrentTime.setText(stringForTime(position));
-
         return position;
     }
 
