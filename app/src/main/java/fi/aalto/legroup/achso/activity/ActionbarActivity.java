@@ -31,6 +31,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -44,6 +45,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.JsonObject;
@@ -123,9 +125,33 @@ public abstract class ActionbarActivity extends FragmentActivity {
             case R.id.action_addvideo:
                 launchFileSelect();
                 return true;
+            case R.id.action_about:
+                showAboutDialog();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    /**
+     * Shows the About dialog containing the version number of Ach So!.
+     */
+    private void showAboutDialog() {
+        //TODO: add a nice dialog including OS information
+        String versionName = "-1";
+        try {
+            versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.e(TAG, "Version name could not be retrieved.");
+        }
+        new AlertDialog.Builder(this)
+                .setTitle(getResources().getString(R.string.app_name) + " version " + versionName)
+                .setNeutralButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                }).show();
     }
 
     private void launchFileSelect() {

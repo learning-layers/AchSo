@@ -63,8 +63,10 @@ import java.util.Set;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.activity.ActionbarActivity;
+import fi.aalto.legroup.achso.activity.InformationActivity;
 import fi.aalto.legroup.achso.activity.LoginActivity;
 import fi.aalto.legroup.achso.activity.VideoBrowserActivity;
+import fi.aalto.legroup.achso.activity.VideoViewerActivity;
 import fi.aalto.legroup.achso.adapter.BrowsePagerAdapter;
 import fi.aalto.legroup.achso.adapter.VideoThumbAdapter;
 import fi.aalto.legroup.achso.database.SemanticVideo;
@@ -81,6 +83,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
         AdapterView.OnItemLongClickListener, ActionMode.Callback, AbsListView.MultiChoiceModeListener {
 
     protected static final String CONTAINER_STATE = "containerState";
+
     private static Callbacks sDummyCallbacks = new Callbacks() {
         @Override
         public void onLocalItemSelected(long id) {
@@ -95,7 +98,10 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
     protected String mSortBy;
     protected GridView mVideoGrid;
     protected ListView mVideoList;
+    protected MenuItem mInformationItem;
+    protected Menu mVideoContextMenu;
     protected boolean mUsesGrid;
+
     int mPage = -1;
     String mQuery = "";
     int mQueryType = 0;
@@ -120,6 +126,8 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
         if (mi != null) {
             mi.inflate(R.menu.video_context_menu, menu);
         }
+        mVideoContextMenu = menu;
+        mInformationItem = menu.findItem(R.id.action_view_video_info);
         return true;
     }
 
@@ -180,6 +188,17 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
                 mSelectedVideos.clear();
                 mode.finish();
                 return true;
+
+            case R.id.action_view_video_info:
+                SemanticVideo sv = mSelectedVideos.iterator().next();
+                Intent informationIntent = new Intent(getActivity(), InformationActivity.class);
+
+                informationIntent.putExtra(VideoViewerFragment.ARG_ITEM_ID, sv.getId());
+
+                getActivity().startActivityForResult(informationIntent,
+                        VideoViewerActivity.REQUEST_VIDEO_INFORMATION);
+
+                return true;
             default:
                 return false;
         }
@@ -194,6 +213,13 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
         } else {
             mSelectedVideos.remove(sv);
         }
+
+        if (mSelectedVideos.size() > 1) {
+            mInformationItem.setVisible(false);
+        } else {
+            mInformationItem.setVisible(true);
+        }
+
     }
 
     public ActionMode getActionMode() {
@@ -220,7 +246,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
                 }
             }
         } else if (getVideoAdapter().getItemViewType(position) == VideoThumbAdapter
-                    .ITEM_TYPE_RECORD_BUTTON) {
+                .ITEM_TYPE_RECORD_BUTTON) {
             ActionbarActivity activity = (ActionbarActivity) getActivity();
             activity.launchRecording();
         }
@@ -263,7 +289,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
 
     /**
      * Depending on the device width shows a grid layout (on tablet) or a list layout (if smartphone).
-     *
+     * <p/>
      * {@inheritDoc}
      */
     @Override
@@ -297,6 +323,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
         mUrlArea.setVisibility(LinearLayout.GONE);
         mNoConnectionMessage = (TextView) view.findViewById(R.id.no_connection_message);
         mNoConnectionMessage.setVisibility(LinearLayout.GONE);
+
 
         return view;
     }
@@ -386,10 +413,10 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
                 }
             }
         } else if (mUsesGrid && mVideoGrid != null) {
-                    mVideoGrid.invalidateViews();
-            } else if (mVideoList != null) {
-                    mVideoList.invalidateViews();
-            }
+            mVideoGrid.invalidateViews();
+        } else if (mVideoList != null) {
+            mVideoList.invalidateViews();
+        }
         va.clear();
         va.updateLocalVideos(getLocalVideos());
         va.notifyDataSetChanged();
@@ -465,6 +492,7 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
             va.notifyDataSetChanged();
         }
     }
+
     public void finishRemoteVideoFetch(List<SemanticVideo> result_list) {
         VideoThumbAdapter va = (VideoThumbAdapter) getVideoAdapter();
         va.updateRemoteVideos(result_list);
