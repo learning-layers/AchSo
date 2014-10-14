@@ -77,7 +77,8 @@
             android:label="@string/title_activity_genre_selection" />
         <activity
             android:name=".activity.InformationActivity"
-            android:label="@string/title_activity_information" >
+            android:label="@string/title_activity_information"
+            android:parentActivityName=".activity.VideoBrowserActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activity.VideoBrowserActivity" />
