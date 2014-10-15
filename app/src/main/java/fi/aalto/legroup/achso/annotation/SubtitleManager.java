@@ -92,6 +92,12 @@ public class SubtitleManager {
             }
             mSubtitles = newSubtitles;
         }
+
+        if(mColorsForText.containsKey(from)) {
+            int color = mColorsForText.get(from);
+            mColorsForText.remove(from);
+            mColorsForText.put(to, color);
+        }
     }
 
     public static void removeSubtitle(String subtitle) {
@@ -107,7 +113,7 @@ public class SubtitleManager {
                 continue;
             }
             SpannableString currentSubtitle = new SpannableString(s + "\n");
-            currentSubtitle.setSpan(new ForegroundColorSpan(mColorsForText.get(s)),0, s.length(),
+            currentSubtitle.setSpan(new ForegroundColorSpan(mColorsForText.get(s)), 0, s.length(),
                     Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             sub.append(currentSubtitle);
         }
