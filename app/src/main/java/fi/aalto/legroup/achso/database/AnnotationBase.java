@@ -74,7 +74,9 @@ public class AnnotationBase implements XmlSerializable {
         return mId;
     }
 
-    public String getCreator() { return mCreator; }
+    public String getCreator() {
+        return mCreator;
+    }
 
     void setId(long id) {
         mId = id;

@@ -50,6 +50,8 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
+import com.google.gson.JsonObject;
+
 import java.lang.ref.WeakReference;
 import java.util.Formatter;
 import java.util.Locale;
@@ -61,6 +63,7 @@ import fi.aalto.legroup.achso.annotation.EditorListener;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.fragment.SemanticVideoPlayerFragment;
+import fi.aalto.legroup.achso.util.App;
 import fi.aalto.legroup.achso.util.FloatPosition;
 
 /**
@@ -228,6 +231,7 @@ public class VideoControllerView extends FrameLayout {
     private Button mKeepButton;
     private Button mCancelButton;
     private Button mDeleteButton;
+    private TextView mCreatorText;
     public int controllerMode;
     private OnClickListener mAnnotationButtonListener = new OnClickListener() {
         @Override
@@ -347,6 +351,34 @@ public class VideoControllerView extends FrameLayout {
         if (a != null) {
             a.rememberState();
         }
+
+        if (a != null) {
+            mCreatorText.setText(a.getCreator());
+
+            JsonObject userInfo = App.loginManager.getUserInfo();
+            String creator = null;
+
+            boolean isCurrent = false;
+            if (userInfo != null && userInfo.has("preferred_username")) {
+                creator = userInfo.get("preferred_username").getAsString();
+                if (creator.equals(a.getCreator())) {
+                    isCurrent = true;
+                }
+            } else {
+                isCurrent = true;
+            }
+
+            if (isCurrent) {
+                mDeleteButton.setEnabled(true);
+                mEditTextButton.setEnabled(true);
+                mKeepButton.setEnabled(true);
+            } else {
+                mDeleteButton.setEnabled(false);
+                mEditTextButton.setEnabled(false);
+                mKeepButton.setEnabled(false);
+            }
+        }
+
         mCurrentAnnotationIsNew = false;
     }
 
@@ -459,6 +491,11 @@ public class VideoControllerView extends FrameLayout {
         if (mDeleteButton != null) {
             mDeleteButton.setOnClickListener(mDeleteListener);
             mDeleteButton.setVisibility(View.GONE);
+        }
+
+        mCreatorText = (TextView) v.findViewById(R.id.annotation_creator_text);
+        if (mCreatorText != null) {
+            mCreatorText.setVisibility(View.GONE);
         }
 
         mProgress = (ProgressBar) v.findViewById(R.id.mediacontroller_progress);
@@ -608,8 +645,6 @@ public class VideoControllerView extends FrameLayout {
     //public boolean isAnnotationModeEnabled() {
     //    return mAnnotationModeEnabled;
     //}
-
-
 
 
     /**
@@ -864,6 +899,7 @@ public class VideoControllerView extends FrameLayout {
                 mKeepButton.setVisibility(View.GONE);
                 mCancelButton.setVisibility(View.GONE);
                 mDeleteButton.setVisibility(View.GONE);
+                mCreatorText.setVisibility(View.GONE);
                 break;
             case PAUSE_MODE:
                 setCurrentAnnotation(null);
@@ -883,6 +919,7 @@ public class VideoControllerView extends FrameLayout {
                 mKeepButton.setVisibility(View.GONE);
                 mCancelButton.setVisibility(View.GONE);
                 mDeleteButton.setVisibility(View.GONE);
+                mCreatorText.setVisibility(View.GONE);
                 break;
             case ANNOTATION_PAUSE_MODE:
                 mAnnotationPausedProgress.setVisibility(View.VISIBLE);
@@ -899,6 +936,7 @@ public class VideoControllerView extends FrameLayout {
                 mCurrentTime.setVisibility(View.GONE);
                 mEndTime.setVisibility(View.GONE);
                 mDeleteButton.setVisibility(View.GONE);
+                mCreatorText.setVisibility(View.GONE);
                 mEditTextButton.setVisibility(View.VISIBLE);
                 mKeepButton.setVisibility(View.VISIBLE);
                 mCancelButton.setVisibility(View.VISIBLE);
@@ -918,6 +956,7 @@ public class VideoControllerView extends FrameLayout {
                 mCurrentTime.setVisibility(View.GONE);
                 mEndTime.setVisibility(View.GONE);
                 mDeleteButton.setVisibility(View.VISIBLE);
+                mCreatorText.setVisibility(View.VISIBLE);
                 mEditTextButton.setVisibility(View.VISIBLE);
                 mKeepButton.setVisibility(View.VISIBLE);
                 mCancelButton.setVisibility(View.VISIBLE);

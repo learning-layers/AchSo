@@ -44,10 +44,12 @@ import fi.aalto.legroup.achso.util.FloatPosition;
 import fi.aalto.legroup.achso.view.VideoControllerView;
 
 public class AnnotationSurfaceHandler {
+    public static final String[] ANNOTATION_COLORS = {"#607d8b", "#9c27b0", "#673ab7", "#259b24", "#cddc39", "#ffeb3b", "#ff5722"};
 
     private SurfaceView mAnnotationSurface;
     private ConcurrentLinkedQueue<Annotation> mAnnotations;
     private long mVideoId;
+    private ArrayList<String> mAnnotationCreators;
     private Context mContext;
     private IncomingAnnotationMarker mIncoming;
 
@@ -56,12 +58,37 @@ public class AnnotationSurfaceHandler {
         mContext = c;
         this.mAnnotationSurface = surface;
         VideoDBHelper vdb = new VideoDBHelper(c);
+        mAnnotationCreators = new ArrayList<String>();
         mAnnotations = new ConcurrentLinkedQueue<Annotation>();
         for (Annotation a : vdb.getAnnotationsById(videoId)) {
             mAnnotations.add(a);
+            String currentCreator = a.getCreator();
+            if (mAnnotationCreators.indexOf(currentCreator) == -1) {
+                mAnnotationCreators.add(currentCreator);
+            }
+
+            a.setColor(this.colorForCreator(currentCreator));
         }
         vdb.close();
         mVideoId = videoId;
+    }
+
+    public int colorForCreator(String creator) {
+        JsonObject userInfo = App.loginManager.getUserInfo();
+        String currentUser = null;
+        if (userInfo != null && userInfo.has("preferred_username")) {
+            currentUser = userInfo.get("preferred_username").getAsString();
+            if (currentUser.equals(creator)) {
+                return  Color.parseColor(ANNOTATION_COLORS[0]);
+            }
+        }
+
+        int pos = mAnnotationCreators.indexOf(creator);
+        pos++;
+        while (pos > ANNOTATION_COLORS.length) {
+            pos = pos - ANNOTATION_COLORS.length;
+        }
+        return Color.parseColor(ANNOTATION_COLORS[pos]);
     }
 
     public void draw() {
@@ -258,7 +285,7 @@ public class AnnotationSurfaceHandler {
         List<Annotation> result = new ArrayList<Annotation>();
 
         for (final Annotation a : mAnnotations) {
-            if (pos >= a.getStartTime() && ! a.isSeen()) {
+            if (pos >= a.getStartTime() && !a.isSeen()) {
                 a.setSeen(true);
                 result.add(a);
             } else {
