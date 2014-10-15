@@ -65,7 +65,6 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
         mVisible = false;
         mAlive = true;
         mOpacity = 100;
-        mColor = App.getContext().getResources().getColor(R.color.orange_square);
     }
 
     public Annotation(Context ctx, SemanticVideo sv, AnnotationBase base) {
@@ -83,6 +82,10 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
 
     public int getColor() {
         return mSelected ? mSelectedColor : mColor;
+    }
+
+    public void setColor(int color) {
+        this.mColor = color;
     }
 
     public int getOpacity() {
@@ -155,6 +158,7 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
     }
 
     public void setText(String text) {
+        SubtitleManager.setColor(this.mColor);
         if (mText != null && mVisible && text != null) {
             SubtitleManager.replaceSubtitle(mText, text);
         }
@@ -202,11 +206,11 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
 
     }
 
-    public void draw(Canvas c) {
+    public void draw(Canvas c, int color) {
         if (mVisible) {
             Paint p = new Paint();
             Paint s = new Paint();
-            p.setColor(mColor);
+            p.setColor(color);
             s.setColor(mColorShadow);
             int a = (int) (mOpacity / 100f) * 255;
             p.setAlpha(a);
@@ -223,9 +227,16 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
                 c.drawLine(posx, posy + (mSize/2) + 2, c.getWidth()/2, c.getHeight() - 54, p);
             }
 
-            if (mText != null) SubtitleManager.addSubtitle(mText);
+            if (mText != null) {
+                SubtitleManager.setColor(this.mColor);
+                SubtitleManager.addSubtitle(mText);
+            }
 
         }
+    }
+
+    public void draw(Canvas c) {
+        this.draw(c, mColor);
     }
 
     public RectF getBounds(SurfaceView drawnTo) {

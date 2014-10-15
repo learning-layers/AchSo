@@ -23,8 +23,15 @@
 
 package fi.aalto.legroup.achso.annotation;
 
+import android.graphics.Color;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -32,11 +39,16 @@ public class SubtitleManager {
     private static SubtitleManager mInstance;
     private static TextView mSubtitleTextView;
     private static ConcurrentLinkedQueue<String> mSubtitles;
+
+    private static HashMap<String, Integer> mColorsForText;
+
     static {
         mInstance = new SubtitleManager();
         mSubtitleTextView = null;
         mSubtitles = new ConcurrentLinkedQueue<String>();
     }
+
+    private static int mColor = Color.RED;
 
     private SubtitleManager() {
     }
@@ -50,9 +62,19 @@ public class SubtitleManager {
     }
 
     public static void addSubtitle(String subtitle) {
+        addSubtitle(subtitle, mColor);
+    }
+
+    public static void addSubtitle(String subtitle, int color) {
         if (!mSubtitles.contains(subtitle)) {
+            mColorsForText.put(subtitle, color);
             mSubtitles.add(subtitle);
         }
+    }
+
+    public static void setColor(int color) {
+        mColor = color;
+        mSubtitleTextView.setTextColor(mColor);
     }
 
     public static void replaceSubtitle(String from, String to) {
@@ -74,20 +96,30 @@ public class SubtitleManager {
 
     public static void removeSubtitle(String subtitle) {
         mSubtitles.remove(subtitle);
+        mColorsForText.remove(subtitle);
     }
 
     public static void updateVisibleSubtitles() {
-        String sub = "";
+        SpannableStringBuilder sub = new SpannableStringBuilder("");
         for (String s : mSubtitles) {
-            if (s.equals("")) continue;
-            sub += s;
-            sub += "\n";
+
+            if (s.equals("")) {
+                continue;
+            }
+            SpannableString currentSubtitle = new SpannableString(s + "\n");
+            currentSubtitle.setSpan(new ForegroundColorSpan(mColorsForText.get(s)),0, s.length(),
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            sub.append(currentSubtitle);
         }
-        if (sub.equals("\n")) sub = "";
-        if (mSubtitleTextView != null) mSubtitleTextView.setText(sub);
+
+        if (mSubtitleTextView != null) {
+            mSubtitleTextView.setText(sub, TextView.BufferType.SPANNABLE);
+        }
+
     }
 
     public static void clearSubtitles() {
         mSubtitles = new ConcurrentLinkedQueue<String>();
+        mColorsForText = new HashMap<String, Integer>();
     }
 }

@@ -49,6 +49,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
+
+            <TextView
+                android:id="@+id/annotation_creator_text"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:layout_marginRight="50dp"
+                android:textColor="#FFF"
+                android:gravity="center"
+                />
+            
             <Button
                 android:id="@+id/delete_annotation_button"
                 style="?android:attr/buttonStyleSmall"
@@ -77,6 +87,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="fill_parent"
                 android:text="@string/keep" />
+
+
         </LinearLayout>
 
         <LinearLayout

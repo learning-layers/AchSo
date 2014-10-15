@@ -25,6 +25,7 @@ package fi.aalto.legroup.achso.view;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -142,8 +143,10 @@ public class AnnotatedSeekBar extends SeekBar {
                 for (Annotation a : mAnnotationSurfaceHandler.getAnnotations()) {
                     int thumbx = (int) (((float) a.getStartTime() / video_duration) * w) + this
                             .getThumbOffset();
+
+                    p.setColor(mAnnotationSurfaceHandler.colorForCreator(a.getCreator()));
                     c.drawCircle(thumbx, this.getHeight() / 2, 4.0f, p);
-                    p.setColor(0x88EAB674);
+                    p.setAlpha(70);
                     c.drawCircle(thumbx, this.getHeight() / 2, 14.0f, p);
                 }
             }

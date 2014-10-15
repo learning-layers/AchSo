@@ -353,6 +353,21 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         }
         c.close();
         db.close();
+
+
+        /*
+        Annotation from1AnotherUser = new Annotation(videoid, 1000, "This is a dumb remark",
+                new FloatPosition(0.5f,0.5f), 1.0f, "another.user@example.com", null);
+        ret.add(from1AnotherUser);
+
+        Annotation from2AnotherUser = new Annotation(videoid, 4000, "This is a witty comment",
+                new FloatPosition(0.5f,0.5f), 1.0f, "another.user@example.com", null);
+        ret.add(from2AnotherUser);
+
+        Annotation from3AnotherUser = new Annotation(videoid, 4000, "And a sarcastic remark",
+                new FloatPosition(0.2f,0.2f), 1.0f, "stillanother.user@example.com", null);
+        ret.add(from3AnotherUser);
+        */
         return ret;
     }
 
