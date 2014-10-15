@@ -28,10 +28,10 @@ cohesive and valuable.
 
 4. **Create a pull request against `integration`** when your commits are
 clean. If your pull request is mistargeted, against `master` for example,
-close it and create a new one.
+close it and create a new one. Mark the JIRA issue as `Resolved`.
 
 5. **Delete your working branch** after your changes have been merged back
-into `integration`.
+into `integration`. The JIRA issue should be `Closed` now.
 
 When the changes in the `integration` branch are deemed stable, they will be
 merged into `master` and a new version will be released.
