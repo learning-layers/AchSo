@@ -36,13 +36,11 @@ import java.util.Map;
 import fi.aalto.legroup.achso.R;
 
 public class SubtitleManager {
+
     private static List<TextView> freeTextViews = new LinkedList<TextView>();
     private static Map<Annotation, TextView> textViewsInUse = new HashMap<Annotation, TextView>();
     private static LinearLayout subtitleContainer;
     private static LayoutInflater inflater;
-
-    private SubtitleManager() {
-    }
 
     public static TextView textViewForSubtitle(Annotation a) {
         if (textViewsInUse.containsKey(a)) {
@@ -50,6 +48,7 @@ public class SubtitleManager {
         }
 
         TextView text;
+
         if (freeTextViews.isEmpty()) {
             text = (TextView) inflater.inflate(R.layout.subtitle, subtitleContainer, false);
         } else {
@@ -57,6 +56,7 @@ public class SubtitleManager {
         }
 
         textViewsInUse.put(a, text);
+
         return text;
     }
 
@@ -67,31 +67,36 @@ public class SubtitleManager {
 
     public static void addSubtitleForAnnotation(Annotation a) {
         TextView text = textViewForSubtitle(a);
+
         text.setTextColor(a.getColor());
         text.setText(a.getText());
         text.setVisibility(View.VISIBLE);
-        if(text.getParent() != subtitleContainer) {
+
+        if (text.getParent() != subtitleContainer) {
             subtitleContainer.addView(text);
         }
     }
 
     public static void removeSubtitleForAnnotation(Annotation a) {
-        if(textViewsInUse.containsKey(a)) {
+        if (textViewsInUse.containsKey(a)) {
             TextView text = textViewsInUse.get(a);
-            textViewsInUse.remove(a);
+
             subtitleContainer.removeView(text);
+            textViewsInUse.remove(a);
             freeTextViews.add(text);
         }
     }
 
     public static void clearAllSubtitles() {
-        if(subtitleContainer != null) {
+        if (subtitleContainer != null) {
             subtitleContainer.removeAllViews();
         }
 
-        for(TextView text : textViewsInUse.values()) {
+        for (TextView text : textViewsInUse.values()) {
             freeTextViews.add(text);
         }
+
         textViewsInUse.clear();
     }
+
 }
