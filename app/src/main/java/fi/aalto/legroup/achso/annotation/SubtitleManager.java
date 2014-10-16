@@ -30,11 +30,14 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import fi.aalto.legroup.achso.R;
 
 public class SubtitleManager {
-    private static LinkedList<TextView> freeTextViews = new LinkedList<TextView>();
-    private static HashMap<Annotation, TextView> textViewsInUse = new HashMap<Annotation, TextView>();
+    private static List<TextView> freeTextViews = new LinkedList<TextView>();
+    private static Map<Annotation, TextView> textViewsInUse = new HashMap<Annotation, TextView>();
     private static LinearLayout subtitleContainer;
     private static LayoutInflater inflater;
 
@@ -52,10 +55,10 @@ public class SubtitleManager {
         }
 
         TextView text;
-        if (freeTextViews.size() < 1) {
+        if (freeTextViews.isEmpty()) {
             text = createTextViewForSubtitle();
         } else {
-            text = freeTextViews.pop();
+            text = freeTextViews.iterator().next();
         }
 
         textViewsInUse.put(a, text);
@@ -82,7 +85,7 @@ public class SubtitleManager {
             TextView text = textViewsInUse.get(a);
             textViewsInUse.remove(a);
             subtitleContainer.removeView(text);
-            freeTextViews.push(text);
+            freeTextViews.add(text);
         }
     }
 
@@ -92,8 +95,8 @@ public class SubtitleManager {
         }
 
         for(TextView text : textViewsInUse.values()) {
-            freeTextViews.push(text);
+            freeTextViews.add(text);
         }
-        textViewsInUse = new HashMap<Annotation, TextView>();
+        textViewsInUse.clear();
     }
 }
