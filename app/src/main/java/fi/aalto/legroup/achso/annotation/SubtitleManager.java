@@ -23,11 +23,11 @@
 
 package fi.aalto.legroup.achso.annotation;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -44,11 +44,6 @@ public class SubtitleManager {
     private SubtitleManager() {
     }
 
-    public static TextView createTextViewForSubtitle() {
-        TextView text = (TextView) inflater.inflate(R.layout.subtitle, null);
-        return text;
-    }
-
     public static TextView textViewForSubtitle(Annotation a) {
         if (textViewsInUse.containsKey(a)) {
             return textViewsInUse.get(a);
@@ -56,7 +51,7 @@ public class SubtitleManager {
 
         TextView text;
         if (freeTextViews.isEmpty()) {
-            text = createTextViewForSubtitle();
+            text = (TextView) inflater.inflate(R.layout.subtitle, subtitleContainer, false);
         } else {
             text = freeTextViews.iterator().next();
         }
@@ -67,7 +62,7 @@ public class SubtitleManager {
 
     public static void setSubtitleContainer(LinearLayout container) {
         subtitleContainer = container;
-        inflater = (LayoutInflater) subtitleContainer.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        inflater = LayoutInflater.from(subtitleContainer.getContext());
     }
 
     public static void addSubtitleForAnnotation(Annotation a) {
