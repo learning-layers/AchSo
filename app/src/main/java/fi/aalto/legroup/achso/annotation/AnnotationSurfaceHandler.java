@@ -107,10 +107,7 @@ public class AnnotationSurfaceHandler {
                 sh.unlockCanvasAndPost(c);
             }
         }
-        SubtitleManager.updateVisibleSubtitles();
-        TextView sv = SubtitleManager.getSubtitleTextView();
         // add here code to analyse if subtitles overlap with annotations and move subtitles if necessary
-
     }
 
     public void draw(Annotation a) {
@@ -123,8 +120,6 @@ public class AnnotationSurfaceHandler {
                 sh.unlockCanvasAndPost(c);
             }
         }
-        SubtitleManager.updateVisibleSubtitles();
-        TextView sv = SubtitleManager.getSubtitleTextView();
         // add here code to analyse if subtitles overlap with annotations and move subtitles if necessary
 
     }

@@ -24,108 +24,80 @@
 package fi.aalto.legroup.achso.annotation;
 
 import android.graphics.Color;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.SpannableStringBuilder;
-import android.text.style.ForegroundColorSpan;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
-
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Stack;
+import fi.aalto.legroup.achso.R;
 
 public class SubtitleManager {
-    private static SubtitleManager mInstance;
-    private static TextView mSubtitleTextView;
-    private static ConcurrentLinkedQueue<String> mSubtitles;
-
-    private static HashMap<String, Integer> mColorsForText;
-
-    static {
-        mInstance = new SubtitleManager();
-        mSubtitleTextView = null;
-        mSubtitles = new ConcurrentLinkedQueue<String>();
-    }
-
-    private static int mColor = Color.RED;
+    private static Stack<TextView> freeTextViews = new Stack<TextView>();
+    private static HashMap<Annotation, TextView> textViewsInUse = new HashMap<Annotation, TextView>();
+    private static LinearLayout subtitleContainer;
 
     private SubtitleManager() {
     }
 
-    public static void setSubtitleTextView(TextView view) {
-        mSubtitleTextView = view;
+    public static TextView createTextViewForSubtitle() {
+        TextView text = new TextView(subtitleContainer.getContext());
+        text.setShadowLayer(4.0f, 0, 0, Color.parseColor("white"));
+        text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, subtitleContainer.getResources().getDimension(R.dimen.subtitle_size));
+        text.setGravity(Gravity.CENTER_HORIZONTAL);
+        text.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT));
+        return text;
     }
 
-    public static TextView getSubtitleTextView() {
-        return mSubtitleTextView;
+    public static TextView textViewForSubtitle(Annotation a) {
+        if (textViewsInUse.containsKey(a)) {
+            return textViewsInUse.get(a);
+        }
+
+        TextView text;
+        if (freeTextViews.empty()) {
+            text = createTextViewForSubtitle();
+        } else {
+            text = freeTextViews.pop();
+        }
+
+        textViewsInUse.put(a, text);
+        return text;
     }
 
-    public static void addSubtitle(String subtitle) {
-        addSubtitle(subtitle, mColor);
+    public static void setSubtitleContainer(LinearLayout container) {
+        subtitleContainer = container;
     }
 
-    public static void addSubtitle(String subtitle, int color) {
-        if (!mSubtitles.contains(subtitle)) {
-            mColorsForText.put(subtitle, color);
-            mSubtitles.add(subtitle);
+    public static void addSubtitleForAnnotation(Annotation a) {
+        TextView text = textViewForSubtitle(a);
+        text.setTextColor(a.getColor());
+        text.setText(a.getText());
+        text.setVisibility(View.VISIBLE);
+        if(text.getParent() != subtitleContainer) {
+            subtitleContainer.addView(text);
         }
     }
 
-    public static void setColor(int color) {
-        mColor = color;
-        mSubtitleTextView.setTextColor(mColor);
-    }
-
-    public static void replaceSubtitle(String from, String to) {
-        if (!mSubtitles.contains(from)) return;
-
-        // Rebuilds the queue as elements cannot be replaced.
-        // Shouldn't matter much as the queue usually contains maximum of 3 elements or so.
-        ConcurrentLinkedQueue<String> newSubtitles = new ConcurrentLinkedQueue<String>();
-        synchronized (mSubtitles) {
-            Iterator i = mSubtitles.iterator();
-            while (i.hasNext()) {
-                String str = (String) i.next();
-                if (str.equals(from)) newSubtitles.add(to);
-                else newSubtitles.add(str);
-            }
-            mSubtitles = newSubtitles;
-        }
-
-        if(mColorsForText.containsKey(from)) {
-            int color = mColorsForText.get(from);
-            mColorsForText.remove(from);
-            mColorsForText.put(to, color);
+    public static void removeSubtitleForAnnotation(Annotation a) {
+        if(textViewsInUse.containsKey(a)) {
+            TextView text = textViewsInUse.get(a);
+            textViewsInUse.remove(a);
+            subtitleContainer.removeView(text);
+            freeTextViews.push(text);
         }
     }
 
-    public static void removeSubtitle(String subtitle) {
-        mSubtitles.remove(subtitle);
-        mColorsForText.remove(subtitle);
-    }
-
-    public static void updateVisibleSubtitles() {
-        SpannableStringBuilder sub = new SpannableStringBuilder("");
-        for (String s : mSubtitles) {
-
-            if (s.equals("")) {
-                continue;
-            }
-            SpannableString currentSubtitle = new SpannableString(s + "\n");
-            currentSubtitle.setSpan(new ForegroundColorSpan(mColorsForText.get(s)), 0, s.length(),
-                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            sub.append(currentSubtitle);
+    public static void clearAllSubtitles() {
+        if(subtitleContainer != null) {
+            subtitleContainer.removeAllViews();
         }
 
-        if (mSubtitleTextView != null) {
-            mSubtitleTextView.setText(sub, TextView.BufferType.SPANNABLE);
+        for(TextView text : textViewsInUse.values()) {
+            freeTextViews.push(text);
         }
-
-    }
-
-    public static void clearSubtitles() {
-        mSubtitles = new ConcurrentLinkedQueue<String>();
-        mColorsForText = new HashMap<String, Integer>();
+        textViewsInUse = new HashMap<Annotation, TextView>();
     }
 }

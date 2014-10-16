@@ -30,6 +30,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
 import android.view.SurfaceView;
+import android.widget.TextView;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.database.AnnotationBase;
@@ -124,7 +125,7 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
             mOpacity = 100;
         } else {
             mOpacity = 0;
-            if (mText != null) SubtitleManager.removeSubtitle(mText);
+            if (mText != null) SubtitleManager.removeSubtitleForAnnotation(this);
         }
     }
 
@@ -139,7 +140,7 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
     public void setAlive(boolean b) {
         if (!b) {
             if (mVisible && mText != null) {
-                SubtitleManager.removeSubtitle(mText);
+                SubtitleManager.removeSubtitleForAnnotation(this);
             }
         }
         mAlive = b;
@@ -158,9 +159,8 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
     }
 
     public void setText(String text) {
-        SubtitleManager.setColor(this.mColor);
         if (mText != null && mVisible && text != null) {
-            SubtitleManager.replaceSubtitle(mText, text);
+            SubtitleManager.addSubtitleForAnnotation(this);
         }
 
         super.setText(text);
@@ -227,9 +227,9 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
                 c.drawLine(posx, posy + (mSize/2) + 2, c.getWidth()/2, c.getHeight() - 54, p);
             }
 
+
             if (mText != null) {
-                SubtitleManager.setColor(this.mColor);
-                SubtitleManager.addSubtitle(mText);
+                SubtitleManager.addSubtitleForAnnotation(this);
             }
 
         }
