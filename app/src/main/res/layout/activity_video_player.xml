@@ -47,7 +47,14 @@
             android:indeterminateOnly="true" />
     </RelativeLayout>
 
-    <include layout="@layout/subtitles" />
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/subtitle_container_layout"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:gravity="bottom|center_horizontal"
+        android:layout_marginBottom="100dp"
+        android:orientation="vertical">
+    </LinearLayout>
 
     <FrameLayout
         android:id="@+id/video_controller_container"

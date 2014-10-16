@@ -98,7 +98,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
 
 
     public SemanticVideoPlayerFragment() {
-        SubtitleManager.clearSubtitles();
+        SubtitleManager.clearAllSubtitles();
         mCanEditAnnotations = true;
     }
 
@@ -111,6 +111,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
         assert (v != null);
         Log.i("SemanticVideoPlayerFragment", "onCreateView");
         mBufferProgress = (ProgressBar) v.findViewById(R.id.video_buffer_progress);
+        SubtitleManager.setSubtitleContainer((LinearLayout) v.findViewById(R.id.subtitle_container_layout));
         v.setOnTouchListener(this);
         mScaleGestureDetector = new ScaleGestureDetector(getActivity(), new simpleOnScaleGestureListener());
         if (savedState != null) {
@@ -304,7 +305,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
             seekTo(position, DO_NOTHING);
         }
         // Do not draw annotations this time (because of possible orientation change)
-        SubtitleManager.setSubtitleTextView((TextView) getView().findViewById(R.id.subtitle));
+
         mController.show();
         mControllerTopCoordinate = mController.getControllerTop();
         boolean is_playing = true;
@@ -347,8 +348,6 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
             annotationsToShow = mAnnotationSurfaceHandler.getAnnotationsAppearingBetween(position - 10, position);
         }
         mAnnotationSurfaceHandler.showMultiple(annotationsToShow);
-
-        SubtitleManager.updateVisibleSubtitles();
 
         // This message queue hack is needed, because for some unknown reason
         // mAnnotationSurface
