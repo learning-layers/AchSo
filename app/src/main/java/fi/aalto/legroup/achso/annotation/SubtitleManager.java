@@ -23,31 +23,26 @@
 
 package fi.aalto.legroup.achso.annotation;
 
-import android.graphics.Color;
-import android.util.TypedValue;
-import android.view.Gravity;
+import android.content.Context;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import java.util.HashMap;
-import java.util.Stack;
+import java.util.LinkedList;
 import fi.aalto.legroup.achso.R;
 
 public class SubtitleManager {
-    private static Stack<TextView> freeTextViews = new Stack<TextView>();
+    private static LinkedList<TextView> freeTextViews = new LinkedList<TextView>();
     private static HashMap<Annotation, TextView> textViewsInUse = new HashMap<Annotation, TextView>();
     private static LinearLayout subtitleContainer;
+    private static LayoutInflater inflater;
 
     private SubtitleManager() {
     }
 
     public static TextView createTextViewForSubtitle() {
-        TextView text = new TextView(subtitleContainer.getContext());
-        text.setShadowLayer(4.0f, 0, 0, Color.parseColor("white"));
-        text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, subtitleContainer.getResources().getDimension(R.dimen.subtitle_size));
-        text.setGravity(Gravity.CENTER_HORIZONTAL);
-        text.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT));
+        TextView text = (TextView) inflater.inflate(R.layout.subtitle, null);
         return text;
     }
 
@@ -57,7 +52,7 @@ public class SubtitleManager {
         }
 
         TextView text;
-        if (freeTextViews.empty()) {
+        if (freeTextViews.size() < 1) {
             text = createTextViewForSubtitle();
         } else {
             text = freeTextViews.pop();
@@ -69,6 +64,7 @@ public class SubtitleManager {
 
     public static void setSubtitleContainer(LinearLayout container) {
         subtitleContainer = container;
+        inflater = (LayoutInflater) subtitleContainer.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
     public static void addSubtitleForAnnotation(Annotation a) {
