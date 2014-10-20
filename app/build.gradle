@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "fi.aalto.legroup.achso"
-        minSdkVersion 11
+        minSdkVersion 15
         targetSdkVersion 19
     }
 
@@ -41,9 +41,6 @@ dependencies {
     // don't listen to it. This one works fine; it will also work on devices that can't update the
     // services for some reason.
     compile 'com.google.android.gms:play-services:5.0+'
-
-    // Android support library for backwards-compatibility
-    compile "com.android.support:appcompat-v7:20.0.0"
 
     // Google's OAuth library for OpenID Connect
     // See https://code.google.com/p/google-oauth-java-client/wiki/Setup
