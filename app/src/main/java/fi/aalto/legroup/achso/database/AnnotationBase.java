@@ -55,9 +55,8 @@ public class AnnotationBase implements XmlSerializable {
         mVideoId = videoid;
         mCreator = creator;
         mStartTime = starttime;
-        mDuration = duration;
         mPosition = position;
-        mText = text;
+        this.setText(text);
         mScale = scale;
         mVideoKey = (video_key != null) ? video_key : Long.toString(videoid);
     }
@@ -68,6 +67,13 @@ public class AnnotationBase implements XmlSerializable {
 
     public void setText(String text) {
         mText = text;
+
+        long length = text.length() * Annotation.DISPLAY_DURATION_PER_CHAR;
+        if (length < Annotation.MINIMUM_DISPLAY_DURATION) {
+            length = Annotation.MINIMUM_DISPLAY_DURATION;
+        }
+
+        this.mDuration = length;
     }
 
     public long getId() {

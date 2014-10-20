@@ -459,7 +459,6 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     }
 
 
-
     private void pauseOnAnnotations(List<Annotation> annotationsToShow) {
         // start annotation pause mode. AnnotationPauseCounter will eventually end it.
         mStallPauseCounter = false;
@@ -469,7 +468,6 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
         mPauseHandler = new Handler();
         mPauseHandler.postDelayed(new AnnotationPauseCounter(annotationsToShow), PAUSE_COUNTER_REFRESH_INTERVAL);
     }
-
 
 
     public void setEditableAnnotations(boolean editableAnnotations) {
@@ -740,7 +738,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
                 } else { // keep dragging
 
                     // if dragging on areas covered by controllers, hide them.
-                    if (mVideoTakesAllVerticalSpace && mTitleAreaHeight+10 > event.getY()) {
+                    if (mVideoTakesAllVerticalSpace && mTitleAreaHeight + 10 > event.getY()) {
                         mController.hide();
                     } else if (mVideoTakesAllVerticalSpace && mControllerTopCoordinate - 10 < event.getY
                             ()) {
@@ -849,7 +847,7 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
     public void onAnnotationTimerTick(long playbackPosition) {
         List<Annotation> annotations = mAnnotationSurfaceHandler.getAnnotationsAt(playbackPosition);
 
-        if ( ! annotations.isEmpty()) {
+        if (!annotations.isEmpty()) {
             pauseOnAnnotations(annotations);
         }
 
@@ -888,10 +886,15 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
 
     private class AnnotationPauseCounter implements Runnable {
         private int counter = 0;
+        private long totalPauseTime;
         private List<Annotation> mAnnotationsToShow;
 
         public AnnotationPauseCounter(List<Annotation> annotationsToShow) {
+            totalPauseTime = 0;
             mAnnotationsToShow = annotationsToShow;
+            for (Annotation a : mAnnotationsToShow) {
+                totalPauseTime = totalPauseTime + a.getDuration();
+            }
         }
 
         @Override
@@ -902,8 +905,8 @@ public class SemanticVideoPlayerFragment extends Fragment implements SurfaceHold
             if (!mStallPauseCounter) {
                 counter += PAUSE_COUNTER_REFRESH_INTERVAL;
             }
-            if (counter < Annotation.ANNOTATION_SHOW_DURATION_MILLISECONDS && mController.isPausedForShowingAnnotation()) {
-                mController.setAnnotationPausedProgress((int) ((counter * 100) / Annotation.ANNOTATION_SHOW_DURATION_MILLISECONDS));
+            if (counter < totalPauseTime && mController.isPausedForShowingAnnotation()) {
+                mController.setAnnotationPausedProgress((int) ((counter * 100) / totalPauseTime));
                 mPauseHandler.postDelayed(this, PAUSE_COUNTER_REFRESH_INTERVAL);
             } else {
                 for (Annotation a : mAnnotationsToShow) {
