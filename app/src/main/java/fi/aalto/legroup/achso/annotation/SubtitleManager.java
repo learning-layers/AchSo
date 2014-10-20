@@ -30,14 +30,13 @@ import android.widget.TextView;
 
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 import fi.aalto.legroup.achso.R;
 
 public class SubtitleManager {
 
-    private static List<TextView> freeTextViews = new LinkedList<TextView>();
+    private static LinkedList<TextView> freeTextViews = new LinkedList<TextView>();
     private static Map<Annotation, TextView> textViewsInUse = new HashMap<Annotation, TextView>();
     private static LinearLayout subtitleContainer;
     private static LayoutInflater inflater;
@@ -52,7 +51,7 @@ public class SubtitleManager {
         if (freeTextViews.isEmpty()) {
             text = (TextView) inflater.inflate(R.layout.subtitle, subtitleContainer, false);
         } else {
-            text = freeTextViews.iterator().next();
+            text = freeTextViews.pop();
         }
 
         textViewsInUse.put(a, text);

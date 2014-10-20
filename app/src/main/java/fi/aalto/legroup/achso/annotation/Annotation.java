@@ -44,6 +44,8 @@ import fi.aalto.legroup.achso.util.TextSettable;
 public class Annotation extends AnnotationBase implements TextSettable, SerializableToDB {
 
     public static final long ANNOTATION_SHOW_DURATION_MILLISECONDS = 3000;
+    public static final long MINIMUM_DISPLAY_DURATION = 2000;
+    public static final long DISPLAY_DURATION_PER_CHAR = 100;
     public static final long ANNOTATION_FADE_DURATION_MILLISECONDS = 200;
     public static final int ORIGINAL_SIZE = 60;
     boolean mSelected;
@@ -101,7 +103,9 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
         return this.mSelected;
     }
 
-    public void setSelected(boolean value) { mSelected = value; }
+    public void setSelected(boolean value) {
+        mSelected = value;
+    }
 
     public long getDuration() {
         return super.getDuration();
@@ -167,11 +171,11 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
     }
 
     public static void drawAnnotationRect(Canvas c, Paint color, Paint shadow, Float posx,
-                                         Float posy, int wh, float scale) {
+                                          Float posy, int wh, float scale) {
         int wh2 = wh / 2;
         int tilt = wh / 8;
         int adjust = 4; //wh / 16;
-        int madjust = (int) (4 * (scale * 2) );
+        int madjust = (int) (4 * (scale * 2));
         //int madjust = (int) ((wh / 16) * (scale * 2) );
         color.setStyle(Paint.Style.STROKE);
         color.setAntiAlias(true);
@@ -224,7 +228,7 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
             if (isSelected()) {
                 p.setStrokeWidth(0);
                 p.setShadowLayer(2, 2, 2, mColorShadow);
-                c.drawLine(posx, posy + (mSize/2) + 2, c.getWidth()/2, c.getHeight() - 54, p);
+                c.drawLine(posx, posy + (mSize / 2) + 2, c.getWidth() / 2, c.getHeight() - 54, p);
             }
 
 
