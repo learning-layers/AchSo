@@ -1,31 +1,8 @@
-/*
- * Code contributed to the Learning Layers project
- * http://www.learning-layers.eu
- * Development is partly funded by the FP7 Programme of the European
- * Commission under
- * Grant Agreement FP7-ICT-318209.
- * Copyright (c) 2014, Aalto University.
- * For a list of contributors see the AUTHORS file at the top-level directory
- * of this distribution.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package fi.aalto.legroup.achso.fragment;
 
+import android.app.Fragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,8 +19,6 @@ import fi.aalto.legroup.achso.util.Dialog;
 
 public class InformationFragment extends Fragment {
 
-    public final String TAG = this.getClass().getSimpleName();
-
     TextView titleField;
     TextView genreField;
     TextView creatorField;
@@ -52,6 +27,8 @@ public class InformationFragment extends Fragment {
 
     ImageButton titleEditButton;
     ImageButton genreEditButton;
+
+    SemanticVideo video;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -84,9 +61,9 @@ public class InformationFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
 
         final InformationActivity activity = (InformationActivity) getActivity();
-        final SemanticVideo video = activity.getVideo();
+        video = activity.getVideo();
 
-        populateInformationFromVideo(video);
+        populateInformation();
 
         titleEditButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -95,7 +72,7 @@ public class InformationFragment extends Fragment {
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                populateInformationFromVideo(video);
+                                populateInformation();
                             }
                         }, video).show();
             }
@@ -104,28 +81,23 @@ public class InformationFragment extends Fragment {
         genreEditButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Dialog.getGenreDialog(activity,
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                video.setGenre(SemanticVideo.Genre.values()[which]);
-                                VideoDBHelper dbh = new VideoDBHelper(activity);
-                                dbh.update(video);
-                                dbh.close();
+                Dialog.getGenreDialog(activity, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int which) {
+                        video.setGenre(SemanticVideo.Genre.values()[which]);
 
-                                populateInformationFromVideo(video);
-                            }
-                        }, new DialogInterface.OnCancelListener() {
-                            @Override
-                            public void onCancel(DialogInterface dialogInterface) {
+                        VideoDBHelper dbHelper = new VideoDBHelper(activity);
+                        dbHelper.update(video);
+                        dbHelper.close();
 
-                            }
-                        }).show();
+                        populateInformation();
+                    }
+                }, null).show();
             }
         });
     }
 
-    private void populateInformationFromVideo(SemanticVideo video) {
+    private void populateInformation() {
         String creator = video.getCreator();
         String qrCode = video.getQrCode();
         String uploaded;
@@ -150,4 +122,5 @@ public class InformationFragment extends Fragment {
         qrCodeField.setText(qrCode);
         uploadedField.setText(uploaded);
     }
+
 }
