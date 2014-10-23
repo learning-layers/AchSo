@@ -899,7 +899,7 @@ public class VideoControllerView extends FrameLayout {
                 setCurrentAnnotation(null);
                 mAnnotationPausedProgress.setVisibility(View.GONE);
                 mRewButton.setVisibility(View.VISIBLE);
-                mPauseButton.setImageResource(R.drawable.pause);
+                mPauseButton.setImageResource(R.drawable.ic_action_pause);
                 mPauseButton.setVisibility(View.VISIBLE);
                 mFfwdButton.setVisibility(View.VISIBLE);
                 if (mCanAnnotate) {
@@ -919,7 +919,7 @@ public class VideoControllerView extends FrameLayout {
                 setCurrentAnnotation(null);
                 mAnnotationPausedProgress.setVisibility(View.GONE);
                 mRewButton.setVisibility(View.VISIBLE);
-                mPauseButton.setImageResource(R.drawable.play);
+                mPauseButton.setImageResource(R.drawable.ic_action_play);
                 mPauseButton.setVisibility(View.VISIBLE);
                 mFfwdButton.setVisibility(View.VISIBLE);
                 if (mCanAnnotate) {
