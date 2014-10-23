@@ -67,12 +67,9 @@
                 android:resource="@xml/searchable" />
         </activity>
         <activity
-            android:name=".activity.VideoViewerActivity"
-            android:label="@string/title_item_detail"
+            android:name=".activity.VideoPlayerActivity"
             android:parentActivityName=".activity.VideoBrowserActivity"
-            android:theme="@style/FloatingActionBarTheme"
-            android:windowSoftInputMode="stateHidden|adjustNothing" >
-        </activity>
+            android:theme="@style/FloatingActionBarTheme" />
         <activity
             android:name=".activity.GenreSelectionActivity"
             android:label="@string/title_activity_genre_selection" />

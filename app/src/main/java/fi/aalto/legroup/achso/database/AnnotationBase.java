@@ -43,7 +43,7 @@ public class AnnotationBase implements XmlSerializable {
     protected long mVideoId;
     protected String mText;
     protected float mScale;
-    private String mCreator;
+    protected String mCreator;
     private String mVideoKey;
     private long mId;
     private long mStartTime;

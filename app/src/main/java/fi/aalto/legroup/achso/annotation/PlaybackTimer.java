@@ -3,7 +3,11 @@ package fi.aalto.legroup.achso.annotation;
 import android.media.MediaPlayer;
 import android.os.Handler;
 
-public class AnnotationTimer {
+/**
+ * Uses heuristics to predict MediaPlayer playback position more accurately. Won't be needed with
+ * e.g. ExoPlayer.
+ */
+public class PlaybackTimer {
 
     private Handler handler = new Handler();
     private Listener listener;
@@ -27,16 +31,15 @@ public class AnnotationTimer {
     // How often we should adjust the predicted playback time for drifting
     private static final int DRIFT_ADJUSTMENT_INTERVAL = 2500;
 
-    public AnnotationTimer(Listener listener, MediaPlayer player) {
-        this.listener = listener;
+    public PlaybackTimer(MediaPlayer player) {
         this.player = player;
 
         handler.post(new Runnable() {
             @Override
             public void run() {
-                if (isRunning) {
+                if (isRunning && listener != null) {
                     long position = calculateCorrectedPosition();
-                    AnnotationTimer.this.listener.onAnnotationTimerTick(position);
+                    listener.onPlaybackTimerTick(position);
                 }
 
                 if (isAlive) handler.postDelayed(this, TICK_INTERVAL);
@@ -52,6 +55,10 @@ public class AnnotationTimer {
         });
     }
 
+    public void setListener(Listener listener) {
+        this.listener = listener;
+    }
+
     public void start() {
         isRunning = true;
         startTime = System.nanoTime();
@@ -62,7 +69,7 @@ public class AnnotationTimer {
         isRunning = false;
     }
 
-    public void destroy() {
+    public void release() {
         isAlive = false;
         isRunning = false;
         listener = null;
@@ -82,7 +89,9 @@ public class AnnotationTimer {
     }
 
     public interface Listener {
-        public void onAnnotationTimerTick(long playbackPosition);
+
+        public void onPlaybackTimerTick(long playbackPosition);
+
     }
 
 }

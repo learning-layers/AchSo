@@ -39,6 +39,7 @@ import fi.aalto.legroup.achso.database.SerializableToDB;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.util.App;
 import fi.aalto.legroup.achso.util.FloatPosition;
+import fi.aalto.legroup.achso.util.ColorGenerator;
 import fi.aalto.legroup.achso.util.TextSettable;
 
 public class Annotation extends AnnotationBase implements TextSettable, SerializableToDB {
@@ -84,11 +85,7 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
     }
 
     public int getColor() {
-        return mSelected ? mSelectedColor : mColor;
-    }
-
-    public void setColor(int color) {
-        this.mColor = color;
+        return ColorGenerator.getSeededColor(mCreator);
     }
 
     public int getOpacity() {
@@ -129,7 +126,6 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
             mOpacity = 100;
         } else {
             mOpacity = 0;
-            if (mText != null) SubtitleManager.removeSubtitleForAnnotation(this);
         }
     }
 
@@ -142,11 +138,6 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
     }
 
     public void setAlive(boolean b) {
-        if (!b) {
-            if (mVisible && mText != null) {
-                SubtitleManager.removeSubtitleForAnnotation(this);
-            }
-        }
         mAlive = b;
     }
 
@@ -160,14 +151,6 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
 
     public long getVideoId() {
         return super.getVideoId();
-    }
-
-    public void setText(String text) {
-        if (mText != null && mVisible && text != null) {
-            SubtitleManager.addSubtitleForAnnotation(this);
-        }
-
-        super.setText(text);
     }
 
     public static void drawAnnotationRect(Canvas c, Paint color, Paint shadow, Float posx,
@@ -230,12 +213,6 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
                 p.setShadowLayer(2, 2, 2, mColorShadow);
                 c.drawLine(posx, posy + (mSize / 2) + 2, c.getWidth() / 2, c.getHeight() - 54, p);
             }
-
-
-            if (mText != null) {
-                SubtitleManager.addSubtitleForAnnotation(this);
-            }
-
         }
     }
 

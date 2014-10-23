@@ -107,5 +107,6 @@
     <string name="choose_account">Choose an account</string>
     <string name="logged_out">Logged out.</string>
     <string name="login_error">Could not log in: %s</string>
+    <string name="save">Save</string>
 
 </resources>
