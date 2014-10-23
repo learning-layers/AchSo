@@ -21,6 +21,10 @@ import javax.annotation.Nonnull;
  */
 public class Marker extends View {
 
+    private float originalX = -1;
+    private float originalY = -1;
+    public static final int MARKER_SIZE = 32;
+
     private GestureDetector gestureDetector;
 
     private boolean isDraggable = true;
@@ -77,6 +81,30 @@ public class Marker extends View {
     }
 
     @Override
+    public void setX(float x) {
+        super.setX(x);
+        if (this.originalX == -1) {
+            this.originalX = x;
+        }
+    }
+
+    @Override
+    public void setY(float y) {
+        super.setY(y);
+        if (this.originalY == -1) {
+            this.originalY = y;
+        }
+    }
+
+    public float getOriginalX() {
+        return this.originalX;
+    }
+
+    public float getOriginalY() {
+        return this.originalY;
+    }
+
+    @Override
     protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) {
         super.onSizeChanged(width, height, oldWidth, oldHeight);
 
@@ -108,7 +136,6 @@ public class Marker extends View {
 
         return super.onDragEvent(event);
     }
-
 
 
     /**

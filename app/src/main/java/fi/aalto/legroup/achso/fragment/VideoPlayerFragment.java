@@ -2,15 +2,17 @@ package fi.aalto.legroup.achso.fragment;
 
 import android.animation.ObjectAnimator;
 import android.app.Fragment;
+import android.graphics.Matrix;
+import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.Surface;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
+import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -32,18 +34,19 @@ import fi.aalto.legroup.achso.annotation.renderers.MarkerRenderer;
 import fi.aalto.legroup.achso.annotation.renderers.PauseRenderer;
 import fi.aalto.legroup.achso.annotation.renderers.SubtitleRenderer;
 import fi.aalto.legroup.achso.database.SemanticVideo;
+import fi.aalto.legroup.achso.util.PinchToZoomHelper;
 import fi.aalto.legroup.achso.view.MarkerCanvas;
 
 /**
  * Provides a convenient fragment for playing annotated videos. The host is responsible for
  * implementing any playback controls.
- *
+ * <p/>
  * TODO: Decouple from MediaPlayer and provide an ExoPlayer alternative for API 16 and up.
  */
-public class VideoPlayerFragment extends Fragment implements SurfaceHolder.Callback,
+public class VideoPlayerFragment extends Fragment implements TextureView.SurfaceTextureListener,
         MediaPlayer.OnErrorListener, MediaPlayer.OnPreparedListener,
         MediaPlayer.OnCompletionListener, MediaPlayer.OnVideoSizeChangedListener,
-        PauseRenderer.PauseListener {
+        PauseRenderer.PauseListener, PinchToZoomHelper.MatrixHasChangedDelegate {
 
     public static final String STATE_AUTO_PLAY = "STATE_AUTO_PLAY";
     public static final String STATE_INITIAL_POSITION = "STATE_INITIAL_POSITION";
@@ -53,8 +56,10 @@ public class VideoPlayerFragment extends Fragment implements SurfaceHolder.Callb
     private AnnotationEditor annotationEditor;
 
     private FrameLayout videoContainer;
-    private SurfaceView videoSurfaceView;
+    private TextureView videoSurface;
+
     private MarkerCanvas markerCanvas;
+    private PinchToZoomHelper zoomMatrix;
 
     private ProgressBar bufferProgress;
     private ProgressBar pauseProgress;
@@ -92,10 +97,13 @@ public class VideoPlayerFragment extends Fragment implements SurfaceHolder.Callb
 
         videoContainer = (FrameLayout) view.findViewById(R.id.surfaceContainer);
 
-        markerCanvas = (MarkerCanvas) view.findViewById(R.id.markerContainer);
+        zoomMatrix = new PinchToZoomHelper(this);
 
-        videoSurfaceView = (SurfaceView) view.findViewById(R.id.videoSurface);
-        videoSurfaceView.getHolder().addCallback(this);
+        markerCanvas = (MarkerCanvas) view.findViewById(R.id.markerContainer);
+        markerCanvas.setZoomMatrix(zoomMatrix);
+
+        videoSurface = (TextureView) view.findViewById(R.id.videoSurface);
+        videoSurface.setSurfaceTextureListener(this);
 
         bufferProgress = (ProgressBar) view.findViewById(R.id.bufferProgress);
         pauseProgress = (ProgressBar) view.findViewById(R.id.pauseProgress);
@@ -176,7 +184,8 @@ public class VideoPlayerFragment extends Fragment implements SurfaceHolder.Callb
     private void finishPreparing() {
         if (!isMediaPlayerPrepared || !isSurfacePrepared) return;
 
-        Surface surface = videoSurfaceView.getHolder().getSurface();
+        SurfaceTexture texture = videoSurface.getSurfaceTexture();
+        Surface surface = new Surface(texture);
         mediaPlayer.setSurface(surface);
 
         bufferProgress.setVisibility(View.GONE);
@@ -186,6 +195,21 @@ public class VideoPlayerFragment extends Fragment implements SurfaceHolder.Callb
         setState(State.PREPARED);
 
         if (stateAutoPlay) play();
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        getActivity().onTouchEvent(event);
+        return true;
+    }
+
+    @Override
+    public void matrixHasChanged(PinchToZoomHelper helper) {
+        Matrix matrix = helper.getMatrix();
+        videoSurface.setTransform(matrix);
+        markerCanvas.matrixHasChanged(helper);
+        videoSurface.invalidate();
+        markerCanvas.invalidate();
     }
 
     public void play() {
@@ -290,13 +314,21 @@ public class VideoPlayerFragment extends Fragment implements SurfaceHolder.Callb
         play();
     }
 
-    /**
-     * Called when the SurfaceView is ready.
-     */
-    @Override
-    public void surfaceCreated(SurfaceHolder holder) {
+    public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int i, int i1) {
         isSurfacePrepared = true;
         finishPreparing();
+    }
+
+    public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int i, int i1) {
+
+    }
+
+    public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
+        return true;
+    }
+
+    public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
+
     }
 
     /**
@@ -328,7 +360,7 @@ public class VideoPlayerFragment extends Fragment implements SurfaceHolder.Callb
         int containerWidth;
         int containerHeight;
 
-        if (widthRatio > heightRatio){
+        if (widthRatio > heightRatio) {
             containerWidth = (int) (parentHeight * videoAspectRatio);
             containerHeight = parentHeight;
         } else {
@@ -342,6 +374,7 @@ public class VideoPlayerFragment extends Fragment implements SurfaceHolder.Callb
         params.height = containerHeight;
 
         videoContainer.setLayoutParams(params);
+        zoomMatrix.setViewportDimensions(params.width, params.height);
     }
 
     @Override
@@ -373,12 +406,6 @@ public class VideoPlayerFragment extends Fragment implements SurfaceHolder.Callb
 
         return true;
     }
-
-    @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {}
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {}
 
     public enum State {
         UNPREPARED,
