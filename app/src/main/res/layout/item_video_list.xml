@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="8dp"
+    android:paddingBottom="12dp">
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/imageView"
+        android:layout_weight="0"
+        android:layout_gravity="center_vertical"
+        android:src="@android:drawable/sym_def_app_icon"
+        android:layout_marginLeft="12dp"
+        android:layout_marginRight="12dp" />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_weight="1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Large Text"
+            android:id="@+id/textView2" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Small Text"
+            android:id="@+id/textView5" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Small Text"
+            android:id="@+id/textView4" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="42dp"
+        android:layout_weight="0"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical|top"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="4dp">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="16dp"
+            android:id="@+id/imageView2"
+            android:src="@drawable/md_cloud"
+            android:adjustViewBounds="false"
+            android:layout_marginBottom="4dp" />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="16dp"
+            android:id="@+id/imageView3"
+            android:src="@drawable/md_sim" />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/imageView4" />
+    </LinearLayout>
+
+</LinearLayout>
