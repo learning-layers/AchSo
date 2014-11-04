@@ -108,7 +108,7 @@ public abstract class ActionbarActivity extends FragmentActivity {
         /**
          */
         switch (item.getItemId()) {
-            case R.id.action_newvideo:
+            case R.id.action_new_video:
                 launchRecording();
                 return true;
             case R.id.action_readqrcode:
@@ -189,7 +189,7 @@ public abstract class ActionbarActivity extends FragmentActivity {
             menu.removeItem(R.id.action_search);
         }
         if (!show_record()) {
-            menu.removeItem(R.id.action_newvideo);
+            menu.removeItem(R.id.action_new_video);
         }
     }
 

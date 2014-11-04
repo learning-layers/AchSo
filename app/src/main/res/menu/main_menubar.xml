@@ -3,48 +3,45 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/action_search"
           android:title="Search"
-        android:icon="@drawable/ic_search"
-        android:showAsAction="collapseActionView|ifRoom"
-        android:actionViewClass="android.widget.SearchView"
+        android:icon="@drawable/md_magnify"
+        android:showAsAction="ifRoom"
         />
-    <item android:id="@+id/action_newvideo"
+    <item android:id="@+id/action_new_video"
           android:title="@string/record"
-          android:showAsAction="always|withText"
-          android:icon="@drawable/ic_record_video"
+          android:icon="@drawable/md_camcorder"
+        android:showAsAction="ifRoom"
     />
     <item android:id="@+id/action_addvideo"
           android:title="@string/add_video"
-          android:showAsAction="ifRoom|withText"
-          android:icon="@drawable/ic_menu_archive"
+          android:icon="@drawable/md_folder"
+        android:showAsAction="ifRoom"
         />
 
     <item android:id="@+id/action_readqrcode"
           android:title="@string/read_qr_code"
-          android:showAsAction="ifRoom|withText"
-          android:icon="@drawable/ic_read_qr_code"
+          android:icon="@drawable/md_memory"
+        android:showAsAction="ifRoom"
     />
-    <group>
     <item android:id="@+id/action_logout"
           android:title="Logout"
-          android:showAsAction="ifRoom|withText"
+        android:showAsAction="ifRoom"
     />
     <item android:id="@+id/action_login"
         android:title="Login"
-        android:showAsAction="ifRoom|withText"
+        android:showAsAction="ifRoom"
     />
     <item android:id="@+id/action_offline"
         android:title="Offline"
-        android:showAsAction="ifRoom|withText"
+        android:showAsAction="ifRoom"
     />
     <item android:id="@+id/action_about"
         android:title="About"
-        android:showAsAction="ifRoom|withText"
+        android:showAsAction="ifRoom"
     />
     <item android:id="@+id/menu_refresh"
         android:icon="@drawable/ic_menu_refresh"
-        android:title=""
+        android:title="Refresh"
         android:showAsAction="ifRoom"
         android:actionLayout="@layout/small_progress_bar"
     />
-    </group>
 </menu>
