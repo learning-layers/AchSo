@@ -2,7 +2,6 @@ package fi.aalto.legroup.achso.fragment;
 
 import android.animation.ObjectAnimator;
 import android.app.Fragment;
-import android.graphics.Matrix;
 import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -10,7 +9,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
@@ -34,7 +32,6 @@ import fi.aalto.legroup.achso.annotation.renderers.MarkerRenderer;
 import fi.aalto.legroup.achso.annotation.renderers.PauseRenderer;
 import fi.aalto.legroup.achso.annotation.renderers.SubtitleRenderer;
 import fi.aalto.legroup.achso.database.SemanticVideo;
-import fi.aalto.legroup.achso.util.PinchToZoomHelper;
 import fi.aalto.legroup.achso.view.MarkerCanvas;
 
 /**
@@ -46,7 +43,7 @@ import fi.aalto.legroup.achso.view.MarkerCanvas;
 public class VideoPlayerFragment extends Fragment implements TextureView.SurfaceTextureListener,
         MediaPlayer.OnErrorListener, MediaPlayer.OnPreparedListener,
         MediaPlayer.OnCompletionListener, MediaPlayer.OnVideoSizeChangedListener,
-        PauseRenderer.PauseListener, PinchToZoomHelper.MatrixHasChangedDelegate {
+        PauseRenderer.PauseListener {
 
     public static final String STATE_AUTO_PLAY = "STATE_AUTO_PLAY";
     public static final String STATE_INITIAL_POSITION = "STATE_INITIAL_POSITION";
@@ -57,9 +54,7 @@ public class VideoPlayerFragment extends Fragment implements TextureView.Surface
 
     private FrameLayout videoContainer;
     private TextureView videoSurface;
-
     private MarkerCanvas markerCanvas;
-    private PinchToZoomHelper zoomMatrix;
 
     private ProgressBar bufferProgress;
     private ProgressBar pauseProgress;
@@ -97,11 +92,7 @@ public class VideoPlayerFragment extends Fragment implements TextureView.Surface
 
         videoContainer = (FrameLayout) view.findViewById(R.id.surfaceContainer);
 
-        zoomMatrix = new PinchToZoomHelper(this);
-
         markerCanvas = (MarkerCanvas) view.findViewById(R.id.markerContainer);
-        markerCanvas.setZoomMatrix(zoomMatrix);
-
         videoSurface = (TextureView) view.findViewById(R.id.videoSurface);
         videoSurface.setSurfaceTextureListener(this);
 
@@ -191,25 +182,9 @@ public class VideoPlayerFragment extends Fragment implements TextureView.Surface
         bufferProgress.setVisibility(View.GONE);
 
         seekTo(stateInitialPosition);
-
         setState(State.PREPARED);
 
         if (stateAutoPlay) play();
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        getActivity().onTouchEvent(event);
-        return true;
-    }
-
-    @Override
-    public void matrixHasChanged(PinchToZoomHelper helper) {
-        Matrix matrix = helper.getMatrix();
-        videoSurface.setTransform(matrix);
-        markerCanvas.matrixHasChanged(helper);
-        videoSurface.invalidate();
-        markerCanvas.invalidate();
     }
 
     public void play() {
@@ -374,7 +349,6 @@ public class VideoPlayerFragment extends Fragment implements TextureView.Surface
         params.height = containerHeight;
 
         videoContainer.setLayoutParams(params);
-        zoomMatrix.setViewportDimensions(params.width, params.height);
     }
 
     @Override

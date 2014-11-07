@@ -5,30 +5,23 @@ import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.DragEvent;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.annotation.Nonnull;
-
-import fi.aalto.legroup.achso.util.PinchToZoomHelper;
 
 /**
  * An area for markers that can be positioned, selected, and dragged around.
  *
  * @author Leo Nikkilä
  */
-public class MarkerCanvas extends FrameLayout implements View.OnClickListener,
-        PinchToZoomHelper.OnHoldDelegate {
+public class MarkerCanvas extends FrameLayout implements View.OnClickListener {
 
     private Listener listener;
-    private PinchToZoomHelper zoomMatrix;
 
-    private List<Marker> markers = new ArrayList<Marker>();
-    private LayoutParams wrapLayoutParams;
+    private GestureDetector gestureDetector;
 
     public MarkerCanvas(Context context) {
         super(context);
@@ -45,31 +38,8 @@ public class MarkerCanvas extends FrameLayout implements View.OnClickListener,
         init();
     }
 
-    public void init() {
-        wrapLayoutParams = new LayoutParams(Marker.MARKER_SIZE, Marker.MARKER_SIZE);
-    }
-
-    public void matrixHasChanged(PinchToZoomHelper helper) {
-        float scale = helper.getCurrentZoomLevel();
-
-        for (Marker marker : markers) {
-            float orgX = marker.getOriginalX();
-            float orgY = marker.getOriginalY();
-            float[] point = {orgX, orgY};
-            point = helper.mapCoordinates(point);
-
-            marker.setX(point[0]);
-            marker.setY(point[1]);
-
-            int size = (int)(Marker.MARKER_SIZE * scale);
-            wrapLayoutParams = new LayoutParams(size, size);
-            marker.setLayoutParams(wrapLayoutParams);
-        }
-    }
-
-    public void setZoomMatrix(PinchToZoomHelper matrix) {
-        this.zoomMatrix = matrix;
-        this.zoomMatrix.setOnHoldDelegate(this);
+    private void init() {
+        gestureDetector = new GestureDetector(getContext(), new GestureListener());
     }
 
     public void setListener(Listener listener) {
@@ -95,44 +65,15 @@ public class MarkerCanvas extends FrameLayout implements View.OnClickListener,
         marker.setX(posX);
         marker.setY(posY);
 
-        float orgX = marker.getOriginalX();
-        float orgY = marker.getOriginalY();
-
-        float scale = this.zoomMatrix.getCurrentZoomLevel();
-        if(scale != 1) {
-            float[] point = {orgX, orgY};
-            point = this.zoomMatrix.mapCoordinates(point);
-
-            marker.setX(point[0]);
-            marker.setY(point[1]);
-            int size = (int)(Marker.MARKER_SIZE * scale);
-            wrapLayoutParams = new LayoutParams(size, size);
-            marker.setLayoutParams(wrapLayoutParams);
-            marker.invalidate();
-        } else {
-            if(posX != orgX) {
-                marker.setX(orgX);
-                marker.setY(orgY);
-            }
-
-            wrapLayoutParams = new LayoutParams(Marker.MARKER_SIZE, Marker.MARKER_SIZE);
-            marker.setLayoutParams(wrapLayoutParams);
-            marker.invalidate();
-        }
-
-        markers.add(marker);
-
         return marker;
     }
 
     public void removeMarker(Marker marker) {
         removeView(marker);
-        markers.remove(marker);
     }
 
     public void clearMarkers() {
         removeAllViews();
-        markers.clear();
     }
 
     @Override
@@ -151,15 +92,20 @@ public class MarkerCanvas extends FrameLayout implements View.OnClickListener,
         }
     }
 
-    private void canvasTapped(float positionX, float positionY) {
+    private void canvasTapped(@Nonnull MotionEvent event) {
         if (listener == null) return;
 
-        float posX = positionX / getWidth();
-        float posY = positionY / getHeight();
+        float posX = event.getX() / getWidth();
+        float posY = event.getY() / getHeight();
 
         PointF position = new PointF(posX, posY);
 
         listener.onCanvasTapped(position);
+    }
+
+    public boolean onTouchEvent(@Nonnull MotionEvent event) {
+        gestureDetector.onTouchEvent(event);
+        return super.onTouchEvent(event);
     }
 
     /**
@@ -168,19 +114,6 @@ public class MarkerCanvas extends FrameLayout implements View.OnClickListener,
     @Override
     public void onClick(View view) {
         if (listener != null) listener.onMarkerTapped((Marker) view);
-    }
-
-    public void onTouchHold(float positionX, float positionY) {
-        canvasTapped(positionX, positionY);
-    }
-
-    /**
-     * Called when the canvas is touched.
-     */
-    @Override
-    public boolean onTouchEvent(@Nonnull MotionEvent event) {
-        super.onTouchEvent(event);
-        return zoomMatrix.receiveTouchEvent(event);
     }
 
     /**
@@ -217,6 +150,26 @@ public class MarkerCanvas extends FrameLayout implements View.OnClickListener,
         public void onMarkerDragged(Marker marker, PointF newPos);
 
         public void onCanvasTapped(PointF pos);
+
+    }
+
+    private class GestureListener extends GestureDetector.SimpleOnGestureListener {
+
+        /**
+         * Called when the canvas is tapped once.
+         */
+        @Override
+        public boolean onSingleTapUp(MotionEvent event) {
+            canvasTapped(event);
+            return true;
+        }
+
+        @Override
+        public boolean onDown(MotionEvent event) {
+            // Best practice to always return true here.
+            // http://developer.android.com/training/gestures/detector.html#detect
+            return true;
+        }
 
     }
 

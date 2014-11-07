@@ -6,24 +6,30 @@
     android:layout_height="match_parent"
     android:background="@android:color/black">
 
-    <FrameLayout
-        android:id="@+id/surfaceContainer"
+    <fi.aalto.legroup.achso.view.ZoomView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_centerInParent="true">
+        android:layout_height="match_parent">
 
-        <TextureView
-            android:id="@+id/videoSurface"
+        <FrameLayout
+            android:id="@+id/surfaceContainer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            tools:context=".VideoViewerFragment" />
+            android:layout_gravity="center">
 
-        <fi.aalto.legroup.achso.view.MarkerCanvas
-            android:id="@+id/markerContainer"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            <TextureView
+                android:id="@+id/videoSurface"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:context=".VideoViewerFragment" />
 
-    </FrameLayout>
+            <fi.aalto.legroup.achso.view.MarkerCanvas
+                android:id="@+id/markerContainer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </FrameLayout>
+
+    </fi.aalto.legroup.achso.view.ZoomView>
 
     <LinearLayout
         android:id="@+id/subtitleContainer"

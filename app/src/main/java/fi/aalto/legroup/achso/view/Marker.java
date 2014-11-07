@@ -21,10 +21,6 @@ import javax.annotation.Nonnull;
  */
 public class Marker extends View {
 
-    private float originalX = -1;
-    private float originalY = -1;
-    public static final int MARKER_SIZE = 32;
-
     private GestureDetector gestureDetector;
 
     private boolean isDraggable = true;
@@ -48,10 +44,16 @@ public class Marker extends View {
         gestureDetector = new GestureDetector(getContext(), new OnGestureListener());
     }
 
+    /**
+     * @param isDraggable whether the user can drag the marker to reposition it
+     */
     public void setDraggable(boolean isDraggable) {
         this.isDraggable = isDraggable;
     }
 
+    /**
+     * Sets the background drawable dimensions as the marker view dimensions.
+     */
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int width;
@@ -81,30 +83,6 @@ public class Marker extends View {
     }
 
     @Override
-    public void setX(float x) {
-        super.setX(x);
-        if (this.originalX == -1) {
-            this.originalX = x;
-        }
-    }
-
-    @Override
-    public void setY(float y) {
-        super.setY(y);
-        if (this.originalY == -1) {
-            this.originalY = y;
-        }
-    }
-
-    public float getOriginalX() {
-        return this.originalX;
-    }
-
-    public float getOriginalY() {
-        return this.originalY;
-    }
-
-    @Override
     protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) {
         super.onSizeChanged(width, height, oldWidth, oldHeight);
 
@@ -115,8 +93,7 @@ public class Marker extends View {
 
     @Override
     public boolean onTouchEvent(@Nonnull MotionEvent event) {
-        gestureDetector.onTouchEvent(event);
-        return super.onTouchEvent(event);
+        return gestureDetector.onTouchEvent(event);
     }
 
     /**
@@ -137,7 +114,6 @@ public class Marker extends View {
         return super.onDragEvent(event);
     }
 
-
     /**
      * A gesture listener that starts dragging if the user presses their finger down onto the
      * view and then drags to exit the view bounds.
@@ -157,9 +133,16 @@ public class Marker extends View {
          * Restores clicking functionality by delegating to OnClickListener.
          */
         @Override
-        public boolean onSingleTapUp(MotionEvent e) {
+        public boolean onSingleTapUp(MotionEvent event) {
             performClick();
-            return super.onSingleTapUp(e);
+            return super.onSingleTapUp(event);
+        }
+
+        @Override
+        public boolean onDown(MotionEvent event) {
+            // Best practice to always return true here.
+            // http://developer.android.com/training/gestures/detector.html#detect
+            return true;
         }
 
     }
