@@ -3,6 +3,7 @@ package fi.aalto.legroup.achso.activity;
 import android.animation.ObjectAnimator;
 import android.app.ActionBar;
 import android.content.Intent;
+import android.graphics.PointF;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
@@ -34,7 +35,6 @@ import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.fragment.VideoPlayerFragment;
 import fi.aalto.legroup.achso.remote.RemoteResultCache;
-import fi.aalto.legroup.achso.util.FloatPosition;
 import fi.aalto.legroup.achso.util.RepeatingTask;
 import fi.aalto.legroup.achso.view.MarkedSeekBar;
 
@@ -276,7 +276,7 @@ public final class VideoPlayerActivity extends FragmentActivity implements Annot
     }
 
     @Override
-    public void createAnnotation(FloatPosition position) {
+    public void createAnnotation(PointF position) {
         // Allow creating annotations only when paused
         if (playerFragment.getState() != VideoPlayerFragment.State.PAUSED) return;
 
@@ -292,7 +292,7 @@ public final class VideoPlayerActivity extends FragmentActivity implements Annot
     }
 
     @Override
-    public void moveAnnotation(Annotation annotation, FloatPosition position) {
+    public void moveAnnotation(Annotation annotation, PointF position) {
         annotation.setPosition(position);
 
         dbHelper.update(annotation);

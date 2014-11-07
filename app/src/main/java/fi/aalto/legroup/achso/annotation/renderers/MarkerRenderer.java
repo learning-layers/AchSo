@@ -3,13 +3,13 @@ package fi.aalto.legroup.achso.annotation.renderers;
 import android.content.res.Resources;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.graphics.PointF;
 
 import java.util.Collection;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.annotation.Annotation;
 import fi.aalto.legroup.achso.annotation.AnnotationEditor;
-import fi.aalto.legroup.achso.util.FloatPosition;
 import fi.aalto.legroup.achso.view.Marker;
 import fi.aalto.legroup.achso.view.MarkerCanvas;
 
@@ -41,7 +41,7 @@ public class MarkerRenderer extends AnnotationRenderer implements MarkerCanvas.L
     @Override
     public void render(Collection<Annotation> annotations) {
         for (Annotation annotation : annotations) {
-            FloatPosition position = annotation.getPosition();
+            PointF position = annotation.getPosition();
 
             markerBackground.setColorFilter(annotation.getColor(), PorterDuff.Mode.MULTIPLY);
 
@@ -62,13 +62,13 @@ public class MarkerRenderer extends AnnotationRenderer implements MarkerCanvas.L
     }
 
     @Override
-    public void onMarkerDragged(Marker marker, FloatPosition newPos) {
+    public void onMarkerDragged(Marker marker, PointF newPos) {
         Annotation annotation = (Annotation) marker.getTag();
         editor.moveAnnotation(annotation, newPos);
     }
 
     @Override
-    public void onCanvasTapped(FloatPosition pos) {
+    public void onCanvasTapped(PointF pos) {
         editor.createAnnotation(pos);
     }
 

@@ -1,10 +1,11 @@
 package fi.aalto.legroup.achso.annotation;
 
+import android.graphics.PointF;
+
 import com.google.gson.JsonObject;
 
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.util.App;
-import fi.aalto.legroup.achso.util.FloatPosition;
 
 /**
  * TODO: Not really a factory. Move this when starting work with the persistence layer.
@@ -13,7 +14,7 @@ import fi.aalto.legroup.achso.util.FloatPosition;
  */
 public class AnnotationFactory {
 
-    public Annotation create(SemanticVideo video, long time, FloatPosition position) {
+    public Annotation create(SemanticVideo video, long time, PointF position) {
         long videoId = video.getId();
 
         JsonObject userInfo = App.loginManager.getUserInfo();

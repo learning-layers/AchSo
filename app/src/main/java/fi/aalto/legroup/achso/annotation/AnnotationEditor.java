@@ -1,6 +1,6 @@
 package fi.aalto.legroup.achso.annotation;
 
-import fi.aalto.legroup.achso.util.FloatPosition;
+import android.graphics.PointF;
 
 /**
  * @author Leo Nikkilä
@@ -12,7 +12,7 @@ public interface AnnotationEditor {
      *
      * @param position Position for the annotation
      */
-    public void createAnnotation(FloatPosition position);
+    public void createAnnotation(PointF position);
 
     /**
      * Prompt the user to edit an annotation.
@@ -27,6 +27,6 @@ public interface AnnotationEditor {
      * @param annotation Annotation in question
      * @param position   New position for the annotation
      */
-    public void moveAnnotation(Annotation annotation, FloatPosition position);
+    public void moveAnnotation(Annotation annotation, PointF position);
 
 }

@@ -1,6 +1,7 @@
 package fi.aalto.legroup.achso.view;
 
 import android.content.Context;
+import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.DragEvent;
@@ -13,7 +14,6 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 
-import fi.aalto.legroup.achso.util.FloatPosition;
 import fi.aalto.legroup.achso.util.PinchToZoomHelper;
 
 /**
@@ -76,11 +76,11 @@ public class MarkerCanvas extends FrameLayout implements View.OnClickListener,
         this.listener = listener;
     }
 
-    public Marker addMarker(FloatPosition position, Drawable background) {
+    public Marker addMarker(PointF position, Drawable background) {
         return addMarker(position, background, true);
     }
 
-    public Marker addMarker(FloatPosition position, Drawable background, boolean isDraggable) {
+    public Marker addMarker(PointF position, Drawable background, boolean isDraggable) {
         Marker marker = new Marker(getContext());
 
         marker.setBackground(background);
@@ -89,8 +89,8 @@ public class MarkerCanvas extends FrameLayout implements View.OnClickListener,
 
         addView(marker);
 
-        float posX = getWidth() * position.getX() - marker.getWidth() / 2;
-        float posY = getHeight() * position.getY() - marker.getHeight() / 2;
+        float posX = getWidth() * position.x - marker.getWidth() / 2;
+        float posY = getHeight() * position.y - marker.getHeight() / 2;
 
         marker.setX(posX);
         marker.setY(posY);
@@ -157,7 +157,7 @@ public class MarkerCanvas extends FrameLayout implements View.OnClickListener,
         float posX = positionX / getWidth();
         float posY = positionY / getHeight();
 
-        FloatPosition position = new FloatPosition(posX, posY);
+        PointF position = new PointF(posX, posY);
 
         listener.onCanvasTapped(position);
     }
@@ -202,7 +202,7 @@ public class MarkerCanvas extends FrameLayout implements View.OnClickListener,
             Float relativeX = posX / getWidth();
             Float relativeY = posY / getHeight();
 
-            FloatPosition pos = new FloatPosition(relativeX, relativeY);
+            PointF pos = new PointF(relativeX, relativeY);
 
             listener.onMarkerDragged(marker, pos);
         }
@@ -214,9 +214,9 @@ public class MarkerCanvas extends FrameLayout implements View.OnClickListener,
 
         public void onMarkerTapped(Marker marker);
 
-        public void onMarkerDragged(Marker marker, FloatPosition newPos);
+        public void onMarkerDragged(Marker marker, PointF newPos);
 
-        public void onCanvasTapped(FloatPosition pos);
+        public void onCanvasTapped(PointF pos);
 
     }
 
