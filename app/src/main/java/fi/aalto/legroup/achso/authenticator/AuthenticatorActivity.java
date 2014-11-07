@@ -1,33 +1,9 @@
-/*
- * Code contributed to the Learning Layers project
- * http://www.learning-layers.eu
- * Development is partly funded by the FP7 Programme of the European
- * Commission under
- * Grant Agreement FP7-ICT-318209.
- * Copyright (c) 2014, Aalto University.
- * For a list of contributors see the AUTHORS file at the top-level directory
- * of this distribution.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package fi.aalto.legroup.achso.authenticator;
 
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorActivity;
 import android.accounts.AccountManager;
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -41,8 +17,6 @@ import com.google.api.client.auth.openidconnect.IdTokenResponse;
 import com.google.gson.JsonObject;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 
 import fi.aalto.legroup.achso.R;
@@ -75,7 +49,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
     private AccountManager accountManager;
     private Account account;
     private boolean isNewAccount;
-    private String mLastCode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,16 +89,9 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 
                     String authToken = url.getQueryParameter("code");
 
-                    // for some reason the page with "code" is received twice,
-                    // but the code works only once. I can't now find the reason why it is
-                    // loaded twice, but we can make sure that the ID token is requested only once.
-                    if (mLastCode == null || !authToken.equals(mLastCode)) {
-                        mLastCode = authToken;
-                        // Request the ID token
-                        RequestIdTokenTask task = new RequestIdTokenTask();
-                        task.execute(authToken);
-                    }
-
+                    // Request the ID token
+                    RequestIdTokenTask task = new RequestIdTokenTask();
+                    task.execute(authToken);
                 } else if (parameterNames.contains("error")) {
                     view.stopLoading();
 
@@ -141,6 +107,8 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 
                     // If the user declines to authorise the app, there's no need to show an error
                     // message.
+                    //
+                    // TODO: Read error codes and provide a more helpful error message
                     if ( ! error.equals("access_denied")) {
                         showErrorDialog(String.format("Error code: %s\n\n%s", error,
                                 errorDescription));
@@ -255,17 +223,10 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
     }
 
     private void showErrorDialog(String message) {
-        new AlertDialog.Builder(App.getContext())
+        new AlertDialog.Builder(this)
                 .setTitle("Sorry, there was an error")
                 .setMessage(message)
-                .setCancelable(true)
-                .setNeutralButton("Close", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        dialogInterface.dismiss();
-                        finish();
-                    }
-                })
+                .setNeutralButton("Close", null)
                 .create()
                 .show();
     }
