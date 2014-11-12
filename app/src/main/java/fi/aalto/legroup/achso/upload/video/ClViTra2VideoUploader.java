@@ -79,12 +79,7 @@ public class ClViTra2VideoUploader extends Uploader {
                 .build();
 
         // Start polling for the progress
-
-        // TODO: Remove third parameter after OkHttp 2.0.1 gets released
-        // OkHttp 2.0.1 supports calculating the Content-Length for multi-part requests. It's not
-        // released yet, so we'll say that the content length is approximately equal to the length
-        // of the file.
-        ProgressPollingTask progressTask = new ProgressPollingTask(video, countingBody, videoFile.length());
+        ProgressPollingTask progressTask = new ProgressPollingTask(video, countingBody);
         progressTask.run();
 
         listener.onUploadStart(video);
@@ -98,7 +93,6 @@ public class ClViTra2VideoUploader extends Uploader {
             } else {
                 listener.onUploadError(video, "Could not upload video: " +
                         response.code() + " " + response.message());
-                android.util.Log.e("uploader", response.body().string());
             }
         } catch (IOException e) {
             listener.onUploadError(video, "Could not upload video: " + e.getMessage());
@@ -120,19 +114,9 @@ public class ClViTra2VideoUploader extends Uploader {
         protected CountingRequestBody body;
         protected boolean shouldStop = false;
 
-        // TODO: Remove after OkHttp 2.0.1 gets released
-        protected long length = -1;
-
         public ProgressPollingTask(SemanticVideo video, CountingRequestBody body) {
             this.video = video;
             this.body = body;
-        }
-
-        // TODO: Remove after OkHttp 2.0.1 gets released
-        public ProgressPollingTask(SemanticVideo video, CountingRequestBody body, long length) {
-            this.video = video;
-            this.body = body;
-            this.length = length;
         }
 
         @Override
@@ -140,9 +124,6 @@ public class ClViTra2VideoUploader extends Uploader {
             if (shouldStop) return;
 
             float percentage = 100f * body.getCount() / body.contentLength();
-
-            // TODO: Remove after OkHttp 2.0.1 gets released
-            if (length != -1) percentage = 100f * body.getCount() / length;
 
             // Limit the percentage values to ones that are usually expected. We might get some
             // unusual values depending on how the RequestBody was implemented.
@@ -157,6 +138,7 @@ public class ClViTra2VideoUploader extends Uploader {
         public void stop() {
             shouldStop = true;
         }
+
     }
 
 }

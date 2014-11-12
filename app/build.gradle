@@ -55,6 +55,6 @@ dependencies {
     compile 'com.google.api-client:google-api-client-gson:1.19.0'
 
     // Better and more resilient HTTP requests
-    compile 'com.squareup.okhttp:okhttp:2.0.0'
+    compile 'com.squareup.okhttp:okhttp:2.1.0'
 
 }
