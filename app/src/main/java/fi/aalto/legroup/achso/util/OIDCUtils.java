@@ -1,29 +1,4 @@
-/*
- * Code contributed to the Learning Layers project
- * http://www.learning-layers.eu
- * Development is partly funded by the FP7 Programme of the European
- * Commission under
- * Grant Agreement FP7-ICT-318209.
- * Copyright (c) 2014, Aalto University.
- * For a list of contributors see the AUTHORS file at the top-level directory
- * of this distribution.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package fi.aalto.legroup.achso.util;
-
-import android.util.Log;
 
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
 import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
@@ -33,9 +8,9 @@ import com.google.api.client.auth.oauth2.TokenRequest;
 import com.google.api.client.auth.openidconnect.IdToken;
 import com.google.api.client.auth.openidconnect.IdTokenResponse;
 import com.google.api.client.auth.openidconnect.IdTokenVerifier;
-import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.http.BasicAuthentication;
 import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -57,8 +32,6 @@ import java.util.List;
  */
 public class OIDCUtils {
 
-    private static final String TAG = "OIDCUtils";
-
     /**
      * Generates an URL to the Authorization Endpoint. The user can then authenticate themselves,
      * authorise this app and obtain an Authorization Token.
@@ -71,7 +44,7 @@ public class OIDCUtils {
 
         AuthorizationCodeFlow flow = new AuthorizationCodeFlow.Builder(
                 BearerToken.authorizationHeaderAccessMethod(),
-                AndroidHttp.newCompatibleTransport(),
+                new NetHttpTransport(),
                 new GsonFactory(),
                 new GenericUrl(tokenServerUrl),
                 new BasicAuthentication(clientId, clientSecret),
@@ -120,7 +93,7 @@ public class OIDCUtils {
 
         AuthorizationCodeFlow flow = new AuthorizationCodeFlow.Builder(
                 BearerToken.authorizationHeaderAccessMethod(),
-                AndroidHttp.newCompatibleTransport(),
+                new NetHttpTransport(),
                 new GsonFactory(),
                 new GenericUrl(tokenServerUrl),
                 new BasicAuthentication(clientId, clientSecret),
@@ -157,7 +130,7 @@ public class OIDCUtils {
         List<String> scopesList = Arrays.asList(scopes);
 
         RefreshTokenRequest request = new RefreshTokenRequest(
-                AndroidHttp.newCompatibleTransport(),
+                new NetHttpTransport(),
                 new GsonFactory(),
                 new GenericUrl(tokenServerUrl),
                 refreshToken
