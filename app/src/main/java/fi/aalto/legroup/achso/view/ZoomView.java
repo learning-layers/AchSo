@@ -88,7 +88,7 @@ public class ZoomView extends FrameLayout {
     }
 
     @Override
-    public boolean onTouchEvent(@Nonnull MotionEvent event) {
+    public boolean onInterceptTouchEvent(MotionEvent event) {
         boolean hasChild = (getChildCount() > 0);
 
         if (hasChild) {
@@ -96,7 +96,7 @@ public class ZoomView extends FrameLayout {
             scaleGestureDetector.onTouchEvent(event);
         }
 
-        return true;
+        return false;
     }
 
     /**
