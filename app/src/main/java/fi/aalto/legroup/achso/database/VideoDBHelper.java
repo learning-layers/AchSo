@@ -91,7 +91,7 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         mContext = c;
     }
 
-    public static List<SemanticVideo> queryVideoCacheByTitle(String query) {
+    public static List<SemanticVideo> queryVideoCacheByString(String query) {
         List<SemanticVideo> ret = new ArrayList<SemanticVideo>();
         if (query != null && !query.isEmpty()) {
             query = query.toLowerCase();
@@ -113,11 +113,22 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         return ret;
     }
 
-    public static List<SemanticVideo> getVideosByGenre(String g) {
+    public static List<SemanticVideo> getVideosByGenre(String genre) {
         List<SemanticVideo> ret = new ArrayList<SemanticVideo>();
-        Log.i("VideoDBHelper", "Getting videos by genre: " + g);
+        Log.i("VideoDBHelper", "Getting videos by genre: " + genre);
         for (SemanticVideo v : mLocalVideoCache) {
-            if (v.getEnglishGenreText().equals(g)) {
+            if (v.getEnglishGenreText().equals(genre)) {
+                ret.add(v);
+            }
+        }
+        return ret;
+    }
+
+    public static List<SemanticVideo> getVideosByGenre(SemanticVideo.Genre genre) {
+        List<SemanticVideo> ret = new ArrayList<SemanticVideo>();
+        Log.i("VideoDBHelper", "Getting videos by genre: " + genre);
+        for (SemanticVideo v : mLocalVideoCache) {
+            if (v.getGenre() == genre) {
                 ret.add(v);
             }
         }

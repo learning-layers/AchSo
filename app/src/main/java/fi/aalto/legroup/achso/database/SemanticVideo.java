@@ -24,10 +24,14 @@
 package fi.aalto.legroup.achso.database;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import android.content.Context;
@@ -46,7 +50,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import fi.aalto.legroup.achso.R;
-import fi.aalto.legroup.achso.adapter.VideoThumbAdapter;
 import fi.aalto.legroup.achso.annotation.Annotation;
 import fi.aalto.legroup.achso.remote.RemoteAnnotation;
 import fi.aalto.legroup.achso.util.App;
@@ -93,6 +96,16 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
 
     public enum Genre {
         GoodWork, Problem, TrickOfTrade, SiteOverview
+    }
+
+    public static final Map<Genre, Integer> GENRE_COLORS;
+    static {
+        Map<Genre, Integer> tempMap = new HashMap<Genre, Integer>();
+        tempMap.put(Genre.GoodWork, R.color.achso_red);
+        tempMap.put(Genre.Problem, R.color.achso_green);
+        tempMap.put(Genre.TrickOfTrade, R.color.achso_yellow);
+        tempMap.put(Genre.SiteOverview, R.color.achso_blue);
+        GENRE_COLORS = Collections.unmodifiableMap(tempMap);
     }
 
     // LinkedHashMap keeps the insertion order
@@ -179,7 +192,17 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
             }
         }
 
+        if(this.mQrCode != null) {
+            if(this.mQrCode.equals(query)) {
+                return true;
+            }
+        }
+
         return false;
+    }
+
+    public int getGenreColor() {
+        return GENRE_COLORS.get(this.mGenre);
     }
 
     public long getDuration(Context ctx) {
@@ -400,21 +423,6 @@ public class SemanticVideo implements XmlSerializable, TextSettable, Serializabl
         }
         return mAnnotations;
     }
-
-    public void putThumbnailTo(VideoThumbAdapter.ViewHolder thumbnail_holder) {
-        //Log.i("RemoteSemanticVideo", "Loading thumbnail from " + mThumbnailUri.toString() + ", " +
-        //        "putting to: " + thumbnail_holder.toString());
-        if (mRemoteThumbnail != null && !mRemoteThumbnail.isEmpty()) {
-            Picasso.with(App.getContext())
-                    .load(mRemoteThumbnail)
-                    .placeholder(R.drawable.circle)
-                    .error(R.drawable.cross)
-                    .resize(96, 96)
-                    .centerInside()
-                    .into(thumbnail_holder);
-        }
-    }
-
 
     @Override
     public XmlObject getXmlObject(Context ctx) {

@@ -1,0 +1,12 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:tools="http://schemas.android.com/tools"
+tools:context="fi.aalto.legroup.achso.activity.SearchActivity"
+    >
+    <item
+        android:id="@+id/action_search"
+        android:actionViewClass="android.widget.SearchView"
+        android:icon="@drawable/md_magnify"
+        android:showAsAction="always"
+
+        android:title="@string/title_activity_search" />
+</menu>

@@ -47,7 +47,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import fi.aalto.legroup.achso.adapter.BrowsePagerAdapter;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.remote.SemanticVideoFactory;
 
@@ -87,23 +86,7 @@ public class AaltoConnection implements Connection {
 
         // prepare url to call and its search arguments
         switch (query_type) {
-            case BrowsePagerAdapter.SEARCH:
-                break;
-            case BrowsePagerAdapter.QR_SEARCH:
-                break;
-            case BrowsePagerAdapter.LATEST:
-                break;
-            case BrowsePagerAdapter.MY_VIDEOS:
-                JsonObject userInfo = App.loginManager.getUserInfo();
-                String userId = userInfo.get("sub").getAsString();
-                params.add(new BasicNameValuePair("user_id", userId));
-                break;
-            case BrowsePagerAdapter.RECOMMENDED:
-                break;
-            case BrowsePagerAdapter.BROWSE_BY_GENRE:
-                break;
-            case BrowsePagerAdapter.NEARBY:
-                break;
+
         }
         // start building http GET
 

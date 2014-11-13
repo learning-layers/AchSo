@@ -42,7 +42,7 @@ import fi.aalto.legroup.achso.upload.video.ClViTra2VideoUploader;
 public class App extends Application {
 
     private static App singleton;
-    
+
     public static ConnectivityManager connectivityManager;
 
     public static final int BROWSE_BY_QR = 0;
@@ -79,7 +79,7 @@ public class App extends Application {
 
         locationManager = new LocationManager(this);
 
-        videoUploader = new DisabledUploader();
+        videoUploader = new ClViTra2VideoUploader(getString(R.string.clvitra2Url));
         metadataUploader = new DummyUploader();
     }
 
@@ -115,7 +115,7 @@ public class App extends Application {
     }
 
     public static boolean isDisconnected() {
-        return ! isConnected();
+        return !isConnected();
     }
 
     public static Context getContext() {
