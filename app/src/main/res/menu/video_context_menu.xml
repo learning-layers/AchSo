@@ -3,22 +3,22 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/action_view_video_info"
         android:title="@string/view_video_info"
-        android:icon="@drawable/ic_information"
-        android:showAsAction="ifRoom|withText"
+        android:icon="@drawable/md_alert_info"
+        android:showAsAction="ifRoom"
         />
     <item android:id="@+id/action_qr_to_video"
         android:title="@string/qr_to_video"
-        android:icon="@drawable/ic_read_qr"
-        android:showAsAction="ifRoom|withText"
+        android:icon="@drawable/md_qr_code"
+        android:showAsAction="ifRoom"
     />
     <item android:id="@+id/action_upload"
         android:title="@string/upload"
-        android:showAsAction="ifRoom|withText"
-        android:icon="@drawable/ic_av_upload"
+        android:showAsAction="ifRoom"
+        android:icon="@drawable/md_upload"
         />
     <item android:id="@+id/action_delete"
           android:title="@string/delete"
-          android:showAsAction="ifRoom|withText"
-          android:icon="@drawable/ic_content_discard"
+          android:showAsAction="ifRoom"
+          android:icon="@drawable/md_delete"
     />
 </menu>

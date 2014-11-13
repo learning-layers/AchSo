@@ -33,6 +33,14 @@ android {
     }
 }
 
+repositories {
+    mavenCentral()
+
+    maven {
+        url "https://raw.github.com/embarkmobile/zxing-android-minimal/mvn-repo/maven-repository/"
+    }
+}
+
 dependencies {
     // TODO: Convert these into Maven dependencies for easier management
     compile fileTree(dir: 'libs', include: ['*.jar'])
@@ -50,6 +58,19 @@ dependencies {
         exclude group: 'junit', module: 'junit'
         exclude group: 'com.google.android', module: 'android'
     }
+
+    // Supports Android 4.0.3 and later (API level 15)
+    compile 'com.embarkmobile:zxing-android-minimal:2.0.0@aar'
+
+    // Convenience library to launch the scanning and encoding Activities.
+    // It automatically picks the best scanning library from the above two, depending on the
+    // Android version and what is available.
+    compile 'com.embarkmobile:zxing-android-integration:2.0.0@aar'
+
+    // Version 3.0.x of zxing core contains some code that is not compatible on Android 2.2 and earlier.
+    // This mostly affects encoding, but you should test if you plan to support these versions.
+    // Older versions e.g. 2.2 may also work if you need support for older Android versions.
+    compile 'com.google.zxing:core:3.0.1'
 
     // Google's JSON parsing, could be replaced with Jackson
     compile 'com.google.api-client:google-api-client-gson:1.19.0'

@@ -38,7 +38,6 @@ import java.util.ResourceBundle;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import fi.aalto.legroup.achso.adapter.BrowsePagerAdapter;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.remote.SemanticVideoFactory;
 import fi.aalto.legroup.achso.util.xml.XmlConverter;
@@ -557,29 +556,7 @@ public class LasConnection implements Connection {
 
         // prepare url to call and its search arguments
         switch (query_type) {
-            case BrowsePagerAdapter.SEARCH:
-                Log.i("LasConnection", "BrowsePagerAdapter.SEARCH");
-                break;
-            case BrowsePagerAdapter.QR_SEARCH:
-                Log.i("LasConnection", "BrowsePagerAdapter.QR_SEARCH");
-                break;
-            case BrowsePagerAdapter.LATEST:
-                Log.i("LasConnection", "BrowsePagerAdapter.LATEST");
-                break;
-            case BrowsePagerAdapter.MY_VIDEOS:
-                Log.i("LasConnection", "BrowsePagerAdapter.MY_VIDEOS");
-                videoList = getVideoInformationsFor(this.username);
-                break;
-            case BrowsePagerAdapter.RECOMMENDED:
-                Log.i("LasConnection", "BrowsePagerAdapter.RECOMMENDED");
-                videoList = getVideosAndThumbs();
-                break;
-            case BrowsePagerAdapter.BROWSE_BY_GENRE:
-                Log.i("LasConnection", "BrowsePagerAdapter.BROWSE_BY_GENRE");
-                break;
-            case BrowsePagerAdapter.NEARBY:
-                Log.i("LasConnection", "BrowsePagerAdapter.NEARBY");
-                break;
+
         }
 
         // handle results

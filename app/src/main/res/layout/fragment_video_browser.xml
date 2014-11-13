@@ -1,12 +1,23 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" tools:context="fi.aalto.legroup.achso.fragment.VideoBrowserFragment">
+    android:layout_height="match_parent" tools:context="fi.aalto.legroup.achso.fragment.VideoBrowserFragment"
+    android:background="#ffe6e6e6">
 
     <GridView
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:id="@+id/grid_video_list"
+        android:layout_gravity="left|top"
+        android:numColumns="auto_fit"
+        android:choiceMode="multipleChoice" />
+
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/grid_video_list"
-        android:columnWidth="100dp"
-        android:layout_gravity="left|top" />
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/empty_results"
+        android:id="@+id/empty_text"
+        android:layout_gravity="center"
+        android:textColor="#ff666666" />
 
 </FrameLayout>

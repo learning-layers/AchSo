@@ -111,7 +111,7 @@ public abstract class ActionbarActivity extends FragmentActivity {
             case R.id.action_new_video:
                 launchRecording();
                 return true;
-            case R.id.action_readqrcode:
+            case R.id.action_read_qrcode:
                 launchQrReading();
                 return true;
             case R.id.action_login:
@@ -122,7 +122,7 @@ public abstract class ActionbarActivity extends FragmentActivity {
                 App.loginManager.logoutExplicitly();
                 invalidateOptionsMenu();
                 return true;
-            case R.id.action_addvideo:
+            case R.id.action_add_video:
                 launchFileSelect();
                 return true;
             case R.id.action_about:
@@ -176,14 +176,12 @@ public abstract class ActionbarActivity extends FragmentActivity {
         if (!show_login()) {
             menu.removeItem(R.id.action_login);
             menu.removeItem(R.id.action_logout);
-            menu.removeItem(R.id.action_offline);
-            menu.removeItem(R.id.menu_refresh);
         }
         if (!show_addvideo()) {
-            menu.removeItem(R.id.action_addvideo);
+            menu.removeItem(R.id.action_add_video);
         }
         if (!show_qr()) {
-            menu.removeItem(R.id.action_readqrcode);
+            menu.removeItem(R.id.action_read_qrcode);
         }
         if (!show_search()) {
             menu.removeItem(R.id.action_search);
@@ -201,8 +199,6 @@ public abstract class ActionbarActivity extends FragmentActivity {
     public boolean onPrepareOptionsMenu(Menu menu) {
         MenuItem loginItem = menu.findItem(R.id.action_login);
         MenuItem logoutItem = menu.findItem(R.id.action_logout);
-        MenuItem loadingItem = menu.findItem(R.id.menu_refresh);
-        MenuItem offlineItem = menu.findItem(R.id.action_offline);
 
         boolean showLogin = false;
         boolean showLogout = false;
@@ -233,8 +229,6 @@ public abstract class ActionbarActivity extends FragmentActivity {
         try {
             loginItem.setVisible(showLogin);
             logoutItem.setVisible(showLogout);
-            loadingItem.setVisible(showLoading);
-            offlineItem.setVisible(showOffline);
         } catch (NullPointerException e) {
             Log.d(TAG, "Menu items not available.");
         }
@@ -297,7 +291,7 @@ public abstract class ActionbarActivity extends FragmentActivity {
      * Qr-reading can also be started from many activities.
      */
     public void launchQrReading() {
-        IntentIntegrator integrator = new IntentIntegrator(this);
+        /*IntentIntegrator integrator = new IntentIntegrator(this);
         App.setQrMode(App.BROWSE_BY_QR);
         // propose the free version first, by default IntentIntegrator would propose paid one
         List<String> target_applications = Arrays.asList("com.google.zxing.client.android",  // Barcode Scanner
@@ -305,7 +299,7 @@ public abstract class ActionbarActivity extends FragmentActivity {
                 "com.srowen.bs.android"             // Barcode Scanner+
         );
         integrator.setTargetApplications(target_applications);
-        integrator.initiateScan(IntentIntegrator.ALL_CODE_TYPES);
+        integrator.initiateScan(IntentIntegrator.ALL_CODE_TYPES);*/
     }
 
     private AlertDialog getLocationNotEnabledDialog() {
