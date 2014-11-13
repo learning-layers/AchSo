@@ -28,17 +28,15 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PointF;
 import android.graphics.RectF;
 import android.view.SurfaceView;
-import android.widget.TextView;
 
-import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.database.AnnotationBase;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.SerializableToDB;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
-import fi.aalto.legroup.achso.util.App;
-import fi.aalto.legroup.achso.util.FloatPosition;
+import fi.aalto.legroup.achso.util.ColorGenerator;
 import fi.aalto.legroup.achso.util.TextSettable;
 
 public class Annotation extends AnnotationBase implements TextSettable, SerializableToDB {
@@ -56,11 +54,11 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
     private int mSelectedColor = Color.BLUE;
     private boolean mVisible;
     private boolean mAlive;
-    private FloatPosition mRememberedPosition;
+    private PointF mRememberedPosition;
     private float mRememberedScaleFactor;
     private boolean mIsSeen = false;
 
-    public Annotation(long videoid, long starttime, String text, FloatPosition position,
+    public Annotation(long videoid, long starttime, String text, PointF position,
                       float scale, String creator, String video_key) {
         super(videoid, starttime, ANNOTATION_SHOW_DURATION_MILLISECONDS, text, position, scale,
                 creator, video_key);
@@ -84,11 +82,7 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
     }
 
     public int getColor() {
-        return mSelected ? mSelectedColor : mColor;
-    }
-
-    public void setColor(int color) {
-        this.mColor = color;
+        return ColorGenerator.getSeededColor(mCreator);
     }
 
     public int getOpacity() {
@@ -129,7 +123,6 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
             mOpacity = 100;
         } else {
             mOpacity = 0;
-            if (mText != null) SubtitleManager.removeSubtitleForAnnotation(this);
         }
     }
 
@@ -142,32 +135,19 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
     }
 
     public void setAlive(boolean b) {
-        if (!b) {
-            if (mVisible && mText != null) {
-                SubtitleManager.removeSubtitleForAnnotation(this);
-            }
-        }
         mAlive = b;
     }
 
-    public FloatPosition getPosition() {
+    public PointF getPosition() {
         return super.getPosition();
     }
 
-    public void setPosition(FloatPosition p) {
-        super.setPosition(p);
+    public void setPosition(PointF position) {
+        super.setPosition(position);
     }
 
     public long getVideoId() {
         return super.getVideoId();
-    }
-
-    public void setText(String text) {
-        if (mText != null && mVisible && text != null) {
-            SubtitleManager.addSubtitleForAnnotation(this);
-        }
-
-        super.setText(text);
     }
 
     public static void drawAnnotationRect(Canvas c, Paint color, Paint shadow, Float posx,
@@ -219,9 +199,9 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
             int a = (int) (mOpacity / 100f) * 255;
             p.setAlpha(a);
             s.setAlpha((int) (a * 0.7f));
-            FloatPosition pos = getPosition();
-            float posx = pos.getX() * c.getWidth();
-            float posy = pos.getY() * c.getHeight();
+            PointF pos = getPosition();
+            float posx = pos.x * c.getWidth();
+            float posy = pos.y * c.getHeight();
 
             mSize = (int) (mScale * ORIGINAL_SIZE);
             drawAnnotationRect(c, p, s, posx, posy, mSize, 1f);
@@ -230,12 +210,6 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
                 p.setShadowLayer(2, 2, 2, mColorShadow);
                 c.drawLine(posx, posy + (mSize / 2) + 2, c.getWidth() / 2, c.getHeight() - 54, p);
             }
-
-
-            if (mText != null) {
-                SubtitleManager.addSubtitleForAnnotation(this);
-            }
-
         }
     }
 
@@ -244,8 +218,8 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
     }
 
     public RectF getBounds(SurfaceView drawnTo) {
-        float x = getPosition().getX() * drawnTo.getWidth();
-        float y = getPosition().getY() * drawnTo.getHeight();
+        float x = getPosition().x * drawnTo.getWidth();
+        float y = getPosition().y * drawnTo.getHeight();
         int s2 = mSize / 2;
         return new RectF(x - s2, y - s2, x + s2, y + s2);
     }

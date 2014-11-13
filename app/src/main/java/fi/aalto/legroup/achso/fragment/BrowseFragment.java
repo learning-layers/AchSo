@@ -66,7 +66,7 @@ import fi.aalto.legroup.achso.activity.ActionbarActivity;
 import fi.aalto.legroup.achso.activity.InformationActivity;
 import fi.aalto.legroup.achso.activity.LoginActivity;
 import fi.aalto.legroup.achso.activity.VideoBrowserActivity;
-import fi.aalto.legroup.achso.activity.VideoViewerActivity;
+import fi.aalto.legroup.achso.activity.VideoPlayerActivity;
 import fi.aalto.legroup.achso.adapter.BrowsePagerAdapter;
 import fi.aalto.legroup.achso.adapter.VideoThumbAdapter;
 import fi.aalto.legroup.achso.database.SemanticVideo;
@@ -193,10 +193,9 @@ public class BrowseFragment extends Fragment implements AdapterView.OnItemClickL
                 SemanticVideo sv = mSelectedVideos.iterator().next();
                 Intent informationIntent = new Intent(getActivity(), InformationActivity.class);
 
-                informationIntent.putExtra(VideoViewerFragment.ARG_ITEM_ID, sv.getId());
+                informationIntent.putExtra(VideoPlayerActivity.ARG_ITEM_ID, sv.getId());
 
-                getActivity().startActivityForResult(informationIntent,
-                        VideoViewerActivity.REQUEST_VIDEO_INFORMATION);
+                startActivity(informationIntent);
 
                 return true;
             default:

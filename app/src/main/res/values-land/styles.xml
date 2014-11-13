@@ -1,5 +1,0 @@
-<resources>
-    <style name="FloatingActionBarTheme" parent="AppBaseTheme">
-        <item name="android:windowActionBarOverlay">true</item>
-    </style>
-</resources>

@@ -53,7 +53,6 @@ import fi.aalto.legroup.achso.adapter.BrowsePagerAdapter;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.fragment.BrowseFragment;
-import fi.aalto.legroup.achso.fragment.VideoViewerFragment;
 import fi.aalto.legroup.achso.pager.SwipeDisabledViewPager;
 import fi.aalto.legroup.achso.remote.RemoteResultCache;
 import fi.aalto.legroup.achso.state.LoginManager;
@@ -240,18 +239,17 @@ public class VideoBrowserActivity extends ActionbarActivity implements BrowseFra
 
     }
 
-
     @Override
     public void onLocalItemSelected(long id) {
-        Intent detailIntent = new Intent(this, VideoViewerActivity.class);
-        detailIntent.putExtra(VideoViewerFragment.ARG_ITEM_ID, id);
+        Intent detailIntent = new Intent(this, VideoPlayerActivity.class);
+        detailIntent.putExtra(VideoPlayerActivity.ARG_ITEM_ID, id);
         startActivity(detailIntent);
     }
 
     @Override
     public void onRemoteItemSelected(int positionInCache, SemanticVideo sv) {
-        Intent detailIntent = new Intent(this, VideoViewerActivity.class);
-        detailIntent.putExtra(VideoViewerFragment.ARG_ITEM_CACHE_POSITION, positionInCache);
+        Intent detailIntent = new Intent(this, VideoPlayerActivity.class);
+        detailIntent.putExtra(VideoPlayerActivity.ARG_ITEM_CACHE_POSITION, positionInCache);
         startActivity(detailIntent);
     }
 

@@ -108,7 +108,7 @@
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
-            <fi.aalto.legroup.achso.view.AnnotatedSeekBar
+            <fi.aalto.legroup.achso.view.MarkedSeekBar
                 android:id="@+id/mediacontroller_progress"
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="0dip"

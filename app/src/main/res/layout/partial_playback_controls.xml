@@ -1,0 +1,78 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#AA000000"
+    android:gravity="center_horizontal"
+    android:paddingLeft="@dimen/container_horizontal_padding"
+    android:paddingRight="@dimen/container_horizontal_padding"
+    android:paddingTop="@dimen/container_vertical_padding"
+    android:paddingBottom="@dimen/container_vertical_padding">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp">
+
+        <ImageButton
+            style="@android:style/Widget.Holo.Button.Borderless"
+            android:id="@+id/rewindButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_action_rewind"
+            android:onClick="skipBackward" />
+
+        <ImageButton
+            style="@android:style/Widget.Holo.Button.Borderless"
+            android:id="@+id/playPauseButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:src="@drawable/ic_action_play"
+            android:onClick="togglePlayback" />
+
+        <ImageButton
+            style="@android:style/Widget.Holo.Button.Borderless"
+            android:id="@+id/forwardButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_action_fast_forward"
+            android:onClick="skipForward" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/elapsedTimeText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="00:00"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+        <view
+            class="fi.aalto.legroup.achso.view.MarkedSeekBar"
+            android:id="@+id/seekBar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp" />
+
+        <TextView
+            android:id="@+id/totalTimeText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="00:00"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textIsSelectable="false" />
+
+    </LinearLayout>
+
+</LinearLayout>

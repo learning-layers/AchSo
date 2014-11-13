@@ -48,7 +48,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
-import fi.aalto.legroup.achso.fragment.VideoViewerFragment;
 import fi.aalto.legroup.achso.remote.RemoteResultCache;
 
 public class InformationActivity extends FragmentActivity
@@ -107,7 +106,7 @@ public class InformationActivity extends FragmentActivity
 
     public SemanticVideo getVideo() {
         if (video == null) {
-            Long id = getIntent().getLongExtra(VideoViewerFragment.ARG_ITEM_ID, -1);
+            Long id = getIntent().getLongExtra(VideoPlayerActivity.ARG_ITEM_ID, -1);
 
             if (id == -1) {
                 video = RemoteResultCache.getSelectedVideo();

@@ -10,7 +10,7 @@
     <string name="title_activity_genre_selection">Select a type for a video</string>
     <string name="title_activity_information">Video information</string>
     <string name="action_settings">Settings</string>
-    <string name="select_genre">What kind of video this was?</string>
+    <string name="select_genre">What kind of video is this?</string>
     <string name="good_work_genre">Good work</string>
     <string name="problem_genre">Problem</string>
     <string name="site_overview_genre">Site overview</string>
@@ -38,7 +38,7 @@
     <string name="url_found_label">Found link:</string>
     <string name="code_found_label">Found code:</string>
     <string name="open_in_browser">Open in browser</string>
-    <string name="ok">Ok</string>
+    <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="keep">Keep</string>
     <string name="edit_text">Edit text</string>
@@ -107,5 +107,6 @@
     <string name="choose_account">Choose an account</string>
     <string name="logged_out">Logged out.</string>
     <string name="login_error">Could not log in: %s</string>
+    <string name="save">Save</string>
 
 </resources>
