@@ -107,6 +107,8 @@ public class ZoomView extends FrameLayout {
         float initialTranslationX;
         float initialTranslationY;
 
+
+
         @Override
         public boolean onDown(MotionEvent event) {
             // Store the initial translation values when translation starts
@@ -152,6 +154,8 @@ public class ZoomView extends FrameLayout {
         private static final float SCALING_THRESHOLD = 0.01f;
 
         private float scale = 1;
+        private int focusX = 0;
+        private int focusY = 0;
 
         @Override
         public boolean onScaleBegin(ScaleGestureDetector detector) {
@@ -162,11 +166,16 @@ public class ZoomView extends FrameLayout {
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
             scale *= detector.getScaleFactor();
+            focusX = (int)detector.getFocusX();
+            focusY = (int)detector.getFocusY();
 
             scale = limitToRange(scale, MINIMUM_SCALE, MAXIMUM_SCALE);
 
+            child.setPivotX(focusX);
+            child.setPivotY(focusY);
             child.setScaleX(scale);
             child.setScaleY(scale);
+
 
             // Recalculate the translation to keep the child inside the bounds
             translateChild(child.getTranslationX(), child.getTranslationY());
