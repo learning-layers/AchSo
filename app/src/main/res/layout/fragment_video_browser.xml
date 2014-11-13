@@ -9,6 +9,7 @@
         android:id="@+id/grid_video_list"
         android:layout_gravity="left|top"
         android:numColumns="auto_fit"
+        android:columnWidth="340dp"
         android:choiceMode="multipleChoice" />
 
     <TextView
