@@ -1,12 +1,6 @@
 package fi.aalto.legroup.achso.fragment;
-
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
-import android.util.Log;
-import android.util.Pair;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -17,23 +11,17 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import fi.aalto.legroup.achso.R;
-import fi.aalto.legroup.achso.activity.ActionbarActivity;
 import fi.aalto.legroup.achso.adapter.VideoBrowserGridAdapter;
 import fi.aalto.legroup.achso.database.SemanticVideo;
-import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.helper.QRHelper;
 import fi.aalto.legroup.achso.helper.UploadHelper;
 import fi.aalto.legroup.achso.helper.VideoHelper;
-import fi.aalto.legroup.achso.service.UploaderService;
 import fi.aalto.legroup.achso.view.VideoGridItemView;
 
 public class VideoBrowserFragment extends Fragment {
