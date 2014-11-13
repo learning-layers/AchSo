@@ -103,6 +103,7 @@ public class MarkerCanvas extends FrameLayout implements View.OnClickListener {
         listener.onCanvasTapped(position);
     }
 
+    @Override
     public boolean onTouchEvent(@Nonnull MotionEvent event) {
         return gestureDetector.onTouchEvent(event);
     }
