@@ -20,7 +20,7 @@
             android:id="@+id/rewindButton"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:src="@android:drawable/ic_media_rew"
+            android:src="@drawable/ic_action_rewind"
             android:onClick="skipBackward" />
 
         <ImageButton
@@ -30,7 +30,7 @@
             android:layout_height="48dp"
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
-            android:src="@android:drawable/ic_media_play"
+            android:src="@drawable/ic_action_play"
             android:onClick="togglePlayback" />
 
         <ImageButton
@@ -38,7 +38,7 @@
             android:id="@+id/forwardButton"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:src="@android:drawable/ic_media_ff"
+            android:src="@drawable/ic_action_fast_forward"
             android:onClick="skipForward" />
 
     </LinearLayout>
