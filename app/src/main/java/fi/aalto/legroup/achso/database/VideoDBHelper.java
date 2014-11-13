@@ -30,6 +30,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.PointF;
 import android.location.Location;
 import android.net.Uri;
 import android.provider.MediaStore;
@@ -47,7 +48,6 @@ import java.util.Date;
 import java.util.List;
 
 import fi.aalto.legroup.achso.annotation.Annotation;
-import fi.aalto.legroup.achso.util.FloatPosition;
 
 public class VideoDBHelper extends SQLiteOpenHelper {
     public static final String KEY_ID = "id";
@@ -242,8 +242,8 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         ContentValues cv = new ContentValues();
         cv.put(KEY_STARTTIME, a.getStartTime());
         cv.put(KEY_DURATION, a.getDuration());
-        cv.put(KEY_POSITION_X, a.getPosition().getX());
-        cv.put(KEY_POSITION_Y, a.getPosition().getY());
+        cv.put(KEY_POSITION_X, a.getPosition().x);
+        cv.put(KEY_POSITION_Y, a.getPosition().y);
         cv.put(KEY_VIDEO_ID, a.getVideoId());
         cv.put(KEY_TEXT, a.getText());
         cv.put(KEY_SCALE, a.getScaleFactor());
@@ -348,8 +348,8 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         float scale = c.getFloat(i++);
         String creator = c.getString(i++);
         String video_key = c.getString(i++);
-        Annotation a = new Annotation(vid, starttime, text, new FloatPosition(x, y), scale,
-                creator, video_key);
+        Annotation a = new Annotation(vid, starttime, text, new PointF(x, y), scale, creator,
+                video_key);
         ((AnnotationBase) a).setId(id);
         return a;
     }

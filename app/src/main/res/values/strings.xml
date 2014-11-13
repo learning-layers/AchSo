@@ -109,5 +109,6 @@
     <string name="logged_out">Logged out.</string>
     <string name="login_error">Could not log in: %s</string>
     <string name="title_activity_main">MainActivity</string>
+    <string name="save">Save</string>
 
 </resources>

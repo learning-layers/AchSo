@@ -27,12 +27,11 @@ import java.util.List;
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.activity.GenreSelectionActivity;
 import fi.aalto.legroup.achso.activity.InformationActivity;
-import fi.aalto.legroup.achso.activity.VideoViewerActivity;
+import fi.aalto.legroup.achso.activity.VideoPlayerActivity;
 import fi.aalto.legroup.achso.database.LocalRawVideos;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
-import fi.aalto.legroup.achso.fragment.VideoViewerFragment;
-import fi.aalto.legroup.achso.service.UploaderService;
+import fi.aalto.legroup.achso.fragment.InformationFragment;
 import fi.aalto.legroup.achso.util.App;
 
 /**
@@ -130,8 +129,8 @@ public class VideoHelper {
     }
 
     public static void showVideo(Activity activity, SemanticVideo video) {
-        Intent detailIntent = new Intent(activity, VideoViewerActivity.class);
-        detailIntent.putExtra(VideoViewerFragment.ARG_ITEM_ID, video.getId());
+        Intent detailIntent = new Intent(activity, VideoPlayerActivity.class);
+        detailIntent.putExtra(VideoPlayerActivity.ARG_ITEM_ID, video.getId());
         activity.startActivity(detailIntent);
     }
 
@@ -226,10 +225,10 @@ public class VideoHelper {
     public static void viewVideoInfo(Activity activity, SemanticVideo video, ActionMode actionMode) {
         Intent informationIntent = new Intent(activity, InformationActivity.class);
 
-        informationIntent.putExtra(VideoViewerFragment.ARG_ITEM_ID, video.getId());
+        informationIntent.putExtra(VideoPlayerActivity.ARG_ITEM_ID, video.getId());
 
-        activity.startActivityForResult(informationIntent,
-                VideoViewerActivity.REQUEST_VIDEO_INFORMATION);
+        activity.startActivity(informationIntent);
+        actionMode.finish();
     }
 
     public static void videoByChoosingFile(Activity activity) {

@@ -4,11 +4,11 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:gravity="center_horizontal"
-    android:shadowColor="#FFFFFF"
+    android:shadowColor="@android:color/black"
     android:shadowDx="0"
     android:shadowDy="0"
-    android:shadowRadius="4"
-    android:textSize="28dp">
+    android:shadowRadius="10"
+    android:textStyle="bold"
+    android:textSize="28sp">
 
 </TextView>
-

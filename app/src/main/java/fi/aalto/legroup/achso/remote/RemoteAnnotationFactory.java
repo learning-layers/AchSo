@@ -23,7 +23,8 @@
 
 package fi.aalto.legroup.achso.remote;
 
-import fi.aalto.legroup.achso.util.FloatPosition;
+import android.graphics.PointF;
+
 import fi.aalto.legroup.achso.util.xml.XmlObject;
 import fi.aalto.legroup.achso.util.xml.XmlSerializableFactory;
 
@@ -59,7 +60,7 @@ public class RemoteAnnotationFactory implements XmlSerializableFactory {
             }
         }
 
-        return new RemoteAnnotation(starttime, duration, text, new FloatPosition(xpos, ypos),
-                scale, creator);
+        return new RemoteAnnotation(starttime, duration, text, new PointF(xpos, ypos), scale,
+                creator);
     }
 }

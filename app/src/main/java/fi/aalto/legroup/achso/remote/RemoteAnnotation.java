@@ -23,14 +23,15 @@
 
 package fi.aalto.legroup.achso.remote;
 
+import android.graphics.PointF;
+
 import fi.aalto.legroup.achso.database.AnnotationBase;
 import fi.aalto.legroup.achso.database.SemanticVideo;
-import fi.aalto.legroup.achso.util.FloatPosition;
 
 public class RemoteAnnotation extends AnnotationBase {
     private SemanticVideo mVideo;
 
-    public RemoteAnnotation(long starttime, long duration, String text, FloatPosition position,
+    public RemoteAnnotation(long starttime, long duration, String text, PointF position,
                             float scale, String creator) {
         super(-1, starttime, duration, text, position, scale, creator, null);
         mVideo = null;
