@@ -37,7 +37,7 @@ import fi.aalto.legroup.achso.view.MarkerCanvas;
 /**
  * Provides a convenient fragment for playing annotated videos. The host is responsible for
  * implementing any playback controls.
- * <p/>
+ *
  * TODO: Decouple from MediaPlayer and provide an ExoPlayer alternative for API 16 and up.
  */
 public class VideoPlayerFragment extends Fragment implements TextureView.SurfaceTextureListener,
@@ -289,22 +289,18 @@ public class VideoPlayerFragment extends Fragment implements TextureView.Surface
         play();
     }
 
-    public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int i, int i1) {
+    public void onSurfaceTextureAvailable(SurfaceTexture texture, int width, int height) {
         isSurfacePrepared = true;
         finishPreparing();
     }
 
-    public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int i, int i1) {
-
-    }
-
-    public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
+    public boolean onSurfaceTextureDestroyed(SurfaceTexture texture) {
         return true;
     }
 
-    public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
+    public void onSurfaceTextureUpdated(SurfaceTexture texture) {}
 
-    }
+    public void onSurfaceTextureSizeChanged(SurfaceTexture texture, int width, int height) {}
 
     /**
      * Called when the MediaPlayer is ready.
