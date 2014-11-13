@@ -118,10 +118,10 @@ public class AnnotationBase implements XmlSerializable {
 
     public void setPosition(PointF position) {
         if (position.y > 1) position.y = 1;
-        if (position.y < 1) position.y = 0;
+        if (position.y < 0) position.y = 0;
 
         if (position.x > 1) position.x = 1;
-        if (position.x < 1) position.x = 0;
+        if (position.x < 0) position.x = 0;
 
         mPosition = position;
     }
