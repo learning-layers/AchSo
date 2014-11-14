@@ -116,7 +116,7 @@ public class LoginManager {
     public JsonObject getUserInfo() { return userInfo; }
 
     public boolean isLoggedIn() {
-        return state == LoginState.LOGGED_IN;
+        return state == LoginState.LOGGED_IN || isLoggingOut();
     }
 
     public boolean isLoggingIn() {
@@ -124,7 +124,7 @@ public class LoginManager {
     }
 
     public boolean isLoggedOut() {
-        return state == LoginState.LOGGED_OUT;
+        return state == LoginState.LOGGED_OUT || isLoggingIn();
     }
 
     public boolean isLoggingOut() {
