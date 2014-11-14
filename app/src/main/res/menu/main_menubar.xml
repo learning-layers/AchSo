@@ -1,46 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/action_search"
-          android:title="Search"
-        android:icon="@drawable/ic_search"
-        android:showAsAction="collapseActionView|ifRoom"
+    <item
+        android:id="@+id/action_search"
         android:actionViewClass="android.widget.SearchView"
-        />
-    <item android:id="@+id/action_newvideo"
-          android:title="@string/record"
-          android:showAsAction="always|withText"
-          android:icon="@drawable/ic_record_video"
-    />
-    <item android:id="@+id/action_addvideo"
-          android:title="@string/add_video"
-          android:showAsAction="ifRoom|withText"
-          android:icon="@drawable/ic_menu_archive"
-        />
-
-    <item android:id="@+id/action_readqrcode"
-          android:title="@string/read_qr_code"
-          android:showAsAction="ifRoom|withText"
-          android:icon="@drawable/ic_read_qr_code"
-    />
-    <group>
-    <item android:id="@+id/action_logout"
-          android:title="Logout"
-          android:showAsAction="ifRoom|withText"
-    />
-    <item android:id="@+id/action_login"
-        android:title="Login"
-        android:showAsAction="ifRoom|withText"
-    />
-    <item android:id="@+id/action_offline"
-        android:title="Offline"
-        android:showAsAction="ifRoom|withText"
-    />
-    <item android:id="@+id/menu_refresh"
-        android:icon="@drawable/ic_menu_refresh"
-        android:title=""
+        android:icon="@drawable/md_magnify"
+        android:showAsAction="collapseActionView|ifRoom"
+        android:title="Search" />
+    <item
+        android:id="@+id/action_new_video"
+        android:icon="@drawable/md_camcorder"
         android:showAsAction="ifRoom"
-        android:actionLayout="@layout/small_progress_bar"
-    />
-    </group>
+        android:title="@string/record" />
+    <item
+        android:id="@+id/action_add_video"
+        android:icon="@drawable/md_folder"
+        android:showAsAction="ifRoom"
+        android:title="@string/add_video" />
+
+    <item
+        android:id="@+id/action_read_qrcode"
+        android:icon="@drawable/md_qr_code"
+        android:showAsAction="ifRoom"
+        android:title="@string/read_qr_code" />
+    <item
+        android:id="@+id/action_logout"
+        android:showAsAction="ifRoom"
+        android:title="Logout" />
+    <item
+        android:id="@+id/action_login"
+        android:showAsAction="ifRoom"
+        android:title="Login" />
+    <item
+        android:id="@+id/action_about"
+        android:showAsAction="ifRoom"
+        android:title="About" />
 </menu>

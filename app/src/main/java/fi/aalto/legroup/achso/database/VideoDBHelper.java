@@ -30,6 +30,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.PointF;
 import android.location.Location;
 import android.net.Uri;
 import android.provider.MediaStore;
@@ -47,7 +48,6 @@ import java.util.Date;
 import java.util.List;
 
 import fi.aalto.legroup.achso.annotation.Annotation;
-import fi.aalto.legroup.achso.util.FloatPosition;
 
 public class VideoDBHelper extends SQLiteOpenHelper {
     public static final String KEY_ID = "id";
@@ -91,12 +91,15 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         mContext = c;
     }
 
-    public static List<SemanticVideo> queryVideoCacheByTitle(String query) {
+    public static List<SemanticVideo> queryVideoCacheByString(String query) {
         List<SemanticVideo> ret = new ArrayList<SemanticVideo>();
         if (query != null && !query.isEmpty()) {
+            query = query.toLowerCase();
+            VideoDBHelper helper = new VideoDBHelper(null);
             for (SemanticVideo v : mLocalVideoCache) {
-                if (v.getTitle().toLowerCase().contains(query.toLowerCase()))
+                if (v.videoMatchesSearchQuery(query, helper)) {
                     ret.add(v);
+                }
             }
         }
         return ret;
@@ -110,11 +113,22 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         return ret;
     }
 
-    public static List<SemanticVideo> getVideosByGenre(String g) {
+    public static List<SemanticVideo> getVideosByGenre(String genre) {
         List<SemanticVideo> ret = new ArrayList<SemanticVideo>();
-        Log.i("VideoDBHelper", "Getting videos by genre: "+ g);
+        Log.i("VideoDBHelper", "Getting videos by genre: " + genre);
         for (SemanticVideo v : mLocalVideoCache) {
-            if (v.getEnglishGenreText().equals(g)) {
+            if (v.getEnglishGenreText().equals(genre)) {
+                ret.add(v);
+            }
+        }
+        return ret;
+    }
+
+    public static List<SemanticVideo> getVideosByGenre(SemanticVideo.Genre genre) {
+        List<SemanticVideo> ret = new ArrayList<SemanticVideo>();
+        Log.i("VideoDBHelper", "Getting videos by genre: " + genre);
+        for (SemanticVideo v : mLocalVideoCache) {
+            if (v.getGenre() == genre) {
                 ret.add(v);
             }
         }
@@ -228,8 +242,8 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         ContentValues cv = new ContentValues();
         cv.put(KEY_STARTTIME, a.getStartTime());
         cv.put(KEY_DURATION, a.getDuration());
-        cv.put(KEY_POSITION_X, a.getPosition().getX());
-        cv.put(KEY_POSITION_Y, a.getPosition().getY());
+        cv.put(KEY_POSITION_X, a.getPosition().x);
+        cv.put(KEY_POSITION_Y, a.getPosition().y);
         cv.put(KEY_VIDEO_ID, a.getVideoId());
         cv.put(KEY_TEXT, a.getText());
         cv.put(KEY_SCALE, a.getScaleFactor());
@@ -334,8 +348,8 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         float scale = c.getFloat(i++);
         String creator = c.getString(i++);
         String video_key = c.getString(i++);
-        Annotation a = new Annotation(vid, starttime, text, new FloatPosition(x, y), scale,
-                creator, video_key);
+        Annotation a = new Annotation(vid, starttime, text, new PointF(x, y), scale, creator,
+                video_key);
         ((AnnotationBase) a).setId(id);
         return a;
     }
@@ -353,6 +367,21 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         }
         c.close();
         db.close();
+
+
+        /*
+        Annotation from1AnotherUser = new Annotation(videoid, 1000, "This is a dumb remark",
+                new FloatPosition(0.5f,0.5f), 1.0f, "another.user@example.com", null);
+        ret.add(from1AnotherUser);
+
+        Annotation from2AnotherUser = new Annotation(videoid, 4000, "This is a witty comment",
+                new FloatPosition(0.5f,0.5f), 1.0f, "another.user@example.com", null);
+        ret.add(from2AnotherUser);
+
+        Annotation from3AnotherUser = new Annotation(videoid, 4000, "And a sarcastic remark",
+                new FloatPosition(0.2f,0.2f), 1.0f, "stillanother.user@example.com", null);
+        ret.add(from3AnotherUser);
+        */
         return ret;
     }
 
@@ -402,11 +431,11 @@ public class VideoDBHelper extends SQLiteOpenHelper {
                 if (mini != null) mini.recycle();
             }
         }
-        mLocalVideoCache = fetchVideosFromDB(sortBy, desc);
+        mLocalVideoCache = fetchVideosFromDB(sortBy, desc, true);
         return mLocalVideoCache;
     }
 
-    private List<SemanticVideo> fetchVideosFromDB(String sortBy, boolean desc) {
+    private List<SemanticVideo> fetchVideosFromDB(String sortBy, boolean desc, boolean loadAnnotations) {
         List<SemanticVideo> ret = new ArrayList<SemanticVideo>();
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor c = db.query(TBL_VIDEO, null, null, null, null, null, sortBy + " COLLATE NOCASE " + (desc ? "DESC" : ""));
@@ -464,8 +493,12 @@ public class VideoDBHelper extends SQLiteOpenHelper {
                     remote_thumbnail = c.getString(i++);
                 }
 
-                ret.add(new SemanticVideo(id, title, createdat, uri, genre, mini, micro,
-                        qrCode, loc, uploadStatus, creator, key, remote_video, remote_thumbnail));
+                SemanticVideo video = new SemanticVideo(id, title, createdat, uri, genre, mini, micro,
+                        qrCode, loc, uploadStatus, creator, key, remote_video, remote_thumbnail);
+                if (loadAnnotations) {
+                    video.setAnnotations(this.getAnnotationsById(video.getId()));
+                }
+                ret.add(video);
             }
         }
         c.close();
@@ -529,14 +562,12 @@ public class VideoDBHelper extends SQLiteOpenHelper {
         Log.i("VideoDBHelper", "Downgrading database, hope you know what you are doing.");
     }
 
-        @Override
+    @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         Log.i("VideoDBHelper", "visiting onUpgrade -method, oldVersion: " + oldVersion + " new " +
                 "version: " + newVersion);
-        for (int i = oldVersion; i < newVersion; i++)
-        {
-            switch(i)
-            {
+        for (int i = oldVersion; i < newVersion; i++) {
+            switch (i) {
                 case 10:
                     // ok it cannot be done in SqLite
                     //db.execSQL("ALTER TABLE video DROP CONSTRAINT UNIQUE");
@@ -544,23 +575,23 @@ public class VideoDBHelper extends SQLiteOpenHelper {
                 case 11:
                     Log.i("VideoDBHelper *** upgrade", "Upgrading annotation table to have scale " +
                             "-column");
-                    db.execSQL("ALTER TABLE annotation ADD COLUMN "+ KEY_SCALE + " FLOAT NOT NULL" +
+                    db.execSQL("ALTER TABLE annotation ADD COLUMN " + KEY_SCALE + " FLOAT NOT NULL" +
                             " DEFAULT 1.0");
                     break;
                 case 12:
                     Log.i("VideoDBHelper *** upgrade", "Upgrading video table to have hashkey  " +
                             "-column");
-                    db.execSQL("ALTER TABLE video ADD COLUMN "+ KEY_HASHKEY + " TEXT");
+                    db.execSQL("ALTER TABLE video ADD COLUMN " + KEY_HASHKEY + " TEXT");
                     break;
                 case 13:
                     Log.i("VideoDBHelper *** upgrade", "Upgrading annotation table to have " +
                             "creator -column");
-                    db.execSQL("ALTER TABLE annotation ADD COLUMN "+ KEY_CREATOR + " TEXT");
+                    db.execSQL("ALTER TABLE annotation ADD COLUMN " + KEY_CREATOR + " TEXT");
                     break;
                 case 14:
                     Log.i("VideoDBHelper *** upgrade", "Upgrading annotation table to have " +
                             "video_key -column");
-                    db.execSQL("ALTER TABLE annotation ADD COLUMN "+ KEY_VIDEO_KEY + " " +
+                    db.execSQL("ALTER TABLE annotation ADD COLUMN " + KEY_VIDEO_KEY + " " +
                             "TEXT");
                     break;
                 case 15:
@@ -568,7 +599,7 @@ public class VideoDBHelper extends SQLiteOpenHelper {
                             "video_key -column");
                     db.execSQL("ALTER TABLE video ADD COLUMN " + KEY_REMOTE_VIDEO + " " +
                             "TEXT");
-                    db.execSQL("ALTER TABLE video ADD COLUMN "+ KEY_REMOTE_THUMBNAIL + " " +
+                    db.execSQL("ALTER TABLE video ADD COLUMN " + KEY_REMOTE_THUMBNAIL + " " +
                             "TEXT");
                     break;
 

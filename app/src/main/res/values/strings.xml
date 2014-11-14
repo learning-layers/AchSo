@@ -18,6 +18,7 @@
     <string name="delete">Delete</string>
     <string name="upload">Upload</string>
     <string name="qr_to_video">Add QR code</string>
+    <string name="view_video_info">Show details</string>
     <string name="deletion_title">Video deletion</string>
     <string name="deletion_question">Do you want to delete selected video(s) and annotation(s)?</string>
     <string name="first_page">All videos</string>
@@ -74,6 +75,7 @@
     <string name="no_connection">No connection to cloud</string>
     <string name="nearby_videos">Nearby</string>
     <string name="search_results">Search results</string>
+    <string name="empty_results">No matching videos</string>
     <string name="add_video">Add video</string>
     <string name="author_is_me">Me</string>
     <string name="author_is_unknown">Unknown</string>
@@ -102,8 +104,11 @@
     <string name="no">No</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="about">About</string>
+    <string name="about_maps">About Maps</string>
     <string name="choose_account">Choose an account</string>
     <string name="logged_out">Logged out.</string>
     <string name="login_error">Could not log in: %s</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="save">Save</string>
 
 </resources>

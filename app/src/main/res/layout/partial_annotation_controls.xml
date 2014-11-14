@@ -1,0 +1,43 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#AA000000"
+    android:gravity="center_horizontal"
+    android:paddingLeft="@dimen/container_horizontal_padding"
+    android:paddingRight="@dimen/container_horizontal_padding"
+    android:paddingTop="@dimen/container_vertical_padding"
+    android:paddingBottom="@dimen/container_vertical_padding">
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/annotationText"
+        android:text="Lorem ipsum dolor sit amet"
+        android:layout_marginBottom="8dp"
+        android:inputType="text" />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/deleteButton"
+            android:layout_width="fill_parent"
+            android:layout_height="48dp"
+            android:text="@string/delete"
+            android:singleLine="true"
+            android:layout_weight="1" />
+
+        <Button
+            android:id="@+id/saveButton"
+            android:layout_width="fill_parent"
+            android:layout_height="48dp"
+            android:text="@string/save"
+            android:singleLine="true"
+            android:layout_weight="1" />
+
+    </LinearLayout>
+
+</LinearLayout>

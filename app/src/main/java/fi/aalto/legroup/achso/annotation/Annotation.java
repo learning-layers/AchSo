@@ -28,21 +28,22 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PointF;
 import android.graphics.RectF;
 import android.view.SurfaceView;
 
-import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.database.AnnotationBase;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.SerializableToDB;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
-import fi.aalto.legroup.achso.util.App;
-import fi.aalto.legroup.achso.util.FloatPosition;
+import fi.aalto.legroup.achso.util.ColorGenerator;
 import fi.aalto.legroup.achso.util.TextSettable;
 
 public class Annotation extends AnnotationBase implements TextSettable, SerializableToDB {
 
     public static final long ANNOTATION_SHOW_DURATION_MILLISECONDS = 3000;
+    public static final long MINIMUM_DISPLAY_DURATION = 2000;
+    public static final long DISPLAY_DURATION_PER_CHAR = 100;
     public static final long ANNOTATION_FADE_DURATION_MILLISECONDS = 200;
     public static final int ORIGINAL_SIZE = 60;
     boolean mSelected;
@@ -53,11 +54,11 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
     private int mSelectedColor = Color.BLUE;
     private boolean mVisible;
     private boolean mAlive;
-    private FloatPosition mRememberedPosition;
+    private PointF mRememberedPosition;
     private float mRememberedScaleFactor;
     private boolean mIsSeen = false;
 
-    public Annotation(long videoid, long starttime, String text, FloatPosition position,
+    public Annotation(long videoid, long starttime, String text, PointF position,
                       float scale, String creator, String video_key) {
         super(videoid, starttime, ANNOTATION_SHOW_DURATION_MILLISECONDS, text, position, scale,
                 creator, video_key);
@@ -65,7 +66,6 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
         mVisible = false;
         mAlive = true;
         mOpacity = 100;
-        mColor = App.getContext().getResources().getColor(R.color.orange_square);
     }
 
     public Annotation(Context ctx, SemanticVideo sv, AnnotationBase base) {
@@ -82,7 +82,7 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
     }
 
     public int getColor() {
-        return mSelected ? mSelectedColor : mColor;
+        return ColorGenerator.getSeededColor(mCreator);
     }
 
     public int getOpacity() {
@@ -97,7 +97,9 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
         return this.mSelected;
     }
 
-    public void setSelected(boolean value) { mSelected = value; }
+    public void setSelected(boolean value) {
+        mSelected = value;
+    }
 
     public long getDuration() {
         return super.getDuration();
@@ -121,7 +123,6 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
             mOpacity = 100;
         } else {
             mOpacity = 0;
-            if (mText != null) SubtitleManager.removeSubtitle(mText);
         }
     }
 
@@ -134,40 +135,27 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
     }
 
     public void setAlive(boolean b) {
-        if (!b) {
-            if (mVisible && mText != null) {
-                SubtitleManager.removeSubtitle(mText);
-            }
-        }
         mAlive = b;
     }
 
-    public FloatPosition getPosition() {
+    public PointF getPosition() {
         return super.getPosition();
     }
 
-    public void setPosition(FloatPosition p) {
-        super.setPosition(p);
+    public void setPosition(PointF position) {
+        super.setPosition(position);
     }
 
     public long getVideoId() {
         return super.getVideoId();
     }
 
-    public void setText(String text) {
-        if (mText != null && mVisible && text != null) {
-            SubtitleManager.replaceSubtitle(mText, text);
-        }
-
-        super.setText(text);
-    }
-
     public static void drawAnnotationRect(Canvas c, Paint color, Paint shadow, Float posx,
-                                         Float posy, int wh, float scale) {
+                                          Float posy, int wh, float scale) {
         int wh2 = wh / 2;
         int tilt = wh / 8;
         int adjust = 4; //wh / 16;
-        int madjust = (int) (4 * (scale * 2) );
+        int madjust = (int) (4 * (scale * 2));
         //int madjust = (int) ((wh / 16) * (scale * 2) );
         color.setStyle(Paint.Style.STROKE);
         color.setAntiAlias(true);
@@ -202,35 +190,36 @@ public class Annotation extends AnnotationBase implements TextSettable, Serializ
 
     }
 
-    public void draw(Canvas c) {
+    public void draw(Canvas c, int color) {
         if (mVisible) {
             Paint p = new Paint();
             Paint s = new Paint();
-            p.setColor(mColor);
+            p.setColor(color);
             s.setColor(mColorShadow);
             int a = (int) (mOpacity / 100f) * 255;
             p.setAlpha(a);
             s.setAlpha((int) (a * 0.7f));
-            FloatPosition pos = getPosition();
-            float posx = pos.getX() * c.getWidth();
-            float posy = pos.getY() * c.getHeight();
+            PointF pos = getPosition();
+            float posx = pos.x * c.getWidth();
+            float posy = pos.y * c.getHeight();
 
             mSize = (int) (mScale * ORIGINAL_SIZE);
             drawAnnotationRect(c, p, s, posx, posy, mSize, 1f);
             if (isSelected()) {
                 p.setStrokeWidth(0);
                 p.setShadowLayer(2, 2, 2, mColorShadow);
-                c.drawLine(posx, posy + (mSize/2) + 2, c.getWidth()/2, c.getHeight() - 54, p);
+                c.drawLine(posx, posy + (mSize / 2) + 2, c.getWidth() / 2, c.getHeight() - 54, p);
             }
-
-            if (mText != null) SubtitleManager.addSubtitle(mText);
-
         }
     }
 
+    public void draw(Canvas c) {
+        this.draw(c, mColor);
+    }
+
     public RectF getBounds(SurfaceView drawnTo) {
-        float x = getPosition().getX() * drawnTo.getWidth();
-        float y = getPosition().getY() * drawnTo.getHeight();
+        float x = getPosition().x * drawnTo.getWidth();
+        float y = getPosition().y * drawnTo.getHeight();
         int s2 = mSize / 2;
         return new RectF(x - s2, y - s2, x + s2, y + s2);
     }

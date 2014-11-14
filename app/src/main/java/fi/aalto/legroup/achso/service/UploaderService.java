@@ -27,7 +27,7 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 
-import fi.aalto.legroup.achso.activity.VideoBrowserActivity;
+import fi.aalto.legroup.achso.activity.MainActivity;
 import fi.aalto.legroup.achso.database.SemanticVideo;
 import fi.aalto.legroup.achso.database.VideoDBHelper;
 import fi.aalto.legroup.achso.upload.Uploader;
@@ -48,6 +48,13 @@ public class UploaderService extends IntentService {
     public static final int UPLOAD_PROGRESS = 1;
     public static final int UPLOAD_END = 2;
     public static final int UPLOAD_ERROR = 3;
+
+    public static final String UPLOAD_START_ACTION = "fi.aalto.legroup.achso.intent.action.UPLOAD_START";
+    public static final String UPLOAD_PROGRESS_ACTION = "fi.aalto.legroup.achso.intent.action.UPLOAD_PROGRESS";
+    public static final String UPLOAD_END_ACTION = "fi.aalto.legroup.achso.intent.action.UPLOAD_END";
+    public static final String UPLOAD_ERROR_ACTION = "fi.aalto.legroup.achso.intent.action.UPLOAD_ERROR";
+    public static final String UPLOAD_FINALIZED_ACTION = "fi.aalto.legroup.achso.intent" +
+            ".action.UPLOAD_FINALIZED";
 
     private LocalBroadcastManager broadcastManager;
 
@@ -74,7 +81,7 @@ public class UploaderService extends IntentService {
     protected void broadcastError(SemanticVideo video, String errorMessage) {
         Intent intent = new Intent();
 
-        intent.setAction(VideoBrowserActivity.UploaderBroadcastReceiver.UPLOAD_ERROR_ACTION);
+        intent.setAction(UPLOAD_ERROR_ACTION);
         intent.addCategory(Intent.CATEGORY_DEFAULT);
         intent.putExtra(PARAM_OUT, video.getId());
         intent.putExtra(PARAM_WHAT, UPLOAD_ERROR);
@@ -94,7 +101,7 @@ public class UploaderService extends IntentService {
         public void onUploadStart(SemanticVideo video) {
             Intent intent = new Intent();
 
-            intent.setAction(VideoBrowserActivity.UploaderBroadcastReceiver.UPLOAD_START_ACTION);
+            intent.setAction(UPLOAD_START_ACTION);
             intent.addCategory(Intent.CATEGORY_DEFAULT);
             intent.putExtra(PARAM_OUT, video.getId());
             intent.putExtra(PARAM_WHAT, UPLOAD_START);
@@ -111,14 +118,13 @@ public class UploaderService extends IntentService {
          */
         @Override
         public void onUploadProgress(SemanticVideo video, int percentage) {
-            Intent intent = new Intent();
+            Intent intent = new Intent(UPLOAD_PROGRESS_ACTION);
 
-            intent.setAction(VideoBrowserActivity.UploaderBroadcastReceiver.UPLOAD_PROGRESS_ACTION);
-            intent.addCategory(Intent.CATEGORY_DEFAULT);
             intent.putExtra(PARAM_OUT, video.getId());
             intent.putExtra(PARAM_WHAT, UPLOAD_PROGRESS);
             intent.putExtra(PARAM_ARG, percentage);
 
+            LocalBroadcastManager.getInstance(UploaderService.this).sendBroadcast(intent);
             broadcastManager.sendBroadcast(intent);
         }
 
@@ -129,10 +135,8 @@ public class UploaderService extends IntentService {
          */
         @Override
         public void onUploadFinish(SemanticVideo video) {
-            Intent intent = new Intent();
+            Intent intent = new Intent(UPLOAD_END_ACTION);
 
-            intent.setAction(VideoBrowserActivity.UploaderBroadcastReceiver.UPLOAD_END_ACTION);
-            intent.addCategory(Intent.CATEGORY_DEFAULT);
             intent.putExtra(PARAM_OUT, video.getId());
             intent.putExtra(PARAM_WHAT, UPLOAD_END);
 

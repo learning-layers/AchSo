@@ -49,6 +49,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
+
+            <TextView
+                android:id="@+id/annotation_creator_text"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:layout_marginRight="50dp"
+                android:textColor="#FFF"
+                android:gravity="center"
+                />
+            
             <Button
                 android:id="@+id/delete_annotation_button"
                 style="?android:attr/buttonStyleSmall"
@@ -77,6 +87,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="fill_parent"
                 android:text="@string/keep" />
+
+
         </LinearLayout>
 
         <LinearLayout
@@ -96,7 +108,7 @@
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
-            <fi.aalto.legroup.achso.view.AnnotatedSeekBar
+            <fi.aalto.legroup.achso.view.MarkedSeekBar
                 android:id="@+id/mediacontroller_progress"
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="0dip"

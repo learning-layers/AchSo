@@ -24,16 +24,13 @@
 package fi.aalto.legroup.achso.database;
 
 import android.content.Context;
+import android.graphics.PointF;
 import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Iterator;
-
 import fi.aalto.legroup.achso.annotation.Annotation;
-import fi.aalto.legroup.achso.util.App;
-import fi.aalto.legroup.achso.util.FloatPosition;
 import fi.aalto.legroup.achso.util.xml.XmlObject;
 import fi.aalto.legroup.achso.util.xml.XmlSerializable;
 
@@ -43,21 +40,20 @@ public class AnnotationBase implements XmlSerializable {
     protected long mVideoId;
     protected String mText;
     protected float mScale;
-    private String mCreator;
+    protected String mCreator;
     private String mVideoKey;
     private long mId;
     private long mStartTime;
     private long mDuration;
-    private FloatPosition mPosition;
+    private PointF mPosition;
 
     public AnnotationBase(long videoid, long starttime, long duration, String text,
-                          FloatPosition position, float scale, String creator, String video_key) {
+                          PointF position, float scale, String creator, String video_key) {
         mVideoId = videoid;
         mCreator = creator;
         mStartTime = starttime;
-        mDuration = duration;
         mPosition = position;
-        mText = text;
+        this.setText(text);
         mScale = scale;
         mVideoKey = (video_key != null) ? video_key : Long.toString(videoid);
     }
@@ -68,13 +64,22 @@ public class AnnotationBase implements XmlSerializable {
 
     public void setText(String text) {
         mText = text;
+
+        long length = text.length() * Annotation.DISPLAY_DURATION_PER_CHAR;
+        if (length < Annotation.MINIMUM_DISPLAY_DURATION) {
+            length = Annotation.MINIMUM_DISPLAY_DURATION;
+        }
+
+        this.mDuration = length;
     }
 
     public long getId() {
         return mId;
     }
 
-    public String getCreator() { return mCreator; }
+    public String getCreator() {
+        return mCreator;
+    }
 
     void setId(long id) {
         mId = id;
@@ -107,29 +112,24 @@ public class AnnotationBase implements XmlSerializable {
     }
 
 
-    public FloatPosition getPosition() {
+    public PointF getPosition() {
         return mPosition;
     }
 
-    public void setPosition(FloatPosition p) {
-        if (p.getY() > 1.0f) {
-            p.setY(1.0f);
-        } else if (p.getY() < 0f) {
-            p.setY(0f);
-        }
-        if (p.getX() > 1.0f) {
-            p.setX(1.0f);
-        } else if (p.getX() < 0f) {
-            p.setX(0f);
-        }
+    public void setPosition(PointF position) {
+        if (position.y > 1) position.y = 1;
+        if (position.y < 0) position.y = 0;
 
-        mPosition = p;
+        if (position.x > 1) position.x = 1;
+        if (position.x < 0) position.x = 0;
+
+        mPosition = position;
     }
 
     @Override
     public XmlObject getXmlObject(Context ctx) {
-        FloatPosition pos = getPosition();
-        return new XmlObject("annotation").addSubObject("text", getText()).addSubObject("x_position", Float.toString(pos.getX())).addSubObject("y_position", Float.toString(pos.getY())).addSubObject("start_time", Long.toString(getStartTime())).addSubObject("duration", Long.toString(getDuration()));
+        PointF pos = getPosition();
+        return new XmlObject("annotation").addSubObject("text", getText()).addSubObject("x_position", Float.toString(pos.x)).addSubObject("y_position", Float.toString(pos.y)).addSubObject("start_time", Long.toString(getStartTime())).addSubObject("duration", Long.toString(getDuration()));
     }
 
     // When giving the JSON dump, the internal id and mVideoId is omitted,
@@ -141,8 +141,8 @@ public class AnnotationBase implements XmlSerializable {
             o.put("creator", mCreator);
             o.put("starttime", mStartTime);
             o.put("duration", mDuration);
-            o.put("position_x", mPosition.getX());
-            o.put("position_y", mPosition.getY());
+            o.put("position_x", mPosition.x);
+            o.put("position_y", mPosition.y);
             o.put("text", mText);
             o.put("scale", mScale);
         } catch (JSONException e) {
