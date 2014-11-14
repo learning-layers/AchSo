@@ -1,0 +1,47 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    tools:context="fi.aalto.legroup.achso.activity.FeedbackActivity">
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            >
+
+            <EditText
+                android:layout_width="fill_parent"
+                android:singleLine="true"
+                android:inputType="textCapWords"
+                android:hint="@string/feedback_user"
+                android:layout_height="wrap_content"
+                android:id="@+id/feedback_user" />
+
+            <EditText
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:hint="@string/feedback_email"
+                android:inputType="textEmailAddress"
+                android:ems="10"
+                android:id="@+id/feedback_email" />
+
+            <EditText
+                android:layout_width="fill_parent"
+                android:singleLine="true"
+                android:hint="@string/feedback_summary"
+                android:inputType="textCapSentences"
+                android:layout_height="wrap_content"
+                android:id="@+id/feedback_summary" />
+
+            <EditText
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textMultiLine"
+                android:hint="@string/feedback_body"
+                android:ems="10"
+                android:id="@+id/feedback_body" />
+
+
+        </LinearLayout>
+</RelativeLayout>

@@ -38,13 +38,13 @@
     <application
         android:name=".util.App"
         android:allowBackup="true"
+        android:hardwareAccelerated="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme"
-        android:hardwareAccelerated="true">
+        android:theme="@style/AppTheme">
 
         <activity
-            android:name="fi.aalto.legroup.achso.activity.MainActivity"
+            android:name=".activity.MainActivity"
             android:label="@string/app_name">
 
             <meta-data
@@ -81,7 +81,7 @@
         <service android:name=".service.UploaderService" />
         <service
             android:name=".authenticator.AuthenticatorService"
-            android:exported="true" >
+            android:exported="true">
 
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator" />
@@ -92,16 +92,17 @@
                 android:resource="@xml/authenticator" />
         </service>
 
-        <meta-data android:name="com.google.android.gms.version"
+        <meta-data
+            android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
-            android:value="@string/google_maps_api_key"/>
+            android:value="@string/google_maps_api_key" />
 
 
         <activity
-            android:name="fi.aalto.legroup.achso.activity.SearchActivity"
+            android:name=".activity.SearchActivity"
             android:label="@string/title_activity_search"
             android:launchMode="singleTop"
             android:parentActivityName=".activity.MainActivity">

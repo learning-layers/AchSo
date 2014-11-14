@@ -111,4 +111,13 @@
     <string name="title_activity_main">MainActivity</string>
     <string name="save">Save</string>
 
+    <string name="feedback">Feedback</string>
+    <string name="feedback_topic">Type</string>
+    <string name="feedback_summary">Summary</string>
+    <string name="feedback_body">Message</string>
+    <string name="feedback_user">Full name</string>
+    <string name="feedback_email">Email</string>
+    <string name="feedback_send">Send</string>
+    <string name="feedback_sent">Your feedback has been sent and might be read blah, blah, blah...</string>
+
 </resources>

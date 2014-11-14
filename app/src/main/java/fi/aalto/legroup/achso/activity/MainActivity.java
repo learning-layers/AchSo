@@ -136,6 +136,9 @@ public class MainActivity extends FragmentActivity {
             case R.id.action_about:
                 SettingsHelper.showAboutDialog(this);
                 break;
+            case R.id.action_feedback:
+                SettingsHelper.showSendFeedback(this);
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -270,11 +273,11 @@ public class MainActivity extends FragmentActivity {
             MenuItemCompat.collapseActionView(this.searchItem);
         }
 
-        if(this.tabs != null && this.tabAdapter != null) {
+        if (this.tabs != null && this.tabAdapter != null) {
             int position = this.tabs.getCurrentItem();
             VideoBrowserFragment fragment = this.tabAdapter.getFragmentAtIndex(position);
 
-            if(fragment != null) {
+            if (fragment != null) {
                 fragment.setVideos(this.tabAdapter.getVideosForPosition(position));
             }
         }
