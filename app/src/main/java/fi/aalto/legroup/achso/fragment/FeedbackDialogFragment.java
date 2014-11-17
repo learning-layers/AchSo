@@ -97,7 +97,7 @@ public class FeedbackDialogFragment extends DialogFragment {
 
             @Override
             public void failure(RetrofitError error) {
-
+                SettingsHelper.showFeedbackError(context);
             }
         });
     }

@@ -65,6 +65,17 @@ public class SettingsHelper {
         service.sendFeedback(activity.getString(R.string.feedbackServerKey), map, callback);
     }
 
+    public static void showFeedbackError(Context context) {
+        new AlertDialog.Builder(context)
+                .setTitle(context.getResources().getString(R.string.feedback_error))
+                .setNeutralButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                }).show();
+    }
+
     public static void showFeedbackSentDialog(Context context) {
         new AlertDialog.Builder(context)
                 .setTitle(context.getResources().getString(R.string.feedback_sent))
