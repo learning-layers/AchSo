@@ -41,7 +41,7 @@
     <string name="location_not_enabled">Paikannuspalvelut suljettu</string>
     <string name="location_not_enabled_text">Paikannuspalvelut on kytketty pois päältä. Haluatko laittaa ne päälle?</string>
 
-    <string name="ok">Ok</string>
+    <string name="ok">OK</string>
     <string name="cancel">Peru</string>
     <string name="keep">Tallenna</string>
 
