@@ -22,7 +22,7 @@ import retrofit.client.Response;
 /**
  * Created by lassi on 17.11.14.
  */
-public class FeedbackDialogFragment extends DialogFragment {
+public class FeedbackDialogFragment extends DialogFragment implements Callback<String> {
 
 
     private View view;
@@ -74,6 +74,10 @@ public class FeedbackDialogFragment extends DialogFragment {
         return builder.create();
     }
 
+    private void sendFeedback() {
+        SettingsHelper.sendFeedback(this.getActivity(), this.readValues(), this);
+    }
+
     private HashMap<String, String> readValues() {
         HashMap<String, String> map = new HashMap<String, String>();
         for (int i = 0; i < fields.length; i++) {
@@ -85,20 +89,15 @@ public class FeedbackDialogFragment extends DialogFragment {
         return map;
     }
 
-    protected void sendFeedback() {
-        final Context context = this.getActivity();
-
-        SettingsHelper.sendFeedback(this.getActivity(), this.readValues(), new Callback<String>() {
-            @Override
-            public void success(String s, Response response) {
-                FeedbackDialogFragment.this.dismiss();
-                SettingsHelper.showFeedbackSentDialog(context);
-            }
-
-            @Override
-            public void failure(RetrofitError error) {
-                SettingsHelper.showFeedbackError(context);
-            }
-        });
+    @Override
+    public void success(String s, Response response) {
+        dismiss();
+        SettingsHelper.showFeedbackSentDialog(this.getActivity());
     }
+
+    @Override
+    public void failure(RetrofitError error) {
+        SettingsHelper.showFeedbackError(this.getActivity());
+    }
+
 }
