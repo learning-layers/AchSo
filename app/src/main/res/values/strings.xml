@@ -118,7 +118,7 @@
     <string name="feedback_user">Full name</string>
     <string name="feedback_email">Email</string>
     <string name="feedback_send">Send</string>
-    <string name="feedback_sent">Your feedback has been sent and might be read blah, blah, blah...</string>
+    <string name="feedback_sent">Thank you for your feedback.</string>
     <string name="feedback_error">There was an error while sending your feedback. Please try again later.</string>
 
 </resources>
