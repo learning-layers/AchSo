@@ -1,47 +1,47 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    tools:context="fi.aalto.legroup.achso.activity.FeedbackActivity">
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
 
         <LinearLayout
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            >
+            android:padding="16dp">
 
             <EditText
-                android:layout_width="fill_parent"
+                android:id="@+id/feedback_user"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
                 android:singleLine="true"
-                android:inputType="textCapWords"
                 android:hint="@string/feedback_user"
-                android:layout_height="wrap_content"
-                android:id="@+id/feedback_user" />
+                android:inputType="textCapWords" />
 
             <EditText
+                android:id="@+id/feedback_email"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
                 android:singleLine="true"
                 android:hint="@string/feedback_email"
-                android:inputType="textEmailAddress"
-                android:ems="10"
-                android:id="@+id/feedback_email" />
+                android:inputType="textEmailAddress" />
 
             <EditText
+                android:id="@+id/feedback_summary"
                 android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
                 android:singleLine="true"
                 android:hint="@string/feedback_summary"
-                android:inputType="textCapSentences"
-                android:layout_height="wrap_content"
-                android:id="@+id/feedback_summary" />
+                android:inputType="textCapSentences" />
 
             <EditText
+                android:id="@+id/feedback_body"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textMultiLine"
                 android:hint="@string/feedback_body"
-                android:ems="10"
-                android:id="@+id/feedback_body" />
-
+                android:inputType="textMultiLine" />
 
         </LinearLayout>
+
 </RelativeLayout>
