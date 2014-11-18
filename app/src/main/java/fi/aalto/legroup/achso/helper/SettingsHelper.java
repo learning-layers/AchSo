@@ -2,11 +2,22 @@ package fi.aalto.legroup.achso.helper;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.DialogFragment;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.util.Log;
 
+import com.google.gson.JsonObject;
+
+import java.util.HashMap;
+
 import fi.aalto.legroup.achso.R;
+import fi.aalto.legroup.achso.fragment.FeedbackDialogFragment;
+import fi.aalto.legroup.achso.service.OsTicketService;
+import fi.aalto.legroup.achso.util.App;
+import retrofit.Callback;
+import retrofit.RestAdapter;
 
 /**
  * Created by lassi on 12.11.14.
@@ -29,4 +40,27 @@ public class SettingsHelper {
                     }
                 }).show();
     }
+
+    public static void showSendFeedback(Activity activity) {
+        JsonObject userInfo = App.loginManager.getUserInfo();
+        String name = userInfo.get("name").getAsString();
+        String email = userInfo.get("email").getAsString();
+
+        DialogFragment feedbackFragment = FeedbackDialogFragment.newInstance(name, email);
+
+        feedbackFragment.show(activity.getFragmentManager(), "dialog");
+    }
+
+    public static void sendFeedback(Context context, HashMap<String, String> map,
+                                    Callback<String> callback) {
+
+        RestAdapter adapter = new RestAdapter.Builder()
+                .setEndpoint(context.getString(R.string.feedbackServerUrl))
+                .build();
+
+        OsTicketService service = adapter.create(OsTicketService.class);
+
+        service.sendFeedback(context.getString(R.string.feedbackServerKey), map, callback);
+    }
+
 }

@@ -78,4 +78,7 @@ dependencies {
     // Better and more resilient HTTP requests
     compile 'com.squareup.okhttp:okhttp:2.1.0'
 
+    // REST-client
+    compile 'com.squareup.okhttp:okhttp-urlconnection:2.1.0'
+    compile 'com.squareup.retrofit:retrofit:1.7.1'
 }

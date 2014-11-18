@@ -39,7 +39,7 @@
     <string name="location_not_enabled">Standortdienste deaktiviert</string>
     <string name="location_not_enabled_text">Auf dem Gerät sind Standortdienste deaktiviert. Möchten Sie sie jetzt aktivieren?</string>
 
-    <string name="ok">Ok</string>
+    <string name="ok">OK</string>
     <string name="cancel">Abbrechen</string>
 
     <string name="edit_text">Text bearbeiten</string>

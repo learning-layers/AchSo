@@ -38,7 +38,7 @@
     <string name="url_found_label">Found link:</string>
     <string name="code_found_label">Found code:</string>
     <string name="open_in_browser">Open in browser</string>
-    <string name="ok">Ok</string>
+    <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="keep">Keep</string>
     <string name="edit_text">Edit text</string>
@@ -110,5 +110,15 @@
     <string name="login_error">Could not log in: %s</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="save">Save</string>
+
+    <string name="feedback">Feedback</string>
+    <string name="feedback_topic">Type</string>
+    <string name="feedback_summary">Summary</string>
+    <string name="feedback_body">Message</string>
+    <string name="feedback_user">Full name</string>
+    <string name="feedback_email">Email</string>
+    <string name="feedback_send">Send</string>
+    <string name="feedback_sent">Thank you for your feedback.</string>
+    <string name="feedback_error">There was an error while sending your feedback. Please try again later.</string>
 
 </resources>
