@@ -24,17 +24,20 @@ import retrofit.client.Response;
  */
 public class FeedbackDialogFragment extends DialogFragment implements Callback<String> {
 
+    public final static String ARG_EMAIL = "email";
+    public final static String ARG_NAME = "name";
+
+    private final static int[] FIELDS = {R.id.feedback_body, R.id.feedback_summary, R.id.feedback_user, R.id.feedback_email};
+    private final static String[] NAMES = {"message", "subject", "name", "email"};
 
     private View view;
-    private final int[] fields = {R.id.feedback_body, R.id.feedback_summary, R.id.feedback_user, R.id.feedback_email};
-    private final String[] names = {"message", "subject", "name", "email"};
 
     public static FeedbackDialogFragment newInstance(String name, String email) {
         FeedbackDialogFragment f = new FeedbackDialogFragment();
 
         Bundle args = new Bundle();
-        args.putString("email", email);
-        args.putString("name", name);
+        args.putString(ARG_EMAIL, email);
+        args.putString(ARG_NAME, name);
         f.setArguments(args);
 
         return f;
@@ -63,10 +66,10 @@ public class FeedbackDialogFragment extends DialogFragment implements Callback<S
         LayoutInflater inflater = this.getActivity().getLayoutInflater();
         this.view = inflater.inflate(R.layout.fragment_feedback, null);
 
-        String email = this.getArguments().getString("email");
+        String email = this.getArguments().getString(ARG_EMAIL);
         ((TextView) this.view.findViewById(R.id.feedback_email)).setText(email);
 
-        String name = this.getArguments().getString("name");
+        String name = this.getArguments().getString(ARG_NAME);
         ((TextView) this.view.findViewById(R.id.feedback_user)).setText(name);
 
         builder.setView(this.view);
@@ -80,8 +83,9 @@ public class FeedbackDialogFragment extends DialogFragment implements Callback<S
 
     private HashMap<String, String> readValues() {
         HashMap<String, String> map = new HashMap<String, String>();
-        for (int i = 0; i < fields.length; i++) {
-            map.put(names[i], ((TextView) this.view.findViewById(fields[i])).getText().toString());
+
+        for (int i = 0; i < FIELDS.length; i++) {
+            map.put(NAMES[i], ((TextView) this.view.findViewById(FIELDS[i])).getText().toString());
         }
 
         map.put("ip", "10.0.0.0");
