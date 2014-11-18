@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.HashMap;
 
@@ -107,20 +108,14 @@ public class FeedbackDialogFragment extends DialogFragment implements Callback<S
 
         String message = this.context.getString(R.string.feedback_sent);
 
-        new AlertDialog.Builder(this.context)
-                .setTitle(message)
-                .setNeutralButton(R.string.ok, null)
-                .show();
+        Toast.makeText(this.context, message, Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void failure(RetrofitError error) {
         String message = this.context.getString(R.string.feedback_error);
 
-        new AlertDialog.Builder(this.context)
-                .setTitle(message)
-                .setNeutralButton(R.string.ok, null)
-                .show();
+        Toast.makeText(this.context, message, Toast.LENGTH_LONG).show();
     }
 
 }
