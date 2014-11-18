@@ -68,6 +68,9 @@ public class FeedbackDialogFragment extends DialogFragment implements Callback<S
             }
         });
 
+        // Don't close the dialog if the user taps the background
+        this.setCancelable(false);
+
         LayoutInflater inflater = LayoutInflater.from(this.context);
 
         // Building dialogs with views is one of the rare cases where null as the root is valid.
