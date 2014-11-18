@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -29,6 +30,7 @@ public class FeedbackDialogFragment extends DialogFragment implements Callback<S
     private final static int[] FIELDS = {R.id.feedback_body, R.id.feedback_summary, R.id.feedback_user, R.id.feedback_email};
     private final static String[] NAMES = {"message", "subject", "name", "email"};
 
+    private Context context;
     private View view;
 
     public static FeedbackDialogFragment newInstance(String name, String email) {
@@ -45,7 +47,9 @@ public class FeedbackDialogFragment extends DialogFragment implements Callback<S
     @Override
     @SuppressLint("InflateParams")
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());
+        this.context = getActivity();
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this.context);
 
         builder.setTitle(this.getString(R.string.feedback));
 
@@ -63,7 +67,7 @@ public class FeedbackDialogFragment extends DialogFragment implements Callback<S
             }
         });
 
-        LayoutInflater inflater = this.getActivity().getLayoutInflater();
+        LayoutInflater inflater = LayoutInflater.from(this.context);
 
         // Building dialogs with views is one of the rare cases where null as the root is valid.
         this.view = inflater.inflate(R.layout.fragment_feedback, null);
@@ -80,7 +84,7 @@ public class FeedbackDialogFragment extends DialogFragment implements Callback<S
     }
 
     private void sendFeedback() {
-        SettingsHelper.sendFeedback(this.getActivity(), this.readValues(), this);
+        SettingsHelper.sendFeedback(this.context, this.readValues(), this);
     }
 
     private HashMap<String, String> readValues() {
@@ -100,12 +104,23 @@ public class FeedbackDialogFragment extends DialogFragment implements Callback<S
     @Override
     public void success(String s, Response response) {
         dismiss();
-        SettingsHelper.showFeedbackSentDialog(this.getActivity());
+
+        String message = this.context.getString(R.string.feedback_sent);
+
+        new AlertDialog.Builder(this.context)
+                .setTitle(message)
+                .setNeutralButton(R.string.ok, null)
+                .show();
     }
 
     @Override
     public void failure(RetrofitError error) {
-        SettingsHelper.showFeedbackError(this.getActivity());
+        String message = this.context.getString(R.string.feedback_error);
+
+        new AlertDialog.Builder(this.context)
+                .setTitle(message)
+                .setNeutralButton(R.string.ok, null)
+                .show();
     }
 
 }
