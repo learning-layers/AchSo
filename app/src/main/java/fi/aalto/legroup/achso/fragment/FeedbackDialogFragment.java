@@ -1,14 +1,13 @@
 package fi.aalto.legroup.achso.fragment;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.TextView;
 
 import java.util.HashMap;
@@ -44,26 +43,29 @@ public class FeedbackDialogFragment extends DialogFragment implements Callback<S
     }
 
     @Override
+    @SuppressLint("InflateParams")
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());
 
         builder.setTitle(this.getString(R.string.feedback));
+
         builder.setPositiveButton(this.getString(R.string.feedback_send), new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
+            public void onClick(DialogInterface dialog, int which) {
                 FeedbackDialogFragment.this.sendFeedback();
             }
         });
 
         builder.setNegativeButton(this.getString(R.string.cancel), new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
+            public void onClick(DialogInterface dialog, int which) {
                 FeedbackDialogFragment.this.dismiss();
             }
         });
 
-
         LayoutInflater inflater = this.getActivity().getLayoutInflater();
+
+        // Building dialogs with views is one of the rare cases where null as the root is valid.
         this.view = inflater.inflate(R.layout.fragment_feedback, null);
 
         String email = this.getArguments().getString(ARG_EMAIL);
@@ -88,8 +90,10 @@ public class FeedbackDialogFragment extends DialogFragment implements Callback<S
             map.put(NAMES[i], ((TextView) this.view.findViewById(FIELDS[i])).getText().toString());
         }
 
+        // Some IP address needs to be sent, doesn't have to be real.
         map.put("ip", "10.0.0.0");
         map.put("source", "Android");
+
         return map;
     }
 

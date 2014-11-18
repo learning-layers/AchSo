@@ -3,20 +3,18 @@ package fi.aalto.legroup.achso.helper;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DialogFragment;
-import android.app.Fragment;
-import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.util.Log;
+
+import com.google.gson.JsonObject;
 
 import java.util.HashMap;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.fragment.FeedbackDialogFragment;
 import fi.aalto.legroup.achso.service.OsTicketService;
-import fi.aalto.legroup.achso.state.LoginManager;
 import fi.aalto.legroup.achso.util.App;
 import retrofit.Callback;
 import retrofit.RestAdapter;
@@ -44,25 +42,25 @@ public class SettingsHelper {
     }
 
     public static void showSendFeedback(Activity activity) {
-        FragmentTransaction ft = activity.getFragmentManager().beginTransaction();
-        Fragment prev = activity.getFragmentManager().findFragmentByTag("dialog");
-        if (prev != null) {
-            ft.remove(prev);
-        }
-        ft.addToBackStack(null);
+        JsonObject userInfo = App.loginManager.getUserInfo();
+        String name = userInfo.get("name").getAsString();
+        String email = userInfo.get("email").getAsString();
 
-        DialogFragment feedbackFragment = FeedbackDialogFragment.newInstance(App.loginManager.getUserInfo().get("name").getAsString(), App.loginManager.getUserInfo().get("email").getAsString());
+        DialogFragment feedbackFragment = FeedbackDialogFragment.newInstance(name, email);
 
-        feedbackFragment.show(ft, "dialog");
+        feedbackFragment.show(activity.getFragmentManager(), "dialog");
     }
 
-    public static void sendFeedback(Activity activity, HashMap<String, String> map, Callback<String> callback) {
+    public static void sendFeedback(Context context, HashMap<String, String> map,
+                                    Callback<String> callback) {
+
         RestAdapter adapter = new RestAdapter.Builder()
-                .setEndpoint(activity.getString(R.string.feedbackServerUrl))
+                .setEndpoint(context.getString(R.string.feedbackServerUrl))
                 .build();
 
         OsTicketService service = adapter.create(OsTicketService.class);
-        service.sendFeedback(activity.getString(R.string.feedbackServerKey), map, callback);
+
+        service.sendFeedback(context.getString(R.string.feedbackServerKey), map, callback);
     }
 
     public static void showFeedbackError(Context context) {
