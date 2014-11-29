@@ -22,17 +22,6 @@ android {
         }
     }
 
-    // FIXME: Remove when the Gradle bug is fixed.
-    //
-    // See the following:
-    // https://code.google.com/p/android/issues/detail?id=61573
-    // http://stackoverflow.com/questions/20673888/duplicate-files-copied-android-studio-0-4-0
-    packagingOptions {
-        exclude 'META-INF/DEPENDENCIES'
-        exclude 'META-INF/NOTICE'
-        exclude 'META-INF/LICENSE'
-    }
-
     lintOptions {
         abortOnError false
     }
@@ -47,8 +36,6 @@ repositories {
 }
 
 dependencies {
-    // TODO: Convert these into Maven dependencies for easier management
-    compile fileTree(dir: 'libs', include: ['*.jar'])
 
     // Google Play Services APIs. Android Studio will warn about this being an older version, but
     // don't listen to it. This one works fine; it will also work on devices that can't update the
@@ -58,10 +45,10 @@ dependencies {
     // Google's OAuth library for OpenID Connect
     // See https://code.google.com/p/google-oauth-java-client/wiki/Setup
     compile('com.google.oauth-client:google-oauth-client:1.18.0-rc') {
-        exclude group: 'xpp3', module: 'xpp3'
+        exclude group: 'com.google.android'
+        exclude group: 'junit'
+        exclude group: 'xpp3'
         exclude group: 'org.apache.httpcomponents', module: 'httpclient'
-        exclude group: 'junit', module: 'junit'
-        exclude group: 'com.google.android', module: 'android'
     }
 
     // Supports Android 4.0.3 and later (API level 15)
@@ -79,6 +66,9 @@ dependencies {
 
     // Google's JSON parsing, could be replaced with Jackson
     compile 'com.google.api-client:google-api-client-gson:1.19.0'
+
+    // Image manipulation
+    compile 'com.squareup.picasso:picasso:2.4.0'
 
     // Better and more resilient HTTP requests
     compile 'com.squareup.okhttp:okhttp:2.1.0'
