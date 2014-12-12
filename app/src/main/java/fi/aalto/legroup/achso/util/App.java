@@ -29,6 +29,7 @@ import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
+import com.bugsnag.android.Bugsnag;
 import com.squareup.okhttp.OkHttpClient;
 
 import fi.aalto.legroup.achso.R;
@@ -65,6 +66,8 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
         singleton = this;
+
+        Bugsnag.register(this, getString(R.string.bugsnagApiKey));
 
         connectivityManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
 
