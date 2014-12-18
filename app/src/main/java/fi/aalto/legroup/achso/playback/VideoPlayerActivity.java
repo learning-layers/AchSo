@@ -207,26 +207,24 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
     public void onExportCreatorTaskResult(ExportCreatorTaskResultEvent event) {
         List<Uri> uris = event.getResult();
 
-        if (uris == null) {
+        if (uris == null || uris.isEmpty()) {
             App.showError(R.string.error_sharing);
             return;
         }
 
-        Intent sharingIntent = null;
+        Intent intent;
 
-        if (uris.size() > 1) {
-            ArrayList<Uri> uriList = new ArrayList<>(uris);
-            sharingIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
-            sharingIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uriList);
+        if (uris.size() == 1) {
+            intent = new Intent(Intent.ACTION_SEND);
+            intent.putExtra(Intent.EXTRA_STREAM, uris.get(0));
         } else {
-            sharingIntent = new Intent(Intent.ACTION_SEND);
-            sharingIntent.putExtra(Intent.EXTRA_STREAM, uris.get(0));
+            intent = new Intent(Intent.ACTION_SEND_MULTIPLE);
+            intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, new ArrayList<>(uris));
         }
 
-        sharingIntent.setType("application/achso");
+        intent.setType("application/achso");
 
-        this.startActivity(Intent.createChooser(sharingIntent,
-                this.getResources().getText(R.string.video_share)));
+        startActivity(Intent.createChooser(intent, getString(R.string.video_share)));
     }
 
     /**
