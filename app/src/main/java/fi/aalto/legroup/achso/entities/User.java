@@ -2,8 +2,8 @@ package fi.aalto.legroup.achso.entities;
 
 import android.net.Uri;
 
-import fi.aalto.legroup.achso.serialization.json.JsonSerializable;
-import fi.aalto.legroup.achso.util.ColorGenerator;
+import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
+import fi.aalto.legroup.achso.views.utilities.ColorGenerator;
 
 /**
  * @author Leo Nikkilä

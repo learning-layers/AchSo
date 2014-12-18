@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="fi.aalto.legroup.achso.activity.SearchActivity">
+    tools:context="fi.aalto.legroup.achso.browsing.SearchActivity">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/search_toolbar"
@@ -17,7 +17,7 @@
     <fragment
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:name="fi.aalto.legroup.achso.fragment.VideoBrowserFragment"
+        android:name="fi.aalto.legroup.achso.browsing.BrowserFragment"
         android:id="@+id/fragment_search_video"
         tools:layout="@layout/fragment_video_browser" />
 </LinearLayout>

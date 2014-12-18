@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         layout="@layout/partial_toolbar" />
 
-    <fi.aalto.legroup.achso.view.SlidingTabLayout
+    <fi.aalto.legroup.achso.views.SlidingTabLayout
         android:id="@+id/main_tabs"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />

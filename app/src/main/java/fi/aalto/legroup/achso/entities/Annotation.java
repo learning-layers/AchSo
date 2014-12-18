@@ -2,7 +2,7 @@ package fi.aalto.legroup.achso.entities;
 
 import android.graphics.PointF;
 
-import fi.aalto.legroup.achso.serialization.json.JsonSerializable;
+import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
 
 /**
  * An annotation entity that describes a video's annotation.

@@ -16,7 +16,7 @@
         android:src="@drawable/ic_action_play" />
 
     <view
-        class="fi.aalto.legroup.achso.view.MarkedSeekBar"
+        class="fi.aalto.legroup.achso.views.MarkedSeekBar"
         android:id="@+id/seekBar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"

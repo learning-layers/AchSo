@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@android:color/black">
 
-    <fi.aalto.legroup.achso.view.ZoomView
+    <fi.aalto.legroup.achso.views.ZoomView
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -22,14 +22,14 @@
                 android:layout_height="match_parent"
                 tools:context=".VideoViewerFragment" />
 
-            <fi.aalto.legroup.achso.view.MarkerCanvas
+            <fi.aalto.legroup.achso.views.MarkerCanvas
                 android:id="@+id/markerContainer"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 
         </FrameLayout>
 
-    </fi.aalto.legroup.achso.view.ZoomView>
+    </fi.aalto.legroup.achso.views.ZoomView>
 
     <LinearLayout
         android:id="@+id/subtitleContainer"

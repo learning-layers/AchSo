@@ -5,7 +5,7 @@ import android.net.Uri;
 import java.util.Date;
 import java.util.UUID;
 
-import fi.aalto.legroup.achso.serialization.json.JsonSerializable;
+import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
 
 /**
  * An information object that describes a video entity.

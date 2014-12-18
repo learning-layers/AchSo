@@ -8,8 +8,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import fi.aalto.legroup.achso.repositories.VideoRepository;
-import fi.aalto.legroup.achso.serialization.json.JsonSerializable;
+import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
+import fi.aalto.legroup.achso.storage.VideoRepository;
 
 /**
  * A video entity that represents a video and is an aggregate root for annotations.

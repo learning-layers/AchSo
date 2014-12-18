@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="fi.aalto.legroup.achso.fragment.VideoBrowserFragment"
+    tools:context="fi.aalto.legroup.achso.browsing.BrowserFragment"
     android:background="@color/white">
 
     <android.support.v7.widget.RecyclerView
