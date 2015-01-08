@@ -75,7 +75,7 @@ public class ExportCreatorTask extends AsyncTask<UUID, Integer, List<Uri>> {
                     if(video.isRemote())  {
                         fis = new URL(uri.toString()).openStream();
                     } else {
-                        fis = new FileInputStream(video.getVideoUri().toString());
+                        fis = context.getContentResolver().openInputStream(uri);
                     }
 
                     int length;
