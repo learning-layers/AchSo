@@ -40,7 +40,7 @@ import fi.aalto.legroup.achso.util.OIDCUtils;
  */
 public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 
-    private final String TAG = this.getClass().getSimpleName();
+    private final String TAG = getClass().getSimpleName();
 
     public static final String KEY_AUTH_URL = "fi.aalto.legroup.achso.KEY_AUTH_URL";
     public static final String KEY_IS_NEW_ACCOUNT = "fi.aalto.legroup.achso.KEY_IS_NEW_ACCOUNT";
@@ -209,7 +209,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
             accountName = userInfo.get("preferred_username").getAsString();
         }
 
-        account = new Account(String.format("%s (%s)", accountName, accountId), App.ACHSO_ACCOUNT_TYPE);
+        account = new Account(String.format("%s (%s)", accountName, accountId), Authenticator.ACH_SO_ACCOUNT_TYPE);
         accountManager.addAccountExplicitly(account, null, null);
 
         // Store the tokens in the account

@@ -1,26 +1,3 @@
-/*
- * Code contributed to the Learning Layers project
- * http://www.learning-layers.eu
- * Development is partly funded by the FP7 Programme of the European
- * Commission under
- * Grant Agreement FP7-ICT-318209.
- * Copyright (c) 2014, Aalto University.
- * For a list of contributors see the AUTHORS file at the top-level directory
- * of this distribution.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package fi.aalto.legroup.achso.authenticator;
 
 import android.accounts.AbstractAccountAuthenticator;
@@ -55,22 +32,22 @@ import fi.aalto.legroup.achso.util.OIDCUtils;
  */
 public class Authenticator extends AbstractAccountAuthenticator {
 
-    private final String TAG = this.getClass().getSimpleName();
-
-    private Context context;
-    private AccountManager accountManager;
+    public static final String ACH_SO_ACCOUNT_TYPE = "fi.aalto.legroup.achso.ll_oidc";
 
     public static final String TOKEN_TYPE_ID = "fi.aalto.legroup.achso.TOKEN_TYPE_ID";
     public static final String TOKEN_TYPE_ACCESS = "fi.aalto.legroup.achso.TOKEN_TYPE_ACCESS";
     public static final String TOKEN_TYPE_REFRESH = "fi.aalto.legroup.achso.TOKEN_TYPE_REFRESH";
+
+    private final String TAG = getClass().getSimpleName();
+
+    private Context context;
+    private AccountManager accountManager;
 
     public Authenticator(Context context) {
         super(context);
         this.context = context;
 
         accountManager = AccountManager.get(context);
-
-        Log.d(TAG, "Authenticator created.");
     }
 
     /**
@@ -80,9 +57,6 @@ public class Authenticator extends AbstractAccountAuthenticator {
     @Override
     public Bundle addAccount(AccountAuthenticatorResponse response, String accountType,
                              String authTokenType, String[] requiredFeatures, Bundle options) {
-
-        Log.d(TAG, String.format("addAccount called with accountType %s, authTokenType %s.",
-                accountType, authTokenType));
 
         Bundle result = new Bundle();
 
@@ -104,23 +78,17 @@ public class Authenticator extends AbstractAccountAuthenticator {
     public Bundle getAuthToken(AccountAuthenticatorResponse response, Account account,
                                String authTokenType, Bundle options) {
 
-        Log.d(TAG, String.format("getAuthToken called with account.type '%s', account.name '%s', " +
-                "authTokenType '%s'.", account.type, account.name, authTokenType));
-
         // Try to retrieve a stored token
         String token = accountManager.peekAuthToken(account, authTokenType);
 
         if (TextUtils.isEmpty(token)) {
             // If we don't have one or the token has been invalidated, we need to check if we have
             // a refresh token
-            Log.d(TAG, "Token empty, checking for refresh token.");
             String refreshToken = accountManager.peekAuthToken(account, TOKEN_TYPE_REFRESH);
 
             if (TextUtils.isEmpty(refreshToken)) {
                 // If we don't even have a refresh token, we need to launch an intent for the user
                 // to get us a new set of tokens by authorising us again.
-
-                Log.d(TAG, "Refresh token empty, launching intent for renewing authorisation.");
 
                 Bundle result = new Bundle();
                 Intent intent = createIntentForAuthorization(response);
@@ -132,7 +100,6 @@ public class Authenticator extends AbstractAccountAuthenticator {
                 return result;
             } else {
                 // Got a refresh token, let's use it to get a fresh set of tokens
-                Log.d(TAG, "Got refresh token, getting new tokens.");
 
                 IdTokenResponse tokenResponse;
 
@@ -144,14 +111,12 @@ public class Authenticator extends AbstractAccountAuthenticator {
                             OIDCConfig.getScopes(context),
                             refreshToken);
 
-                    Log.d(TAG, "Got new tokens.");
-
                     accountManager.setAuthToken(account, TOKEN_TYPE_ID, tokenResponse.getIdToken());
                     accountManager.setAuthToken(account, TOKEN_TYPE_ACCESS, tokenResponse.getAccessToken());
                     accountManager.setAuthToken(account, TOKEN_TYPE_REFRESH, tokenResponse.getRefreshToken());
                 } catch (IOException e) {
                     // There's not much we can do if we get here
-                    Log.e(TAG, "Couldn't get new tokens.");
+                    Log.e(TAG, "Couldn't refresh tokens.");
                     e.printStackTrace();
                 }
 
@@ -159,8 +124,6 @@ public class Authenticator extends AbstractAccountAuthenticator {
                 token = accountManager.peekAuthToken(account, authTokenType);
             }
         }
-
-        Log.d(TAG, String.format("Returning token '%s' of type '%s'.", token, authTokenType));
 
         Bundle result = new Bundle();
 
@@ -177,15 +140,19 @@ public class Authenticator extends AbstractAccountAuthenticator {
      */
     @Override
     public String getAuthTokenLabel(String authTokenType) {
-        if (authTokenType.equals(TOKEN_TYPE_ACCESS)) {
-            return "Access Token";
-        } else if (authTokenType.equals(TOKEN_TYPE_ID)) {
-            return "ID Token";
-        } else if (authTokenType.equals(TOKEN_TYPE_REFRESH)) {
-            return "Refresh Token";
-        }
+        switch (authTokenType) {
+            case TOKEN_TYPE_ACCESS:
+                return "Access Token";
 
-        return null;
+            case TOKEN_TYPE_ID:
+                return "ID Token";
+
+            case TOKEN_TYPE_REFRESH:
+                return "Refresh Token";
+
+            default:
+                return null;
+        }
     }
 
     /**
@@ -202,8 +169,6 @@ public class Authenticator extends AbstractAccountAuthenticator {
                 OIDCConfig.getClientId(context),
                 OIDCConfig.getClientSecret(context),
                 OIDCConfig.getScopes(context));
-
-        Log.d(TAG, String.format("Created new intent with authorisation URL '%s'.", authUrl));
 
         intent.putExtra(AuthenticatorActivity.KEY_AUTH_URL, authUrl);
         intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);

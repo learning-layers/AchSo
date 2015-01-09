@@ -16,6 +16,8 @@ import fi.aalto.legroup.achso.authenticator.Authenticator;
 import fi.aalto.legroup.achso.util.App;
 
 /**
+ * TODO: This should be a fragment or something.
+ *
  * @author Leo Nikkilä
  */
 public class LoginActivity extends Activity {
@@ -33,7 +35,7 @@ public class LoginActivity extends Activity {
 
     private void doLogin() {
         AccountManager accountManager = AccountManager.get(this);
-        String accountType = App.ACHSO_ACCOUNT_TYPE;
+        String accountType = Authenticator.ACH_SO_ACCOUNT_TYPE;
 
         final Account availableAccounts[] = accountManager.getAccountsByType(accountType);
 
@@ -72,7 +74,7 @@ public class LoginActivity extends Activity {
 
                 new AlertDialog.Builder(this)
                         .setTitle(R.string.choose_account)
-                        .setAdapter(new ArrayAdapter<String>(this,
+                        .setAdapter(new ArrayAdapter<>(this,
                                         android.R.layout.simple_list_item_1, name),
                                 new DialogInterface.OnClickListener() {
                                     @Override
