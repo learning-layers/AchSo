@@ -57,7 +57,7 @@ public class AuthenticatedHttpClient {
 
         // If we're being denied access on the first try, let's renew the token and retry
         if (accessDenied(response) && doRetry) {
-            accountManager.invalidateAuthToken(App.ACHSO_ACCOUNT_TYPE, token);
+            accountManager.invalidateAuthToken(Authenticator.ACH_SO_ACCOUNT_TYPE, token);
             return execute(request, account, false);
         }
 
