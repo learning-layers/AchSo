@@ -5,7 +5,7 @@ android {
     buildToolsVersion '21.1.1'
 
     defaultConfig {
-        applicationId "fi.aalto.legroup.achso"
+        applicationId 'fi.aalto.legroup.achso'
         minSdkVersion 16
         targetSdkVersion 21
         multiDexEnabled true
@@ -40,8 +40,9 @@ android {
 repositories {
     mavenCentral()
 
+    // An additional repo for the barcode scanner
     maven {
-        url "https://raw.github.com/embarkmobile/zxing-android-minimal/mvn-repo/maven-repository/"
+        url 'https://raw.github.com/embarkmobile/zxing-android-minimal/mvn-repo/maven-repository/'
     }
 }
 
@@ -49,13 +50,10 @@ dependencies {
     // Android backwards-compatibility
     compile 'com.android.support:multidex:1.0.+'
 
-    // Google Play Services APIs. Android Studio will warn about this being an older version, but
-    // don't listen to it. This one works fine; it will also work on devices that can't update the
-    // services for some reason.
-    compile 'com.google.android.gms:play-services:5.0+'
+    // Google Play Services APIs
+    compile 'com.google.android.gms:play-services:6.1+'
 
-    // Google's OAuth library for OpenID Connect
-    // See https://code.google.com/p/google-oauth-java-client/wiki/Setup
+    // OAuth2 library for OpenID Connect
     compile('com.google.oauth-client:google-oauth-client:1.18.0-rc') {
         exclude group: 'com.google.android'
         exclude group: 'junit'
@@ -63,17 +61,9 @@ dependencies {
         exclude group: 'org.apache.httpcomponents', module: 'httpclient'
     }
 
-    // Supports Android 4.0.3 and later (API level 15)
+    // Barcode scanning
     compile 'com.embarkmobile:zxing-android-minimal:2.0.0@aar'
-
-    // Convenience library to launch the scanning and encoding Activities.
-    // It automatically picks the best scanning library from the above two, depending on the
-    // Android version and what is available.
     compile 'com.embarkmobile:zxing-android-integration:2.0.0@aar'
-
-    // Version 3.0.x of zxing core contains some code that is not compatible on Android 2.2 and earlier.
-    // This mostly affects encoding, but you should test if you plan to support these versions.
-    // Older versions e.g. 2.2 may also work if you need support for older Android versions.
     compile 'com.google.zxing:core:3.0.1'
 
     // Google's JSON parsing, could be replaced with Jackson
