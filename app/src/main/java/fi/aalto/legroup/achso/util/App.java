@@ -23,11 +23,11 @@
 
 package fi.aalto.legroup.achso.util;
 
-import android.app.Application;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.support.multidex.MultiDexApplication;
 
 import com.squareup.okhttp.OkHttpClient;
 
@@ -39,7 +39,7 @@ import fi.aalto.legroup.achso.upload.DummyUploader;
 import fi.aalto.legroup.achso.upload.Uploader;
 import fi.aalto.legroup.achso.upload.video.ClViTra2VideoUploader;
 
-public class App extends Application {
+public class App extends MultiDexApplication {
 
     private static App singleton;
 

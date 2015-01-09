@@ -8,6 +8,11 @@ android {
         applicationId "fi.aalto.legroup.achso"
         minSdkVersion 16
         targetSdkVersion 21
+        multiDexEnabled true
+    }
+
+    dexOptions {
+        javaMaxHeapSize '4g'
     }
 
     compileOptions {
@@ -41,6 +46,8 @@ repositories {
 }
 
 dependencies {
+    // Android backwards-compatibility
+    compile 'com.android.support:multidex:1.0.+'
 
     // Google Play Services APIs. Android Studio will warn about this being an older version, but
     // don't listen to it. This one works fine; it will also work on devices that can't update the
