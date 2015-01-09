@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply from: 'build-helpers.gradle'
 
 android {
     compileSdkVersion 21
@@ -9,6 +10,8 @@ android {
         minSdkVersion 16
         targetSdkVersion 21
         multiDexEnabled true
+
+        (versionName, versionCode) = project.getGitVersions()
     }
 
     dexOptions {
