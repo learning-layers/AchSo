@@ -25,26 +25,35 @@ import retrofit.client.Response;
 /**
  * Created by lassi on 17.11.14.
  */
-public class FeedbackDialogFragment extends DialogFragment implements Callback<String> {
+public class FeedbackDialogFragment extends DialogFragment implements Callback<String>,
+        DialogInterface.OnClickListener {
 
     public final static String ARG_EMAIL = "email";
     public final static String ARG_NAME = "name";
 
-    private final static int[] FIELDS = {R.id.feedback_body, R.id.feedback_summary, R.id.feedback_user, R.id.feedback_email};
-    private final static String[] NAMES = {"message", "subject", "name", "email"};
-
     private Context context;
-    private View view;
 
+    private TextView bodyText;
+    private TextView summaryText;
+    private TextView userText;
+    private TextView emailText;
+
+    /**
+     * Builds a new instance of this fragment.
+     *
+     * @param name  Name that should be pre-filled.
+     * @param email Email address that should be pre-filled.
+     */
     public static FeedbackDialogFragment newInstance(String name, String email) {
-        FeedbackDialogFragment f = new FeedbackDialogFragment();
-
+        FeedbackDialogFragment fragment = new FeedbackDialogFragment();
         Bundle args = new Bundle();
+
         args.putString(ARG_EMAIL, email);
         args.putString(ARG_NAME, name);
-        f.setArguments(args);
 
-        return f;
+        fragment.setArguments(args);
+
+        return fragment;
     }
 
     @Override
@@ -52,43 +61,45 @@ public class FeedbackDialogFragment extends DialogFragment implements Callback<S
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         this.context = getActivity();
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this.context);
-
-        builder.setTitle(this.getString(R.string.feedback));
-
-        builder.setPositiveButton(this.getString(R.string.feedback_send), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                FeedbackDialogFragment.this.sendFeedback();
-            }
-        });
-
-        builder.setNegativeButton(this.getString(R.string.cancel), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                FeedbackDialogFragment.this.dismiss();
-            }
-        });
-
-        // Don't close the dialog if the user taps the background
-        this.setCancelable(false);
-
         LayoutInflater inflater = LayoutInflater.from(this.context);
 
         // Building dialogs with views is one of the rare cases where null as the root is valid.
-        this.view = inflater.inflate(R.layout.fragment_feedback, null);
+        View view = inflater.inflate(R.layout.fragment_feedback, null);
 
-        String email = this.getArguments().getString(ARG_EMAIL);
-        ((TextView) this.view.findViewById(R.id.feedback_email)).setText(email);
+        this.bodyText = (TextView) view.findViewById(R.id.feedback_body);
+        this.summaryText = (TextView) view.findViewById(R.id.feedback_summary);
+        this.userText = (TextView) view.findViewById(R.id.feedback_user);
+        this.emailText = (TextView) view.findViewById(R.id.feedback_email);
 
-        String name = this.getArguments().getString(ARG_NAME);
-        ((TextView) this.view.findViewById(R.id.feedback_user)).setText(name);
+        // Pre-fill email and name fields
+        String email = getArguments().getString(ARG_EMAIL);
+        this.emailText.setText(email);
 
-        builder.setView(this.view);
+        String name = getArguments().getString(ARG_NAME);
+        this.userText.setText(name);
 
-        return builder.create();
+        // Don't close the dialog if the user taps the background
+        setCancelable(false);
+
+        return new AlertDialog.Builder(this.context)
+                .setTitle(R.string.feedback)
+                .setPositiveButton(R.string.feedback_send, this)
+                .setNegativeButton(R.string.cancel, null)
+                .setView(view)
+                .create();
     }
 
+    /**
+     * Called when the positive button is tapped.
+     */
+    @Override
+    public void onClick(DialogInterface dialog, int which) {
+        sendFeedback();
+    }
+
+    /**
+     * Sends the contents to OsTicket.
+     */
     private void sendFeedback() {
         String endPoint = getString(R.string.feedbackServerUrl);
         String apiKey = getString(R.string.feedbackServerKey);
@@ -106,9 +117,10 @@ public class FeedbackDialogFragment extends DialogFragment implements Callback<S
     private Map<String, String> buildBody() {
         Map<String, String> map = new HashMap<>();
 
-        for (int i = 0; i < FIELDS.length; i++) {
-            map.put(NAMES[i], ((TextView) this.view.findViewById(FIELDS[i])).getText().toString());
-        }
+        map.put("message", this.bodyText.getText().toString());
+        map.put("subject", this.summaryText.getText().toString());
+        map.put("name", this.userText.getText().toString());
+        map.put("email", this.emailText.getText().toString());
 
         // Some IP address needs to be sent, doesn't have to be real.
         map.put("ip", "10.0.0.0");
@@ -118,19 +130,15 @@ public class FeedbackDialogFragment extends DialogFragment implements Callback<S
     }
 
     @Override
-    public void success(String s, Response response) {
+    public void success(String body, Response response) {
+        Toast.makeText(this.context, R.string.feedback_sent, Toast.LENGTH_LONG).show();
         dismiss();
-
-        String message = this.context.getString(R.string.feedback_sent);
-
-        Toast.makeText(this.context, message, Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void failure(RetrofitError error) {
-        String message = this.context.getString(R.string.feedback_error);
-
-        Toast.makeText(this.context, message, Toast.LENGTH_LONG).show();
+        error.printStackTrace();
+        Toast.makeText(this.context, R.string.feedback_error, Toast.LENGTH_LONG).show();
     }
 
 }

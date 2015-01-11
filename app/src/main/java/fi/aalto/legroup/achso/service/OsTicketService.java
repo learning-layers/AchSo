@@ -13,8 +13,8 @@ import retrofit.http.POST;
  */
 public interface OsTicketService {
 
-    @Headers("User-Agent: AchSo! Android")
     @POST("/api/tickets.json")
+    @Headers("User-Agent: Ach so! (Android)")
     public void sendFeedback(@Header("X-API-Key") String apiKey, @Body Map<String, String> body,
                              Callback<String> callback);
 
