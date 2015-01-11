@@ -1,20 +1,25 @@
 package fi.aalto.legroup.achso.upload.video;
 
 import android.accounts.Account;
+import android.net.Uri;
 
+import com.google.common.io.Files;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.squareup.okhttp.Headers;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.MultipartBuilder;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
+import com.squareup.otto.Bus;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URLConnection;
 
-import fi.aalto.legroup.achso.database.SemanticVideo;
-import fi.aalto.legroup.achso.networking.CountingRequestBody;
+import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.upload.Uploader;
 import fi.aalto.legroup.achso.util.App;
 
@@ -25,31 +30,39 @@ public class ClViTra2VideoUploader extends Uploader {
 
     private String endpointUrl;
 
-    public ClViTra2VideoUploader(String endpointUrl) {
+    public ClViTra2VideoUploader(Bus bus, String endpointUrl) {
+        super(bus);
         this.endpointUrl = endpointUrl;
     }
 
     /**
-     * Uploads the video. Must call uploadListener.onVideoUploadStart() when the upload starts,
-     * onVideoUploadProgress() when the upload progresses, onVideoUploadFinish() when done and
-     * onVideoUploadError() if an error occurs.
+     * Uploads the data of a video in a blocking fashion.
      *
-     * @param video the video that will be uploaded
+     * @param video Video whose data will be uploaded
+     * @throws Exception On failure, with a user-friendly error message.
      */
     @Override
-    public void upload(final SemanticVideo video) {
-        File videoFile = new File(video.getUri().getPath());
-
-        // Get the file's extension and build a new file name with it and the video's key
-
-        int extensionPlace = videoFile.getName().lastIndexOf('.');
-        String extension = "";
-
-        if (extensionPlace > 0) {
-            extension = videoFile.getName().substring(extensionPlace);
+    public void handle(final Video video) throws Exception {
+        try {
+            uploadVideo(video);
+        } catch (Exception e) {
+            throw new Exception("Couldn't upload to ClViTra: " + e.getMessage(), e);
         }
+    }
 
-        String fileName = video.getKey() + extension;
+    /**
+     * Returns true if the chain should be broken when this uploader fails, false otherwise.
+     */
+    @Override
+    protected boolean isCritical() {
+        return true;
+    }
+
+    private void uploadVideo(Video video) throws Exception {
+        File videoFile = new File(video.getVideoUri().getPath());
+
+        String extension = Files.getFileExtension(videoFile.getName());
+        String fileName = video.getId() + "." + extension;
 
         // Resolve the mime type of the video file to include it in the request
         String mimeType = URLConnection.guessContentTypeFromName(videoFile.getPath());
@@ -69,44 +82,67 @@ public class ClViTra2VideoUploader extends Uploader {
                 )
                 .build();
 
-        // Decorate the request body to keep track of the upload progress
-        CountingRequestBody countingBody = new CountingRequestBody(body,
-                new CountingRequestBody.Listener() {
-
-            @Override
-            public void onRequestProgress(long bytesWritten, long contentLength) {
-                float percentage = 100f * bytesWritten / contentLength;
-
-                // Limit the percentage values to ones that are usually expected. We might get some
-                // unusual values depending on how the RequestBody was implemented.
-                if (percentage > 100) percentage = 100;
-                if (percentage < 0) percentage = 0;
-
-                listener.onUploadProgress(video, (int) percentage);
-            }
-        });
-
         Request request = new Request.Builder()
-                .url(endpointUrl + "upload")
-                .post(countingBody)
+                .url(endpointUrl + "videos")
+                .post(body)
                 .build();
 
-        listener.onUploadStart(video);
+        Account account = App.loginManager.getAccount();
+        Response response = App.authenticatedHttpClient.execute(request, account);
 
-        try {
-            Account account = App.loginManager.getAccount();
-            Response response = App.authenticatedHttpClient.execute(request, account);
+        if (response.isSuccessful()) {
+            JsonObject videoDetails = getDetails(fileName);
 
-            if (response.isSuccessful()) {
-                listener.onUploadFinish(video);
-            } else {
-                listener.onUploadError(video, "Could not upload video: " +
-                        response.code() + " " + response.message());
+            // FIXME: Save thumbnail URIs again when Picasso can handle EXIF data in JPEGs.
+            //        Or when ClViTra rotates JPEGs for us?
+
+            Uri videoUri = Uri.parse(videoDetails.get("Video_URL").getAsString());
+            // Uri thumbUri = Uri.parse(videoDetails.get("Thumbnail_URL").getAsString());
+
+            video.setVideoUri(videoUri);
+            // video.setThumbUri(thumbUri);
+
+            if (!video.save()) {
+                throw new IOException("Error saving video.");
             }
-        } catch (IOException e) {
-            listener.onUploadError(video, "Could not upload video: " + e.getMessage());
-            e.printStackTrace();
+        } else {
+            throw new IOException(response.code() + " " + response.message());
         }
+    }
+
+    private JsonObject getDetails(String videoFileName) throws IOException {
+        Request request = new Request.Builder()
+                .url(endpointUrl + "videos")
+                .get()
+                .build();
+
+        Account account = App.loginManager.getAccount();
+        Response response = App.authenticatedHttpClient.execute(request, account);
+
+        String jsonString = response.body().string();
+        JsonObject body = new JsonParser().parse(jsonString).getAsJsonObject();
+        JsonObject video = null;
+
+        for (JsonElement element : body.get("Videos").getAsJsonArray()) {
+            if (!element.isJsonObject()) continue;
+
+            JsonObject object = element.getAsJsonObject();
+
+            if (!object.has("Video_Name")) continue;
+
+            String videoName = object.get("Video_Name").getAsString();
+
+            if (videoName.endsWith(videoFileName)) {
+                video = object;
+                break;
+            }
+        }
+
+        if (video == null) {
+            throw new IOException("Video not found in response.");
+        }
+
+        return video;
     }
 
 }

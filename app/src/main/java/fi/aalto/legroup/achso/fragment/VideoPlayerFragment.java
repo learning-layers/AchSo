@@ -4,7 +4,6 @@ import android.animation.ObjectAnimator;
 import android.app.Fragment;
 import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.SparseArray;
@@ -18,20 +17,22 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.bugsnag.android.Bugsnag;
+
 import java.io.IOException;
 import java.util.List;
 
 import javax.annotation.Nullable;
 
 import fi.aalto.legroup.achso.R;
-import fi.aalto.legroup.achso.annotation.Annotation;
 import fi.aalto.legroup.achso.annotation.AnnotationEditor;
 import fi.aalto.legroup.achso.annotation.AnnotationRenderService;
 import fi.aalto.legroup.achso.annotation.PlaybackTimer;
 import fi.aalto.legroup.achso.annotation.renderers.MarkerRenderer;
 import fi.aalto.legroup.achso.annotation.renderers.PauseRenderer;
 import fi.aalto.legroup.achso.annotation.renderers.SubtitleRenderer;
-import fi.aalto.legroup.achso.database.SemanticVideo;
+import fi.aalto.legroup.achso.entities.Annotation;
+import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.view.MarkerCanvas;
 
 /**
@@ -220,16 +221,8 @@ public class VideoPlayerFragment extends Fragment implements TextureView.Surface
         this.listener = listener;
     }
 
-    public void setVideo(SemanticVideo video) throws IOException {
-        Uri videoUri;
-
-        if (video.inLocalDB()) {
-            videoUri = video.getUri();
-        } else {
-            videoUri = Uri.parse(video.getRemoteVideo());
-        }
-
-        mediaPlayer.setDataSource(getActivity(), videoUri);
+    public void setVideo(Video video) throws IOException {
+        mediaPlayer.setDataSource(getActivity(), video.getVideoUri());
     }
 
     public void setAnnotations(List<Annotation> annotations) {
@@ -355,7 +348,7 @@ public class VideoPlayerFragment extends Fragment implements TextureView.Surface
 
     @Override
     public boolean onError(MediaPlayer player, int what, int extra) {
-        SparseArray<String> messages = new SparseArray<String>();
+        SparseArray<String> messages = new SparseArray<>();
 
         messages.put(MediaPlayer.MEDIA_ERROR_SERVER_DIED, "Lost connection to media server.");
         messages.put(MediaPlayer.MEDIA_ERROR_UNKNOWN, "Unknown error with media player.");
@@ -373,6 +366,8 @@ public class VideoPlayerFragment extends Fragment implements TextureView.Surface
         String message = messages.get(extra, defaultMessage);
 
         Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+
+        Bugsnag.notify(new Exception(defaultMessage));
 
         return true;
     }

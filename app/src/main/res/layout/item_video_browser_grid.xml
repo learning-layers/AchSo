@@ -1,134 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
-<view xmlns:android="http://schemas.android.com/apk/res/android"
-    class="fi.aalto.legroup.achso.view.VideoGridItemView"
-    android:orientation="horizontal"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:id="@+id/view"
-    android:padding="3dp"
-    android:paddingBottom="0dp">
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="250dp"
+    android:layout_marginRight="2dp"
+    android:layout_marginLeft="2dp"
+    android:layout_marginTop="2dp"
+    android:layout_marginBottom="2dp"
+    android:background="@color/background_material_dark">
 
-<LinearLayout
-    android:orientation="horizontal"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginRight="4dp"
-    android:layout_marginLeft="4dp"
-    android:layout_marginTop="4dp"
-    android:layout_marginBottom="4dp"
-    android:id="@+id/item_video_background"
-    android:background="#ffffffff">
-
-    <View
-        android:layout_width="4dp"
+    <ImageView
+        android:id="@+id/thumbImage"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/item_video_genre_border"
-        android:background="@color/achso_green"
-        />
+        android:scaleType="centerCrop" />
 
-    <FrameLayout
-        android:layout_width="wrap_content"
-        android:layout_height="fill_parent">
-
-        <ImageView
-            android:layout_width="120dp"
-            android:layout_height="fill_parent"
-            android:id="@+id/item_video_thumbnail"
-            android:layout_weight="0"
-            android:layout_gravity="center_vertical"
-            android:src="@android:drawable/sym_def_app_icon"
-            android:adjustViewBounds="false"
-            android:scaleType="centerCrop" />
-
-        <FrameLayout
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:id="@+id/progress_container"
-            android:background="#a0000000"
-            android:visibility="gone">
-
-            <ProgressBar
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:id="@+id/progress_bar" />
-        </FrameLayout>
-
-    </FrameLayout>
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/selectionOverlay"
+        android:background="#88000000"
+        android:src="@drawable/ic_check_white_48dp"
+        android:scaleType="center" />
 
     <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="32dp"
-        android:layout_weight="0"
-        android:layout_height="match_parent"
-        android:layout_gravity="center_vertical|top"
-        android:paddingTop="10dp"
-        android:background="@color/achso_green"
-        android:id="@+id/item_video_genre_color"
-        android:layout_marginRight="18dp"
-        android:paddingLeft="6dp"
-        android:paddingRight="6dp">
-
-        <ImageView
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:id="@+id/item_video_cloud"
-            android:src="@drawable/md_cloud"
-            android:adjustViewBounds="false"
-            android:layout_weight="1"
-            android:scaleType="fitStart" />
-
-        <ImageView
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:id="@+id/item_video_sd"
-            android:src="@drawable/md_sim"
-            android:layout_weight="1"
-            android:scaleType="fitStart" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_weight="1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp"
-        android:layout_marginRight="12dp"
-        >
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bottom_scrim"
+        android:layout_gravity="bottom"
+        android:paddingTop="16dp">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Video Title"
-            android:id="@+id/item_video_title"
-            android:layout_marginBottom="4dp"
-            android:textColor="#ff333333" />
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:padding="16dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="Genre"
-            android:id="@+id/item_video_genre"
-            android:textColor="@color/achso_green" />
+            <TextView
+                android:id="@+id/titleText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Unknown title"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:layout_marginBottom="4dp"
+                android:textColor="@color/primary_text_default_material_dark"
+                android:textSize="16sp"
+                android:fontFamily="sans-serif-medium" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="Video User"
-            android:id="@+id/item_video_user" />
+            <TextView
+                android:id="@+id/genreText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Unknown genre"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:textColor="@color/primary_text_default_material_dark"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+
+        <ImageButton
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:id="@+id/uploadButton"
+            android:src="@drawable/ic_cloud_off_white_24dp"
+            android:background="@android:color/transparent"
+            android:scaleType="center"
+            android:layout_margin="8dp" />
+
     </LinearLayout>
 
-</LinearLayout>
+    <ProgressBar
+        style="?android:attr/progressBarStyleHorizontal"
+        android:id="@+id/progressBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="-6dp"
+        android:layout_gravity="bottom"
+        android:indeterminate="true" />
 
-
-
-
-
-
-</view>
+</FrameLayout>

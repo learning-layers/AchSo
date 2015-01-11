@@ -10,7 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import fi.aalto.legroup.achso.R;
-import fi.aalto.legroup.achso.annotation.Annotation;
+import fi.aalto.legroup.achso.entities.Annotation;
 
 /**
  * Renders subtitles for annotations.
@@ -20,7 +20,7 @@ public class SubtitleRenderer extends AnnotationRenderer {
     private LayoutInflater inflater;
     private ViewGroup container;
 
-    private List<TextView> views = new ArrayList<TextView>();
+    private List<TextView> views = new ArrayList<>();
 
     public SubtitleRenderer(ViewGroup container) {
         this.inflater = LayoutInflater.from(container.getContext());
@@ -43,7 +43,7 @@ public class SubtitleRenderer extends AnnotationRenderer {
             }
 
             view.setText(annotation.getText());
-            view.setTextColor(annotation.getColor());
+            view.setTextColor(annotation.getAuthor().getColor());
 
             container.addView(view);
         }

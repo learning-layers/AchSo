@@ -6,7 +6,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="8dp">
 
             <EditText
                 android:id="@+id/feedback_user"
@@ -40,7 +40,9 @@
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/feedback_body"
-                android:inputType="textMultiLine" />
+                android:inputType="textMultiLine"
+                android:minLines="3"
+                android:gravity="top" />
 
         </LinearLayout>
 

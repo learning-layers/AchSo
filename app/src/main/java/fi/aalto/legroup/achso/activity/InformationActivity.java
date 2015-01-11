@@ -1,26 +1,3 @@
-/*
- * Code contributed to the Learning Layers project
- * http://www.learning-layers.eu
- * Development is partly funded by the FP7 Programme of the European
- * Commission under
- * Grant Agreement FP7-ICT-318209.
- * Copyright (c) 2014, Aalto University.
- * For a list of contributors see the AUTHORS file at the top-level directory
- * of this distribution.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package fi.aalto.legroup.achso.activity;
 
 import android.app.ActionBar;
@@ -35,6 +12,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -45,19 +23,34 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.io.IOException;
+import java.util.UUID;
+
 import fi.aalto.legroup.achso.R;
-import fi.aalto.legroup.achso.database.SemanticVideo;
-import fi.aalto.legroup.achso.database.VideoDBHelper;
-import fi.aalto.legroup.achso.remote.RemoteResultCache;
+import fi.aalto.legroup.achso.entities.Video;
+import fi.aalto.legroup.achso.util.App;
 
 public class InformationActivity extends FragmentActivity
         implements MenuItem.OnMenuItemClickListener {
 
-    private SemanticVideo video;
+    public static final String ARG_VIDEO_ID = "ARG_VIDEO_ID";
+
+    private Video video;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        UUID videoId = (UUID) getIntent().getSerializableExtra(ARG_VIDEO_ID);
+
+        try {
+            video = App.videoRepository.get(videoId);
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(this, R.string.storage_error, Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
 
         setContentView(R.layout.activity_information);
         ActionBar bar = getActionBar();
@@ -66,10 +59,10 @@ public class InformationActivity extends FragmentActivity
             bar.setDisplayHomeAsUpEnabled(true);
         }
 
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.mapFragment);
+        SupportMapFragment mapFragment = (SupportMapFragment)
+                getSupportFragmentManager().findFragmentById(R.id.mapFragment);
 
-        Location location = getVideo().getLocation();
+        Location location = video.getLocation();
 
         if (location != null) {
             LatLng position = new LatLng(location.getLatitude(), location.getLongitude());
@@ -104,20 +97,6 @@ public class InformationActivity extends FragmentActivity
         return super.onOptionsItemSelected(item);
     }
 
-    public SemanticVideo getVideo() {
-        if (video == null) {
-            Long id = getIntent().getLongExtra(VideoPlayerActivity.ARG_ITEM_ID, -1);
-
-            if (id == -1) {
-                video = RemoteResultCache.getSelectedVideo();
-            } else {
-                video = VideoDBHelper.getById(id);
-            }
-        }
-
-        return video;
-    }
-
     /**
      * Using the Google Maps API via Google Play Services requires displaying its licence
      * information. We'll show the information in an AlertDialog triggered by a MenuItem.
@@ -148,6 +127,10 @@ public class InformationActivity extends FragmentActivity
                 }).show();
 
         return true;
+    }
+
+    public Video getVideo() {
+        return video;
     }
 
 }

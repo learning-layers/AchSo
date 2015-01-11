@@ -1,68 +1,68 @@
 package fi.aalto.legroup.achso.upload;
 
-import fi.aalto.legroup.achso.database.SemanticVideo;
+import com.squareup.otto.Bus;
+
+import fi.aalto.legroup.achso.entities.Video;
 
 /**
  * @author Leo Nikkilä
  */
 public abstract class Uploader {
 
-    protected Listener listener;
+    protected Bus bus;
+
+    private Uploader next;
 
     /**
-     * Sets the upload listener that will be notified of the upload status.
+     * Constructs the uploader.
      *
-     * @param listener a listener that will be notified of the upload status
+     * @param bus Event bus that should receive uploader events.
      */
-    public void setListener(Listener listener) {
-        this.listener = listener;
+    protected Uploader(Bus bus) {
+        this.bus = bus;
     }
 
     /**
-     * Uploads the data of a video. Must call listener.onUploadStart() when the upload starts,
-     * onUploadFinish() when done and onUploadError() if an error occurs. Calling onUploadProgress()
-     * is optional.
+     * Uploads the data of a video in a blocking fashion.
      *
-     * @param video the video whose data will be uploaded
+     * @param video Video whose data will be uploaded
+     * @throws Exception On failure, with a user-friendly error message.
      */
-    public abstract void upload(SemanticVideo video);
+    protected abstract void handle(Video video) throws Exception;
 
     /**
-     * A listener that will be notified of the upload status.
+     * Returns true if the chain should be broken when this uploader fails, false otherwise.
      */
-    public static interface Listener {
+    protected abstract boolean isCritical();
 
-        /**
-         * Fired when the upload starts.
-         *
-         * @param video video whose data is being uploaded
-         */
-        public void onUploadStart(SemanticVideo video);
+    /**
+     * @param next The next uploader in the chain or null to break the chain after this.
+     */
+    public final void setNext(Uploader next) {
+        this.next = next;
+    }
 
-        /**
-         * Fired when the upload progresses. This is optional, and the listener should assume that
-         * the progress is indeterminate unless this is called.
-         *
-         * @param video      video whose data is being uploaded
-         * @param percentage percentage of data uploaded
-         */
-        public void onUploadProgress(SemanticVideo video, int percentage);
+    /**
+     * Starts uploading using this uploader. Propagates further along the chain afterwards.
+     *
+     * @param video Video whose data will be uploaded.
+     */
+    public final void upload(Video video) {
+        try {
+            handle(video);
+        } catch (Exception e) {
+            bus.post(new UploadErrorEvent(this, video.getId(), e.getMessage()));
 
-        /**
-         * Fired when the upload finishes.
-         *
-         * @param video video whose data was uploaded
-         */
-        public void onUploadFinish(SemanticVideo video);
+            e.printStackTrace();
 
-        /**
-         * Fired if an error occurs during the upload process.
-         *
-         * @param video        video whose data was being uploaded
-         * @param errorMessage message describing the error
-         */
-        public void onUploadError(SemanticVideo video, String errorMessage);
+            if (isCritical()) {
+                return;
+            }
+        }
 
+        if (next != null) {
+            next.upload(video);
+        }
     }
 
 }

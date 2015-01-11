@@ -2,8 +2,8 @@ package fi.aalto.legroup.achso.annotation.renderers;
 
 import java.util.Collection;
 
-import fi.aalto.legroup.achso.annotation.Annotation;
 import fi.aalto.legroup.achso.annotation.AnnotationRenderService;
+import fi.aalto.legroup.achso.entities.Annotation;
 
 /**
  * Responsible for rendering a certain component of an annotation.

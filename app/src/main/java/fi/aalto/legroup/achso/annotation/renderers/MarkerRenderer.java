@@ -8,8 +8,9 @@ import android.graphics.PointF;
 import java.util.Collection;
 
 import fi.aalto.legroup.achso.R;
-import fi.aalto.legroup.achso.annotation.Annotation;
 import fi.aalto.legroup.achso.annotation.AnnotationEditor;
+import fi.aalto.legroup.achso.entities.Annotation;
+import fi.aalto.legroup.achso.util.ColorGenerator;
 import fi.aalto.legroup.achso.view.Marker;
 import fi.aalto.legroup.achso.view.MarkerCanvas;
 
@@ -42,8 +43,9 @@ public class MarkerRenderer extends AnnotationRenderer implements MarkerCanvas.L
     public void render(Collection<Annotation> annotations) {
         for (Annotation annotation : annotations) {
             PointF position = annotation.getPosition();
+            int color = annotation.getAuthor().getColor();
 
-            markerBackground.setColorFilter(annotation.getColor(), PorterDuff.Mode.MULTIPLY);
+            markerBackground.setColorFilter(color, PorterDuff.Mode.MULTIPLY);
 
             Marker marker = canvas.addMarker(position, markerBackground);
             marker.setTag(annotation);

@@ -2,6 +2,7 @@ package fi.aalto.legroup.achso.view;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.widget.SeekBar;
@@ -12,15 +13,20 @@ import java.util.List;
 import javax.annotation.Nonnull;
 
 import fi.aalto.legroup.achso.util.DimensionUnits;
+import fi.aalto.legroup.achso.util.ThemeColors;
 
 public class MarkedSeekBar extends SeekBar {
 
-    protected static final int MARKER_RADIUS_DP = 5;
-
-    protected List<Integer> markers = new ArrayList<Integer>();
-    protected Paint markerPaint = new Paint();
+    protected static final int MARKER_RADIUS_DP = 4;
+    protected static final int MARKER_STROKE_WIDTH_DP = 2;
 
     protected SnappingOnSeekBarChangeListener listener;
+    protected Paint markerPaint;
+    protected Paint markerSecondaryPaint;
+    protected Paint markerDisabledPaint;
+    protected float markerRadiusPx;
+
+    protected List<Integer> markers = new ArrayList<>();
 
     public MarkedSeekBar(Context context) {
         super(context);
@@ -38,10 +44,27 @@ public class MarkedSeekBar extends SeekBar {
     }
 
     private void init() {
+        int accentColor = ThemeColors.getAccentColor(getContext());
+
+        float markerStrokeWidthPx = DimensionUnits.dpToPx(getContext(), MARKER_STROKE_WIDTH_DP);
+        markerRadiusPx = DimensionUnits.dpToPx(getContext(), MARKER_RADIUS_DP);
+
+        markerPaint = new Paint();
         markerPaint.setAntiAlias(true);
-        markerPaint.setColor(getResources().getColor(android.R.color.holo_blue_light));
+        markerPaint.setColor(accentColor);
+        markerPaint.setStyle(Paint.Style.STROKE);
+        markerPaint.setStrokeWidth(markerStrokeWidthPx);
+
+        markerSecondaryPaint = new Paint(markerPaint);
+        markerSecondaryPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+
+        // TODO: Make this styling more flexible
+        markerDisabledPaint = new Paint(markerSecondaryPaint);
+        markerDisabledPaint.setColor(Color.BLACK);
+        markerDisabledPaint.setAlpha(0x20);
 
         listener = new SnappingOnSeekBarChangeListener(markers);
+
         super.setOnSeekBarChangeListener(listener);
     }
 
@@ -76,18 +99,34 @@ public class MarkedSeekBar extends SeekBar {
         canvas.translate(getPaddingLeft(), getPaddingTop());
 
         int max = getMax();
-        int markerAreaWidth = getWidth() - getThumbOffset() - getPaddingRight();
+        int markerAreaWidth = getWidth() - getPaddingLeft() - getPaddingRight();
 
-        int posY = getThumbOffset();
-
-        float markerRadius = DimensionUnits.dpToPx(getContext(), MARKER_RADIUS_DP);
+        int posY = (getHeight() - getPaddingTop() - getPaddingBottom()) / 2;
 
         for (int marker : markers) {
+            Paint paint = getMarkerPaint(marker);
+
             float posX = (float) marker / max * markerAreaWidth;
-            canvas.drawCircle((int) posX, posY, markerRadius, markerPaint);
+
+            canvas.drawCircle((int) posX, posY, markerRadiusPx, paint);
         }
 
         canvas.restore();
+    }
+
+    /**
+     * Returns an appropriate paint for the specified marker.
+     */
+    private Paint getMarkerPaint(int marker) {
+        if (!isEnabled()) {
+            return markerDisabledPaint;
+        }
+
+        if (marker < getProgress()) {
+            return markerSecondaryPaint;
+        }
+
+        return markerPaint;
     }
 
     /**
@@ -99,7 +138,7 @@ public class MarkedSeekBar extends SeekBar {
         // How close a position should be before we snap to it. Fraction of the bar length.
         private final static float snappingDistance = 0.02f;
 
-        private OnSeekBarChangeListener listener;
+        private OnSeekBarChangeListener delegate;
         private List<Integer> positions;
 
         /**
@@ -112,14 +151,14 @@ public class MarkedSeekBar extends SeekBar {
         }
 
         /**
-         * Decorates a previous listener with snapping functionality.
+         * Decorates a listener with snapping functionality.
          *
          * @param positions Positions to snap to.
-         * @param listener  The original listener to decorate.
+         * @param delegate  Listener to decorate.
          */
         public SnappingOnSeekBarChangeListener(List<Integer> positions,
-                                               OnSeekBarChangeListener listener) {
-            this.listener = listener;
+                                               OnSeekBarChangeListener delegate) {
+            this.delegate = delegate;
             this.positions = positions;
         }
 
@@ -129,9 +168,9 @@ public class MarkedSeekBar extends SeekBar {
 
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-            if (listener != null) listener.onProgressChanged(seekBar, progress, fromUser);
+            if (delegate != null) delegate.onProgressChanged(seekBar, progress, fromUser);
 
-            if ( ! fromUser || positions.isEmpty()) return;
+            if (!fromUser || positions.isEmpty()) return;
 
             // Take one marker that should be compared
             int closestMarkerPosition = positions.get(0);
@@ -155,12 +194,12 @@ public class MarkedSeekBar extends SeekBar {
 
         @Override
         public void onStartTrackingTouch(SeekBar seekBar) {
-            if (listener != null) listener.onStartTrackingTouch(seekBar);
+            if (delegate != null) delegate.onStartTrackingTouch(seekBar);
         }
 
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
-            if (listener != null) listener.onStopTrackingTouch(seekBar);
+            if (delegate != null) delegate.onStopTrackingTouch(seekBar);
         }
 
     }

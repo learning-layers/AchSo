@@ -1,34 +1,38 @@
 package fi.aalto.legroup.achso.fragment;
 
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.api.client.util.Strings;
 
+import java.io.IOException;
+
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.activity.InformationActivity;
-import fi.aalto.legroup.achso.database.SemanticVideo;
-import fi.aalto.legroup.achso.database.VideoDBHelper;
-import fi.aalto.legroup.achso.util.Dialog;
+import fi.aalto.legroup.achso.entities.Video;
+import fi.aalto.legroup.achso.util.App;
 
 public class InformationFragment extends Fragment {
 
-    TextView titleField;
-    TextView genreField;
-    TextView creatorField;
-    TextView qrCodeField;
-    TextView uploadedField;
+    private TextView titleField;
+    private TextView genreField;
+    private TextView creatorField;
+    private TextView qrCodeField;
+    private TextView uploadedField;
 
-    ImageButton titleEditButton;
-    ImageButton genreEditButton;
+    private ImageButton titleEditButton;
+    private ImageButton genreEditButton;
 
-    SemanticVideo video;
+    private Video video;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -60,67 +64,84 @@ public class InformationFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        final InformationActivity activity = (InformationActivity) getActivity();
-        video = activity.getVideo();
+        video = ((InformationActivity) getActivity()).getVideo();
 
         populateInformation();
 
         titleEditButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Dialog.getTextSetterDialog(activity, video, video.getTitle(),
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                populateInformation();
-                            }
-                        }, video).show();
+                showTitleEditDialog();
             }
         });
 
         genreEditButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Dialog.getGenreDialog(activity, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int which) {
-                        video.setGenre(SemanticVideo.Genre.values()[which]);
-
-                        VideoDBHelper dbHelper = new VideoDBHelper(activity);
-                        dbHelper.update(video);
-                        dbHelper.close();
-
-                        populateInformation();
-                    }
-                }, null).show();
+                showGenreEditDialog();
             }
         });
     }
 
     private void populateInformation() {
-        String creator = video.getCreator();
-        String qrCode = video.getQrCode();
+        String authorName = video.getAuthor().getName();
+        String qrCode = video.getId().toString();
         String uploaded;
 
-        if (Strings.isNullOrEmpty(creator)) {
-            creator = getString(R.string.semanticvideo_unknown_creator);
+        if (Strings.isNullOrEmpty(authorName)) {
+            authorName = getString(R.string.semanticvideo_unknown_creator);
         }
 
         if (Strings.isNullOrEmpty(qrCode)) {
             qrCode = getString(R.string.semanticvideo_no_qr);
         }
 
-        if (video.isUploaded()) {
+        if (video.isRemote()) {
             uploaded = getString(R.string.yes);
         } else {
             uploaded = getString(R.string.no);
         }
 
         titleField.setText(video.getTitle());
-        genreField.setText(video.getGenreText());
-        creatorField.setText(creator);
+        genreField.setText(video.getGenre());
+        creatorField.setText(authorName);
         qrCodeField.setText(qrCode);
         uploadedField.setText(uploaded);
+    }
+
+    private void showTitleEditDialog() {
+        final EditText text = new EditText(getActivity());
+
+        text.setSingleLine();
+        text.setText(video.getTitle());
+
+        new AlertDialog.Builder(getActivity())
+                .setView(text)
+                .setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int which) {
+                        String title = text.getText().toString();
+
+                        if (Strings.isNullOrEmpty(title)) return;
+
+                        video.setTitle(title);
+
+                        App.videoInfoRepository.invalidate(video.getId());
+
+                        if (!video.save()) {
+                            Toast.makeText(getActivity(), R.string.storage_error,
+                                    Toast.LENGTH_LONG).show();
+                        }
+
+                        populateInformation();
+                    }
+                })
+                .show();
+    }
+
+    private void showGenreEditDialog() {
+        // FIXME
     }
 
 }

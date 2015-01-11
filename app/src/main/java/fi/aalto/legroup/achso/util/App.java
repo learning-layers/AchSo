@@ -24,39 +24,52 @@
 package fi.aalto.legroup.achso.util;
 
 import android.content.Context;
-import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
+import android.os.Environment;
+import android.support.annotation.StringRes;
 import android.support.multidex.MultiDexApplication;
+import android.widget.Toast;
 
+import com.bugsnag.android.Bugsnag;
 import com.squareup.okhttp.OkHttpClient;
+import com.squareup.otto.Bus;
+
+import java.io.File;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.networking.AuthenticatedHttpClient;
+import fi.aalto.legroup.achso.repositories.local.LocalVideoInfoRepository;
+import fi.aalto.legroup.achso.repositories.local.LocalVideoRepository;
+import fi.aalto.legroup.achso.serialization.json.JsonSerializerService;
 import fi.aalto.legroup.achso.state.LoginManager;
-import fi.aalto.legroup.achso.upload.DisabledUploader;
-import fi.aalto.legroup.achso.upload.DummyUploader;
+import fi.aalto.legroup.achso.state.LoginRequestEvent;
 import fi.aalto.legroup.achso.upload.Uploader;
+import fi.aalto.legroup.achso.upload.metadata.SssMetadataUploader;
 import fi.aalto.legroup.achso.upload.video.ClViTra2VideoUploader;
 
 public class App extends MultiDexApplication {
 
+    private static final String ACH_SO_LOCAL_STORAGE_NAME = "Ach so!";
+
     private static App singleton;
+
+    public static Bus bus;
 
     public static ConnectivityManager connectivityManager;
 
-    public static final int BROWSE_BY_QR = 0;
-    public static final int ATTACH_QR = 1;
-    public static final int API_VERSION = android.os.Build.VERSION.SDK_INT;
     public static LoginManager loginManager;
     public static OkHttpClient httpClient;
     public static AuthenticatedHttpClient authenticatedHttpClient;
-    public static Connection connection;
     public static LocationManager locationManager;
 
-    private static int qr_mode;
+    public static JsonSerializerService jsonSerializer;
 
-    public static final String ACHSO_ACCOUNT_TYPE = "fi.aalto.legroup.achso.ll_oidc";
+    public static LocalVideoInfoRepository videoInfoRepository;
+    public static LocalVideoRepository videoRepository;
+
+    public static File localStorageDirectory;
 
     public static Uploader videoUploader;
     public static Uploader metadataUploader;
@@ -64,49 +77,52 @@ public class App extends MultiDexApplication {
     @Override
     public void onCreate() {
         super.onCreate();
+
         singleton = this;
+
+        Bugsnag.register(this, getString(R.string.bugsnagApiKey));
+
+        bus = new AndroidBus();
 
         connectivityManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
 
         httpClient = new OkHttpClient();
         authenticatedHttpClient = new AuthenticatedHttpClient(this, httpClient);
 
-        connectivityManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
-
-        loginManager = new LoginManager(this);
-
-        connection = new AaltoConnection();
+        loginManager = new LoginManager(this, bus);
 
         locationManager = new LocationManager(this);
 
-        videoUploader = new ClViTra2VideoUploader(getString(R.string.clvitra2Url));
-        metadataUploader = new DummyUploader();
+        videoUploader = new ClViTra2VideoUploader(bus, getString(R.string.clvitra2Url));
+        metadataUploader = new SssMetadataUploader(bus, Uri.parse(getString(R.string.sssUrl)));
+
+        // TODO: The instantiation of repositories should be abstracted further.
+        // That would allow for multiple repositories.
+        File mediaDirectory =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+
+        localStorageDirectory = new File(mediaDirectory, ACH_SO_LOCAL_STORAGE_NAME);
+
+        if (!(localStorageDirectory.isDirectory() || localStorageDirectory.mkdirs())) {
+            Toast.makeText(this, R.string.storage_error, Toast.LENGTH_LONG).show();
+        }
+
+        jsonSerializer = new JsonSerializerService();
+
+        videoInfoRepository = new LocalVideoInfoRepository(bus, jsonSerializer,
+                localStorageDirectory);
+
+        videoRepository = new LocalVideoRepository(bus, jsonSerializer, localStorageDirectory);
+
+        bus.post(new LoginRequestEvent(LoginRequestEvent.Type.LOGIN));
     }
 
-    public static boolean isTablet() {
-        return (singleton.getResources().getConfiguration().screenLayout & Configuration
-                .SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_LARGE;
+    public static void showError(@StringRes int resId) {
+        App.showError(getContext().getString(resId));
     }
 
-    public static boolean isHorizontalCandybar() {
-        Configuration c = singleton.getResources().getConfiguration();
-        int size = c.screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK;
-        return (c.orientation == Configuration.ORIENTATION_LANDSCAPE && (size == Configuration
-                .SCREENLAYOUT_SIZE_SMALL || size == Configuration.SCREENLAYOUT_SIZE_NORMAL));
-    }
-
-    public static boolean isCandybar() {
-        Configuration c = singleton.getResources().getConfiguration();
-        int size = c.screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK;
-        return (size == Configuration.SCREENLAYOUT_SIZE_SMALL || size == Configuration.SCREENLAYOUT_SIZE_NORMAL);
-    }
-
-    public static void setQrMode(int mode) {
-        qr_mode = mode;
-    }
-
-    public static int getQrMode() {
-        return qr_mode;
+    public static void showError(String error) {
+        Toast.makeText(getContext(), error, Toast.LENGTH_LONG).show();
     }
 
     public static boolean isConnected() {
@@ -119,9 +135,8 @@ public class App extends MultiDexApplication {
     }
 
     public static Context getContext() {
-        return singleton.getApplicationContext();
+        return singleton;
     }
 
 }
-
 

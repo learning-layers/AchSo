@@ -1,23 +1,25 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" tools:context="fi.aalto.legroup.achso.fragment.VideoBrowserFragment"
-    android:background="#ffe6e6e6">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="fi.aalto.legroup.achso.fragment.VideoBrowserFragment"
+    android:background="@color/white">
 
-    <GridView
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:id="@+id/grid_video_list"
-        android:layout_gravity="left|top"
-        android:numColumns="auto_fit"
-        android:columnWidth="340dp"
-        android:choiceMode="multipleChoice" />
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/video_list"
+        android:scrollbars="vertical"
+        android:padding="2dp"
+        android:scrollbarStyle="outsideOverlay"
+        android:clipToPadding="false"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="@string/empty_results"
-        android:id="@+id/empty_text"
+        android:id="@+id/place_holder"
         android:layout_gravity="center"
         android:textColor="#ff666666" />
 

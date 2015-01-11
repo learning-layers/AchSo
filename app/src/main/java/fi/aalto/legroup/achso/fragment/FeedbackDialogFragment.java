@@ -13,10 +13,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import fi.aalto.legroup.achso.R;
-import fi.aalto.legroup.achso.helper.SettingsHelper;
+import fi.aalto.legroup.achso.service.OsTicketService;
 import retrofit.Callback;
+import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
@@ -88,11 +90,21 @@ public class FeedbackDialogFragment extends DialogFragment implements Callback<S
     }
 
     private void sendFeedback() {
-        SettingsHelper.sendFeedback(this.context, this.readValues(), this);
+        String endPoint = getString(R.string.feedbackServerUrl);
+        String apiKey = getString(R.string.feedbackServerKey);
+
+        new RestAdapter.Builder()
+                .setEndpoint(endPoint)
+                .build()
+                .create(OsTicketService.class)
+                .sendFeedback(apiKey, buildBody(), this);
     }
 
-    private HashMap<String, String> readValues() {
-        HashMap<String, String> map = new HashMap<String, String>();
+    /**
+     * Builds the request body.
+     */
+    private Map<String, String> buildBody() {
+        Map<String, String> map = new HashMap<>();
 
         for (int i = 0; i < FIELDS.length; i++) {
             map.put(NAMES[i], ((TextView) this.view.findViewById(FIELDS[i])).getText().toString());

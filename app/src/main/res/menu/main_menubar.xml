@@ -1,43 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/action_search"
-        android:actionViewClass="android.widget.SearchView"
+        app:actionViewClass="android.support.v7.widget.SearchView"
         android:icon="@drawable/md_magnify"
-        android:showAsAction="collapseActionView|ifRoom"
+
+        app:showAsAction="collapseActionView|ifRoom"
         android:title="Search" />
     <item
         android:id="@+id/action_new_video"
         android:icon="@drawable/md_camcorder"
-        android:showAsAction="ifRoom"
+        app:showAsAction="ifRoom"
         android:title="@string/record" />
     <item
         android:id="@+id/action_add_video"
         android:icon="@drawable/md_folder"
-        android:showAsAction="ifRoom"
+        app:showAsAction="ifRoom"
         android:title="@string/add_video" />
 
     <item
         android:id="@+id/action_read_qrcode"
         android:icon="@drawable/md_qr_code"
-        android:showAsAction="ifRoom"
+        app:showAsAction="ifRoom"
         android:title="@string/read_qr_code" />
     <item
         android:id="@+id/action_logout"
-        android:showAsAction="ifRoom"
+        app:showAsAction="never"
         android:title="Logout" />
     <item
         android:id="@+id/action_login"
-        android:showAsAction="ifRoom"
+        app:showAsAction="never"
         android:title="Login" />
 
     <item
         android:id="@+id/action_feedback"
-        android:showAsAction="ifRoom"
+        app:showAsAction="never"
         android:title="@string/feedback" />
     <item
         android:id="@+id/action_about"
-        android:showAsAction="ifRoom"
+        app:showAsAction="never"
         android:title="About" />
 </menu>

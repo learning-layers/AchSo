@@ -4,7 +4,7 @@ import android.os.Handler;
 
 import java.util.Collection;
 
-import fi.aalto.legroup.achso.annotation.Annotation;
+import fi.aalto.legroup.achso.entities.Annotation;
 
 /**
  * "Renders" a pause for annotations. The duration is calculated from the number of annotations

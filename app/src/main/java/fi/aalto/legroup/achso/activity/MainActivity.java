@@ -1,95 +1,102 @@
 package fi.aalto.legroup.achso.activity;
 
-import android.app.ActionBar;
-import android.app.FragmentTransaction;
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.app.SearchManager;
-import android.content.BroadcastReceiver;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.ConnectivityManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.view.MenuItemCompat;
+import android.provider.MediaStore;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.SearchView;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.SearchView;
+import android.widget.Toast;
+
+import com.bugsnag.android.Bugsnag;
+import com.google.gson.JsonObject;
+import com.squareup.otto.Bus;
+import com.squareup.otto.Subscribe;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import fi.aalto.legroup.achso.R;
-import fi.aalto.legroup.achso.adapter.VideoBrowserTabAdapter;
-import fi.aalto.legroup.achso.database.SemanticVideo;
-import fi.aalto.legroup.achso.database.VideoDBHelper;
-import fi.aalto.legroup.achso.fragment.VideoBrowserFragment;
-import fi.aalto.legroup.achso.helper.AuthenticationHelper;
+import fi.aalto.legroup.achso.adapter.VideoTabAdapter;
+import fi.aalto.legroup.achso.fragment.AboutDialogFragment;
+import fi.aalto.legroup.achso.fragment.FeedbackDialogFragment;
+import fi.aalto.legroup.achso.fragment.GenreDialogFragment;
+import fi.aalto.legroup.achso.fragment.ProgressDialogFragment;
 import fi.aalto.legroup.achso.helper.QRHelper;
-import fi.aalto.legroup.achso.helper.SettingsHelper;
-import fi.aalto.legroup.achso.helper.VideoHelper;
-import fi.aalto.legroup.achso.service.UploaderService;
-import fi.aalto.legroup.achso.state.LoginManager;
+import fi.aalto.legroup.achso.repositories.VideoRepositoryUpdatedEvent;
+import fi.aalto.legroup.achso.state.LoginErrorEvent;
+import fi.aalto.legroup.achso.state.LoginRequestEvent;
+import fi.aalto.legroup.achso.state.LoginStateEvent;
 import fi.aalto.legroup.achso.util.App;
-import fi.aalto.legroup.achso.view.VideoGridItemView;
+import fi.aalto.legroup.achso.util.ExportCreatorTaskResultEvent;
+import fi.aalto.legroup.achso.util.VideoCreatorService;
+import fi.aalto.legroup.achso.view.SlidingTabLayout;
 
-public class MainActivity extends FragmentActivity {
+public class MainActivity extends ActionBarActivity {
 
-    private VideoBrowserTabAdapter tabAdapter;
-    private ViewPager tabs;
-    private ActionBar actionBar;
-    private VideoDBHelper databaseHelper;
-    private SearchView searchView;
+    private Bus bus;
+
+    private VideoTabAdapter tabAdapter;
     private MenuItem searchItem;
 
-    protected IntentFilter globalFilter;
-    protected GlobalBroadcastReceiver globalReceiver;
-    protected IntentFilter localFilter;
-    protected LocalBroadcastReceiver localReceiver;
+    private final int REQUEST_RECORD_VIDEO = 1;
+    private final int REQUEST_CHOOSE_VIDEO = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
+        // TODO: Inject instead
+        this.bus = App.bus;
 
-        this.databaseHelper = new VideoDBHelper(this);
-        this.databaseHelper.updateVideoCache();
+        bus.register(this);
 
-        this.tabAdapter = new VideoBrowserTabAdapter(this, this.getSupportFragmentManager());
-        this.tabs = (ViewPager) this.findViewById(R.id.pager);
-        this.tabs.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
-            @Override
-            public void onPageSelected(int position) {
-                actionBar = getActionBar();
-                actionBar.setSelectedNavigationItem(position);
-                tabAdapter.closeContextualActionMode();
-            }
-        });
-        this.tabs.setAdapter(this.tabAdapter);
-        this.actionBar = this.getActionBar();
-        this.actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-        ActionBar.TabListener tabListener = new ActionBar.TabListener() {
-            @Override
-            public void onTabSelected(ActionBar.Tab tab, FragmentTransaction ft) {
-                actionBar.setSelectedNavigationItem(tab.getPosition());
-                tabs.setCurrentItem(tab.getPosition());
-            }
+        this.setContentView(R.layout.activity_main);
 
-            @Override
-            public void onTabReselected(ActionBar.Tab tab, FragmentTransaction ft) {
+        Toolbar toolbar = (Toolbar) this.findViewById(R.id.toolbar);
+        this.setSupportActionBar(toolbar);
 
-            }
+        this.tabAdapter = new VideoTabAdapter(this, this.getSupportFragmentManager());
 
-            @Override
-            public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction ft) {
+        ViewPager tabs = (ViewPager) this.findViewById(R.id.pager);
+        tabs.setAdapter(this.tabAdapter);
 
-            }
+        SlidingTabLayout slidingTabs = (SlidingTabLayout) this.findViewById(R.id.main_tabs);
+        slidingTabs.setViewPager(tabs);
+    }
 
-        };
+    @Override
+    protected void onResume() {
+        super.onResume();
+        App.bus.register(this);
+    }
 
-        this.actionBar.addTab(this.actionBar.newTab().setText(getString(R.string.my_videos)).setTabListener(tabListener));
-        for (SemanticVideo.Genre genre : SemanticVideo.Genre.values()) {
-            this.actionBar.addTab(this.actionBar.newTab().setText(SemanticVideo.genreStrings.get(genre)).setTabListener(tabListener));
-        }
+    @Override
+    protected void onPause() {
+        App.bus.unregister(this);
+        super.onPause();
+    }
+
+    /**
+     * FIXME: Temporarily removing the ability to choose videos.
+     */
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        MenuItem addVideo = menu.findItem(R.id.action_add_video);
+
+        addVideo.setVisible(false);
+
+        return super.onPrepareOptionsMenu(menu);
     }
 
     @Override
@@ -97,10 +104,9 @@ public class MainActivity extends FragmentActivity {
         this.getMenuInflater().inflate(R.menu.main_menubar, menu);
 
         SearchManager manager = (SearchManager) this.getSystemService(Context.SEARCH_SERVICE);
-        this.searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+        SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
         this.searchItem = menu.findItem(R.id.action_search);
-        this.searchView.setSearchableInfo(manager.getSearchableInfo(this.getComponentName()));
-
+        searchView.setSearchableInfo(manager.getSearchableInfo(this.getComponentName()));
 
         if (App.loginManager.isLoggedIn()) {
             menu.findItem(R.id.action_login).setVisible(false);
@@ -110,178 +116,213 @@ public class MainActivity extends FragmentActivity {
             menu.findItem(R.id.action_logout).setVisible(false);
         }
 
-
         return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        switch (id) {
+        switch (item.getItemId()) {
             case R.id.action_new_video:
-                VideoHelper.videoByRecording(this);
-                break;
+                recordVideo();
+                return true;
+
+            case R.id.action_add_video:
+                chooseVideo();
+                return true;
+
             case R.id.action_read_qrcode:
                 QRHelper.readQRCodeForSearching(this, this.searchItem);
-                break;
-            case R.id.action_add_video:
-                VideoHelper.videoByChoosingFile(this);
-                break;
+                return true;
+
             case R.id.action_login:
-                AuthenticationHelper.login(this);
-                break;
+                // TODO: This needs some event magic
+                Intent intent = new Intent(this, LoginActivity.class);
+                startActivity(intent);
+                return true;
+
             case R.id.action_logout:
-                AuthenticationHelper.logout(this);
-                break;
+                bus.post(new LoginRequestEvent(LoginRequestEvent.Type.EXPLICIT_LOGOUT));
+                return true;
+
             case R.id.action_about:
-                SettingsHelper.showAboutDialog(this);
-                break;
+                AboutDialogFragment.newInstance(this).show(getFragmentManager(), "AboutDialog");
+                return true;
+
             case R.id.action_feedback:
-                SettingsHelper.showSendFeedback(this);
-                break;
+                String name = "";
+                String email = "";
+
+                JsonObject userInfo = App.loginManager.getUserInfo();
+
+                if (userInfo != null) {
+                    name = userInfo.get("name").getAsString();
+                    email = userInfo.get("email").getAsString();
+                }
+
+                FeedbackDialogFragment.newInstance(name, email)
+                        .show(getFragmentManager(), "FeedbackDialog");
+
+                return true;
         }
+
         return super.onOptionsItemSelected(item);
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
-            case VideoHelper.ACTIVITY_VIDEO_BY_RECORDING:
-                VideoHelper.videoByRecordingResult(this, resultCode, data);
-                break;
-            case VideoHelper.ACTIVITY_VIDEO_BY_PICKING:
-                VideoHelper.videoByChoosingFileResult(this, resultCode, data);
-                break;
-            case VideoHelper.ACTIVITY_GENRE_SELECTION:
-                return;
+            case REQUEST_RECORD_VIDEO:
+            case REQUEST_CHOOSE_VIDEO:
+                if (resultCode == RESULT_OK) {
+                    createVideo(data.getData());
+                }
 
-            case AuthenticationHelper.ACTIVITY_LOGIN:
-                AuthenticationHelper.loginResult(this);
                 break;
+
+            // FIXME: Default is not good here
             default:
                 QRHelper.readQRCodeResult(this, requestCode, resultCode, data);
                 break;
         }
     }
 
-    /**
-     * Receives events broadcast by other applications, e.g. network state.
-     */
-    public class GlobalBroadcastReceiver extends BroadcastReceiver {
+    private void recordVideo() {
+        App.locationManager.startLocationUpdates();
 
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (action == null) return;
-
-            if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
-                // Try to automatically log in when connected and not logged in.
-                if (App.isConnected() && App.loginManager.isLoggedOut())
-                    App.loginManager.login();
-
-                // Log out when connectivity is lost, but remember auto-login
-                if (App.isDisconnected() && App.loginManager.isLoggedIn())
-                    App.loginManager.logout();
-
-                invalidateOptionsMenu();
-            }
-        }
-
+        Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+        startActivityForResult(intent, REQUEST_RECORD_VIDEO);
     }
 
-    public class LocalBroadcastReceiver extends BroadcastReceiver {
+    private void chooseVideo() {
+        Intent intent;
 
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (action == null) return;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+            intent = new Intent(Intent.ACTION_GET_CONTENT);
+        } else {
+            intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.setFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        }
 
-            if (action.equals(LoginManager.ACTION_LOGIN_STATE_CHANGED)) {
-                invalidateOptionsMenu();
-                AuthenticationHelper.loginStateDidChange(getApplicationContext());
-            } else if (action.equals(LoginManager.ACTION_LOGIN_ERROR)) {
-                invalidateOptionsMenu();
-                AuthenticationHelper.loginDidFail(getApplicationContext(), intent);
-            }
+        // TODO: Specify video/* when other mime types are supported
+        intent.setType("video/mp4");
+
+        intent.putExtra(Intent.CATEGORY_OPENABLE, true);
+
+        try {
+            startActivityForResult(intent, REQUEST_CHOOSE_VIDEO);
+        } catch (ActivityNotFoundException e) {
+            // TODO: Offer alternatives
+            Toast.makeText(this, "No file manager is installed.", Toast.LENGTH_LONG).show();
         }
     }
 
-    private BroadcastReceiver onNotice = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
+    private void createVideo(final Uri contentUri) {
+        if (contentUri == null) {
+            Bugsnag.notify(new IllegalArgumentException("Result contained a null URI."));
+            return;
+        }
 
-            if (action.equals(UploaderService.UPLOAD_PROGRESS_ACTION)) {
-                long id = intent.getLongExtra(UploaderService.PARAM_OUT, -1);
-                SemanticVideo video = VideoDBHelper.getById(id);
-                VideoBrowserFragment fragment = tabAdapter.getFragmentAtIndex(tabs.getCurrentItem());
-                VideoGridItemView view = fragment.getViewForVideo(video);
-                int progress = intent.getIntExtra(UploaderService.PARAM_ARG, -1);
-                view.setProgress(progress);
+        GenreDialogFragment fragment = new GenreDialogFragment();
+
+        fragment.setCallback(new GenreDialogFragment.Callback() {
+            @Override
+            public void onGenreSelected(String genre) {
+                VideoCreatorService.create(MainActivity.this, contentUri, genre);
+            }
+        });
+
+        fragment.show(getFragmentManager(), fragment.getClass().getSimpleName());
+    }
+
+    @Subscribe
+    public void onLoginState(LoginStateEvent event) {
+        switch (event.getState()) {
+            case LOGGED_IN:
+                // TODO: Include user info in the event
+                String name = App.loginManager.getUserInfo().get("name").getAsString();
+                String welcome = String.format(getString(R.string.logged_in_as), name);
+
+                Toast.makeText(this, welcome, Toast.LENGTH_SHORT).show();
+                break;
+
+            case LOGGED_OUT:
+                Toast.makeText(this, R.string.logged_out, Toast.LENGTH_SHORT).show();
+                break;
+        }
+
+        invalidateOptionsMenu();
+    }
+
+    @Subscribe
+    public void onLoginError(LoginErrorEvent event) {
+        String message = String.format(getString(R.string.login_error), event.getMessage());
+
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+
+        invalidateOptionsMenu();
+    }
+
+    @Subscribe
+    public void onVideoRepositoryUpdated(VideoRepositoryUpdatedEvent event) {
+        this.tabAdapter.notifyDataSetChanged();
+    }
+
+    @Subscribe
+    public void onVideoCreationState(VideoCreatorService.VideoCreationStateEvent event) {
+        VideoCreatorService.VideoCreationStateEvent.Type type = event.getType();
+
+        FragmentManager manager = getFragmentManager();
+        Fragment fragment = manager.findFragmentByTag("videoCreation");
+
+        switch (type) {
+            case STARTED:
+                if (fragment == null) {
+                    fragment = ProgressDialogFragment.newInstance(this, R.string.processing_video);
+                    manager.beginTransaction().add(fragment, "videoCreation").commit();
+                }
+
+                break;
+
+            case ERROR:
+                Toast.makeText(this, R.string.storage_error, Toast.LENGTH_LONG).show();
+                // Fall through
+
+            case FINISHED:
+                if (fragment != null) {
+                    manager.beginTransaction().remove(fragment).commit();
+                }
+
+                break;
+        }
+    }
+
+    @Subscribe
+    public void onExportCreatorTaskResult(ExportCreatorTaskResultEvent event) {
+        List<Uri> uris = event.getResult();
+
+        if (uris == null) {
+            App.showError(R.string.error_sharing);
+            return;
+        }
+
+        Intent sharingIntent = null;
+
+        if (uris.size() > 1) {
+            ArrayList<Uri> uriList = new ArrayList<>(uris);
+            sharingIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
+            sharingIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uriList);
+        } else {
+            if (uris.size() == 0) {
+                App.showError(R.string.error_sharing);
                 return;
             }
-
-            if (action.equals(UploaderService.UPLOAD_END_ACTION)) {
-                long id = intent.getLongExtra(UploaderService.PARAM_OUT, -1);
-                SemanticVideo video = VideoDBHelper.getById(id);
-                VideoBrowserFragment fragment = tabAdapter.getFragmentAtIndex(tabs.getCurrentItem());
-                VideoGridItemView view = fragment.getViewForVideo(video);
-                view.setProgress(100);
-                return;
-            }
+            sharingIntent = new Intent(Intent.ACTION_SEND);
+            sharingIntent.putExtra(Intent.EXTRA_STREAM, uris.get(0));
         }
-    };
 
-    protected void startReceivingBroadcasts() {
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(UploaderService.UPLOAD_PROGRESS_ACTION);
-        filter.addAction(UploaderService.UPLOAD_END_ACTION);
-        LocalBroadcastManager.getInstance(this).registerReceiver(this.onNotice, filter);
+        sharingIntent.setType("application/achso");
 
-        if (this.globalFilter == null) {
-            this.globalFilter = new IntentFilter();
-            this.globalFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-            this.globalReceiver = new GlobalBroadcastReceiver();
-        }
-        this.registerReceiver(this.globalReceiver, this.globalFilter);
-
-        if (this.localFilter == null) {
-            this.localFilter = new IntentFilter();
-            this.localFilter.addAction(LoginManager.ACTION_LOGIN_STATE_CHANGED);
-            this.localFilter.addAction(LoginManager.ACTION_LOGIN_ERROR);
-            this.localReceiver = new LocalBroadcastReceiver();
-        }
-        LocalBroadcastManager.getInstance(this).registerReceiver(this.localReceiver, this.localFilter);
+        this.startActivity(Intent.createChooser(sharingIntent, this.getString(R.string.video_share)));
     }
 
-    protected void stopReceivingBroadcasts() {
-        this.unregisterReceiver(this.globalReceiver);
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(this.localReceiver);
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(this.onNotice);
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        stopReceivingBroadcasts();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (this.searchItem != null) {
-            MenuItemCompat.collapseActionView(this.searchItem);
-        }
-
-        if (this.tabs != null && this.tabAdapter != null) {
-            int position = this.tabs.getCurrentItem();
-            VideoBrowserFragment fragment = this.tabAdapter.getFragmentAtIndex(position);
-
-            if (fragment != null) {
-                fragment.setVideos(this.tabAdapter.getVideosForPosition(position));
-            }
-        }
-
-        startReceivingBroadcasts();
-    }
 }

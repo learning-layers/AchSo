@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import fi.aalto.legroup.achso.annotation.renderers.AnnotationRenderer;
+import fi.aalto.legroup.achso.entities.Annotation;
 
 /**
  * Renders annotations using a pipeline of renderers.
@@ -18,15 +19,15 @@ public class AnnotationRenderService {
     private static final int RENDERING_FUZZINESS = 500;
 
     // Use LinkedHashSet since renderer order may be important
-    protected Set<AnnotationRenderer> pipeline = new LinkedHashSet<AnnotationRenderer>();
+    protected Set<AnnotationRenderer> pipeline = new LinkedHashSet<>();
 
-    protected List<Annotation> annotations = new ArrayList<Annotation>();
-    protected List<Annotation> renderQueue = new ArrayList<Annotation>();
+    protected List<Annotation> annotations = new ArrayList<>();
+    protected List<Annotation> renderQueue = new ArrayList<>();
 
     // Keep track of rendered annotations using a list. We can't store and compare the playback
     // position, since it's unreliable with MediaPlayer. This is a bit more memory-intensive but
     // will not result in rendering the same annotations again.
-    protected List<Annotation> renderedAnnotations = new ArrayList<Annotation>();
+    protected List<Annotation> renderedAnnotations = new ArrayList<>();
 
     public void addRenderer(AnnotationRenderer renderer) {
         renderer.initialize(this);
@@ -49,8 +50,8 @@ public class AnnotationRenderService {
     public void recalculateRendered(long position) {
         renderedAnnotations.clear();
 
-        for (Annotation a : annotations) {
-            if (a.getStartTime() < position) renderedAnnotations.add(a);
+        for (Annotation annotation : annotations) {
+            if (annotation.getTime() < position) renderedAnnotations.add(annotation);
         }
     }
 
@@ -60,12 +61,12 @@ public class AnnotationRenderService {
      * @param position current playback position in milliseconds
      */
     public void render(long position) {
-        for (Annotation a : annotations) {
-            if (a.getStartTime() > position) continue;
-            if (renderedAnnotations.contains(a)) continue;
+        for (Annotation annotation : annotations) {
+            if (annotation.getTime() > position) continue;
+            if (renderedAnnotations.contains(annotation)) continue;
 
-            renderQueue.add(a);
-            renderedAnnotations.add(a);
+            renderQueue.add(annotation);
+            renderedAnnotations.add(annotation);
         }
 
         clear();
@@ -83,8 +84,8 @@ public class AnnotationRenderService {
         long closestPosition = -1;
         long smallestDifference = RENDERING_FUZZINESS;
 
-        for (Annotation a : annotations) {
-            long time = a.getStartTime();
+        for (Annotation annotation : annotations) {
+            long time = annotation.getTime();
             long difference = Math.abs(position - time);
 
             if (difference > RENDERING_FUZZINESS) continue;
@@ -99,9 +100,9 @@ public class AnnotationRenderService {
         // Abort if no annotations were found
         if (closestPosition == -1) return;
 
-        for (Annotation a : annotations) {
-            long time = a.getStartTime();
-            if (time == closestPosition) renderQueue.add(a);
+        for (Annotation annotation : annotations) {
+            long time = annotation.getTime();
+            if (time == closestPosition) renderQueue.add(annotation);
         }
 
         postRenderQueue();

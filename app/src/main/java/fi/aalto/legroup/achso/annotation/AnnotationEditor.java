@@ -2,6 +2,8 @@ package fi.aalto.legroup.achso.annotation;
 
 import android.graphics.PointF;
 
+import fi.aalto.legroup.achso.entities.Annotation;
+
 /**
  * @author Leo Nikkilä
  */

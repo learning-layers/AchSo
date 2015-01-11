@@ -1,13 +1,15 @@
 package fi.aalto.legroup.achso.activity;
 
 import android.animation.ObjectAnimator;
-import android.app.ActionBar;
 import android.content.Intent;
 import android.graphics.PointF;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.format.DateUtils;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -20,46 +22,50 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.bugsnag.android.Bugsnag;
+import com.squareup.otto.Subscribe;
+
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import javax.annotation.Nonnull;
 
 import fi.aalto.legroup.achso.R;
-import fi.aalto.legroup.achso.annotation.Annotation;
 import fi.aalto.legroup.achso.annotation.AnnotationEditor;
-import fi.aalto.legroup.achso.annotation.AnnotationFactory;
-import fi.aalto.legroup.achso.database.SemanticVideo;
-import fi.aalto.legroup.achso.database.VideoDBHelper;
+import fi.aalto.legroup.achso.entities.Annotation;
+import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.fragment.VideoPlayerFragment;
-import fi.aalto.legroup.achso.remote.RemoteResultCache;
+import fi.aalto.legroup.achso.helper.QRHelper;
+import fi.aalto.legroup.achso.helper.VideoHelper;
+import fi.aalto.legroup.achso.util.App;
+import fi.aalto.legroup.achso.util.ExportCreatorTask;
+import fi.aalto.legroup.achso.util.ExportCreatorTaskResultEvent;
 import fi.aalto.legroup.achso.util.RepeatingTask;
 import fi.aalto.legroup.achso.view.MarkedSeekBar;
 
 /**
  * Handles view logic for the video player controls. Actual playback is handled by
  * VideoPlayerFragment.
- *
- * TODO: Extract annotation editing into a separate Fragment.
+ * <p/>
+ * TODO: Extract annotation editing into a separate fragment.
  */
-public final class VideoPlayerActivity extends FragmentActivity implements AnnotationEditor,
-        VideoPlayerFragment.PlaybackStateListener, SeekBar.OnSeekBarChangeListener {
+public final class VideoPlayerActivity extends ActionBarActivity implements AnnotationEditor,
+        VideoPlayerFragment.PlaybackStateListener, SeekBar.OnSeekBarChangeListener,
+        View.OnClickListener {
 
-    public static final String ARG_ITEM_ID = "ARG_ITEM_ID";
-    public static final String ARG_ITEM_CACHE_POSITION = "ARG_ITEM_CACHE_POSITION";
+    public static final String ARG_VIDEO_ID = "ARG_VIDEO_ID";
 
     // How long the user can be inactive before the controls get hidden (in milliseconds)
     private static final int CONTROLS_HIDE_DELAY = 5000;
 
     // Animation duration for hiding and showing controls (in milliseconds)
     private static final int CONTROLS_ANIMATION_DURATION = 300;
-
-    // How far should the forwards/backwards buttons skip (in milliseconds)
-    private static final int SKIP_AMOUNT = 10000;
-
-    private ActionBar actionBar;
 
     private VideoPlayerFragment playerFragment;
 
@@ -69,18 +75,16 @@ public final class VideoPlayerActivity extends FragmentActivity implements Annot
 
     private ImageButton playPauseButton;
     private TextView elapsedTimeText;
-    private TextView totalTimeText;
     private MarkedSeekBar seekBar;
 
+    private Toolbar toolbar;
     private Button deleteButton;
     private Button saveButton;
     private EditText annotationText;
 
-    private SemanticVideo video;
+    private Video video;
 
-    private AnnotationFactory annotationFactory;
-
-    private VideoDBHelper dbHelper;
+    private Uri intentFile;
 
     private Handler controllerVisibilityHandler = new Handler();
     private SeekBarUpdater seekBarUpdater = new SeekBarUpdater();
@@ -88,87 +92,61 @@ public final class VideoPlayerActivity extends FragmentActivity implements Annot
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        App.bus.register(this);
         setContentView(R.layout.activity_video_player);
 
-        actionBar = getActionBar();
+        Intent intent = this.getIntent();
+        this.intentFile = intent.getData();
 
-        if (actionBar != null) actionBar.setDisplayHomeAsUpEnabled(true);
+        this.toolbar = (Toolbar) this.findViewById(R.id.toolbar);
 
-        dbHelper = new VideoDBHelper(this);
-        annotationFactory = new AnnotationFactory();
+        setSupportActionBar(this.toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         controlsOverlay = (RelativeLayout) findViewById(R.id.controlsOverlay);
         playbackControls = (LinearLayout) findViewById(R.id.playbackControls);
         playPauseButton = (ImageButton) findViewById(R.id.playPauseButton);
         elapsedTimeText = (TextView) findViewById(R.id.elapsedTimeText);
-        totalTimeText = (TextView) findViewById(R.id.totalTimeText);
         seekBar = (MarkedSeekBar) findViewById(R.id.seekBar);
 
+        playPauseButton.setOnClickListener(this);
+
         seekBar.setOnSeekBarChangeListener(this);
-
-        Long videoId = getIntent().getLongExtra(ARG_ITEM_ID, -1);
-
-        if (videoId == -1) {
-            video = RemoteResultCache.getSelectedVideo();
-        } else {
-            video = VideoDBHelper.getById(videoId);
-        }
-
-        playerFragment = (VideoPlayerFragment)
-                getFragmentManager().findFragmentById(R.id.videoPlayerFragment);
-
-        populateVideoInformation();
     }
 
-    private void refreshRenderedAnnotations() {
-        List<Annotation> annotations;
-
-        if (video.inLocalDB()) {
-            annotations = dbHelper.getAnnotationsById(video.getId());
-        } else {
-            annotations = video.getAnnotations(this);
-        }
-
-        playerFragment.setAnnotations(annotations);
-
-        List<Integer> markers = new ArrayList<Integer>();
-
-        for (Annotation annotation : annotations) {
-            markers.add((int) annotation.getStartTime());
-        }
-
-        seekBar.setMarkers(markers);
-    }
-
-    private void populateVideoInformation() {
-        TextView title = (TextView) findViewById(R.id.videoTitle);
-        TextView genre = (TextView) findViewById(R.id.videoGenre);
-
-        title.setText(video.getTitle());
-        genre.setText(video.getGenreText());
-
-        switch (video.getGenre()) {
-            case Problem:
-                genre.setTextColor(getResources().getColor(R.color.achso_red));
-                break;
-
-            case GoodWork:
-                genre.setTextColor(getResources().getColor(R.color.achso_green));
-                break;
-
-            case TrickOfTrade:
-                genre.setTextColor(getResources().getColor(R.color.achso_yellow));
-                break;
-
-            case SiteOverview:
-                genre.setTextColor(getResources().getColor(R.color.achso_blue));
-                break;
-        }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_player, menu);
+        return true;
     }
 
     @Override
     protected void onResumeFragments() {
         super.onResumeFragments();
+
+
+        UUID videoId = null;
+        if (this.intentFile != null) {
+            String filename = new File(this.intentFile.getPath()).getName();
+            VideoHelper.moveFile(this.intentFile, App.localStorageDirectory.getPath() + "/");
+            videoId = VideoHelper.unpackAchsoFile(filename);
+            App.videoInfoRepository.invalidateAll();
+        } else {
+            videoId = (UUID) getIntent().getSerializableExtra(ARG_VIDEO_ID);
+        }
+
+        try {
+            video = App.videoRepository.get(videoId);
+            populateVideoInformation();
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(this, R.string.storage_error, Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
+
+        playerFragment = (VideoPlayerFragment)
+                getFragmentManager().findFragmentById(R.id.videoPlayerFragment);
 
         try {
             playerFragment.setVideo(video);
@@ -178,12 +156,14 @@ public final class VideoPlayerActivity extends FragmentActivity implements Annot
             playerFragment.prepare();
         } catch (IOException e) {
             // TODO: Show error message
+            Bugsnag.notify(e);
             e.printStackTrace();
         }
     }
 
     @Override
     protected void onPause() {
+        App.bus.unregister(this);
         seekBarUpdater.stop();
         controllerVisibilityHandler.removeCallbacksAndMessages(null);
 
@@ -191,41 +171,101 @@ public final class VideoPlayerActivity extends FragmentActivity implements Annot
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        App.bus.register(this);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        List<UUID> videos = Arrays.asList(video.getId());
+
         switch (item.getItemId()) {
             case android.R.id.home:
                 finish();
+                return true;
+
+            case R.id.action_share:
+                new ExportCreatorTask(this).execute(video.getId());
+                return true;
+
+            case R.id.action_view_video_info:
+                Intent informationIntent = new Intent(this, InformationActivity.class);
+                informationIntent.putExtra(InformationActivity.ARG_VIDEO_ID, video.getId());
+                startActivity(informationIntent);
+                return true;
+
+            case R.id.action_delete:
+                VideoHelper.deleteVideos(VideoPlayerActivity.this, videos, null);
                 return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    public void togglePlayback(View view) {
+
+    @Subscribe
+    public void onExportCreatorTaskResult(ExportCreatorTaskResultEvent event) {
+        List<Uri> uris = event.getResult();
+
+        if (uris == null) {
+            App.showError(R.string.error_sharing);
+            return;
+        }
+
+        Intent sharingIntent = null;
+
+        if (uris.size() > 1) {
+            ArrayList<Uri> uriList = new ArrayList<>(uris);
+            sharingIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
+            sharingIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uriList);
+        } else {
+            sharingIntent = new Intent(Intent.ACTION_SEND);
+            sharingIntent.putExtra(Intent.EXTRA_STREAM, uris.get(0));
+        }
+
+        sharingIntent.setType("application/achso");
+
+        this.startActivity(Intent.createChooser(sharingIntent,
+                this.getResources().getText(R.string.video_share)));
+    }
+
+    /**
+     * Called when a view with this listener is clicked.
+     */
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.playPauseButton:
+                togglePlayback();
+                break;
+        }
+    }
+
+    private void populateVideoInformation() {
+        toolbar.setTitle(video.getTitle());
+        toolbar.setSubtitle(video.getGenre());
+    }
+
+    private void refreshRenderedAnnotations() {
+        List<Annotation> annotations = video.getAnnotations();
+        List<Integer> markers = new ArrayList<>();
+
+        playerFragment.setAnnotations(annotations);
+
+        for (Annotation annotation : annotations) {
+            markers.add((int) annotation.getTime());
+        }
+
+        seekBar.setMarkers(markers);
+    }
+
+    public void togglePlayback() {
         if (playerFragment.getState() == VideoPlayerFragment.State.PLAYING) {
             playerFragment.pause();
         } else {
             playerFragment.play();
         }
-    }
-
-    public void skipForward(View view) {
-        long position = playerFragment.getPlaybackPosition() + SKIP_AMOUNT;
-        long end = playerFragment.getDuration();
-
-        if (position > end) position = end;
-
-        playerFragment.seekTo(position);
-        seekBarUpdater.doWork();
-    }
-
-    public void skipBackward(View view) {
-        long position = playerFragment.getPlaybackPosition() - SKIP_AMOUNT;
-
-        if (position < 0) position = 0;
-
-        playerFragment.seekTo(position);
-        seekBarUpdater.doWork();
     }
 
     private void anchorSubtitleContainerTo(View view) {
@@ -243,10 +283,9 @@ public final class VideoPlayerActivity extends FragmentActivity implements Annot
         cancelControlsOverlayHide();
 
         controlsOverlay.animate().alpha(1).setDuration(CONTROLS_ANIMATION_DURATION).start();
+        toolbar.animate().translationY(0).setDuration(CONTROLS_ANIMATION_DURATION).start();
 
         anchorSubtitleContainerTo(playbackControls);
-
-        if (actionBar != null) actionBar.show();
     }
 
     /**
@@ -259,11 +298,12 @@ public final class VideoPlayerActivity extends FragmentActivity implements Annot
                 // Don't hide if we're paused
                 if (playerFragment.getState() == VideoPlayerFragment.State.PAUSED) return;
 
+
+                toolbar.animate().translationY(-toolbar.getHeight()).setDuration(
+                        CONTROLS_ANIMATION_DURATION).start();
                 controlsOverlay.animate().alpha(0).setDuration(CONTROLS_ANIMATION_DURATION).start();
 
                 anchorSubtitleContainerTo(null);
-
-                if (actionBar != null) actionBar.hide();
             }
         }, CONTROLS_HIDE_DELAY);
     }
@@ -276,15 +316,24 @@ public final class VideoPlayerActivity extends FragmentActivity implements Annot
     }
 
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        QRHelper.readQRCodeResult(this, requestCode, resultCode, data);
+    }
+
+    @Override
     public void createAnnotation(PointF position) {
         // Allow creating annotations only when paused
         if (playerFragment.getState() != VideoPlayerFragment.State.PAUSED) return;
 
         long time = playerFragment.getPlaybackPosition();
-        Annotation annotation = annotationFactory.create(video, time, position);
 
-        dbHelper.insert(annotation);
-        dbHelper.close();
+        Annotation annotation = new Annotation(time, position, "", App.loginManager.getUser());
+
+        video.getAnnotations().add(annotation);
+
+        if (!video.save()) {
+            Toast.makeText(this, R.string.storage_error, Toast.LENGTH_LONG).show();
+        }
 
         editAnnotation(annotation);
 
@@ -295,8 +344,9 @@ public final class VideoPlayerActivity extends FragmentActivity implements Annot
     public void moveAnnotation(Annotation annotation, PointF position) {
         annotation.setPosition(position);
 
-        dbHelper.update(annotation);
-        dbHelper.close();
+        if (!video.save()) {
+            Toast.makeText(this, R.string.storage_error, Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
@@ -312,8 +362,10 @@ public final class VideoPlayerActivity extends FragmentActivity implements Annot
 
                 annotation.setText(text);
 
-                dbHelper.update(annotation);
-                dbHelper.close();
+                if (!video.save()) {
+                    Toast.makeText(VideoPlayerActivity.this, R.string.storage_error,
+                            Toast.LENGTH_LONG).show();
+                }
 
                 refreshRenderedAnnotations();
 
@@ -324,8 +376,12 @@ public final class VideoPlayerActivity extends FragmentActivity implements Annot
         deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                dbHelper.delete(annotation);
-                dbHelper.close();
+                video.getAnnotations().remove(annotation);
+
+                if (!video.save()) {
+                    Toast.makeText(VideoPlayerActivity.this, R.string.storage_error,
+                            Toast.LENGTH_LONG).show();
+                }
 
                 refreshRenderedAnnotations();
 
@@ -358,12 +414,6 @@ public final class VideoPlayerActivity extends FragmentActivity implements Annot
         anchorSubtitleContainerTo(playbackControls);
     }
 
-    public void launchInformationActivity(View view) {
-        Intent informationIntent = new Intent(this, InformationActivity.class);
-        informationIntent.putExtra(ARG_ITEM_ID, video.getId());
-        startActivity(informationIntent);
-    }
-
     /**
      * Fired when the player fragment changes state.
      */
@@ -388,7 +438,6 @@ public final class VideoPlayerActivity extends FragmentActivity implements Annot
 
             case PAUSED:
                 showControlsOverlay();
-
                 playPauseButton.setImageResource(R.drawable.ic_action_play);
                 break;
 
@@ -400,20 +449,15 @@ public final class VideoPlayerActivity extends FragmentActivity implements Annot
     }
 
     /**
-     * Fired when the seek bar value changes. Updates the elapsed and total time text views to
-     * reflect the state of the seek bar and tells the player fragment to seek if the change was
-     * user-initiated.
+     * Fired when the seek bar value changes. Updates the elapsed time to reflect the state of the
+     * seek bar and tells the player fragment to seek if the change was user-initiated.
      */
     @Override
     public void onProgressChanged(SeekBar bar, int progress, boolean fromUser) {
         long elapsedTime = (long) (progress / 1000f);
-        long totalTime = (long) (bar.getMax() / 1000f);
-
         String elapsedTimeString = DateUtils.formatElapsedTime(elapsedTime);
-        String totalTimeString = DateUtils.formatElapsedTime(totalTime);
 
         elapsedTimeText.setText(elapsedTimeString);
-        totalTimeText.setText(totalTimeString);
 
         if (fromUser) playerFragment.seekTo(progress);
     }
@@ -489,5 +533,6 @@ public final class VideoPlayerActivity extends FragmentActivity implements Annot
         }
 
     }
+
 
 }

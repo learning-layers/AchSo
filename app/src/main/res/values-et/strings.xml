@@ -2,7 +2,7 @@
 
 <resources>
 
-    <string name="app_name">Ach So</string>
+    <string name="app_name">Ach so!</string>
     <string name="title_item_detail">Omadused</string>
     <string name="my_videos">Minu videod</string>
     <string name="loading">Laeb</string>
@@ -11,12 +11,7 @@
     <string name="title_activity_genre_selection">Vali video tp</string>
     <string name="title_activity_information">Video info</string>
     <string name="action_settings">Seaded</string>
-    <string name="select_genre">Milline video see oli?</string>
-
-    <string name="good_work_genre">Hea t</string>
-    <string name="problem_genre">Probleem</string>
-    <string name="site_overview_genre">levaade</string>
-    <string name="trick_of_trade_genre">Tvte</string>
+    <string name="genre_selection_title">Milline video see oli?</string>
 
     <string name="delete">Kustuta</string>
     <string name="upload">Lae les</string>
@@ -25,7 +20,6 @@
     <string name="deletion_question">Kas sa tahad kustutada valitud video(d) ja seotud mrkused?</string>
 
     <string name="first_page">Kik videod</string>
-    <string name="storage_error">Video salvestamise viga</string>
     <string name="detailed_storage_error">Viga video ladustamisele ligipsuga. Kas SD kaart on seadmesse sisestatud</string>
 
     <string name="login_description">Sisene serverisse</string>
@@ -67,13 +61,6 @@
 
     <string name="remote_video_separator">Vlised videod</string>
 
-    <!-- ENGLISH GENRES BEGIN -->
-    <string name="good_work_genre_english">Good work</string>           <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
-    <string name="problem_genre_english">Problem</string>               <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
-    <string name="site_overview_genre_english">Site overview</string>   <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
-    <string name="trick_of_trade_genre_english">Trick of trade</string>   <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
-    <!-- ENGLISH GENRES END -->
-
     <string name="keep">Keep</string>
     <string name="url_found_label">Found link:</string>
     <string name="open_in_browser">Open in browser</string>
@@ -109,5 +96,12 @@
     <string name="no">Ei</string>
     <string name="logged_out">Logged out.</string>
     <string name="login_error">Could not log in: %s</string>
+
+    <string-array name="genre_values">
+        <item>Hea t</item>
+        <item>Probleem</item>
+        <item>levaade</item>
+        <item>Tvte</item>
+    </string-array>
 
 </resources>

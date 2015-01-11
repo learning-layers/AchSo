@@ -1,11 +1,13 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <fragment
-        android:name="fi.aalto.legroup.achso.fragment.VideoPlayerFragment"
         android:id="@+id/videoPlayerFragment"
+        android:name="fi.aalto.legroup.achso.fragment.VideoPlayerFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:layout="@layout/fragment_video_player" />
@@ -13,66 +15,23 @@
     <RelativeLayout
         android:id="@+id/controlsOverlay"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fitsSystemWindows="true">
+        android:layout_height="match_parent">
 
-        <LinearLayout
-            android:orientation="horizontal"
+        <include
+            layout="@layout/partial_toolbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:background="#AA000000"
-            android:paddingLeft="@dimen/container_horizontal_padding"
-            android:paddingRight="@dimen/container_horizontal_padding"
-            android:paddingTop="@dimen/container_vertical_padding"
-            android:paddingBottom="@dimen/container_vertical_padding"
-            android:layout_marginLeft="0dp"
-            android:layout_marginTop="0dp"
-            android:layout_alignParentTop="true">
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/videoTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Title"
-                    android:textAppearance="?android:attr/textAppearanceMedium" />
-
-                <TextView
-                    android:id="@+id/videoGenre"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Genre"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:textColor="@android:color/secondary_text_dark" />
-            </LinearLayout>
-
-            <ImageButton
-                style="@android:style/Widget.Holo.Button.Borderless"
-                android:id="@+id/more_information_button"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/ic_information"
-                android:contentDescription="@string/title_activity_information"
-                android:onClick="launchInformationActivity" />
-
-        </LinearLayout>
-
-        <ViewStub
-            android:layout="@layout/partial_annotation_controls"
-            android:id="@+id/annotationControls"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true" />
+            android:layout_height="wrap_content" />
 
         <include
             layout="@layout/partial_playback_controls"
             android:id="@+id/playbackControls"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true" />
+
+        <ViewStub
+            android:layout="@layout/partial_annotation_controls"
+            android:id="@+id/annotationControls"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true" />

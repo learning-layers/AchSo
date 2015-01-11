@@ -15,6 +15,7 @@ import fi.aalto.legroup.achso.authenticator.Authenticator;
 import fi.aalto.legroup.achso.util.App;
 
 import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
+import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
 
@@ -66,7 +67,12 @@ public class AuthenticatedHttpClient {
 
     public boolean accessDenied(Response response) {
         int code = response.code();
-        return code == HTTP_UNAUTHORIZED || code == HTTP_FORBIDDEN || code == HTTP_NOT_FOUND;
+
+        // FIXME: The internal error is for SSS when tokens are expired
+        return code == HTTP_UNAUTHORIZED
+                || code == HTTP_FORBIDDEN
+                || code == HTTP_NOT_FOUND
+                || code == HTTP_INTERNAL_ERROR;
     }
 
 }

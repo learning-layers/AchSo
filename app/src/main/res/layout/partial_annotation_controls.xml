@@ -1,21 +1,24 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#AA000000"
     android:gravity="center_horizontal"
-    android:paddingLeft="@dimen/container_horizontal_padding"
-    android:paddingRight="@dimen/container_horizontal_padding"
-    android:paddingTop="@dimen/container_vertical_padding"
-    android:paddingBottom="@dimen/container_vertical_padding">
+    android:theme="@style/Theme.AppCompat.Dialog"
+    android:background="@drawable/floating_controls_background"
+    android:elevation="8dp">
 
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/annotationText"
-        android:text="Lorem ipsum dolor sit amet"
         android:layout_marginBottom="8dp"
-        android:inputType="text" />
+        android:inputType="text"
+        android:hint="@string/annotation_hint">
+
+        <requestFocus />
+
+    </EditText>
 
     <LinearLayout
         android:orientation="horizontal"

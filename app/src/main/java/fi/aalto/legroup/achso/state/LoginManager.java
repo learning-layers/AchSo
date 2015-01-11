@@ -3,18 +3,23 @@ package fi.aalto.legroup.achso.state;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.AsyncTask;
-import android.support.v4.content.LocalBroadcastManager;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
+import com.squareup.otto.Bus;
+import com.squareup.otto.Produce;
+import com.squareup.otto.Subscribe;
 
 import java.io.IOException;
 
+import fi.aalto.legroup.achso.R;
+import fi.aalto.legroup.achso.authenticator.Authenticator;
+import fi.aalto.legroup.achso.entities.User;
 import fi.aalto.legroup.achso.util.App;
 import fi.aalto.legroup.achso.util.OIDCConfig;
 
@@ -23,6 +28,8 @@ import fi.aalto.legroup.achso.util.OIDCConfig;
  */
 public class LoginManager {
 
+    private final User defaultUser;
+
     public enum LoginState {
         LOGGED_OUT,
         LOGGING_IN,
@@ -30,25 +37,24 @@ public class LoginManager {
         LOGGING_OUT
     }
 
-    // For broadcasting the login state
-    public static final String ACTION_LOGIN_STATE_CHANGED = "fi.aalto.legroup.achso.ACTION_LOGIN_STATE_CHANGED";
-    public static final String ACTION_LOGIN_ERROR = "fi.aalto.legroup.achso.ACTION_LOGIN_ERROR";
-    public static final String KEY_LOGIN_STATE = "KEY_LOGIN_STATE";
-    public static final String KEY_MESSAGE = "KEY_MESSAGE";
-
     // Keys for storing the auto-login preferences
     protected static final String PREFS_NAME = "AchSoLoginManagerPrefs";
     protected static final String PREFS_AUTO_LOGIN_ACCOUNT = "autoLoginAccount";
 
     protected Context context;
+    protected Bus bus;
     protected Account account;
     protected JsonObject userInfo;
+    protected User user;
 
     private LoginState state = LoginState.LOGGED_OUT;
 
-    public LoginManager(Context context) {
-        // Ensure that we get the app-wide context, we don't want it to die
-        this.context = context.getApplicationContext();
+    public LoginManager(Context context, Bus bus) {
+        this.context = context;
+        this.bus = bus;
+        this.defaultUser = new User(context.getString(R.string.author_is_unknown), Uri.EMPTY);
+
+        bus.register(this);
     }
 
     /**
@@ -64,7 +70,8 @@ public class LoginManager {
         if (accountName == null) return;
 
         AccountManager accountManager = AccountManager.get(context);
-        Account[] availableAccounts = accountManager.getAccountsByType(App.ACHSO_ACCOUNT_TYPE);
+        String accountType = Authenticator.ACH_SO_ACCOUNT_TYPE;
+        Account[] availableAccounts = accountManager.getAccountsByType(accountType);
 
         // Find the stored account and use it to log in
         for (Account availableAccount : availableAccounts) {
@@ -115,8 +122,16 @@ public class LoginManager {
 
     public JsonObject getUserInfo() { return userInfo; }
 
+    public User getUser() {
+        if (user == null) {
+            return defaultUser;
+        }
+
+        return user;
+    }
+
     public boolean isLoggedIn() {
-        return state == LoginState.LOGGED_IN;
+        return state == LoginState.LOGGED_IN || isLoggingOut();
     }
 
     public boolean isLoggingIn() {
@@ -124,7 +139,7 @@ public class LoginManager {
     }
 
     public boolean isLoggedOut() {
-        return state == LoginState.LOGGED_OUT;
+        return state == LoginState.LOGGED_OUT || isLoggingIn();
     }
 
     public boolean isLoggingOut() {
@@ -139,24 +154,29 @@ public class LoginManager {
     protected void setState(LoginState state) {
         this.state = state;
 
-        Intent intent = new Intent();
-        intent.setAction(ACTION_LOGIN_STATE_CHANGED);
-        intent.putExtra(KEY_LOGIN_STATE, state);
-
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        bus.post(produceLoginState());
     }
 
-    /**
-     * Broadcasts a login error
-     *
-     * @param errorMessage a message describing the error
-     */
-    protected void broadcastError(String errorMessage) {
-        Intent intent = new Intent();
-        intent.setAction(ACTION_LOGIN_ERROR);
-        intent.putExtra(KEY_MESSAGE, errorMessage);
+    @Produce
+    public LoginStateEvent produceLoginState() {
+        return new LoginStateEvent(state);
+    }
 
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+    @Subscribe
+    public void onLoginRequest(LoginRequestEvent event) {
+        switch (event.getType()) {
+            case LOGIN:
+                login();
+                break;
+
+            case LOGOUT:
+                logout();
+                break;
+
+            case EXPLICIT_LOGOUT:
+                logoutExplicitly();
+                break;
+        }
     }
 
     /**
@@ -186,7 +206,11 @@ public class LoginManager {
 
                 if (response.isSuccessful()) {
                     String body = response.body().string();
+
                     userInfo = new JsonParser().parse(body).getAsJsonObject();
+
+                    // TODO: Provide a real URI
+                    user = new User(userInfo.get("name").getAsString(), Uri.EMPTY);
                 } else {
                     return "Couldn't fetch user info: " +
                             response.code() + " " + response.message();
@@ -207,7 +231,7 @@ public class LoginManager {
         @Override
         protected void onPostExecute(String error) {
             if (error != null) {
-                broadcastError(error);
+                bus.post(new LoginErrorEvent(error));
                 setState(LoginState.LOGGED_OUT);
                 return;
             }

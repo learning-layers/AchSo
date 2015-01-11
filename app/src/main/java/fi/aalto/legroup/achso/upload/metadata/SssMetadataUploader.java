@@ -1,6 +1,9 @@
 package fi.aalto.legroup.achso.upload.metadata;
 
-import android.util.Log;
+import android.accounts.Account;
+import android.location.Location;
+import android.net.Uri;
+import android.support.annotation.Nullable;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -8,28 +11,33 @@ import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
+import com.squareup.otto.Bus;
 
-import fi.aalto.legroup.achso.database.SemanticVideo;
+import java.io.IOException;
+
+import fi.aalto.legroup.achso.entities.Annotation;
+import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.upload.Uploader;
 import fi.aalto.legroup.achso.util.App;
 
 /**
  * Uploads metadata from videos to a Social Semantic Server instance.
  *
+ * TODO: Extract API stuff into an API wrapper.
+ *
  * @author Leo Nikkilä
  */
 public class SssMetadataUploader extends Uploader {
 
-    private final String TAG = getClass().getSimpleName();
-
-    private String endpointUrl;
+    protected final Uri endpointUrl;
 
     /**
      * Constructs the uploader.
      *
      * @param endpointUrl the endpoint for the metadata post request
      */
-    public SssMetadataUploader(String endpointUrl) {
+    public SssMetadataUploader(Bus bus, Uri endpointUrl) {
+        super(bus);
         this.endpointUrl = endpointUrl;
     }
 
@@ -41,36 +49,124 @@ public class SssMetadataUploader extends Uploader {
      * @param video the video whose data will be uploaded
      */
     @Override
-    public void upload(SemanticVideo video) {
-        JsonObject jsonRequest = new JsonObject();
-
-        Log.w(TAG, "Upload not yet implemented, sending an empty request body!");
-
-        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"),
-                jsonRequest.toString());
-
-        listener.onUploadStart(video);
-
-        Request request = new Request.Builder()
-                .url(endpointUrl)
-                .header("Accept", "application/json")
-                .post(requestBody)
-                .build();
-
+    public void handle(Video video) throws Exception {
         try {
-            Response response = App.httpClient.newCall(request).execute();
-            String jsonBody = response.body().string();
-            JsonObject body = new JsonParser().parse(jsonBody).getAsJsonObject();
+            String videoId = createVideo(video);
 
-            if (response.isSuccessful()) {
-                listener.onUploadFinish(video);
-            } else {
-                String firstErrorMessage = body.getAsJsonArray("errorMsg").get(0).getAsString();
-                listener.onUploadError(video, firstErrorMessage);
+            for (Annotation annotation : video.getAnnotations()) {
+                createAnnotation(videoId, annotation);
             }
         } catch (Exception e) {
-            listener.onUploadError(video, "Could not upload metadata: " + e.getMessage());
+            throw new Exception("Couldn't upload to SSS: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Returns true if the chain should be broken when this uploader fails, false otherwise.
+     */
+    @Override
+    protected boolean isCritical() {
+        return true;
+    }
+
+    /**
+     * Stores the metadata of a video publicly.
+     *
+     * @param video Video whose metadata should be written.
+     * @return Identifier of the created video.
+     * @throws IOException
+     */
+    protected String createVideo(Video video) throws IOException {
+        JsonObject parameters = new JsonObject();
+
+        parameters.addProperty("uuid", video.getId().toString());
+        parameters.addProperty("link", video.getVideoUri().toString());
+        parameters.addProperty("label", video.getTitle());
+        parameters.addProperty("genre", video.getGenre());
+
+        // Date#getTime returns microseconds since the epoch but a UNIX timestamp is needed, i.e.
+        // milliseconds since the epoch.
+        parameters.addProperty("creationTime", video.getDate().getTime() / 1000);
+
+        Location location = video.getLocation();
+
+        if (location != null) {
+            parameters.addProperty("latitude", location.getLatitude());
+            parameters.addProperty("longitude", location.getLongitude());
+            parameters.addProperty("accuracy", location.getAccuracy());
+        }
+
+        Uri url = endpointUrl.buildUpon().appendPath("videos").build();
+
+        String videoUriString = post(url, parameters).get("video").getAsString();
+        Uri videoUri = Uri.parse(videoUriString);
+
+        return videoUri.getLastPathSegment();
+    }
+
+    /**
+     * Stores the metadata of an annotation.
+     *
+     * @param videoId Identifier of the video to which the annotation should be linked.
+     * @param annotation Annotation to write.
+     * @return Identifier of the created annotation.
+     * @throws IOException
+     */
+    protected String createAnnotation(String videoId, Annotation annotation) throws IOException {
+        JsonObject parameters = new JsonObject();
+
+        parameters.addProperty("label", annotation.getText());
+        parameters.addProperty("timePoint", annotation.getTime());
+        parameters.addProperty("x", annotation.getPosition().x);
+        parameters.addProperty("y", annotation.getPosition().y);
+
+        Uri url = endpointUrl.buildUpon()
+                .appendPath("videos")
+                .appendPath("videos")
+                .appendPath(videoId)
+                .appendPath("annotations")
+                .build();
+
+        return post(url, parameters).get("annotation").getAsString();
+    }
+
+    private JsonObject post(Uri url, JsonObject parameters) throws IOException {
+        return makeRequest("POST", url, parameters);
+    }
+
+    private JsonObject makeRequest(String method, Uri url, @Nullable JsonObject parameters)
+            throws IOException {
+
+        RequestBody requestBody = null;
+
+        if (parameters != null) {
+            requestBody = RequestBody.create(MediaType.parse("application/json"),
+                    parameters.toString());
+        }
+
+        Request request = new Request.Builder()
+                .url(url.toString())
+                .header("Accept", "application/json")
+                .method(method, requestBody)
+                .build();
+
+        Account account = App.loginManager.getAccount();
+        Response response = App.authenticatedHttpClient.execute(request, account);
+
+        String responseBody = response.body().string();
+        JsonObject body = new JsonParser().parse(responseBody).getAsJsonObject();
+
+        if (!response.isSuccessful()) {
+            String errorMessage = response.code() + " " + response.message();
+
+            if (body.has("message")) {
+                errorMessage += ": " + body.get("message").getAsString();
+            }
+
+            throw new IOException(errorMessage);
+        }
+
+        return body.getAsJsonObject();
     }
 
 }
