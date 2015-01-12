@@ -96,6 +96,7 @@ public class SearchActivity extends ActionBarActivity {
 
     @Override
     protected void onNewIntent(Intent intent) {
+        this.matches.clear();
         handleIntent(intent);
     }
 
