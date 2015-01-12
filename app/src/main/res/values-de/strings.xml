@@ -2,7 +2,7 @@
 
 <resources>
 
-    <string name="app_name">Ach So</string>
+    <string name="app_name">Ach so!</string>
     <string name="title_item_detail">Objektdetails</string>
     <string name="my_videos">Meine Videos</string>
     <string name="loading">Laden...</string>
@@ -11,11 +11,7 @@
     <string name="title_activity_genre_selection">Bitte wählen Sie einen Video-Typen</string>
     <string name="title_activity_information">Video-Informationen</string>
     <string name="action_settings">Einstellungen</string>
-    <string name="select_genre">Was für ein Video war das?</string>
-    <string name="good_work_genre">Gute Arbeit</string>
-    <string name="problem_genre">Problem</string>
-    <string name="site_overview_genre">Standortüberblick</string>
-    <string name="trick_of_trade_genre">How-To</string>
+    <string name="genre_selection_title">Was für ein Video war das?</string>
     <string name="delete">Löschen</string>
     <string name="upload">Hochladen</string>
     <string name="qr_to_video">QR-Code hinzufügen</string>
@@ -23,7 +19,6 @@
     <string name="deletion_question">Möchten Sie die ausgewählten Videos und Annotationen wirklich löschen?</string>
 
     <string name="first_page">Alle Videos</string>
-    <string name="storage_error">Speicherfehler</string>
     <string name="detailed_storage_error">Fehler beim Zugriff auf den Videospeicher. Ist eine SD-Karte vorhanden?</string>
 
     <string name="login_description">Server-Login</string>
@@ -39,7 +34,7 @@
     <string name="location_not_enabled">Standortdienste deaktiviert</string>
     <string name="location_not_enabled_text">Auf dem Gerät sind Standortdienste deaktiviert. Möchten Sie sie jetzt aktivieren?</string>
 
-    <string name="ok">Ok</string>
+    <string name="ok">OK</string>
     <string name="cancel">Abbrechen</string>
 
     <string name="edit_text">Text bearbeiten</string>
@@ -64,14 +59,6 @@
     <string name="title_activity_search">Suchen</string>
 
     <string name="remote_video_separator">Videos auf dem Server</string>
-
-    <!-- ENGLISH GENRES BEGIN -->
-    <string name="good_work_genre_english">Good work</string>           <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
-    <string name="problem_genre_english">Problem</string>               <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
-    <string name="site_overview_genre_english">Site overview</string>   <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
-    <string name="trick_of_trade_genre_english">Trick of trade</string> <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
-    <!-- ENGLISH GENRES END -->
-
 
     <string name="url_found_label">Link gefunden:</string>
     <string name="open_in_browser">Öffne im Browser</string>
@@ -107,5 +94,12 @@
     <string name="no">Nein</string>
     <string name="logged_out">Logged out.</string>
     <string name="login_error">Could not log in: %s</string>
+
+    <string-array name="genre_values">
+        <item>Gute Arbeit</item>
+        <item>Problem</item>
+        <item>Standortüberblick</item>
+        <item>How-To</item>
+    </string-array>
 
 </resources>

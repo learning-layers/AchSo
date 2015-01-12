@@ -44,7 +44,7 @@
         <fragment
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:name="fi.aalto.legroup.achso.fragment.InformationFragment"
+            android:name="fi.aalto.legroup.achso.browsing.DetailFragment"
             android:id="@+id/informationFragment"
             tools:layout="@layout/fragment_information" />
 

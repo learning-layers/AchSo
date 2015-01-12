@@ -2,7 +2,7 @@
 
 <resources>
 
-    <string name="app_name">Ach So</string>
+    <string name="app_name">Ach so!</string>
     <string name="title_item_detail">Tiedot</string>
     <string name="my_videos">Omat videot</string>
     <string name="loading">Ladataan</string>
@@ -11,12 +11,7 @@
     <string name="title_activity_genre_selection">Valitse videon lajityyppi</string>
     <string name="title_activity_information">Videon tiedot</string>
     <string name="action_settings">Asetukset</string>
-    <string name="select_genre">Millainen video tämä oli?</string>
-
-    <string name="good_work_genre">Hyvää työtä</string>
-    <string name="problem_genre">Ongelma</string>
-    <string name="site_overview_genre">Yleiskatsaus</string>
-    <string name="trick_of_trade_genre">Ammattilaisen niksi</string>
+    <string name="genre_selection_title">Millainen video tämä oli?</string>
 
     <string name="delete">Poista</string>
     <string name="upload">Lähetä palvelimelle</string>
@@ -25,7 +20,6 @@
     <string name="deletion_question">Haluatko poistaa valitut videot ja merkinnät?</string>
 
     <string name="first_page">Kaikki videot</string>
-    <string name="storage_error">Tallennusvirhe laitteessa</string>
     <string name="detailed_storage_error">Tallennusmuistiin ei saatu yhteyttä. Onko SD-muistikortti laitteessa?</string>
 
     <string name="login_description">Kirjaudu palvelimelle</string>
@@ -41,7 +35,7 @@
     <string name="location_not_enabled">Paikannuspalvelut suljettu</string>
     <string name="location_not_enabled_text">Paikannuspalvelut on kytketty pois päältä. Haluatko laittaa ne päälle?</string>
 
-    <string name="ok">Ok</string>
+    <string name="ok">OK</string>
     <string name="cancel">Peru</string>
     <string name="keep">Tallenna</string>
 
@@ -67,13 +61,6 @@
     <string name="title_activity_search">Hae</string>
 
     <string name="remote_video_separator">Videot palvelimella</string>
-
-    <!-- ENGLISH GENRES BEGIN -->
-    <string name="good_work_genre_english">Good work</string>           <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
-    <string name="problem_genre_english">Problem</string>               <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
-    <string name="site_overview_genre_english">Site overview</string>   <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
-    <string name="trick_of_trade_genre_english">Trick of trade</string>   <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
-    <!-- ENGLISH GENRES END -->
 
     <string name="url_found_label">Löytyi linkki:</string>
     <string name="open_in_browser">Avaa selaimessa</string>
@@ -109,5 +96,12 @@
     <string name="no">Ei</string>
     <string name="logged_out">Logged out.</string>
     <string name="login_error">Could not log in: %s</string>
+
+    <string-array name="genre_values">
+        <item>Hyvää työtä</item>
+        <item>Ongelma</item>
+        <item>Yleiskatsaus</item>
+        <item>Ammattilaisen niksi</item>
+    </string-array>
 
 </resources>

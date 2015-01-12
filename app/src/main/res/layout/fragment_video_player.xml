@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black">
+
+    <fi.aalto.legroup.achso.views.ZoomView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <FrameLayout
+            android:id="@+id/surfaceContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center">
+
+            <TextureView
+                android:id="@+id/videoSurface"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:context=".VideoViewerFragment" />
+
+            <fi.aalto.legroup.achso.views.MarkerCanvas
+                android:id="@+id/markerContainer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </FrameLayout>
+
+    </fi.aalto.legroup.achso.views.ZoomView>
+
+    <LinearLayout
+        android:id="@+id/subtitleContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="96dp"
+        android:orientation="vertical"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true" />
+
+    <ProgressBar
+        android:id="@+id/bufferProgress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:indeterminateOnly="true"
+        android:layout_gravity="center"
+        android:layout_centerInParent="true" />
+
+    <ProgressBar
+        style="?android:attr/progressBarStyleHorizontal"
+        android:id="@+id/pauseProgress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:layout_marginBottom="-8dp"
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_alignParentBottom="true"
+        android:max="1000" />
+
+</RelativeLayout>
+

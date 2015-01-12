@@ -1,0 +1,46 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_horizontal"
+    android:theme="@style/Theme.AppCompat.Dialog"
+    android:background="@drawable/floating_controls_background"
+    android:elevation="8dp">
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/annotationText"
+        android:layout_marginBottom="8dp"
+        android:inputType="text"
+        android:hint="@string/annotation_hint">
+
+        <requestFocus />
+
+    </EditText>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/deleteButton"
+            android:layout_width="fill_parent"
+            android:layout_height="48dp"
+            android:text="@string/delete"
+            android:singleLine="true"
+            android:layout_weight="1" />
+
+        <Button
+            android:id="@+id/saveButton"
+            android:layout_width="fill_parent"
+            android:layout_height="48dp"
+            android:text="@string/save"
+            android:singleLine="true"
+            android:layout_weight="1" />
+
+    </LinearLayout>
+
+</LinearLayout>

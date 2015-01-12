@@ -42,7 +42,7 @@
         android:layout_width="match_parent"
         android:layout_height="fill_parent"
         android:layout_weight="@integer/activity_larger_fragment_weight"
-        android:name="fi.aalto.legroup.achso.fragment.InformationFragment"
+        android:name="fi.aalto.legroup.achso.browsing.DetailFragment"
         android:id="@+id/informationFragment"
         tools:layout="@layout/fragment_information" />
 

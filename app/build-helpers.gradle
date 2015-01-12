@@ -1,0 +1,60 @@
+/**
+ * Executes a process and checks that it returns successfully.
+ *
+ * @param   processArray    A list where the first item is the executable and the rest arguments.
+ * @return                  The executed process.
+ * @throws  IOException     If the process returns a non-zero exit code.
+ */
+Process process(List processArray) {
+    def process = processArray.execute()
+    def status = process.waitFor()
+
+    if (status != 0) {
+        def errors = process.err.text
+        throw new IOException("Process exited with non-zero code $status.\n\n$errors")
+    }
+
+    process
+}
+
+/**
+ * Returns the latest tag, the number of commits after it, and the latest commit SHA. The SHA will
+ * have an asterisk as the suffix if the project contains staged changes.
+ */
+String getVersionName() {
+    def args = ['git', '-C', rootDir, 'describe', '--tags', '--long', '--always', '--dirty=*']
+    def git = this.process(args) as Process
+
+    def (version, build, sha) = git.text.trim().tokenize('-')
+
+    // Remove the g prefix in the SHA that stands for Git
+    sha = sha.replace('g', '')
+
+    "$version ($build @ $sha)"
+}
+
+/**
+ * Returns a UNIX timestamp of the latest commit.
+ */
+long getVersionCode() {
+    def args = ['git', '-C', rootDir, 'show', '--no-patch', '--format=%at']
+    def git = this.process(args) as Process
+
+    git.text.trim() as long
+}
+
+ext {
+    getGitVersions = {
+        def versionName = this.versionName
+        def versionCode = this.versionCode
+
+        print   "\n"
+        println "~~~~~~~~~~~~~~~ VERSION DATA ~~~~~~~~~~~~~~~"
+        println "versionName: $versionName"
+        println "versionCode: $versionCode"
+        println "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        print   "\n"
+
+        [versionName, versionCode]
+    }
+}
