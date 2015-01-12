@@ -1,6 +1,8 @@
 package fi.aalto.legroup.achso.entities;
 
 import android.graphics.PointF;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
 
@@ -9,9 +11,9 @@ import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
  *
  * @author Leo Nikkilä
  */
-public class Annotation implements JsonSerializable {
+public class Annotation implements JsonSerializable, Parcelable {
 
-    protected Long time;
+    protected long time;
     protected PointF position;
     protected String text;
     protected User author;
@@ -26,6 +28,13 @@ public class Annotation implements JsonSerializable {
         this.position = position;
         this.text = text;
         this.author = author;
+    }
+
+    protected Annotation(Parcel parcel) {
+        this.time = parcel.readLong();
+        this.position = (PointF) parcel.readValue(PointF.class.getClassLoader());
+        this.text = parcel.readString();
+        this.author = (User) parcel.readValue(User.class.getClassLoader());
     }
 
     public long getTime() {
@@ -69,5 +78,32 @@ public class Annotation implements JsonSerializable {
     public void setAuthor(User author) {
         this.author = author;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int flags) {
+        parcel.writeLong(this.time);
+        parcel.writeValue(this.position);
+        parcel.writeString(this.text);
+        parcel.writeValue(this.author);
+    }
+
+    public static final Creator<Annotation> CREATOR = new Creator<Annotation>() {
+
+        @Override
+        public Annotation createFromParcel(Parcel parcel) {
+            return new Annotation(parcel);
+        }
+
+        @Override
+        public Annotation[] newArray(int size) {
+            return new Annotation[size];
+        }
+
+    };
 
 }
