@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="fi.aalto.legroup.achso"
-    android:versionCode="16"
-    android:versionName="0.10.0">
+    package="fi.aalto.legroup.achso">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -14,8 +12,6 @@
     <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
     <uses-permission android:name="android.permission.USE_CREDENTIALS" />
     <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
-    <uses-permission android:name="android.permission.READ_PROFILE" />
-    <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -36,20 +32,20 @@
         android:required="true" />
 
     <application
-        android:name=".util.App"
+        android:name=".app.App"
         android:allowBackup="true"
         android:hardwareAccelerated="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme">
+        android:theme="@style/Theme.AchSo">
 
         <activity
-            android:name=".activity.MainActivity"
+            android:name=".browsing.BrowserActivity"
             android:label="@string/app_name">
 
             <meta-data
                 android:name="android.app.default_searchable"
-                android:value="fi.aalto.legroup.achso.activity.SearchActivity" />
+                android:value=".browsing.SearchActivity" />
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -57,30 +53,42 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activity.VideoPlayerActivity"
-            android:parentActivityName=".activity.MainActivity"
-            android:theme="@style/FloatingActionBarTheme" />
-        <activity
-            android:name=".activity.GenreSelectionActivity"
-            android:label="@string/title_activity_genre_selection" />
-        <activity
-            android:name=".activity.InformationActivity"
-            android:label="@string/title_activity_information"
-            android:parentActivityName=".activity.MainActivity">
+            android:name=".playback.VideoPlayerActivity"
+            android:parentActivityName=".browsing.BrowserActivity">
+
+            <intent-filter android:label="@string/app_name" android:icon="@drawable/ic_launcher" android:priority="1">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:host="*" android:mimeType="application/achso" android:pathPattern=".*\\.achso" />
+            </intent-filter>
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activity.MainActivity" />
+                android:value=".browsing.BrowserActivity" />
+
         </activity>
         <activity
-            android:name=".activity.LoginActivity"
+            android:name=".browsing.DetailActivity"
+            android:label="@string/title_activity_information"
+            android:parentActivityName=".browsing.BrowserActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".browsing.BrowserActivity" />
+        </activity>
+        <activity
+            android:name=".authentication.LoginActivity"
             android:label="@string/choose_account" />
         <activity
-            android:name=".authenticator.AuthenticatorActivity"
+            android:name=".authentication.AuthorizationActivity"
             android:label="@string/app_name" />
 
-        <service android:name=".service.UploaderService" />
+        <service android:name=".storage.migration.SQLiteMigrationService" />
+        <service android:name=".storage.remote.UploadService" />
+        <service android:name=".authoring.VideoCreatorService" />
+
         <service
-            android:name=".authenticator.AuthenticatorService"
+            android:name=".authentication.AuthenticatorService"
             android:exported="true">
 
             <intent-filter>
@@ -102,13 +110,13 @@
 
 
         <activity
-            android:name=".activity.SearchActivity"
+            android:name=".browsing.SearchActivity"
             android:label="@string/title_activity_search"
             android:launchMode="singleTop"
-            android:parentActivityName=".activity.MainActivity">
+            android:parentActivityName=".browsing.BrowserActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activity.MainActivity" />
+                android:value=".browsing.BrowserActivity" />
 
 
             <meta-data

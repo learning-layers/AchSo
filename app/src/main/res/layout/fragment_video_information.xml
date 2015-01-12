@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/information_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:minHeight="?attr/actionBarSize"
+        app:elevation="8dp"
+        app:theme="@style/Theme.AchSo.Toolbar">
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/information_close_action"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:layout_gravity="center"
+                android:layout_marginRight="16dp"
+                android:src="@drawable/ic_close_white_24dp"
+                />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:layout_gravity="left"
+                android:layout_weight="1"
+                android:gravity="left"
+                android:text="@string/title_activity_information"
+                android:textAppearance="@style/Base.TextAppearance.AppCompat.Widget.ActionBar.Title"
+                android:textColor="@color/white_text"/>
+
+
+            <TextView
+                android:id="@+id/information_save"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:layout_gravity="right"
+                android:layout_marginRight="16dp"
+                android:gravity="center"
+                android:text="@string/save"
+                android:textAllCaps="true"
+                android:textColor="@color/white_text"
+                android:textStyle="bold"/>
+
+
+        </LinearLayout>
+
+    </android.support.v7.widget.Toolbar>
+
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="vertical">
+
+
+        <ScrollView
+            android:id="@+id/scrollView"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            >
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:orientation="vertical">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="160dp">
+
+                    <fragment
+                        android:id="@+id/video_map"
+                        android:name="com.google.android.gms.maps.MapFragment"
+                        xmlns:android="http://schemas.android.com/apk/res/android"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"/>
+
+                    <View
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:alpha="0.4"
+                        android:background="@color/black"/>
+
+
+                    <TextView
+                        android:id="@+id/video_location"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|left"
+                        android:ellipsize="end"
+                        android:padding="16dp"
+                        android:text="@string/video_no_location"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:textColor="@color/white_text"/>
+                </FrameLayout>
+
+
+                <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="0px"
+                        android:layout_height="0px"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"/>
+
+                    <EditText
+                        android:id="@+id/information_title"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="16dp"
+                        android:hint="Video Title"
+                        android:nextFocusLeft="@+id/video_location"
+                        android:nextFocusUp="@+id/video_location"
+                        android:paddingLeft="8dp"
+                        android:singleLine="true"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="@string/semanticvideo_genre"
+                        android:textAppearance="?android:attr/textAppearanceSmall"/>
+
+                    <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+
+                        <Spinner
+                            android:id="@+id/video_information_genre"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+
+                            />
+
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="16dp"
+                                android:text="@string/semanticvideo_qrcode"
+                                android:textAppearance="?android:attr/textAppearanceSmall"/>
+
+                            <TextView
+                                android:id="@+id/video_qr_code"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:ellipsize="end"
+                                android:paddingLeft="8dp"
+                                android:singleLine="true"
+                                android:text=""
+                                android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+                        </LinearLayout>
+
+
+                        <ImageView
+                            android:id="@+id/video_information_qr_button"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="right|bottom"
+                            android:src="@drawable/ic_qrcode_grey600_24dp"/>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:text="@string/video_author"
+                            android:textAppearance="?android:attr/textAppearanceSmall"/>
+
+                        <TextView
+                            android:id="@+id/video_information_auhtor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:ellipsize="end"
+                            android:paddingLeft="8dp"
+                            android:singleLine="true"
+                            android:text="Author"
+                            android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+        </ScrollView>
+
+    </LinearLayout>
+
+
+</LinearLayout>

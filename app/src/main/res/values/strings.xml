@@ -1,29 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Ach So</string>
+    <string name="app_name">Ach so!</string>
     <string name="title_item_detail">Item Detail</string>
-    <string name="my_videos">My videos</string>
+    <string name="my_videos">All videos</string>
     <string name="loading">Loading</string>
     <string name="record">Record new video</string>
     <string name="read_qr_code">Search by QR code</string>
     <string name="title_activity_genre_selection">Select a type for a video</string>
     <string name="title_activity_information">Video information</string>
     <string name="action_settings">Settings</string>
-    <string name="select_genre">What kind of video this was?</string>
-    <string name="good_work_genre">Good work</string>
-    <string name="problem_genre">Problem</string>
-    <string name="site_overview_genre">Site overview</string>
-    <string name="trick_of_trade_genre">Trick of trade</string>
+    <string name="genre_selection_title">What kind of video is this?</string>
     <string name="delete">Delete</string>
     <string name="upload">Upload</string>
     <string name="qr_to_video">Add QR code</string>
     <string name="view_video_info">Show details</string>
     <string name="deletion_title">Video deletion</string>
-    <string name="deletion_question">Do you want to delete selected video(s) and annotation(s)?</string>
+    <string name="deletion_question">Delete the selected videos and their annotations?</string>
     <string name="first_page">All videos</string>
-    <string name="storage_error">Media storage error</string>
-    <string name="detailed_storage_error">Error accessing the video storage. Is SD card inserted into the device?</string>
+    <string name="storage_error">Could not access video storage.</string>
     <string name="login_description">Login to server</string>
     <string name="user">Username</string>
     <string name="pass">Password</string>
@@ -33,6 +28,7 @@
     <string name="title_activity_login">Login to server</string>
     <string name="not_loggedin_nag_title">Not logged in</string>
     <string name="not_loggedin_nag_text">You need to be logged in to upload videos.</string>
+    <string name="video_no_location">No location info</string>
     <string name="location_not_enabled">Location services disabled</string>
     <string name="location_not_enabled_text">Location services aren\'t enabled. Do you want to enable them now?</string>
     <string name="url_found_label">Found link:</string>
@@ -42,6 +38,7 @@
     <string name="cancel">Cancel</string>
     <string name="keep">Keep</string>
     <string name="edit_text">Edit text</string>
+    <string name="video_share">Share</string>
 
     <!-- SemanticVideo data -->
     <string name="semanticvideo_title">Title</string>
@@ -63,13 +60,6 @@
     <string name="title_activity_search">Search</string>
     <string name="remote_video_separator">Remote videos</string>
 
-    <!-- ENGLISH GENRES BEGIN -->
-    <string name="good_work_genre_english">Good work</string> <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
-    <string name="problem_genre_english">Problem</string> <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
-    <string name="site_overview_genre_english">Site overview</string> <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
-    <string name="trick_of_trade_genre_english">Trick of trade</string> <!-- DO NOT TRANSLATE THIS. THESE NEED TO BE IN ENGLISH IN EVERY FILE! -->
-    <!-- ENGLISH GENRES END -->
-
     <string name="latest_videos">Latest</string>
     <string name="recommended_videos">Recommended</string>
     <string name="no_connection">No connection to cloud</string>
@@ -77,6 +67,7 @@
     <string name="search_results">Search results</string>
     <string name="empty_results">No matching videos</string>
     <string name="add_video">Add video</string>
+    <string name="video_author">Author</string>
     <string name="author_is_me">Me</string>
     <string name="author_is_unknown">Unknown</string>
     <string name="unknown_format">Unknown format, or file is not a video</string>
@@ -120,5 +111,27 @@
     <string name="feedback_send">Send</string>
     <string name="feedback_sent">Thank you for your feedback.</string>
     <string name="feedback_error">There was an error while sending your feedback. Please try again later.</string>
+
+    <string-array name="genres">
+        <item>Good work</item>
+        <item>Problem</item>
+        <item>Site overview</item>
+        <item>Trick of trade</item>
+    </string-array>
+
+    <plurals name="select_count">
+        <item quantity="one">%d item selected</item>
+        <item quantity="other">%d items selected</item>
+    </plurals>
+
+    <string name="error_thumbnail">Could not create video thumbnail.</string>
+    <string name="error_thumbnail_not_found">Could not find thumbnail for video.</string>
+    <string name="error_sharing">Some videos could not be shared.</string>
+    <string name="annotation_hint">Describe this annotation</string>
+    <string name="comments">Comments</string>
+    <string name="select_genre">Select genre</string>
+    <string name="close">Close</string>
+    <string name="processing_video">Processing video…</string>
+    <string name="migration_notification">Ach so! is updating your videos…</string>
 
 </resources>

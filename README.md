@@ -1,4 +1,4 @@
-Ach So!
+Ach so!
 =======
 
 **Android video recording and annotation app for construction.**
@@ -6,53 +6,96 @@ Ach So!
 - [Download from the Play Store.][play]
 - [Project description on the Learning Layers website.][layers]
 
+Usage with Android Studio
+-------------------------
+
+Please use the latest Android Studio version from the stable channel.
+
+1. Clone the repository.
+2. File → Import Project...
+3. Select the `build.gradle` file in the project root directory.
+
 Contribution guidelines
 -----------------------
 
-> Loosely based on [Thoughbot’s Git protocol][thoughtbot].
+> Loosely based on [Thoughtbot’s Git protocol][thoughtbot].
 
-The `master` branch should mirror the currently stable version, i.e. the one
-that is currently on Google Play.
+The `master` branch mirrors the currently stable version, i.e. the one that is
+currently on Google Play. The history on this branch is final and must never be
+rewritten.
 
-1. **Create a new branch based off `integration`** before starting work. Use a
-traceable name like `feature/LL-123` or `bugfix/LL-123`, where the number
-after the prefix is the issue number in JIRA. Use `feature/summary-of-feature`
-if the feature doesn’t have JIRA ticket.
+The `integration` branch hosts the current development version. Rebasing this
+branch is discouraged, but it can be done if there’s a good enough reason and
+contributors are consulted with beforehand.
 
-2. **Do your work in the new branch** and commit often with
-[good commit messages][commit]. Be aware of line lengths to avoid wrapping.
+Other branches are working branches. You can expect their history to be
+rewritten at any time.
 
-3. **Check your commit history** when you’ve finished work. If you’ve got many
-related commits, use interactive rebase to squash them into commits that are
-cohesive and valuable.
+1. Create a new branch based off `integration` before starting work. Use a
+   traceable name like `feature/LL-123` or `bugfix/LL-123`, where the number
+   after the prefix is the issue number in JIRA. Use
+   `feature/summary-of-feature` if the feature doesn’t have JIRA ticket.
 
-4. **Create a pull request against `integration`** when your commits are
-clean. If your pull request is mistargeted, against `master` for example,
-close it and create a new one. Mark the JIRA issue as `Resolved`.
+2. Do your work in the new branch and commit often with
+   [good, descriptive commit messages][commit]. The first line of your commit
+   message should not exceed 50 characters.
 
-5. **Delete your working branch** after your changes have been merged back
-into `integration`. The JIRA issue should be `Closed` now.
+3. Check your commit history when you’ve finished work. Use interactive rebase
+   `git rebase -i integration` to clean it up. Your commits should be atomic:
+   each commit should contain one change that doesn’t depend on other commits
+   to build. This is easier if you commit often and then rebase.
+
+4. Create a pull request against `integration` when your commits are clean. If
+   you accidentally mistarget the pull request, against `master` for example,
+   close it and create a new one.
+
+5. Mark the JIRA issue as `resolved`.
+
+6. Other contributors will review your changes. If they need more work, push
+   additional commits to the working branch.
+
+7. The reviewer marks the JIRA issue as `closed` and merges the pull request.
+
+8. Delete your working branch when it’s no longer needed. This can be done
+   easily from the pull request page.
 
 When the changes in the `integration` branch are deemed stable, they will be
-merged into `master` and a new version will be released.
+merged into `master` and a new version is released.
 
 Versioning
 ----------
 
-Since v0.10.0, Ach So releases follow [semantic versioning][semver].
+Since v0.10.0, Ach so! releases follow [semantic versioning][semver] and each
+release is tagged in the `master` branch.
 
-Usage with Android Studio
--------------------------
+Authors
+-------
 
-1. Clone the repository
-2. File -> Import Project...
-3. Select the repository folder
+Ach so! is developed by the Learning Environments research group at the School
+of Arts, Design and Architecture of Aalto University, Finland.
+
+#### Development, design and direction:
+
+- Jukka Purma (@jpurma)
+- Merja Bauters
+- Antti Keränen (@Detegr)
+- Leo Nikkilä (@lnikkila)
+- Lassi Veikkonen (@lassiveikkonen)
+- Teemu Leinonen
+- Tarmo Toikkanen (@tarmot)
+- Jana Pejoska
+- Kiarii Ngua
+
+#### Contributions from the RWTH Aachen University by:
+
+- Petru Nicolaescu
+- István Koren
 
 Licence
 -------
 
 ```
-Copyright 2013 Aalto University, see AUTHORS
+Copyright 2013–2015 Aalto University
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
