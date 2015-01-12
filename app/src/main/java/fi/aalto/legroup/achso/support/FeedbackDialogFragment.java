@@ -1,16 +1,16 @@
 package fi.aalto.legroup.achso.support;
 
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.afollestad.materialdialogs.MaterialDialog;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +25,7 @@ import retrofit.client.Response;
  * Created by lassi on 17.11.14.
  */
 public class FeedbackDialogFragment extends DialogFragment implements Callback<String>,
-        DialogInterface.OnClickListener {
+        MaterialDialog.SimpleCallback {
 
     public final static String ARG_EMAIL = "email";
     public final static String ARG_NAME = "name";
@@ -80,19 +80,20 @@ public class FeedbackDialogFragment extends DialogFragment implements Callback<S
         // Don't close the dialog if the user taps the background
         setCancelable(false);
 
-        return new AlertDialog.Builder(this.context)
-                .setTitle(R.string.feedback)
-                .setPositiveButton(R.string.feedback_send, this)
-                .setNegativeButton(R.string.cancel, null)
-                .setView(view)
-                .create();
+        return new MaterialDialog.Builder(this.context)
+                .title(R.string.feedback)
+                .positiveText(R.string.feedback_send)
+                .negativeText(R.string.cancel)
+                .callback(this)
+                .customView(view)
+                .build();
     }
 
     /**
      * Called when the positive button is tapped.
      */
     @Override
-    public void onClick(DialogInterface dialog, int which) {
+    public void onPositive(MaterialDialog materialDialog) {
         sendFeedback();
     }
 
