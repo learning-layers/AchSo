@@ -4,7 +4,7 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import android.os.ParcelUuid;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import javax.annotation.Nonnull;
+
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.Annotation;
@@ -23,44 +25,94 @@ import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.entities.VideoInfo;
 
 public class SearchActivity extends ActionBarActivity {
-    private BrowserFragment videos;
-    private MenuItem item;
-    private SearchView view;
+
+    private static final String STATE_MATCHES = "STATE_MATCHES";
+
+    private BrowserFragment browserFragment;
     private ArrayList<UUID> matches = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.setContentView(R.layout.activity_search);
 
-        Toolbar toolbar = (Toolbar) this.findViewById(R.id.search_toolbar);
-        this.setSupportActionBar(toolbar);
+        setContentView(R.layout.activity_search);
 
-        this.getSupportActionBar().setHomeButtonEnabled(true);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.search_toolbar);
+        setSupportActionBar(toolbar);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        this.browserFragment = (BrowserFragment)
+                getSupportFragmentManager().findFragmentById(R.id.fragment_search_video);
+
+        if (savedInstanceState == null) {
+            handleIntent(getIntent());
+        } else {
+            restoreSavedState(savedInstanceState);
+        }
     }
 
+    @Override
+    protected void onSaveInstanceState(@Nonnull Bundle savedInstanceState) {
+        ArrayList<ParcelUuid> parcelableMatches = new ArrayList<>();
+
+        for (UUID match : this.matches) {
+            parcelableMatches.add(new ParcelUuid(match));
+        }
+
+        savedInstanceState.putParcelableArrayList(STATE_MATCHES, parcelableMatches);
+
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
+    private void restoreSavedState(@Nonnull Bundle savedInstanceState) {
+        ArrayList<ParcelUuid> parcelableMatches =
+                savedInstanceState.getParcelableArrayList(STATE_MATCHES);
+
+        for (ParcelUuid match : parcelableMatches) {
+            this.matches.add(match.getUuid());
+        }
+
+        this.browserFragment.setVideos(this.matches);
+    }
 
     @Override
-    public void onAttachFragment(Fragment fragment) {
-        super.onAttachFragment(fragment);
-        this.videos = (BrowserFragment) fragment;
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_search, menu);
 
-        this.handleIntent(this.getIntent());
+        SearchManager manager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        String query = getIntent().getStringExtra(SearchManager.QUERY);
+
+        MenuItem item = menu.findItem(R.id.action_search);
+        SearchView view = (SearchView) item.getActionView();
+
+        view.setSearchableInfo(manager.getSearchableInfo(getComponentName()));
+        view.setQuery(query, false);
+        view.setIconifiedByDefault(false);
+
+        return true;
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
-        this.handleIntent(intent);
+        handleIntent(intent);
     }
 
     private void handleIntent(Intent intent) {
-        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
-            String query = intent.getStringExtra(SearchManager.QUERY).toLowerCase();
+        String action = intent.getAction();
 
-            this.queryVideos(query);
+        switch (action) {
+            case Intent.ACTION_SEARCH:
+                String query = intent.getStringExtra(SearchManager.QUERY).toLowerCase();
+                queryVideos(query);
+                break;
         }
     }
 
+    /**
+     * Searches all videos for a match against the given query.
+     */
     private void queryVideos(String query) {
         List<UUID> ids;
 
@@ -72,70 +124,43 @@ public class SearchActivity extends ActionBarActivity {
         }
 
         for (UUID id : ids) {
-            if (this.isMatch(id, query)) {
-                this.matches.add(id);
+            try {
+                if (isMatch(id, query)) {
+                    this.matches.add(id);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
-        this.videos.setVideos(this.matches);
+        this.browserFragment.setVideos(this.matches);
     }
 
-    private boolean isMatch(UUID id, String query) {
-        try {
-            VideoInfo videoInfo = App.videoInfoRepository.get(id);
+    /**
+     * Returns if a video matches the given query. Tries to be as memory-efficient as possible by
+     * checking cached information objects for matches first before loading entire videos and their
+     * annotations.
+     */
+    private boolean isMatch(UUID id, String query) throws IOException {
+        VideoInfo videoInfo = App.videoInfoRepository.get(id);
 
-            if (query.equals(videoInfo.getTag())) {
-                return true;
-            }
-
-            if (videoInfo.getTitle().toLowerCase().contains(query)) {
-                return true;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (query.equals(videoInfo.getTag())) {
+            return true;
         }
 
-        try {
-            Video video = App.videoRepository.get(id);
+        if (videoInfo.getTitle().toLowerCase().contains(query)) {
+            return true;
+        }
 
-            for (Annotation annotation : video.getAnnotations()) {
-                if (annotation.getText().toLowerCase().contains(query)) {
-                    return true;
-                }
+        Video video = App.videoRepository.get(id);
+
+        for (Annotation annotation : video.getAnnotations()) {
+            if (annotation.getText().toLowerCase().contains(query)) {
+                return true;
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 
         return false;
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        this.getMenuInflater().inflate(R.menu.menu_search, menu);
-        this.item = menu.findItem(R.id.action_search);
-
-        SearchManager manager = (SearchManager) this.getSystemService(Context.SEARCH_SERVICE);
-        this.view = (SearchView) menu.findItem(R.id.action_search).getActionView();
-        this.item = menu.findItem(R.id.action_search);
-        this.view.setSearchableInfo(manager.getSearchableInfo(this.getComponentName()));
-
-        String query = this.getIntent().getStringExtra(SearchManager.QUERY);
-        this.view.setQuery(query, false);
-
-
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        switch (id) {
-            case R.id.action_about:
-                return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
 }
