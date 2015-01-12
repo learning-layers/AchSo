@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -26,6 +27,7 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import fi.aalto.legroup.achso.app.App;
+import fi.aalto.legroup.achso.entities.Annotation;
 import fi.aalto.legroup.achso.entities.User;
 import fi.aalto.legroup.achso.entities.Video;
 import okio.BufferedSink;
@@ -43,17 +45,20 @@ import okio.Source;
 public final class VideoCreatorService extends IntentService {
 
     public static final String ARG_VIDEO_URI = "ARG_VIDEO_URI";
+    public static final String ARG_VIDEO_ID = "ARG_VIDEO_ID";
+    public static final String ARG_VIDEO_TITLE = "ARG_VIDEO_TITLE";
     public static final String ARG_VIDEO_GENRE = "ARG_VIDEO_GENRE";
+    public static final String ARG_VIDEO_TAG = "ARG_VIDEO_TAG";
+    public static final String ARG_VIDEO_DATE = "ARG_VIDEO_DATE";
+    public static final String ARG_VIDEO_AUTHOR_NAME = "ARG_VIDEO_AUTHOR_NAME";
+    public static final String ARG_VIDEO_AUTHOR_URI = "ARG_VIDEO_AUTHOR_URI";
+    public static final String ARG_VIDEO_LOCATION = "ARG_VIDEO_LOCATION";
+    public static final String ARG_VIDEO_ANNOTATIONS = "ARG_VIDEO_ANNOTATIONS";
 
     private Bus bus;
 
-    public static void create(Context context, Uri videoUri, String videoGenre) {
-        Intent intent = new Intent(context, VideoCreatorService.class);
-
-        intent.putExtra(ARG_VIDEO_URI, videoUri);
-        intent.putExtra(ARG_VIDEO_GENRE, videoGenre);
-
-        context.startService(intent);
+    public static VideoBuilder with(Context context, Uri videoUri, String videoGenre) {
+        return new VideoBuilder(context, videoUri, videoGenre);
     }
 
     public VideoCreatorService() {
@@ -68,15 +73,39 @@ public final class VideoCreatorService extends IntentService {
         bus.post(new VideoCreationStateEvent(VideoCreationStateEvent.Type.STARTED));
 
         Uri videoContentUri = intent.getParcelableExtra(ARG_VIDEO_URI);
+        UUID id = (UUID) intent.getSerializableExtra(ARG_VIDEO_ID);
+        String title = intent.getStringExtra(ARG_VIDEO_TITLE);
         String genre = intent.getStringExtra(ARG_VIDEO_GENRE);
+        String tag = intent.getStringExtra(ARG_VIDEO_TAG);
+        Date date = (Date) intent.getSerializableExtra(ARG_VIDEO_DATE);
+        String authorName = intent.getStringExtra(ARG_VIDEO_AUTHOR_NAME);
+        Uri authorUri = intent.getParcelableExtra(ARG_VIDEO_AUTHOR_URI);
+        Location location = intent.getParcelableExtra(ARG_VIDEO_LOCATION);
+        List<Annotation> annotations = intent.getParcelableArrayListExtra(ARG_VIDEO_ANNOTATIONS);
 
-        // TODO: These should be provided via the intent
-        Location location = App.locationManager.getLastLocation();
-        User author = App.loginManager.getUser();
+        User author;
 
-        UUID id = UUID.randomUUID();
-        Date date = new Date();
-        String title = buildTitle(date, location);
+        if (location == null) {
+            location = App.locationManager.getLastLocation();
+        }
+
+        if (authorName == null) {
+            author = App.loginManager.getUser();
+        } else {
+            author = new User(authorName, authorUri);
+        }
+
+        if (id == null) {
+            id = UUID.randomUUID();
+        }
+
+        if (date == null) {
+            date = new Date();
+        }
+
+        if (title == null) {
+            title = buildTitle(date, location);
+        }
 
         File videoFile = getStorageFile(id, "mp4");
         File thumbFile = getStorageFile(id, "jpg");
@@ -104,8 +133,8 @@ public final class VideoCreatorService extends IntentService {
             e.printStackTrace();
         }
 
-        Video video = new Video(App.videoRepository, videoUri, thumbUri, id, title, genre, null,
-                date, author, location, null);
+        Video video = new Video(App.videoRepository, videoUri, thumbUri, id, title, genre, tag,
+                date, author, location, annotations);
 
         video.save();
 
@@ -218,6 +247,86 @@ public final class VideoCreatorService extends IntentService {
             STARTED,
             FINISHED,
             ERROR
+        }
+
+    }
+
+    /**
+     * Provides a flexible DSL for initialising the service.
+     */
+    public static final class VideoBuilder {
+
+        private Context context;
+
+        private Uri videoUri;
+        private UUID id;
+        private String title;
+        private String genre;
+        private String tag;
+        private Date date;
+        private String authorName;
+        private Uri authorUri;
+        private Location location;
+        private ArrayList<Annotation> annotations;
+
+        private VideoBuilder(Context context, Uri videoUri, String genre) {
+            this.context = context;
+            this.videoUri = videoUri;
+            this.genre = genre;
+        }
+
+        public VideoBuilder setId(UUID id) {
+            this.id = id;
+            return this;
+        }
+
+        public VideoBuilder setTitle(String title) {
+            this.title = title;
+            return this;
+        }
+
+        public VideoBuilder setTag(String tag) {
+            this.tag = tag;
+            return this;
+        }
+
+        public VideoBuilder setDate(Date date) {
+            this.date = date;
+            return this;
+        }
+
+        public VideoBuilder setAuthor(User author) {
+            this.authorName = author.getName();
+            this.authorUri = author.getUri();
+            return this;
+        }
+
+        public VideoBuilder setLocation(Location location) {
+            this.location = location;
+            return this;
+        }
+
+        public VideoBuilder setAnnotations(List<Annotation> annotations) {
+            this.annotations = new ArrayList<>(annotations);
+            return this;
+        }
+
+        public void create() {
+            Intent intent = new Intent(this.context, VideoCreatorService.class);
+
+            intent.putExtra(ARG_VIDEO_URI, this.videoUri);
+            intent.putExtra(ARG_VIDEO_ID, this.id);
+            intent.putExtra(ARG_VIDEO_TITLE, this.title);
+            intent.putExtra(ARG_VIDEO_GENRE, this.genre);
+            intent.putExtra(ARG_VIDEO_TAG, this.tag);
+            intent.putExtra(ARG_VIDEO_DATE, this.date);
+            intent.putExtra(ARG_VIDEO_AUTHOR_NAME, this.authorName);
+            intent.putExtra(ARG_VIDEO_AUTHOR_URI, this.authorUri);
+            intent.putExtra(ARG_VIDEO_LOCATION, this.location);
+
+            intent.putParcelableArrayListExtra(ARG_VIDEO_ANNOTATIONS, annotations);
+
+            context.startService(intent);
         }
 
     }

@@ -228,7 +228,7 @@ public class BrowserActivity extends ActionBarActivity {
         fragment.setCallback(new GenreDialogFragment.Callback() {
             @Override
             public void onGenreSelected(String genre) {
-                VideoCreatorService.create(BrowserActivity.this, contentUri, genre);
+                VideoCreatorService.with(BrowserActivity.this, contentUri, genre).create();
             }
         });
 
