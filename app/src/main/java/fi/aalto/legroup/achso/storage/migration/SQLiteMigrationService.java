@@ -6,7 +6,6 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteCantOpenDatabaseException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.graphics.PointF;
@@ -15,6 +14,7 @@ import android.net.Uri;
 
 import com.bugsnag.android.Bugsnag;
 
+import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -86,8 +86,11 @@ public class SQLiteMigrationService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        String path = getDatabasePath(DATABASE_NAME).getPath();
-        SQLiteDatabase database = null;
+        File databaseFile = getDatabasePath(DATABASE_NAME);
+
+        if (!databaseFile.exists()) {
+            return;
+        }
 
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -101,11 +104,13 @@ public class SQLiteMigrationService extends IntentService {
 
         notificationManager.notify(TAG, PROGRESS_NOTIFICATION_ID, notification);
 
+        SQLiteDatabase database = null;
+
         try {
-            database = SQLiteDatabase.openDatabase(path, null, SQLiteDatabase.OPEN_READONLY);
+            database = SQLiteDatabase.openDatabase(databaseFile.getPath(), null,
+                    SQLiteDatabase.OPEN_READONLY);
+
             migrateVideos(database);
-        } catch (SQLiteCantOpenDatabaseException e) {
-            // Database doesn't exist, no migration necessary.
         } catch (SQLiteException e) {
             Bugsnag.notify(e);
         } finally {
