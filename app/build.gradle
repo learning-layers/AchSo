@@ -47,10 +47,10 @@ repositories {
 
 dependencies {
     // Android backwards-compatibility
-    compile 'com.android.support:multidex:1.0.+'
-    compile 'com.android.support:support-v4:21.+'
-    compile 'com.android.support:appcompat-v7:21.0.+'
-    compile 'com.android.support:recyclerview-v7:21.0.+'
+    compile 'com.android.support:multidex:1.0.1'
+    compile 'com.android.support:support-v4:21.0.3'
+    compile 'com.android.support:appcompat-v7:21.0.3'
+    compile 'com.android.support:recyclerview-v7:21.0.3'
 
     // Material design dialogs
     compile 'com.afollestad:material-dialogs:0.4.3'
@@ -59,7 +59,7 @@ dependencies {
     compile 'com.google.guava:guava:18.0'
 
     // Google Play Services APIs
-    compile 'com.google.android.gms:play-services:6.1+'
+    compile 'com.google.android.gms:play-services:6.5.87'
 
     // OAuth2 library for OpenID Connect
     compile('com.google.oauth-client:google-oauth-client:1.18.0-rc') {
