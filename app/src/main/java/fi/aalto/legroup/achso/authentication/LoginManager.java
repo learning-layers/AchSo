@@ -19,6 +19,7 @@ import java.io.IOException;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
+import fi.aalto.legroup.achso.app.AppPreferences;
 import fi.aalto.legroup.achso.entities.User;
 
 /**
@@ -34,10 +35,6 @@ public class LoginManager {
         LOGGED_IN,
         LOGGING_OUT
     }
-
-    // Keys for storing the auto-login preferences
-    protected static final String PREFS_NAME = "AchSoLoginManagerPrefs";
-    protected static final String PREFS_AUTO_LOGIN_ACCOUNT = "autoLoginAccount";
 
     protected Context context;
     protected Bus bus;
@@ -60,12 +57,14 @@ public class LoginManager {
      * this will do nothing.
      */
     public void login() {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        SharedPreferences prefs = AppPreferences.with(context);
 
         // Get auto-login preferences, abort if none in store
-        String accountName = prefs.getString(PREFS_AUTO_LOGIN_ACCOUNT, null);
+        String accountName = prefs.getString(AppPreferences.AUTO_LOGIN_ACCOUNT, null);
 
-        if (accountName == null) return;
+        if (accountName == null) {
+            return;
+        }
 
         AccountManager accountManager = AccountManager.get(context);
         String accountType = Authenticator.ACH_SO_ACCOUNT_TYPE;
@@ -93,10 +92,10 @@ public class LoginManager {
      * Logs out from the account and disables auto-login. Use this if the user manually logs out.
      */
     public void logoutExplicitly() {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        SharedPreferences prefs = AppPreferences.with(context);
         SharedPreferences.Editor prefsEditor = prefs.edit();
 
-        prefsEditor.remove(PREFS_AUTO_LOGIN_ACCOUNT);
+        prefsEditor.remove(AppPreferences.AUTO_LOGIN_ACCOUNT);
         prefsEditor.apply();
 
         logout();
@@ -235,10 +234,10 @@ public class LoginManager {
             }
 
             // Remember this account for auto-login
-            SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            SharedPreferences prefs = AppPreferences.with(context);
             SharedPreferences.Editor prefsEditor = prefs.edit();
 
-            prefsEditor.putString(PREFS_AUTO_LOGIN_ACCOUNT, account.name);
+            prefsEditor.putString(AppPreferences.AUTO_LOGIN_ACCOUNT, account.name);
             prefsEditor.apply();
 
             setState(LoginState.LOGGED_IN);
