@@ -39,9 +39,10 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:id="@+id/titleEditButton"
-                android:src="@drawable/ic_action_edit"
+                android:src="@drawable/ic_edit_black_24dp"
                 style="@android:style/Widget.Holo.Button.Borderless"
-                android:contentDescription="@string/edit_text" />
+                android:contentDescription="@string/edit_text"
+                android:alpha=".54" />
 
         </LinearLayout>
 
@@ -77,8 +78,9 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:id="@+id/genreEditButton"
-                android:src="@drawable/ic_action_edit"
-                android:contentDescription="@string/edit_text" />
+                android:src="@drawable/ic_edit_black_24dp"
+                android:contentDescription="@string/edit_text"
+                android:alpha=".54" />
         </LinearLayout>
 
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
