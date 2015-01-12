@@ -1,6 +1,7 @@
 package fi.aalto.legroup.achso.app;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -23,6 +24,7 @@ import fi.aalto.legroup.achso.authoring.LocationManager;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
 import fi.aalto.legroup.achso.storage.local.LocalVideoInfoRepository;
 import fi.aalto.legroup.achso.storage.local.LocalVideoRepository;
+import fi.aalto.legroup.achso.storage.migration.SQLiteMigrationService;
 import fi.aalto.legroup.achso.storage.remote.strategies.ClViTra2Strategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.SssStrategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.Strategy;
@@ -93,6 +95,8 @@ public class App extends MultiDexApplication {
         videoRepository = new LocalVideoRepository(bus, jsonSerializer, localStorageDirectory);
 
         bus.post(new LoginRequestEvent(LoginRequestEvent.Type.LOGIN));
+
+        checkMigration();
     }
 
     public static void showError(@StringRes int resId) {
@@ -114,6 +118,20 @@ public class App extends MultiDexApplication {
 
     public static Context getContext() {
         return singleton;
+    }
+
+    private void checkMigration() {
+        SharedPreferences prefs = AppPreferences.with(this);
+        boolean shouldMigrate = prefs.getBoolean(AppPreferences.SHOULD_MIGRATE, true);
+
+        if (shouldMigrate) {
+            SQLiteMigrationService.run(this);
+
+            // Clear the migration flag
+            prefs.edit()
+                    .putBoolean(AppPreferences.SHOULD_MIGRATE, false)
+                    .apply();
+        }
     }
 
 }
