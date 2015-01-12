@@ -3,7 +3,7 @@ apply from: 'build-helpers.gradle'
 
 android {
     compileSdkVersion 21
-    buildToolsVersion '21.1.1'
+    buildToolsVersion '21.1.2'
 
     defaultConfig {
         applicationId 'fi.aalto.legroup.achso'
