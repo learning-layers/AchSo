@@ -16,6 +16,7 @@ import com.google.api.client.util.Strings;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
+import fi.aalto.legroup.achso.authoring.GenreDialogFragment;
 import fi.aalto.legroup.achso.entities.Video;
 
 public class DetailFragment extends Fragment {
@@ -138,7 +139,24 @@ public class DetailFragment extends Fragment {
     }
 
     private void showGenreEditDialog() {
-        // FIXME
+        GenreDialogFragment fragment = new GenreDialogFragment();
+
+        fragment.setCallback(new GenreDialogFragment.Callback() {
+            @Override
+            public void onGenreSelected(String genre) {
+                video.setGenre(genre);
+
+                App.videoInfoRepository.invalidate(video.getId());
+
+                if (!video.save()) {
+                    Toast.makeText(getActivity(), R.string.storage_error, Toast.LENGTH_LONG).show();
+                }
+
+                populateInformation();
+            }
+        });
+
+        fragment.show(getFragmentManager(), "GenreDialogFragment");
     }
 
 }
