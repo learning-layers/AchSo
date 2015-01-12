@@ -47,7 +47,7 @@
 
             <meta-data
                 android:name="android.app.default_searchable"
-                android:value="fi.aalto.legroup.achso.activity.SearchActivity" />
+                android:value=".browsing.SearchActivity" />
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
