@@ -26,6 +26,7 @@ import fi.aalto.legroup.achso.entities.VideoInfo;
 /**
  * TODO: Extract view stuff into the calling activity/fragment and use events.
  * TODO: Use ProgressDialogFragment.
+ * TODO: Ensure that generated file names are safe.
  *
  * Created by lassi on 8.12.14.
  */
@@ -63,7 +64,8 @@ public class ExportCreatorTask extends AsyncTask<UUID, Integer, List<Uri>> {
             try {
                 UUID id = uuids[i];
                 VideoInfo video = App.videoInfoRepository.get(id);
-                File zip = new File(Environment.getExternalStorageDirectory() + "/" + video.getTitle() + ".achso");
+                File zip = new File(Environment.getExternalStorageDirectory(),
+                        video.getTitle().replace("/", "_") + ".achso");
                 FileOutputStream fos = new FileOutputStream(zip);
                 BufferedOutputStream bos = new BufferedOutputStream(fos);
                 ZipOutputStream zos = new ZipOutputStream(bos);
