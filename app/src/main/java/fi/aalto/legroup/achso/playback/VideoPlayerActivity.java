@@ -51,7 +51,7 @@ import fi.aalto.legroup.achso.views.MarkedSeekBar;
 /**
  * Handles view logic for the video player controls. Actual playback is handled by
  * VideoPlayerFragment.
- * <p/>
+ *
  * TODO: Extract annotation editing into a separate fragment.
  */
 public final class VideoPlayerActivity extends ActionBarActivity implements AnnotationEditor,
@@ -202,31 +202,6 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
         return super.onOptionsItemSelected(item);
     }
 
-
-    @Subscribe
-    public void onExportCreatorTaskResult(ExportCreatorTaskResultEvent event) {
-        List<Uri> uris = event.getResult();
-
-        if (uris == null || uris.isEmpty()) {
-            App.showError(R.string.error_sharing);
-            return;
-        }
-
-        Intent intent;
-
-        if (uris.size() == 1) {
-            intent = new Intent(Intent.ACTION_SEND);
-            intent.putExtra(Intent.EXTRA_STREAM, uris.get(0));
-        } else {
-            intent = new Intent(Intent.ACTION_SEND_MULTIPLE);
-            intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, new ArrayList<>(uris));
-        }
-
-        intent.setType("application/achso");
-
-        startActivity(Intent.createChooser(intent, getString(R.string.video_share)));
-    }
-
     /**
      * Called when a view with this listener is clicked.
      */
@@ -268,7 +243,9 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
     private void anchorSubtitleContainerTo(View view) {
         int height = 0;
 
-        if (view != null) height = view.getHeight();
+        if (view != null) {
+            height = view.getHeight();
+        }
 
         playerFragment.getSubtitleContainer().setPadding(0, 0, 0, height);
     }
@@ -293,11 +270,11 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
             @Override
             public void run() {
                 // Don't hide if we're paused
-                if (playerFragment.getState() == VideoPlayerFragment.State.PAUSED) return;
+                if (playerFragment.getState() == VideoPlayerFragment.State.PAUSED) {
+                    return;
+                }
 
-
-                toolbar.animate().translationY(-toolbar.getHeight()).setDuration(
-                        CONTROLS_ANIMATION_DURATION).start();
+                toolbar.animate().alpha(0).setDuration(CONTROLS_ANIMATION_DURATION).start();
                 controlsOverlay.animate().alpha(0).setDuration(CONTROLS_ANIMATION_DURATION).start();
 
                 anchorSubtitleContainerTo(null);
@@ -320,7 +297,9 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
     @Override
     public void createAnnotation(PointF position) {
         // Allow creating annotations only when paused
-        if (playerFragment.getState() != VideoPlayerFragment.State.PAUSED) return;
+        if (playerFragment.getState() != VideoPlayerFragment.State.PAUSED) {
+            return;
+        }
 
         long time = playerFragment.getPlaybackPosition();
 
@@ -456,7 +435,9 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
 
         elapsedTimeText.setText(elapsedTimeString);
 
-        if (fromUser) playerFragment.seekTo(progress);
+        if (fromUser) {
+            playerFragment.seekTo(progress);
+        }
     }
 
     /**
@@ -500,6 +481,30 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
         return super.dispatchTouchEvent(event);
     }
 
+    @Subscribe
+    public void onExportCreatorTaskResult(ExportCreatorTaskResultEvent event) {
+        List<Uri> uris = event.getResult();
+
+        if (uris == null || uris.isEmpty()) {
+            App.showError(R.string.error_sharing);
+            return;
+        }
+
+        Intent intent;
+
+        if (uris.size() == 1) {
+            intent = new Intent(Intent.ACTION_SEND);
+            intent.putExtra(Intent.EXTRA_STREAM, uris.get(0));
+        } else {
+            intent = new Intent(Intent.ACTION_SEND_MULTIPLE);
+            intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, new ArrayList<>(uris));
+        }
+
+        intent.setType("application/achso");
+
+        startActivity(Intent.createChooser(intent, getString(R.string.video_share)));
+    }
+
     private final class SeekBarUpdater extends RepeatingTask {
 
         // How often the seek bar should be updated (in milliseconds)
@@ -512,7 +517,6 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
         @Override
         protected void doWork() {
             int progress = (int) playerFragment.getPlaybackPosition();
-
             animateTo(progress);
         }
 
@@ -530,6 +534,5 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
         }
 
     }
-
 
 }
