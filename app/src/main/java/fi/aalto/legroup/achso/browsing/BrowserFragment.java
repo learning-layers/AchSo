@@ -37,16 +37,14 @@ import fi.aalto.legroup.achso.views.RecyclerItemClickListener;
 import fi.aalto.legroup.achso.views.adapters.VideoGridAdapter;
 import fi.aalto.legroup.achso.views.utilities.DimensionUnits;
 
-public class BrowserFragment extends Fragment implements ActionMode.Callback,
+public final class BrowserFragment extends Fragment implements ActionMode.Callback,
         RecyclerItemClickListener.OnItemClickListener {
 
     private List<UUID> videos = Collections.emptyList();
 
-    private RecyclerView grid;
     private TextView placeHolder;
 
     private VideoGridAdapter adapter;
-    private GridLayoutManager layoutManager;
     private ActionMode actionMode;
 
     public static BrowserFragment newInstance(List<UUID> videos) {
@@ -79,20 +77,22 @@ public class BrowserFragment extends Fragment implements ActionMode.Callback,
         super.onViewCreated(view, savedInstanceState);
 
         this.placeHolder = (TextView) view.findViewById(R.id.place_holder);
-        this.grid = (RecyclerView) view.findViewById(R.id.video_list);
+        RecyclerView grid = (RecyclerView) view.findViewById(R.id.video_list);
 
-        // Default span count is 1, will be recalculated with the layout
-        this.layoutManager = new GridLayoutManager(getActivity(), 1);
+        // Default span count is 1
+        GridLayoutManager layoutManager = new GridLayoutManager(getActivity(), 1);
 
         this.adapter = new VideoGridAdapter(getActivity(), App.videoInfoRepository);
         this.adapter.registerAdapterDataObserver(new PlaceholderDataObserver());
         this.adapter.setItems(videos);
 
-        this.grid.setHasFixedSize(true);
-        this.grid.setAdapter(this.adapter);
-        this.grid.setLayoutManager(this.layoutManager);
-        this.grid.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), this));
-        this.grid.getViewTreeObserver().addOnGlobalLayoutListener(new GridOnLayoutChangeListener());
+        grid.setHasFixedSize(true);
+        grid.setAdapter(this.adapter);
+        grid.setLayoutManager(layoutManager);
+        grid.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), this));
+
+        // This listener sets the span count on layout and then stops listening.
+        new GridOnLayoutChangeListener(grid);
     }
 
     @Override
@@ -259,7 +259,7 @@ public class BrowserFragment extends Fragment implements ActionMode.Callback,
     /**
      * Shows or hides the placeholder text appropriately when the adapter items change.
      */
-    private final class PlaceholderDataObserver extends RecyclerView.AdapterDataObserver {
+    private class PlaceholderDataObserver extends RecyclerView.AdapterDataObserver {
 
         @Override
         public void onChanged() {
@@ -280,9 +280,17 @@ public class BrowserFragment extends Fragment implements ActionMode.Callback,
     /**
      * Calculates the number of columns when the grid's layout bounds change.
      */
-    private final class GridOnLayoutChangeListener implements ViewTreeObserver.OnGlobalLayoutListener {
+    private static class GridOnLayoutChangeListener
+            implements ViewTreeObserver.OnGlobalLayoutListener {
 
         private static final int MINIMUM_ITEM_WIDTH_DP = 250;
+
+        private RecyclerView grid;
+
+        private GridOnLayoutChangeListener(RecyclerView grid) {
+            this.grid = grid;
+            grid.getViewTreeObserver().addOnGlobalLayoutListener(this);
+        }
 
         @Override
         public void onGlobalLayout() {
@@ -294,7 +302,19 @@ public class BrowserFragment extends Fragment implements ActionMode.Callback,
             if (spanCount < 1) {
                 spanCount = 1;
             }
-            layoutManager.setSpanCount(spanCount);
+
+            RecyclerView.LayoutManager layoutManager = grid.getLayoutManager();
+
+            if (layoutManager instanceof GridLayoutManager) {
+                ((GridLayoutManager) layoutManager).setSpanCount(spanCount);
+
+                // Workaround for an upstream GridLayoutManager issue:
+                // https://code.google.com/p/android/issues/detail?id=93710
+                grid.requestLayout();
+            }
+
+            // This listener needs to be removed to avoid an infinite loop due to the workaround.
+            grid.getViewTreeObserver().removeOnGlobalLayoutListener(this);
         }
 
     }
