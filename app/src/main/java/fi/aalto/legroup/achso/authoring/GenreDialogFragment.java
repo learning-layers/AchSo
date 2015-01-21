@@ -51,8 +51,9 @@ public class GenreDialogFragment extends DialogFragment implements DialogInterfa
         super.onDestroyView();
     }
 
-    public void setCallback(Callback callback) {
+    public GenreDialogFragment setCallback(Callback callback) {
         this.callback = callback;
+        return this;
     }
 
     /**

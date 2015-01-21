@@ -23,6 +23,7 @@ import com.google.gson.JsonObject;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,19 +44,34 @@ import fi.aalto.legroup.achso.utilities.ProgressDialogFragment;
 import fi.aalto.legroup.achso.views.SlidingTabLayout;
 import fi.aalto.legroup.achso.views.adapters.VideoTabAdapter;
 
+/**
+ * Activity for browsing available videos.
+ *
+ * TODO: Extract video creation stuff into its own activity.
+ */
 public class BrowserActivity extends ActionBarActivity {
+
+    private static final int REQUEST_RECORD_VIDEO = 1;
+    private static final int REQUEST_CHOOSE_VIDEO = 2;
+
+    private static final String STATE_VIDEO_BUILDER = "STATE_VIDEO_BUILDER";
 
     private Bus bus;
 
     private VideoTabAdapter tabAdapter;
     private MenuItem searchItem;
 
-    private final int REQUEST_RECORD_VIDEO = 1;
-    private final int REQUEST_CHOOSE_VIDEO = 2;
+    // Video that is "under construction". Sent to VideoCreatorService for processing after it has
+    // been recorded.
+    private VideoCreatorService.VideoBuilder videoBuilder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (savedInstanceState != null) {
+            videoBuilder = savedInstanceState.getParcelable(STATE_VIDEO_BUILDER);
+        }
 
         // TODO: Inject instead
         this.bus = App.bus;
@@ -86,6 +102,12 @@ public class BrowserActivity extends ActionBarActivity {
     protected void onPause() {
         App.bus.unregister(this);
         super.onPause();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putParcelable(STATE_VIDEO_BUILDER, videoBuilder);
+        super.onSaveInstanceState(savedInstanceState);
     }
 
     /**
@@ -190,7 +212,14 @@ public class BrowserActivity extends ActionBarActivity {
     private void recordVideo() {
         App.locationManager.startLocationUpdates();
 
+        videoBuilder = VideoCreatorService.build();
+
+        // TODO: Keep using URIs instead of files
+        File videoFile = VideoCreatorService.getStorageVideoFile(videoBuilder);
         Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(videoFile));
+
         startActivityForResult(intent, REQUEST_RECORD_VIDEO);
     }
 
@@ -228,7 +257,9 @@ public class BrowserActivity extends ActionBarActivity {
         fragment.setCallback(new GenreDialogFragment.Callback() {
             @Override
             public void onGenreSelected(String genre) {
-                VideoCreatorService.with(BrowserActivity.this, contentUri, genre).create();
+                videoBuilder.setVideoUri(contentUri);
+                videoBuilder.setGenre(genre);
+                videoBuilder.create(BrowserActivity.this);
             }
         });
 
