@@ -3,7 +3,6 @@
 <resources>
 
     <string name="app_name">Ach so!</string>
-    <string name="title_item_detail">Omadused</string>
     <string name="my_videos">Minu videod</string>
     <string name="loading">Laeb</string>
     <string name="record">Salvesta uus video</string>
@@ -20,7 +19,6 @@
     <string name="deletion_question">Kas sa tahad kustutada valitud video(d) ja seotud mrkused?</string>
 
     <string name="first_page">Kik videod</string>
-    <string name="detailed_storage_error">Viga video ladustamisele ligipsuga. Kas SD kaart on seadmesse sisestatud</string>
 
     <string name="login_description">Sisene serverisse</string>
     <string name="user">Kasutajanimi</string>
@@ -62,10 +60,6 @@
     <string name="remote_video_separator">Vlised videod</string>
 
     <string name="keep">Keep</string>
-    <string name="url_found_label">Found link:</string>
-    <string name="open_in_browser">Open in browser</string>
-    <string name="latest_videos">Latest</string>
-    <string name="recommended_videos">Recommended</string>
     <string name="no_connection">No connection to cloud</string>
     <string name="nearby_videos">Nearby</string>
     <string name="search_results">Search results</string>
@@ -78,7 +72,7 @@
     <string name="created_new_video">Created new video.</string>
     <string name="code_added_to_videos">Code added to selected video(s).</string>
     <string name="upload_successful">Upload successful.</string>
-    <string name="buffering">Buffering...</string>
+    <string name="buffering">Buffering…</string>
     <string name="logged_in_as">Logged in as %s.</string>
     <string name="connection_problem">Connection problem</string>
     <string name="authentication_problem">Authentication problem</string>
@@ -96,12 +90,4 @@
     <string name="no">Ei</string>
     <string name="logged_out">Logged out.</string>
     <string name="login_error">Could not log in: %s</string>
-
-    <string-array name="genre_values">
-        <item>Hea t</item>
-        <item>Probleem</item>
-        <item>levaade</item>
-        <item>Tvte</item>
-    </string-array>
-
 </resources>

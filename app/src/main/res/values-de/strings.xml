@@ -3,9 +3,8 @@
 <resources>
 
     <string name="app_name">Ach so!</string>
-    <string name="title_item_detail">Objektdetails</string>
     <string name="my_videos">Meine Videos</string>
-    <string name="loading">Laden...</string>
+    <string name="loading">Laden…</string>
     <string name="record">Neues Video aufnehmen</string>
     <string name="read_qr_code">Mit QR-Code suchen</string>
     <string name="title_activity_genre_selection">Bitte wählen Sie einen Video-Typen</string>
@@ -19,7 +18,6 @@
     <string name="deletion_question">Möchten Sie die ausgewählten Videos und Annotationen wirklich löschen?</string>
 
     <string name="first_page">Alle Videos</string>
-    <string name="detailed_storage_error">Fehler beim Zugriff auf den Videospeicher. Ist eine SD-Karte vorhanden?</string>
 
     <string name="login_description">Server-Login</string>
     <string name="user">Benutzername</string>
@@ -76,7 +74,7 @@
     <string name="created_new_video">Ein neues Video wurde erstellt.</string>
     <string name="code_added_to_videos">Ein Code wurde zu(m) Video(s) hinzugefügt.</string>
     <string name="upload_successful">Upload erfolgreich.</string>
-    <string name="buffering">Zwischenspeicherung...</string>
+    <string name="buffering">Zwischenspeicherung…</string>
     <string name="logged_in_as">Eingeloggt als %s.</string>
     <string name="connection_problem">Verbindungsproblem</string>
     <string name="authentication_problem">Authentifizierungsproblem</string>
@@ -94,12 +92,5 @@
     <string name="no">Nein</string>
     <string name="logged_out">Logged out.</string>
     <string name="login_error">Could not log in: %s</string>
-
-    <string-array name="genre_values">
-        <item>Gute Arbeit</item>
-        <item>Problem</item>
-        <item>Standortüberblick</item>
-        <item>How-To</item>
-    </string-array>
 
 </resources>
