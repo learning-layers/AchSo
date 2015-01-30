@@ -85,7 +85,7 @@ public class MarkedSeekBar extends SeekBar {
 
     @Override
     public void setOnSeekBarChangeListener(OnSeekBarChangeListener decoratedListener) {
-        listener = new SnappingOnSeekBarChangeListener(markers, decoratedListener);
+        listener.setDelegate(decoratedListener);
         super.setOnSeekBarChangeListener(listener);
     }
 
@@ -164,6 +164,10 @@ public class MarkedSeekBar extends SeekBar {
 
         public void setPositions(List<Integer> positions) {
             this.positions = positions;
+        }
+
+        public void setDelegate(OnSeekBarChangeListener delegate) {
+            this.delegate = delegate;
         }
 
         @Override
