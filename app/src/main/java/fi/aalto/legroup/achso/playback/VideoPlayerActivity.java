@@ -523,14 +523,18 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
         private void animateTo(int progress) {
             int oldProgress = seekBar.getProgress();
 
-            // Animate the bar so that playback appears to be smooth
-            ObjectAnimator animator =
-                    ObjectAnimator.ofInt(seekBar, "progress", oldProgress, progress);
+            // Only animate if playback is progressing forwards, otherwise it's confusing
+            if (oldProgress < progress) {
+                ObjectAnimator animator =
+                        ObjectAnimator.ofInt(seekBar, "progress", oldProgress, progress);
 
-            animator.setDuration(UPDATING_FREQUENCY);
-            animator.setInterpolator(new LinearInterpolator());
+                animator.setDuration(UPDATING_FREQUENCY);
+                animator.setInterpolator(new LinearInterpolator());
 
-            animator.start();
+                animator.start();
+            } else {
+                seekBar.setProgress(progress);
+            }
         }
 
     }
