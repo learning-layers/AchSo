@@ -40,6 +40,8 @@ import fi.aalto.legroup.achso.views.utilities.DimensionUnits;
 public final class BrowserFragment extends Fragment implements ActionMode.Callback,
         RecyclerItemClickListener.OnItemClickListener {
 
+    private Bus bus;
+
     private List<UUID> videos = Collections.emptyList();
 
     private TextView placeHolder;
@@ -63,7 +65,12 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
         setRetainInstance(true);
 
         // TODO: Inject instead
-        Bus bus = App.bus;
+        this.bus = App.bus;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
         bus.register(this);
     }
 
@@ -100,6 +107,8 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
         if (this.actionMode != null) {
             this.actionMode.finish();
         }
+
+        bus.unregister(this);
 
         super.onPause();
     }
