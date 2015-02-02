@@ -85,7 +85,7 @@ public class MarkedSeekBar extends SeekBar {
 
     @Override
     public void setOnSeekBarChangeListener(OnSeekBarChangeListener decoratedListener) {
-        listener = new SnappingOnSeekBarChangeListener(markers, decoratedListener);
+        listener.setDelegate(decoratedListener);
         super.setOnSeekBarChangeListener(listener);
     }
 
@@ -166,29 +166,36 @@ public class MarkedSeekBar extends SeekBar {
             this.positions = positions;
         }
 
+        public void setDelegate(OnSeekBarChangeListener delegate) {
+            this.delegate = delegate;
+        }
+
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-            if (delegate != null) delegate.onProgressChanged(seekBar, progress, fromUser);
+            if (fromUser && !positions.isEmpty()) {
+                // Take one marker that should be compared
+                int closestMarkerPosition = positions.get(0);
+                int closestMarkerDistance = Math.abs(closestMarkerPosition - progress);
 
-            if (!fromUser || positions.isEmpty()) return;
+                // See if we can find a closer marker
+                for (int marker : positions) {
+                    int distance = Math.abs(marker - progress);
 
-            // Take one marker that should be compared
-            int closestMarkerPosition = positions.get(0);
-            int closestMarkerDistance = Math.abs(closestMarkerPosition - progress);
+                    if (distance < closestMarkerDistance) {
+                        closestMarkerPosition = marker;
+                        closestMarkerDistance = distance;
+                    }
+                }
 
-            // See if we can find a closer marker
-            for (int marker : positions) {
-                int distance = Math.abs(marker - progress);
-
-                if (distance < closestMarkerDistance) {
-                    closestMarkerPosition = marker;
-                    closestMarkerDistance = distance;
+                // If the closest marker is within snapping distance, snap to it
+                if (closestMarkerDistance <= seekBar.getMax() * snappingDistance) {
+                    seekBar.setProgress(closestMarkerPosition);
+                    progress = closestMarkerPosition;
                 }
             }
 
-            // If the closest marker is within snapping distance, snap to it
-            if (closestMarkerDistance <= seekBar.getMax() * snappingDistance) {
-                seekBar.setProgress(closestMarkerPosition);
+            if (delegate != null) {
+                delegate.onProgressChanged(seekBar, progress, fromUser);
             }
         }
 

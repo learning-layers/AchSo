@@ -1,11 +1,10 @@
-package fi.aalto.legroup.achso.playback.strategies;
+package fi.aalto.legroup.achso.playback.annotations;
 
-import android.content.res.Resources;
 import android.graphics.PointF;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 
-import java.util.Collection;
+import java.util.List;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.entities.Annotation;
@@ -14,39 +13,35 @@ import fi.aalto.legroup.achso.views.Marker;
 import fi.aalto.legroup.achso.views.MarkerCanvas;
 
 /**
- * Renders Marker views on a MarkerCanvas for each annotation.
+ * Draws markers on a canvas for each annotation. Delegates marker actions to an editor class.
  *
  * @author Leo Nikkilä
  */
-public class MarkerStrategy extends AnnotationStrategy implements MarkerCanvas.Listener {
+public final class MarkerStrategy implements AnnotationRenderer.Strategy, MarkerCanvas.Listener {
 
     private static final int MARKER_BACKGROUND_DRAWABLE = R.drawable.marker_square;
 
-    private AnnotationEditor editor;
     private MarkerCanvas canvas;
-
+    private AnnotationEditor editor;
     private Drawable markerBackground;
 
-    public MarkerStrategy(AnnotationEditor editor, MarkerCanvas canvas) {
-        this.editor = editor;
+    public MarkerStrategy(MarkerCanvas canvas, AnnotationEditor editor) {
         this.canvas = canvas;
-
-        Resources resources = canvas.getResources();
-
-        markerBackground = resources.getDrawable(MARKER_BACKGROUND_DRAWABLE);
+        this.editor = editor;
+        this.markerBackground = canvas.getResources().getDrawable(MARKER_BACKGROUND_DRAWABLE);
 
         canvas.setListener(this);
     }
 
     @Override
-    public void execute(Collection<Annotation> annotations) {
+    public void render(final List<Annotation> annotations) {
         for (Annotation annotation : annotations) {
-            PointF position = annotation.getPosition();
+            PointF markerPosition = annotation.getPosition();
             int color = annotation.getAuthor().getColor();
 
             markerBackground.setColorFilter(color, PorterDuff.Mode.MULTIPLY);
 
-            Marker marker = canvas.addMarker(position, markerBackground);
+            Marker marker = canvas.addMarker(markerPosition, markerBackground);
             marker.setTag(annotation);
         }
     }
@@ -63,14 +58,14 @@ public class MarkerStrategy extends AnnotationStrategy implements MarkerCanvas.L
     }
 
     @Override
-    public void onMarkerDragged(Marker marker, PointF newPos) {
+    public void onMarkerDragged(Marker marker, PointF newPosition) {
         Annotation annotation = (Annotation) marker.getTag();
-        editor.moveAnnotation(annotation, newPos);
+        editor.moveAnnotation(annotation, newPosition);
     }
 
     @Override
-    public void onCanvasTapped(PointF pos) {
-        editor.createAnnotation(pos);
+    public void onCanvasTapped(PointF position) {
+        editor.createAnnotation(position);
     }
 
 }
