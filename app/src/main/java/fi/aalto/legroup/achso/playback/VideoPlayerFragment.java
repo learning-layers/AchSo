@@ -3,52 +3,63 @@ package fi.aalto.legroup.achso.playback;
 import android.animation.ObjectAnimator;
 import android.app.Fragment;
 import android.graphics.SurfaceTexture;
-import android.media.MediaPlayer;
-import android.os.Build;
+import android.media.MediaCodec;
+import android.net.Uri;
 import android.os.Bundle;
-import android.util.SparseArray;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.bugsnag.android.Bugsnag;
+import com.google.android.exoplayer.ExoPlaybackException;
+import com.google.android.exoplayer.ExoPlayer;
+import com.google.android.exoplayer.FrameworkSampleSource;
+import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
+import com.google.android.exoplayer.MediaCodecTrackRenderer;
+import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
+import com.google.android.exoplayer.SampleSource;
+import com.google.android.exoplayer.TrackRenderer;
 
-import java.io.IOException;
 import java.util.List;
 
 import javax.annotation.Nullable;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.entities.Annotation;
-import fi.aalto.legroup.achso.entities.Video;
-import fi.aalto.legroup.achso.playback.strategies.MarkerStrategy;
-import fi.aalto.legroup.achso.playback.strategies.PauseStrategy;
-import fi.aalto.legroup.achso.playback.strategies.SubtitleStrategy;
+import fi.aalto.legroup.achso.playback.annotations.AnnotationRenderer;
+import fi.aalto.legroup.achso.playback.annotations.MarkerStrategy;
+import fi.aalto.legroup.achso.playback.annotations.SubtitleStrategy;
 import fi.aalto.legroup.achso.views.MarkerCanvas;
+
+import static android.media.MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT;
 
 /**
  * Provides a convenient fragment for playing annotated videos. The host is responsible for
  * implementing any playback controls.
- *
- * TODO: Decouple from MediaPlayer and provide an ExoPlayer alternative for API 16 and up.
  */
-public final class VideoPlayerFragment extends Fragment implements PauseStrategy.PauseListener,
-        MediaPlayer.OnErrorListener, MediaPlayer.OnPreparedListener,
-        MediaPlayer.OnCompletionListener, MediaPlayer.OnVideoSizeChangedListener,
-        TextureView.SurfaceTextureListener {
+public final class VideoPlayerFragment extends Fragment implements ExoPlayer.Listener,
+        TextureView.SurfaceTextureListener, MediaCodecVideoTrackRenderer.EventListener,
+        AnnotationRenderer.EventListener {
 
     public static final String STATE_AUTO_PLAY = "STATE_AUTO_PLAY";
     public static final String STATE_INITIAL_POSITION = "STATE_INITIAL_POSITION";
 
-    private State state = State.UNPREPARED;
+    // Number of ExoPlayer renderers in total
+    private static final int RENDERER_COUNT = 3;
 
-    private AnnotationEditor annotationEditor;
+    // Number of framework renderers (currently video and audio)
+    private static final int DOWNSTREAM_RENDERER_COUNT = 2;
+
+    private State state = State.UNPREPARED;
 
     private FrameLayout videoContainer;
     private TextureView videoSurface;
@@ -59,15 +70,15 @@ public final class VideoPlayerFragment extends Fragment implements PauseStrategy
 
     private LinearLayout subtitleContainer;
 
-    private MediaPlayer mediaPlayer;
-    private PlaybackTimer playbackTimer;
-
-    private AnnotationRenderService annotationRenderService;
-    private PauseStrategy pauseRenderer;
+    private ExoPlayer exoPlayer;
+    private TrackRenderer videoRenderer;
+    private AnnotationRenderer annotationRenderer;
 
     private PlaybackStateListener listener;
 
-    private boolean isMediaPlayerPrepared = false;
+    private VideoOrientationPatcher orientationPatcher;
+
+    private boolean isExoPlayerPrepared = false;
     private boolean isSurfacePrepared = false;
 
     private boolean stateAutoPlay = true;
@@ -89,9 +100,9 @@ public final class VideoPlayerFragment extends Fragment implements PauseStrategy
         }
 
         videoContainer = (FrameLayout) view.findViewById(R.id.surfaceContainer);
-
         markerCanvas = (MarkerCanvas) view.findViewById(R.id.markerContainer);
         videoSurface = (TextureView) view.findViewById(R.id.videoSurface);
+
         videoSurface.setSurfaceTextureListener(this);
 
         bufferProgress = (ProgressBar) view.findViewById(R.id.bufferProgress);
@@ -100,52 +111,37 @@ public final class VideoPlayerFragment extends Fragment implements PauseStrategy
         pauseProgress.setVisibility(View.GONE);
 
         subtitleContainer = (LinearLayout) view.findViewById(R.id.subtitleContainer);
+
+        // ExoPlayer doesn't handle video orientation correctly: we need to fix it manually.
+        orientationPatcher = new VideoOrientationPatcher(getActivity(), this);
     }
 
     @Override
     public void onResume() {
         super.onResume();
 
-        mediaPlayer = new MediaPlayer();
-        mediaPlayer.setOnCompletionListener(this);
-        mediaPlayer.setOnErrorListener(this);
-        mediaPlayer.setOnVideoSizeChangedListener(this);
-        mediaPlayer.setOnPreparedListener(this);
-
-        annotationRenderService = new AnnotationRenderService();
-        pauseRenderer = new PauseStrategy(this);
-
-        playbackTimer = new PlaybackTimer(mediaPlayer);
-        playbackTimer.setListener(new PlaybackTimer.Listener() {
-            @Override
-            public void onPlaybackTimerTick(long position) {
-                annotationRenderService.render(position);
-            }
-        });
+        exoPlayer = ExoPlayer.Factory.newInstance(RENDERER_COUNT);
+        exoPlayer.addListener(this);
     }
 
     @Override
     public void onPause() {
         // Set values for onSaveInstanceState()
-        stateAutoPlay = mediaPlayer.isPlaying();
-        stateInitialPosition = mediaPlayer.getCurrentPosition();
+        stateAutoPlay = exoPlayer.getPlayWhenReady();
+        stateInitialPosition = exoPlayer.getCurrentPosition();
 
-        isMediaPlayerPrepared = false;
+        isExoPlayerPrepared = false;
         isSurfacePrepared = false;
 
-        playbackTimer.release();
-        annotationRenderService.release();
-        mediaPlayer.release();
-
-        mediaPlayer = null;
+        exoPlayer.release();
+        exoPlayer = null;
 
         super.onPause();
     }
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
-        // The values to these are set in onPause() since the MediaPlayer has already been
-        // destroyed when we get here.
+        // The values to these are set in onPause() since ExoPlayer has already been destroyed.
         savedInstanceState.putBoolean(STATE_AUTO_PLAY, stateAutoPlay);
         savedInstanceState.putLong(STATE_INITIAL_POSITION, stateInitialPosition);
 
@@ -154,82 +150,82 @@ public final class VideoPlayerFragment extends Fragment implements PauseStrategy
 
     /**
      * Prepare the fragment for video playback.
-     *
-     * @throws IOException if the video file is unreachable
      */
-    public void prepare() throws IOException {
-        if (annotationEditor == null) throw new IllegalStateException("Annotation editor unset.");
+    public void prepare(Uri videoUri, AnnotationEditor annotationEditor) {
+        orientationPatcher.setVideoUri(videoUri);
+        orientationPatcher.setView(videoSurface);
 
-        annotationRenderService.addRenderer(new MarkerStrategy(annotationEditor, markerCanvas));
-        annotationRenderService.addRenderer(new SubtitleStrategy(subtitleContainer));
-        annotationRenderService.addRenderer(pauseRenderer);
+        SampleSource source = new FrameworkSampleSource(
+                getActivity(),
+                videoUri,
+                null,
+                DOWNSTREAM_RENDERER_COUNT
+        );
 
-        mediaPlayer.prepareAsync();
+        // The video renderer runs on another thread: we need to supply a handler on the main
+        // thread in order to receive events.
+        Handler mainHandler = new Handler(Looper.getMainLooper());
+
+        videoRenderer = new MediaCodecVideoTrackRenderer(
+                source,
+                VIDEO_SCALING_MODE_SCALE_TO_FIT,
+                0,
+                mainHandler,
+                orientationPatcher,
+                0
+        );
+
+        annotationRenderer = new AnnotationRenderer(
+                this,
+                new MarkerStrategy(markerCanvas, annotationEditor),
+                new SubtitleStrategy(R.layout.subtitle, subtitleContainer)
+        );
+
+        TrackRenderer audioRenderer = new MediaCodecAudioTrackRenderer(source);
+
+        exoPlayer.prepare(videoRenderer, annotationRenderer, audioRenderer);
     }
 
     /**
-     * We're not prepared unless both the MediaPlayer and the Surface are ready.
+     * We're not prepared unless both ExoPlayer and the surface are ready.
      */
     private void finishPreparing() {
-        if (!isMediaPlayerPrepared || !isSurfacePrepared) return;
+        if (!(isExoPlayerPrepared && isSurfacePrepared)) return;
 
         SurfaceTexture texture = videoSurface.getSurfaceTexture();
         Surface surface = new Surface(texture);
-        mediaPlayer.setSurface(surface);
+
+        // Tell the video renderer which surface to use
+        exoPlayer.sendMessage(videoRenderer, MediaCodecVideoTrackRenderer.MSG_SET_SURFACE, surface);
 
         bufferProgress.setVisibility(View.GONE);
 
         seekTo(stateInitialPosition);
         setState(State.PREPARED);
 
-        if (stateAutoPlay) play();
+        if (stateAutoPlay) {
+            play();
+        }
     }
 
     public void play() {
-        // Stop an annotation pause if one is in progress
-        pauseRenderer.stop();
-
-        mediaPlayer.start();
-        playbackTimer.start();
-        setState(State.PLAYING);
+        exoPlayer.setPlayWhenReady(true);
     }
 
     public void pause() {
-        mediaPlayer.pause();
-        playbackTimer.stop();
-        setState(State.PAUSED);
+        exoPlayer.setPlayWhenReady(false);
     }
 
     public void seekTo(long position) {
-        mediaPlayer.seekTo((int) position);
+        exoPlayer.seekTo(position);
+    }
 
-        annotationRenderService.recalculateRendered(position);
-
-        if (mediaPlayer.isPlaying()) {
-            annotationRenderService.render(position);
-        } else {
-            // If paused and seeking, do fuzzy rendering so we can show annotations on screen even
-            // if the user didn't seek to the exact position.
-            annotationRenderService.fuzzyRender(position);
-        }
+    public void setAnnotations(List<Annotation> annotations) {
+        annotationRenderer.setAnnotations(annotations);
     }
 
     public void setListener(PlaybackStateListener listener) {
         this.listener = listener;
-    }
-
-    public void setVideo(Video video) throws IOException {
-        mediaPlayer.setDataSource(getActivity(), video.getVideoUri());
-    }
-
-    public void setAnnotations(List<Annotation> annotations) {
-        annotationRenderService.setAnnotations(annotations);
-        annotationRenderService.recalculateRendered(getPlaybackPosition());
-        annotationRenderService.render(getPlaybackPosition());
-    }
-
-    public void setAnnotationEditor(AnnotationEditor annotationEditor) {
-        this.annotationEditor = annotationEditor;
     }
 
     public State getState() {
@@ -237,11 +233,11 @@ public final class VideoPlayerFragment extends Fragment implements PauseStrategy
     }
 
     public long getPlaybackPosition() {
-        return mediaPlayer.getCurrentPosition();
+        return exoPlayer.getCurrentPosition();
     }
 
     public long getDuration() {
-        return mediaPlayer.getDuration();
+        return exoPlayer.getDuration();
     }
 
     public LinearLayout getSubtitleContainer() {
@@ -251,69 +247,102 @@ public final class VideoPlayerFragment extends Fragment implements PauseStrategy
     private void setState(State state) {
         this.state = state;
 
-        if (listener != null) listener.onPlaybackStateChanged(state);
+        if (listener != null) {
+            listener.onPlaybackStateChanged(state);
+        }
     }
 
     @Override
-    public void startAnnotationPause(int duration) {
-        if (state != State.PLAYING) return;
-
-        mediaPlayer.pause();
-        playbackTimer.stop();
-        setState(State.ANNOTATION_PAUSED);
-
-        // Show and animate progress bar
-        pauseProgress.setVisibility(View.VISIBLE);
-
-        ObjectAnimator.ofInt(pauseProgress, "progress", 0, pauseProgress.getMax())
-                .setDuration(duration)
-                .start();
-    }
-
-    @Override
-    public void stopAnnotationPause() {
-        if (state != State.ANNOTATION_PAUSED) return;
-
-        pauseProgress.setVisibility(View.GONE);
-
-        play();
-    }
-
     public void onSurfaceTextureAvailable(SurfaceTexture texture, int width, int height) {
         isSurfacePrepared = true;
         finishPreparing();
     }
 
+    @Override
     public boolean onSurfaceTextureDestroyed(SurfaceTexture texture) {
         return true;
     }
 
+    @Override
     public void onSurfaceTextureUpdated(SurfaceTexture texture) {}
 
+    @Override
     public void onSurfaceTextureSizeChanged(SurfaceTexture texture, int width, int height) {}
 
     /**
-     * Called when the MediaPlayer is ready.
+     * Invoked when the value returned from either ExoPlayer#getPlayWhenReady() or
+     * ExoPlayer#getPlaybackState() changes.
+     *
+     * @param playWhenReady Whether playback will proceed when ready.
+     * @param playbackState One of the STATE constants defined in this class.
      */
     @Override
-    public void onPrepared(MediaPlayer player) {
-        isMediaPlayerPrepared = true;
-        finishPreparing();
+    public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
+        switch (playbackState) {
+            case ExoPlayer.STATE_READY:
+                if (!isExoPlayerPrepared) {
+                    isExoPlayerPrepared = true;
+                    finishPreparing();
+                }
+
+                break;
+
+            case ExoPlayer.STATE_ENDED:
+                pause();
+                seekTo(0);
+                break;
+        }
     }
 
     /**
-     * Resize the surface container to match the aspect ratio of the video but still fill its
-     * parent view.
+     * Invoked when the current value of ExoPlayer#getPlayWhenReady() has been reflected by the
+     * internal playback thread.
+     *
+     * An invocation of this method will shortly follow any call to
+     * ExoPlayer#setPlayWhenReady(boolean) that changes the state. If multiple calls are made in
+     * rapid succession, then this method will be invoked only once, after the final state has been
+     * reflected.
      */
     @Override
-    public void onVideoSizeChanged(MediaPlayer player, int width, int height) {
-        View containerParent = ((View) videoContainer.getParent());
-        if (containerParent == null) return;
+    public void onPlayWhenReadyCommitted() {
+        if (exoPlayer.getPlayWhenReady()) {
+            setState(State.PLAYING);
+        } else {
+            setState(State.PAUSED);
+        }
+    }
+
+    /**
+     * Invoked when an error occurs. The playback state will transition to ExoPlayer#STATE_IDLE
+     * immediately after this method is invoked. The player instance can still be used, and
+     * ExoPlayer#release() must still be called on the player should it no longer be required.
+     */
+    @Override
+    public void onPlayerError(ExoPlaybackException error) {
+        Toast.makeText(getActivity(), R.string.playback_error, Toast.LENGTH_LONG).show();
+        Bugsnag.notify(error);
+    }
+
+    /**
+     * Invoked each time there's a change in the size of the video being rendered.
+     */
+    @Override
+    public void onVideoSizeChanged(int width, int height, float pixelWidthHeightRatio) {
+        ViewParent parent = videoContainer.getParent();
+        View parentView;
+
+        if (parent instanceof View) {
+            parentView = (View) parent;
+        } else {
+            // The container does not have a view parent, using layout parameters won't work. This
+            // should not happen since we're in control of the layout.
+            return;
+        }
 
         float videoAspectRatio = (float) width / height;
 
-        int parentWidth = containerParent.getWidth();
-        int parentHeight = containerParent.getHeight();
+        int parentWidth = parentView.getWidth();
+        int parentHeight = parentView.getHeight();
 
         float widthRatio = (float) parentWidth / width;
         float heightRatio = (float) parentHeight / height;
@@ -337,44 +366,64 @@ public final class VideoPlayerFragment extends Fragment implements PauseStrategy
         videoContainer.setLayoutParams(params);
     }
 
+    /**
+     * Invoked when a decoder fails to initialize.
+     */
     @Override
-    public void onCompletion(MediaPlayer player) {
-        pause();
-        seekTo(0);
+    public void onDecoderInitializationError(MediaCodecTrackRenderer.
+                                                         DecoderInitializationException error) {
+        Bugsnag.notify(error);
     }
 
+    /**
+     * Invoked when a decoder operation raises a CryptoException.
+     */
     @Override
-    public boolean onError(MediaPlayer player, int what, int extra) {
-        SparseArray<String> messages = new SparseArray<>();
-
-        messages.put(MediaPlayer.MEDIA_ERROR_SERVER_DIED, "Lost connection to media server.");
-        messages.put(MediaPlayer.MEDIA_ERROR_UNKNOWN, "Unknown error with media player.");
-        messages.put(MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK,
-                "Video not valid for streaming.");
-
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN) {
-            messages.put(MediaPlayer.MEDIA_ERROR_IO, "Network error.");
-            messages.put(MediaPlayer.MEDIA_ERROR_MALFORMED, "Malformed media data.");
-            messages.put(MediaPlayer.MEDIA_ERROR_TIMED_OUT, "Connection timed out.");
-            messages.put(MediaPlayer.MEDIA_ERROR_UNSUPPORTED, "Unsupported media format.");
-        }
-
-        String defaultMessage = String.format("Media player error: (%s, %s)", what, extra);
-        String message = messages.get(extra, defaultMessage);
-
-        Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
-
-        Bugsnag.notify(new Exception(defaultMessage));
-
-        return true;
+    public void onCryptoError(MediaCodec.CryptoException error) {
+        Bugsnag.notify(error);
     }
 
-    public enum State {
+    /**
+     * Invoked when a frame is rendered to a surface for the first time following that surface
+     * having been set as the target for the renderer.
+     */
+    @Override
+    public void onDrawnToSurface(Surface surface) {}
+
+    /**
+     * Invoked to report the number of frames dropped by the renderer.
+     */
+    @Override
+    public void onDroppedFrames(int count, long elapsed) {}
+
+    /**
+     * Invoked when an annotation pause starts.
+     *
+     * @param duration Pause duration in milliseconds.
+     */
+    @Override
+    public void onAnnotationPauseStart(int duration) {
+        // Show and animate progress bar
+        pauseProgress.setVisibility(View.VISIBLE);
+
+        ObjectAnimator.ofInt(pauseProgress, "progress", 0, pauseProgress.getMax())
+                .setDuration(duration)
+                .start();
+    }
+
+    /**
+     * Invoked when an annotation pause ends.
+     */
+    @Override
+    public void onAnnotationPauseEnd() {
+        pauseProgress.setVisibility(View.GONE);
+    }
+
+    public static enum State {
         UNPREPARED,
         PREPARED,
         PLAYING,
-        PAUSED,
-        ANNOTATION_PAUSED
+        PAUSED
     }
 
     public static interface PlaybackStateListener {

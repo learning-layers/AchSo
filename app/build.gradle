@@ -46,6 +46,8 @@ repositories {
 }
 
 dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+
     // Android backwards-compatibility
     compile 'com.android.support:multidex:1.0.1'
     compile 'com.android.support:support-v4:21.0.3'
@@ -78,6 +80,9 @@ dependencies {
     compile('com.google.api-client:google-api-client-gson:1.19.0') {
         exclude group: 'com.google.guava', module: 'guava-jdk5'
     }
+
+    // MPEG-4 parsing
+    compile 'com.googlecode.mp4parser:isoparser:1.0.5.4'
 
     // Image manipulation
     compile 'com.squareup.picasso:picasso:2.4.0'

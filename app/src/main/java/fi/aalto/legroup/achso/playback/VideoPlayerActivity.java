@@ -24,7 +24,6 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bugsnag.android.Bugsnag;
 import com.squareup.otto.Subscribe;
 
 import java.io.File;
@@ -147,17 +146,8 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
         playerFragment = (VideoPlayerFragment)
                 getFragmentManager().findFragmentById(R.id.videoPlayerFragment);
 
-        try {
-            playerFragment.setVideo(video);
-            playerFragment.setListener(this);
-            playerFragment.setAnnotationEditor(this);
-
-            playerFragment.prepare();
-        } catch (IOException e) {
-            // TODO: Show error message
-            Bugsnag.notify(e);
-            e.printStackTrace();
-        }
+        playerFragment.setListener(this);
+        playerFragment.prepare(video.getVideoUri(), this);
     }
 
     @Override
@@ -407,18 +397,11 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
 
             case PLAYING:
                 hideControlsOverlay();
-
-                seekBar.setEnabled(true);
                 playPauseButton.setImageResource(R.drawable.ic_action_pause);
                 break;
 
             case PAUSED:
                 showControlsOverlay();
-                playPauseButton.setImageResource(R.drawable.ic_action_play);
-                break;
-
-            case ANNOTATION_PAUSED:
-                seekBar.setEnabled(false);
                 playPauseButton.setImageResource(R.drawable.ic_action_play);
                 break;
         }
