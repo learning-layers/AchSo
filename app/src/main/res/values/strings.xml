@@ -87,5 +87,6 @@
     <string name="processing_video">Processing video…</string>
     <string name="migration_notification">Ach so! is updating your videos…</string>
     <string name="playback_error">A playback error occurred.</string>
+    <string name="upload_error">Uploading failed; please try again.</string>
 
 </resources>

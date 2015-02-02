@@ -216,8 +216,8 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
 
         this.adapter.hideProgress(videoId);
 
-        if (event.getErrorMessage() == null) {
-            message = "Uploading failed, please try again.";
+        if (message == null) {
+            message = getString(R.string.upload_error);
         }
 
         Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
