@@ -140,7 +140,7 @@ public class DetailDialogFragment extends DialogFragment {
 
         Spinner spinner = (Spinner) this.view.findViewById(R.id.video_information_genre);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this.view.getContext(),
-                R.array.genre_values,
+                R.array.genres,
                 R.layout.spinner_item);
         adapter.setDropDownViewResource(R.layout.spinner_item);
 

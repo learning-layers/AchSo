@@ -155,7 +155,7 @@ public class SQLiteMigrationService extends IntentService {
 
             annotationCursor.close();
 
-            VideoCreatorService.with(this, videoUri, genre)
+            VideoCreatorService.build(videoUri, genre)
                     .setId(id)
                     .setTitle(title)
                     .setTag(tag)
@@ -163,7 +163,7 @@ public class SQLiteMigrationService extends IntentService {
                     .setAuthor(author)
                     .setLocation(location)
                     .setAnnotations(annotations)
-                    .create();
+                    .create(this);
         }
 
         videoCursor.close();

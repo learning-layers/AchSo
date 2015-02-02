@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <resources>
-
     <string name="app_name">Ach so!</string>
-    <string name="title_item_detail">Tiedot</string>
     <string name="my_videos">Omat videot</string>
-    <string name="loading">Ladataan</string>
     <string name="record">Tee uusi video</string>
     <string name="read_qr_code">Hae QR-koodilla</string>
-    <string name="title_activity_genre_selection">Valitse videon lajityyppi</string>
     <string name="title_activity_information">Videon tiedot</string>
     <string name="action_settings">Asetukset</string>
     <string name="genre_selection_title">Millainen video tämä oli?</string>
@@ -16,27 +12,18 @@
     <string name="delete">Poista</string>
     <string name="upload">Lähetä palvelimelle</string>
     <string name="qr_to_video">Liitä QR-koodiin</string>
-    <string name="deletion_title">Videoiden poisto</string>
-    <string name="deletion_question">Haluatko poistaa valitut videot ja merkinnät?</string>
+    <string name="deletion_title">Poista videoita</string>
+    <string name="deletion_question">Haluatko poistaa valitut videot ja niiden merkinnät?</string>
 
-    <string name="first_page">Kaikki videot</string>
-    <string name="detailed_storage_error">Tallennusmuistiin ei saatu yhteyttä. Onko SD-muistikortti laitteessa?</string>
-
-    <string name="login_description">Kirjaudu palvelimelle</string>
-    <string name="user">Käyttäjänimi</string>
-    <string name="pass">Salasana</string>
     <string name="login">Kirjaudu</string>
-    <string name="login_nag_text">Väärä käyttäjänimi tai salasana.</string>
-    <string name="title_activity_login">Kirjaudu palvelimelle</string>
 
     <string name="not_loggedin_nag_title">Et ole kirjautunut</string>
     <string name="not_loggedin_nag_text">Sinun täytyy olla kirjautunut voidaksesi lähettää videoita.</string>
 
     <string name="location_not_enabled">Paikannuspalvelut suljettu</string>
-    <string name="location_not_enabled_text">Paikannuspalvelut on kytketty pois päältä. Haluatko laittaa ne päälle?</string>
 
     <string name="ok">OK</string>
-    <string name="cancel">Peru</string>
+    <string name="cancel">Peruuta</string>
     <string name="keep">Tallenna</string>
 
     <string name="edit_text">Muokkaa</string>
@@ -45,13 +32,9 @@
     <string name="semanticvideo_title">Nimi</string>
     <string name="semanticvideo_creator">Tekijä</string>
     <string name="semanticvideo_qrcode">QR-koodi</string>
-    <string name="semanticvideo_createdat">Luotu</string>
-    <string name="semanticvideo_uri">Tiedostonimi</string>
     <string name="semanticvideo_genre">Lajityyppi</string>
     <string name="semanticvideo_uploaded">Lähetetty</string>
     <string name="semanticvideo_latitude">Leveysaste</string>
-    <string name="semanticvideo_longitude">Pituusaste</string>
-    <string name="semanticvideo_accuracy">Paikannuksen tarkkuus</string>
     <string name="semanticvideo_unknown_creator">Tuntematon tekijä</string>
     <string name="semanticvideo_unknown_location">Tuntematon sijainti</string>
     <string name="semanticvideo_no_qr">Ei QR-koodia</string>
@@ -60,10 +43,7 @@
     <string name="search_hint">Hae videoita</string>
     <string name="title_activity_search">Hae</string>
 
-    <string name="remote_video_separator">Videot palvelimella</string>
-
     <string name="url_found_label">Löytyi linkki:</string>
-    <string name="open_in_browser">Avaa selaimessa</string>
     <string name="latest_videos">Viimeisimmät</string>
     <string name="recommended_videos">Suositellut</string>
     <string name="no_connection">Ei yhteyttä pilveen</string>
@@ -78,30 +58,60 @@
     <string name="created_new_video">Uusi video luotu</string>
     <string name="code_added_to_videos">Koodi lisätty valittuihin videoihin</string>
     <string name="upload_successful">Lähetys on valmis.</string>
-    <string name="buffering">Puskuroi...</string>
+    <string name="buffering">Puskuroidaan…</string>
     <string name="logged_in_as">Kirjautunut nimellä %s.</string>
     <string name="connection_problem">Yhteysongelma</string>
-    <string name="authentication_problem">Tunnusongelma</string>
+    <string name="authentication_problem">Tunnistautumisongelma</string>
     <string name="tethys_prefs">Tethys account</string>
-    <string name="action_register">Create account</string>
-    <string name="prompt_fullname">Full name</string>
-    <string name="confirm_pass">Repeat password</string>
-    <string name="error_passwords_dont_match">Password doesn\'t match with verification</string>
-    <string name="Welcome">Welcome</string>
-    <string name="openid_login">Login to Learning Layers OIDC Server</string>
-    <string name="login_failed_help_text">Login failed. Verify your credentials.</string>
-    <string name="registration_failed_help_text">Registration failed for following reason:</string>
+    <string name="action_register">Luo tunnus</string>
+    <string name="prompt_fullname">Etu- ja sukunimi</string>
+    <string name="confirm_pass">Salasana uudestaan</string>
+    <string name="error_passwords_dont_match">Salasana ei vastaa vahvistusta</string>
+    <string name="Welcome">Tervetuloa</string>
+    <string name="openid_login">Kirjaudu Learning Layers OIDC -palvelimeen</string>
+    <string name="login_failed_help_text">Kirjautuminen epäonnistui, tarkista käyttäjätunnuksesi.</string>
+    <string name="registration_failed_help_text">Rekisteöityminen epäonnistui:</string>
 
     <string name="yes">Kyllä</string>
     <string name="no">Ei</string>
-    <string name="logged_out">Logged out.</string>
-    <string name="login_error">Could not log in: %s</string>
+    <string name="logged_out">Olet kirjautunut ulos.</string>
+    <string name="login_error">Kirjautuminen epäonnistui: %s</string>
 
-    <string-array name="genre_values">
-        <item>Hyvää työtä</item>
+    <string-array name="genres">
+    <item>Hyvää työtä</item>
         <item>Ongelma</item>
         <item>Yleiskatsaus</item>
         <item>Ammattilaisen niksi</item>
     </string-array>
-
+    <string name="about">Tietoja</string>
+    <string name="about_maps">Tietoja Mapsista</string>
+    <string name="annotation_hint">Anna annotaatiolle kuvaus</string>
+    <string name="choose_account">Valitse tunnus</string>
+    <string name="close">Sulje</string>
+    <string name="comments">Kommentit</string>
+    <string name="empty_results">Ei vastaavia videoita</string>
+    <string name="error_sharing">Joitain videoita ei voida voitu jakaa.</string>
+    <string name="error_thumbnail">Pikkukuvien luonti epäonnistui.</string>
+    <string name="error_thumbnail_not_found">Videon pikkukuvaa ei löytynyt.</string>
+    <string name="feedback">Lähetä palautetta</string>
+    <string name="feedback_body">Viesti</string>
+    <string name="feedback_email">Sähköpostiosoite</string>
+    <string name="feedback_error">Palautetta lähetettäessä tapahtui virhe. Ole hyvä ja yritä uudestaan.</string>
+    <string name="feedback_send">Lähetä</string>
+    <string name="feedback_sent">Kiitos palautteestasi.</string>
+    <string name="feedback_summary">Yhteenveto</string>
+    <string name="feedback_topic">Tyyppi</string>
+    <string name="feedback_user">Etu- ja sukunimi</string>
+    <string name="migration_notification">Ach so! päivittää videoitasi…</string>
+    <string name="processing_video">Käsitellään videota…</string>
+    <string name="save">Tallenna</string>
+    <string name="select_genre">Valitse lajityyppi</string>
+    <string name="storage_error">Videovarastoon ei voitu yhdistää.</string>
+    <string name="video_author">Tekijä</string>
+    <string name="video_no_location">Ei sijaintitietoa</string>
+    <string name="video_share">Jaa</string>
+    <string name="view_video_info">Näytä tiedot</string>
+    <string name="logout">Kirjaudu ulos</string>
+    <string name="search">Etsi</string>
+    <string name="upload_error">Lähettäminen epäonnistui; yritäthän uudelleen.</string>
 </resources>

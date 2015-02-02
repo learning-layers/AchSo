@@ -2,14 +2,11 @@
 <resources>
 
     <string name="app_name">Ach so!</string>
-    <string name="title_item_detail">Item Detail</string>
+
     <string name="my_videos">All videos</string>
-    <string name="loading">Loading</string>
     <string name="record">Record new video</string>
     <string name="read_qr_code">Search by QR code</string>
-    <string name="title_activity_genre_selection">Select a type for a video</string>
     <string name="title_activity_information">Video information</string>
-    <string name="action_settings">Settings</string>
     <string name="genre_selection_title">What kind of video is this?</string>
     <string name="delete">Delete</string>
     <string name="upload">Upload</string>
@@ -17,89 +14,44 @@
     <string name="view_video_info">Show details</string>
     <string name="deletion_title">Video deletion</string>
     <string name="deletion_question">Delete the selected videos and their annotations?</string>
-    <string name="first_page">All videos</string>
     <string name="storage_error">Could not access video storage.</string>
-    <string name="login_description">Login to server</string>
-    <string name="user">Username</string>
-    <string name="pass">Password</string>
-    <string name="login">Login</string>
-    <string name="autologin">Keep me logged in</string>
-    <string name="login_nag_text">Invalid username or password.</string>
-    <string name="title_activity_login">Login to server</string>
+
+    <string name="login">Log in</string>
+    <string name="logout">Log out</string>
     <string name="not_loggedin_nag_title">Not logged in</string>
-    <string name="not_loggedin_nag_text">You need to be logged in to upload videos.</string>
     <string name="video_no_location">No location info</string>
-    <string name="location_not_enabled">Location services disabled</string>
-    <string name="location_not_enabled_text">Location services aren\'t enabled. Do you want to enable them now?</string>
-    <string name="url_found_label">Found link:</string>
-    <string name="code_found_label">Found code:</string>
-    <string name="open_in_browser">Open in browser</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
-    <string name="keep">Keep</string>
     <string name="edit_text">Edit text</string>
     <string name="video_share">Share</string>
 
-    <!-- SemanticVideo data -->
     <string name="semanticvideo_title">Title</string>
     <string name="semanticvideo_creator">Creator</string>
     <string name="semanticvideo_qrcode">QR code</string>
-    <string name="semanticvideo_createdat">Created at</string>
-    <string name="semanticvideo_uri">File name on device</string>
     <string name="semanticvideo_genre">Genre</string>
     <string name="semanticvideo_uploaded">Uploaded</string>
-    <string name="semanticvideo_latitude">Latitude</string>
-    <string name="semanticvideo_longitude">Longitude</string>
-    <string name="semanticvideo_accuracy">Location accuracy</string>
     <string name="semanticvideo_unknown_creator">Unknown creator</string>
     <string name="semanticvideo_unknown_location">Unknown location</string>
     <string name="semanticvideo_no_qr">No QR code read</string>
-    <!-- /SemanticVideo data -->
 
+    <string name="search">Search</string>
     <string name="search_hint">Search for videos</string>
-    <string name="title_activity_search">Search</string>
-    <string name="remote_video_separator">Remote videos</string>
 
-    <string name="latest_videos">Latest</string>
-    <string name="recommended_videos">Recommended</string>
-    <string name="no_connection">No connection to cloud</string>
-    <string name="nearby_videos">Nearby</string>
-    <string name="search_results">Search results</string>
     <string name="empty_results">No matching videos</string>
     <string name="add_video">Add video</string>
     <string name="video_author">Author</string>
-    <string name="author_is_me">Me</string>
     <string name="author_is_unknown">Unknown</string>
-    <string name="unknown_format">Unknown format, or file is not a video</string>
-    <string name="video_already_exists">This video is already in Ach so!</string>
-    <string name="login_successful">Login successful</string>
-    <string name="created_new_video">Created new video.</string>
     <string name="code_added_to_videos">Code added to selected video(s).</string>
-    <string name="upload_successful">Upload successful.</string>
-    <string name="buffering">Buffering...</string>
     <string name="logged_in_as">Logged in as %s.</string>
     <string name="connection_problem">Connection problem</string>
-    <string name="authentication_problem">Authentication problem</string>
     <string name="tethys_prefs">Tethys account</string>
-    <string name="action_register">Create new account</string>
-    <string name="prompt_fullname">Full name</string>
-    <string name="confirm_pass">Repeat password</string>
-    <string name="error_passwords_dont_match">Password doesn\'t match with verification</string>
-    <string name="title_activity_approval">ApprovalActivity</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="Welcome">Welcome</string>
-    <string name="openid_login">Login to Learning Layers OIDC Server</string>
-    <string name="login_failed_help_text">Login failed. Verify your credentials.</string>
-    <string name="registration_failed_help_text">Registration failed for following reason:</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="about">About</string>
     <string name="about_maps">About Maps</string>
     <string name="choose_account">Choose an account</string>
     <string name="logged_out">Logged out.</string>
     <string name="login_error">Could not log in: %s</string>
-    <string name="title_activity_main">MainActivity</string>
     <string name="save">Save</string>
 
     <string name="feedback">Feedback</string>
@@ -119,13 +71,14 @@
         <item>Trick of trade</item>
     </string-array>
 
+    <string name="unknown_genre">Unknown genre</string>
+    <string name="unknown_title">Unknown title</string>
+
     <plurals name="select_count">
         <item quantity="one">%d item selected</item>
         <item quantity="other">%d items selected</item>
     </plurals>
 
-    <string name="error_thumbnail">Could not create video thumbnail.</string>
-    <string name="error_thumbnail_not_found">Could not find thumbnail for video.</string>
     <string name="error_sharing">Some videos could not be shared.</string>
     <string name="annotation_hint">Describe this annotation</string>
     <string name="comments">Comments</string>
@@ -133,5 +86,7 @@
     <string name="close">Close</string>
     <string name="processing_video">Processing video…</string>
     <string name="migration_notification">Ach so! is updating your videos…</string>
+    <string name="playback_error">A playback error occurred.</string>
+    <string name="upload_error">Uploading failed; please try again.</string>
 
 </resources>

@@ -9,6 +9,8 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.provider.MediaStore;
 
 import com.squareup.otto.Bus;
@@ -57,8 +59,30 @@ public final class VideoCreatorService extends IntentService {
 
     private Bus bus;
 
-    public static VideoBuilder with(Context context, Uri videoUri, String videoGenre) {
-        return new VideoBuilder(context, videoUri, videoGenre);
+    /**
+     * Returns a builder for a video. Video URI and genre must be supplied via the builder's setters
+     * before calling VideoBuilder#create().
+     */
+    public static VideoBuilder build() {
+        return new VideoBuilder(null, null);
+    }
+
+    /**
+     * Returns a builder for a video.
+     */
+    public static VideoBuilder build(Uri videoUri, String videoGenre) {
+        return new VideoBuilder(videoUri, videoGenre);
+    }
+
+    /**
+     * TODO: This could be neater.
+     */
+    public static File getStorageVideoFile(VideoBuilder builder) {
+        return getStorageFile(builder.id, "mp4");
+    }
+
+    private static File getStorageFile(UUID id, String extension) {
+        return new File(App.localStorageDirectory, id + "." + extension);
     }
 
     public VideoCreatorService() {
@@ -95,10 +119,6 @@ public final class VideoCreatorService extends IntentService {
             author = new User(authorName, authorUri);
         }
 
-        if (id == null) {
-            id = UUID.randomUUID();
-        }
-
         if (date == null) {
             date = new Date();
         }
@@ -110,15 +130,8 @@ public final class VideoCreatorService extends IntentService {
         File videoFile = getStorageFile(id, "mp4");
         File thumbFile = getStorageFile(id, "jpg");
 
-        Uri videoUri = Uri.fromFile(videoFile);
-        Uri thumbUri = Uri.fromFile(thumbFile);
-
-        // TODO: Try to record the video straight to the storage directory
         try {
-            InputStream from = getContentResolver().openInputStream(videoContentUri);
-            OutputStream to = new FileOutputStream(videoFile);
-
-            copy(from, to);
+            ensureVideoContent(videoContentUri, videoFile);
         } catch (IOException e) {
             // TODO: Error message
             bus.post(new VideoCreationStateEvent(VideoCreationStateEvent.Type.ERROR));
@@ -133,6 +146,9 @@ public final class VideoCreatorService extends IntentService {
             e.printStackTrace();
         }
 
+        Uri videoUri = Uri.fromFile(videoFile);
+        Uri thumbUri = Uri.fromFile(thumbFile);
+
         Video video = new Video(App.videoRepository, videoUri, thumbUri, id, title, genre, tag,
                 date, author, location, annotations);
 
@@ -141,12 +157,29 @@ public final class VideoCreatorService extends IntentService {
         bus.post(new VideoCreationStateEvent(VideoCreationStateEvent.Type.FINISHED));
     }
 
-    private File getStorageFile(UUID id, String extension) {
-        return new File(App.localStorageDirectory, id + "." + extension);
+    /**
+     * Tries to ensure that video content of the given URI is where it should be. Only the existence
+     * of videoFile is checked, it is not actually read. If videoFile does not exist, it will be
+     * created using the content of videoContentUri.
+     *
+     * @param videoContentUri URI (file:// or content://) with raw video content.
+     * @param videoFile       File that should have the content.
+     * @throws IOException If the content cannot be copied.
+     */
+    private void ensureVideoContent(Uri videoContentUri, File videoFile) throws IOException {
+        if (videoFile.isFile() && videoFile.canRead()) {
+            return;
+        }
+
+        InputStream from = getContentResolver().openInputStream(videoContentUri);
+        OutputStream to = new FileOutputStream(videoFile);
+
+        copy(from, to);
     }
 
     /**
      * Copies one stream to another.
+     *
      * @param from Input stream to read from.
      * @param to   Output stream to write to.
      * @throws IOException If the input stream cannot be read from or the output stream written to.
@@ -178,12 +211,15 @@ public final class VideoCreatorService extends IntentService {
             stream = new FileOutputStream(thumbFile);
             thumbnail.compress(Bitmap.CompressFormat.JPEG, 74, stream);
         } finally {
-            if (stream != null) stream.close();
+            if (stream != null) {
+                stream.close();
+            }
         }
     }
 
     /**
      * Returns a video title based on the video date and location, if any.
+     *
      * @param date     Date of capturing.
      * @param location Location of capturing or null if there is none.
      */
@@ -202,6 +238,7 @@ public final class VideoCreatorService extends IntentService {
 
     /**
      * Returns an address string based on a location or null if the address cannot be resolved.
+     *
      * @param location Location to build an address for.
      */
     @Nullable
@@ -254,14 +291,13 @@ public final class VideoCreatorService extends IntentService {
     /**
      * Provides a flexible DSL for initialising the service.
      */
-    public static final class VideoBuilder {
+    public static final class VideoBuilder implements Parcelable {
 
-        private Context context;
-
+        private UUID id = UUID.randomUUID();
         private Uri videoUri;
-        private UUID id;
-        private String title;
         private String genre;
+
+        private String title;
         private String tag;
         private Date date;
         private String authorName;
@@ -269,14 +305,53 @@ public final class VideoCreatorService extends IntentService {
         private Location location;
         private ArrayList<Annotation> annotations;
 
-        private VideoBuilder(Context context, Uri videoUri, String genre) {
-            this.context = context;
+        /**
+         * If null, missing parameters must be supplied via their setters before calling #create().
+         */
+        private VideoBuilder(@Nullable Uri videoUri, @Nullable String genre) {
             this.videoUri = videoUri;
             this.genre = genre;
         }
 
+        protected VideoBuilder(Parcel parcel) {
+            id = (UUID) parcel.readValue(UUID.class.getClassLoader());
+            videoUri = (Uri) parcel.readValue(Uri.class.getClassLoader());
+            authorUri = (Uri) parcel.readValue(Uri.class.getClassLoader());
+            location = (Location) parcel.readValue(Location.class.getClassLoader());
+
+            genre = parcel.readString();
+            title = parcel.readString();
+            tag = parcel.readString();
+            authorName = parcel.readString();
+
+            long dateLong = parcel.readLong();
+
+            if (dateLong == -1) {
+                date = null;
+            } else {
+                date = new Date(dateLong);
+            }
+
+            if (parcel.readByte() == 0x01) {
+                annotations = new ArrayList<>();
+                parcel.readList(annotations, Annotation.class.getClassLoader());
+            } else {
+                annotations = null;
+            }
+        }
+
         public VideoBuilder setId(UUID id) {
             this.id = id;
+            return this;
+        }
+
+        public VideoBuilder setVideoUri(Uri videoUri) {
+            this.videoUri = videoUri;
+            return this;
+        }
+
+        public VideoBuilder setGenre(String genre) {
+            this.genre = genre;
             return this;
         }
 
@@ -311,23 +386,73 @@ public final class VideoCreatorService extends IntentService {
             return this;
         }
 
-        public void create() {
-            Intent intent = new Intent(this.context, VideoCreatorService.class);
+        public void create(Context context) {
+            if (this.videoUri == null || this.genre == null) {
+                throw new IllegalArgumentException("Video URI and genre must be supplied.");
+            }
 
-            intent.putExtra(ARG_VIDEO_URI, this.videoUri);
+            Intent intent = new Intent(context, VideoCreatorService.class);
+
             intent.putExtra(ARG_VIDEO_ID, this.id);
-            intent.putExtra(ARG_VIDEO_TITLE, this.title);
+            intent.putExtra(ARG_VIDEO_URI, this.videoUri);
             intent.putExtra(ARG_VIDEO_GENRE, this.genre);
+
+            intent.putExtra(ARG_VIDEO_TITLE, this.title);
             intent.putExtra(ARG_VIDEO_TAG, this.tag);
             intent.putExtra(ARG_VIDEO_DATE, this.date);
             intent.putExtra(ARG_VIDEO_AUTHOR_NAME, this.authorName);
             intent.putExtra(ARG_VIDEO_AUTHOR_URI, this.authorUri);
             intent.putExtra(ARG_VIDEO_LOCATION, this.location);
 
-            intent.putParcelableArrayListExtra(ARG_VIDEO_ANNOTATIONS, annotations);
+            intent.putParcelableArrayListExtra(ARG_VIDEO_ANNOTATIONS, this.annotations);
 
             context.startService(intent);
         }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel parcel, int flags) {
+            parcel.writeValue(videoUri);
+            parcel.writeValue(id);
+            parcel.writeValue(authorUri);
+            parcel.writeValue(location);
+
+            parcel.writeString(title);
+            parcel.writeString(genre);
+            parcel.writeString(tag);
+            parcel.writeString(authorName);
+
+            if (date != null) {
+                parcel.writeLong(date.getTime());
+            } else {
+                parcel.writeLong(-1);
+            }
+
+            if (annotations == null) {
+                parcel.writeByte((byte) 0x00);
+            } else {
+                parcel.writeByte((byte) 0x01);
+                parcel.writeList(annotations);
+            }
+        }
+
+        public static final Creator<VideoBuilder> CREATOR = new Creator<VideoBuilder>() {
+
+            @Override
+            public VideoBuilder createFromParcel(Parcel parcel) {
+                return new VideoBuilder(parcel);
+            }
+
+            @Override
+            public VideoBuilder[] newArray(int size) {
+                return new VideoBuilder[size];
+            }
+
+        };
 
     }
 

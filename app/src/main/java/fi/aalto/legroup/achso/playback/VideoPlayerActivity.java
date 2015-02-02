@@ -24,7 +24,6 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bugsnag.android.Bugsnag;
 import com.squareup.otto.Subscribe;
 
 import java.io.File;
@@ -120,9 +119,14 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        App.bus.register(this);
+    }
+
+    @Override
     protected void onResumeFragments() {
         super.onResumeFragments();
-
 
         UUID videoId = null;
         if (this.intentFile != null) {
@@ -147,17 +151,8 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
         playerFragment = (VideoPlayerFragment)
                 getFragmentManager().findFragmentById(R.id.videoPlayerFragment);
 
-        try {
-            playerFragment.setVideo(video);
-            playerFragment.setListener(this);
-            playerFragment.setAnnotationEditor(this);
-
-            playerFragment.prepare();
-        } catch (IOException e) {
-            // TODO: Show error message
-            Bugsnag.notify(e);
-            e.printStackTrace();
-        }
+        playerFragment.setListener(this);
+        playerFragment.prepare(video.getVideoUri(), this);
     }
 
     @Override
@@ -167,12 +162,6 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
         controllerVisibilityHandler.removeCallbacksAndMessages(null);
 
         super.onPause();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        App.bus.register(this);
     }
 
     @Override
@@ -257,7 +246,7 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
         cancelControlsOverlayHide();
 
         controlsOverlay.animate().alpha(1).setDuration(CONTROLS_ANIMATION_DURATION).start();
-        toolbar.animate().translationY(0).setDuration(CONTROLS_ANIMATION_DURATION).start();
+        toolbar.animate().alpha(1).setDuration(CONTROLS_ANIMATION_DURATION).start();
 
         anchorSubtitleContainerTo(playbackControls);
     }
@@ -407,18 +396,11 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
 
             case PLAYING:
                 hideControlsOverlay();
-
-                seekBar.setEnabled(true);
                 playPauseButton.setImageResource(R.drawable.ic_action_pause);
                 break;
 
             case PAUSED:
                 showControlsOverlay();
-                playPauseButton.setImageResource(R.drawable.ic_action_play);
-                break;
-
-            case ANNOTATION_PAUSED:
-                seekBar.setEnabled(false);
                 playPauseButton.setImageResource(R.drawable.ic_action_play);
                 break;
         }
@@ -523,14 +505,18 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
         private void animateTo(int progress) {
             int oldProgress = seekBar.getProgress();
 
-            // Animate the bar so that playback appears to be smooth
-            ObjectAnimator animator =
-                    ObjectAnimator.ofInt(seekBar, "progress", oldProgress, progress);
+            // Only animate if playback is progressing forwards, otherwise it's confusing
+            if (oldProgress < progress) {
+                ObjectAnimator animator =
+                        ObjectAnimator.ofInt(seekBar, "progress", oldProgress, progress);
 
-            animator.setDuration(UPDATING_FREQUENCY);
-            animator.setInterpolator(new LinearInterpolator());
+                animator.setDuration(UPDATING_FREQUENCY);
+                animator.setInterpolator(new LinearInterpolator());
 
-            animator.start();
+                animator.start();
+            } else {
+                seekBar.setProgress(progress);
+            }
         }
 
     }
