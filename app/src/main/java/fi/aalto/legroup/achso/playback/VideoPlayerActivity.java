@@ -257,7 +257,7 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
         cancelControlsOverlayHide();
 
         controlsOverlay.animate().alpha(1).setDuration(CONTROLS_ANIMATION_DURATION).start();
-        toolbar.animate().translationY(0).setDuration(CONTROLS_ANIMATION_DURATION).start();
+        toolbar.animate().alpha(1).setDuration(CONTROLS_ANIMATION_DURATION).start();
 
         anchorSubtitleContainerTo(playbackControls);
     }
