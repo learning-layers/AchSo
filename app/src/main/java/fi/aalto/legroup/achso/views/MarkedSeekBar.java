@@ -47,6 +47,7 @@ public class MarkedSeekBar extends SeekBar {
         int accentColor = ThemeColors.getAccentColor(getContext());
 
         float markerStrokeWidthPx = DimensionUnits.dpToPx(getContext(), MARKER_STROKE_WIDTH_DP);
+
         markerRadiusPx = DimensionUnits.dpToPx(getContext(), MARKER_RADIUS_DP);
 
         markerPaint = new Paint();
@@ -93,7 +94,9 @@ public class MarkedSeekBar extends SeekBar {
     protected void onDraw(@Nonnull Canvas canvas) {
         super.onDraw(canvas);
 
-        if (markers.isEmpty()) return;
+        if (markers.isEmpty()) {
+            return;
+        }
 
         canvas.save();
         canvas.translate(getPaddingLeft(), getPaddingTop());
@@ -201,12 +204,16 @@ public class MarkedSeekBar extends SeekBar {
 
         @Override
         public void onStartTrackingTouch(SeekBar seekBar) {
-            if (delegate != null) delegate.onStartTrackingTouch(seekBar);
+            if (delegate != null) {
+                delegate.onStartTrackingTouch(seekBar);
+            }
         }
 
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
-            if (delegate != null) delegate.onStopTrackingTouch(seekBar);
+            if (delegate != null) {
+                delegate.onStopTrackingTouch(seekBar);
+            }
         }
 
     }

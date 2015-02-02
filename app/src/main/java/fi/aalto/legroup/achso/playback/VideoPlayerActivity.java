@@ -119,9 +119,14 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        App.bus.register(this);
+    }
+
+    @Override
     protected void onResumeFragments() {
         super.onResumeFragments();
-
 
         UUID videoId = null;
         if (this.intentFile != null) {
@@ -157,12 +162,6 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
         controllerVisibilityHandler.removeCallbacksAndMessages(null);
 
         super.onPause();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        App.bus.register(this);
     }
 
     @Override
