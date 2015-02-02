@@ -111,7 +111,7 @@
 
         <activity
             android:name=".browsing.SearchActivity"
-            android:label="@string/title_activity_search"
+            android:label="@string/search"
             android:launchMode="singleTop"
             android:parentActivityName=".browsing.BrowserActivity">
             <meta-data
