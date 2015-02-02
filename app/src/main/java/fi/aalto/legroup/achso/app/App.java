@@ -29,7 +29,7 @@ import fi.aalto.legroup.achso.storage.remote.strategies.ClViTra2Strategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.SssStrategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.Strategy;
 
-public class App extends MultiDexApplication {
+public final class App extends MultiDexApplication {
 
     private static final String ACH_SO_LOCAL_STORAGE_NAME = "Ach so!";
 
