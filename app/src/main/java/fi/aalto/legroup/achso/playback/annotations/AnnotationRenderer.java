@@ -269,8 +269,6 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
     protected void onReleased() throws ExoPlaybackException {
         stopPause();
 
-        strategies.clear();
-
         synchronized (annotations) {
             annotations.clear();
         }
