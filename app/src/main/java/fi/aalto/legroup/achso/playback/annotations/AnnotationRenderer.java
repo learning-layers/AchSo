@@ -35,7 +35,8 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
     private final List<Annotation> annotations = new ArrayList<>();
 
     /**
-     * List of rendered annotations. Recycled to avoid creating new lists with each render.
+     * List of rendered annotations. Recycled to avoid creating new lists with each render. This
+     * should only be used in #renderAnnotations().
      */
     private final List<Annotation> renderList = new ArrayList<>();
 
@@ -83,6 +84,7 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
             this.annotations.addAll(annotations);
         }
 
+        // Re-render annotations due to the change
         clearAnnotations();
         renderAnnotations(previousPosition, false);
     }
@@ -164,7 +166,7 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
     }
 
     /**
-     * Pauses for the specified duration.
+     * Pauses for the given duration.
      */
     private void startPause(final int duration) {
         isPaused = true;
@@ -182,7 +184,7 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
     }
 
     /**
-     * Stops a pause if one is going on.
+     * Stops a pause if in effect.
      */
     private void stopPause() {
         if (isPaused) {
