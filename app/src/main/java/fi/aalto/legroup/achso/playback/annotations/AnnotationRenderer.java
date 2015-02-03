@@ -111,8 +111,9 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
             return 0;
         }
 
-        // Shallow copying the render list avoids concurrency issues without creating a new list
-        // when there are no annotations to render.
+        // If renderList was passed to the main thread, by the time it was executed, it might have
+        // been already cleared. Shallow copying it here avoids concurrency issues without creating
+        // new lists when there are no annotations to render.
         final List<Annotation> internalRenderList = new ArrayList<>(renderList);
 
         mainHandler.post(new Runnable() {
