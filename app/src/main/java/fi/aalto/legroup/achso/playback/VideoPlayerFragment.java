@@ -190,7 +190,9 @@ public final class VideoPlayerFragment extends Fragment implements ExoPlayer.Lis
      * We're not prepared unless both ExoPlayer and the surface are ready.
      */
     private void finishPreparing() {
-        if (!(isExoPlayerPrepared && isSurfacePrepared)) return;
+        if (!(isExoPlayerPrepared && isSurfacePrepared)) {
+            return;
+        }
 
         SurfaceTexture texture = videoSurface.getSurfaceTexture();
         Surface surface = new Surface(texture);
@@ -409,6 +411,8 @@ public final class VideoPlayerFragment extends Fragment implements ExoPlayer.Lis
         ObjectAnimator.ofInt(pauseProgress, "progress", 0, pauseProgress.getMax())
                 .setDuration(duration)
                 .start();
+
+        setState(State.ANNOTATION_PAUSED);
     }
 
     /**
@@ -417,13 +421,18 @@ public final class VideoPlayerFragment extends Fragment implements ExoPlayer.Lis
     @Override
     public void onAnnotationPauseEnd() {
         pauseProgress.setVisibility(View.GONE);
+
+        if (state == State.ANNOTATION_PAUSED) {
+            setState(State.PLAYING);
+        }
     }
 
     public static enum State {
         UNPREPARED,
         PREPARED,
         PLAYING,
-        PAUSED
+        PAUSED,
+        ANNOTATION_PAUSED
     }
 
     public static interface PlaybackStateListener {

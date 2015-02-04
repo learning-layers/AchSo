@@ -18,14 +18,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.bugsnag.android.Bugsnag;
 import com.google.gson.JsonObject;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.annotation.Nullable;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
@@ -64,6 +64,9 @@ public class BrowserActivity extends ActionBarActivity {
     // Video that is "under construction". Sent to VideoCreatorService for processing after it has
     // been recorded.
     private VideoCreatorService.VideoBuilder videoBuilder;
+
+    // URI to the file to which the video should be written.
+    private Uri videoFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -192,14 +195,13 @@ public class BrowserActivity extends ActionBarActivity {
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         switch (requestCode) {
             case REQUEST_RECORD_VIDEO:
             case REQUEST_CHOOSE_VIDEO:
                 if (resultCode == RESULT_OK) {
-                    createVideo(data.getData());
+                    createVideo(data);
                 }
-
                 break;
 
             // FIXME: Default is not good here
@@ -213,12 +215,11 @@ public class BrowserActivity extends ActionBarActivity {
         App.locationManager.startLocationUpdates();
 
         videoBuilder = VideoCreatorService.build();
+        videoFile = Uri.fromFile(VideoCreatorService.getStorageVideoFile(videoBuilder));
 
-        // TODO: Keep using URIs instead of files
-        File videoFile = VideoCreatorService.getStorageVideoFile(videoBuilder);
         Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
 
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(videoFile));
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, videoFile);
 
         startActivityForResult(intent, REQUEST_RECORD_VIDEO);
     }
@@ -246,10 +247,15 @@ public class BrowserActivity extends ActionBarActivity {
         }
     }
 
-    private void createVideo(final Uri contentUri) {
-        if (contentUri == null) {
-            Bugsnag.notify(new IllegalArgumentException("Result contained a null URI."));
-            return;
+    private void createVideo(@Nullable Intent resultData) {
+        final Uri contentUri;
+
+        // Some camera apps (looking at you, Samsung) don't return any data if the EXTRA_OUTPUT
+        // flag is set. If this is the case, let's just pass in the URI in EXTRA_OUTPUT.
+        if (resultData == null) {
+            contentUri = videoFile;
+        } else {
+            contentUri = resultData.getData();
         }
 
         GenreDialogFragment fragment = new GenreDialogFragment();

@@ -2,7 +2,6 @@ package fi.aalto.legroup.achso.views;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.util.AttributeSet;
 import android.view.DragEvent;
 import android.view.GestureDetector;
@@ -70,16 +69,6 @@ public class Marker extends View {
         }
 
         setMeasuredDimension(width, height);
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public void setBackground(Drawable background) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
-            super.setBackgroundDrawable(background);
-        } else {
-            super.setBackground(background);
-        }
     }
 
     @Override
