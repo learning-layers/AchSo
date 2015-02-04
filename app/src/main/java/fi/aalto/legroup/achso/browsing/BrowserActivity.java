@@ -22,6 +22,7 @@ import com.google.gson.JsonObject;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,9 +65,6 @@ public class BrowserActivity extends ActionBarActivity {
     // Video that is "under construction". Sent to VideoCreatorService for processing after it has
     // been recorded.
     private VideoCreatorService.VideoBuilder videoBuilder;
-
-    // URI to the file to which the video should be written.
-    private Uri videoFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -215,7 +213,13 @@ public class BrowserActivity extends ActionBarActivity {
         App.locationManager.startLocationUpdates();
 
         videoBuilder = VideoCreatorService.build();
-        videoFile = Uri.fromFile(VideoCreatorService.getStorageVideoFile(videoBuilder));
+
+        File videoFile = VideoCreatorService.getStorageVideoFile(videoBuilder);
+
+        // Some camera apps (looking at you, Samsung) don't return any data if the EXTRA_OUTPUT
+        // flag is set. The storage file is a good fallback in case the camera app doesn't give us
+        // a URI.
+        videoBuilder.setVideoUri(Uri.fromFile(videoFile));
 
         Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
 
@@ -248,14 +252,9 @@ public class BrowserActivity extends ActionBarActivity {
     }
 
     private void createVideo(@Nullable Intent resultData) {
-        final Uri contentUri;
-
-        // Some camera apps (looking at you, Samsung) don't return any data if the EXTRA_OUTPUT
-        // flag is set. If this is the case, let's just pass in the URI in EXTRA_OUTPUT.
-        if (resultData == null) {
-            contentUri = videoFile;
-        } else {
-            contentUri = resultData.getData();
+        // Data might not be there, in which case a fallback has been set in #recordVideo().
+        if (resultData != null) {
+            videoBuilder.setVideoUri(resultData.getData());
         }
 
         GenreDialogFragment fragment = new GenreDialogFragment();
@@ -263,7 +262,6 @@ public class BrowserActivity extends ActionBarActivity {
         fragment.setCallback(new GenreDialogFragment.Callback() {
             @Override
             public void onGenreSelected(String genre) {
-                videoBuilder.setVideoUri(contentUri);
                 videoBuilder.setGenre(genre);
                 videoBuilder.create(BrowserActivity.this);
             }
