@@ -208,7 +208,7 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
         toolbar.setSubtitle(video.getGenre());
     }
 
-    private void refreshRenderedAnnotations() {
+    private void refreshAnnotations() {
         List<Annotation> annotations = video.getAnnotations();
         List<Integer> markers = new ArrayList<>();
 
@@ -302,7 +302,7 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
 
         editAnnotation(annotation);
 
-        refreshRenderedAnnotations();
+        refreshAnnotations();
     }
 
     @Override
@@ -312,10 +312,17 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
         if (!video.save()) {
             Toast.makeText(this, R.string.storage_error, Toast.LENGTH_LONG).show();
         }
+
+        refreshAnnotations();
     }
 
     @Override
     public void editAnnotation(final Annotation annotation) {
+        // Allow editing annotations only when paused
+        if (playerFragment.getState() != VideoPlayerFragment.State.PAUSED) {
+            return;
+        }
+
         showAnnotationControls();
 
         annotationText.setText(annotation.getText());
@@ -332,7 +339,7 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
                             Toast.LENGTH_LONG).show();
                 }
 
-                refreshRenderedAnnotations();
+                refreshAnnotations();
 
                 hideAnnotationControls();
             }
@@ -348,7 +355,7 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
                             Toast.LENGTH_LONG).show();
                 }
 
-                refreshRenderedAnnotations();
+                refreshAnnotations();
 
                 hideAnnotationControls();
             }
@@ -379,6 +386,20 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
         anchorSubtitleContainerTo(playbackControls);
     }
 
+    private void enableControls() {
+        seekBar.setEnabled(true);
+        playPauseButton.setEnabled(true);
+        playPauseButton.setImageAlpha(0xFF);
+    }
+
+    private void disableControls() {
+        seekBar.setEnabled(false);
+        playPauseButton.setEnabled(false);
+
+        // Material design spec specifies 30% alpha for disabled icons
+        playPauseButton.setImageAlpha(0x4D);
+    }
+
     /**
      * Fired when the player fragment changes state.
      */
@@ -391,16 +412,22 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
                 seekBar.setProgress((int) playerFragment.getPlaybackPosition());
                 seekBarUpdater.run();
 
-                refreshRenderedAnnotations();
+                refreshAnnotations();
                 break;
 
             case PLAYING:
+                enableControls();
                 hideControlsOverlay();
                 playPauseButton.setImageResource(R.drawable.ic_action_pause);
                 break;
 
             case PAUSED:
                 showControlsOverlay();
+                playPauseButton.setImageResource(R.drawable.ic_action_play);
+                break;
+
+            case ANNOTATION_PAUSED:
+                disableControls();
                 playPauseButton.setImageResource(R.drawable.ic_action_play);
                 break;
         }
