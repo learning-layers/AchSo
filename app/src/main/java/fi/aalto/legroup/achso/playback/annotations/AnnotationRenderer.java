@@ -35,7 +35,8 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
     private final List<Annotation> annotations = new ArrayList<>();
 
     /**
-     * List of rendered annotations. Recycled to avoid creating new lists with each render.
+     * List of rendered annotations. Recycled to avoid creating new lists with each render. This
+     * should only be used in #renderAnnotations().
      */
     private final List<Annotation> renderList = new ArrayList<>();
 
@@ -83,6 +84,7 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
             this.annotations.addAll(annotations);
         }
 
+        // Re-render annotations due to the change
         clearAnnotations();
         renderAnnotations(previousPosition, false);
     }
@@ -111,8 +113,9 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
             return 0;
         }
 
-        // Shallow copying the render list avoids concurrency issues without creating a new list
-        // when there are no annotations to render.
+        // If renderList was passed to the main thread, by the time it was executed, it might have
+        // been already cleared. Shallow copying it here avoids concurrency issues without creating
+        // new lists when there are no annotations to render.
         final List<Annotation> internalRenderList = new ArrayList<>(renderList);
 
         mainHandler.post(new Runnable() {
@@ -163,7 +166,7 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
     }
 
     /**
-     * Pauses for the specified duration.
+     * Pauses for the given duration.
      */
     private void startPause(final int duration) {
         isPaused = true;
@@ -181,7 +184,7 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
     }
 
     /**
-     * Stops a pause if one is going on.
+     * Stops a pause if in effect.
      */
     private void stopPause() {
         if (isPaused) {
@@ -267,8 +270,6 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
     @Override
     protected void onReleased() throws ExoPlaybackException {
         stopPause();
-
-        strategies.clear();
 
         synchronized (annotations) {
             annotations.clear();
