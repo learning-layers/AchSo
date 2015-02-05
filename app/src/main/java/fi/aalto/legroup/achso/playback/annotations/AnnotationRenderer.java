@@ -171,14 +171,14 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
     private void startPause(final int duration) {
         isPaused = true;
 
-        if (listener != null) {
-            mainHandler.post(new Runnable() {
-                @Override
-                public void run() {
+        mainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (listener != null) {
                     listener.onAnnotationPauseStart(duration);
                 }
-            });
-        }
+            }
+        });
 
         pauseHandler.postDelayed(this, duration);
     }
@@ -190,14 +190,14 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
         if (isPaused) {
             isPaused = false;
 
-            if (listener != null) {
-                mainHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
+            mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (listener != null) {
                         listener.onAnnotationPauseEnd();
                     }
-                });
-            }
+                }
+            });
         }
 
         pauseHandler.removeCallbacks(this);
