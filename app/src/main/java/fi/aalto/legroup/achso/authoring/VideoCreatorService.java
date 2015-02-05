@@ -319,8 +319,8 @@ public final class VideoCreatorService extends IntentService {
             authorUri = (Uri) parcel.readValue(Uri.class.getClassLoader());
             location = (Location) parcel.readValue(Location.class.getClassLoader());
 
-            genre = parcel.readString();
             title = parcel.readString();
+            genre = parcel.readString();
             tag = parcel.readString();
             authorName = parcel.readString();
 
@@ -416,8 +416,8 @@ public final class VideoCreatorService extends IntentService {
 
         @Override
         public void writeToParcel(Parcel parcel, int flags) {
-            parcel.writeValue(videoUri);
             parcel.writeValue(id);
+            parcel.writeValue(videoUri);
             parcel.writeValue(authorUri);
             parcel.writeValue(location);
 
