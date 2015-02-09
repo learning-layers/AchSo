@@ -1,96 +1,92 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <resources>
 
     <string name="app_name">Ach so!</string>
-    <string name="my_videos">Meine Videos</string>
-    <string name="loading">Laden…</string>
+
+    <string name="my_videos">Alle Videos</string>
     <string name="record">Neues Video aufnehmen</string>
     <string name="read_qr_code">Mit QR-Code suchen</string>
-    <string name="title_activity_genre_selection">Bitte wählen Sie einen Video-Typen</string>
     <string name="title_activity_information">Video-Informationen</string>
-    <string name="action_settings">Einstellungen</string>
-    <string name="genre_selection_title">Was für ein Video war das?</string>
+    <string name="genre_selection_title">Zu welchem Genre gehört das Video?</string>
     <string name="delete">Löschen</string>
     <string name="upload">Hochladen</string>
     <string name="qr_to_video">QR-Code hinzufügen</string>
+    <string name="view_video_info">Details anzeigen</string>
     <string name="deletion_title">Video löschen</string>
-    <string name="deletion_question">Möchten Sie die ausgewählten Videos und Annotationen wirklich löschen?</string>
+    <string name="deletion_question">Möchten Sie die ausgewählten Videos und Annotationen löschen?</string>
+    <string name="storage_error">Kann nicht auf Videospeicher zugreifen.</string>
 
-    <string name="first_page">Alle Videos</string>
-
-    <string name="login_description">Server-Login</string>
-    <string name="user">Benutzername</string>
-    <string name="pass">Passwort</string>
     <string name="login">Login</string>
-    <string name="login_nag_text">Ungültiger Benutzername oder Passwort.</string>
-    <string name="title_activity_login">Auf dem Server einloggen</string>
-
+    <string name="logout">Logout</string>
     <string name="not_loggedin_nag_title">Nicht eingeloggt</string>
-    <string name="not_loggedin_nag_text">Sie müssen eingeloggt sein um Videos hochladen zu können.</string>
-
-    <string name="location_not_enabled">Standortdienste deaktiviert</string>
-    <string name="location_not_enabled_text">Auf dem Gerät sind Standortdienste deaktiviert. Möchten Sie sie jetzt aktivieren?</string>
-
+    <string name="video_no_location">Keine Standortinformationen</string>
     <string name="ok">OK</string>
     <string name="cancel">Abbrechen</string>
-
     <string name="edit_text">Text bearbeiten</string>
+    <string name="video_share">Teilen</string>
 
-    <!-- SemanticVideo data -->
     <string name="semanticvideo_title">Titel</string>
     <string name="semanticvideo_creator">Ersteller</string>
     <string name="semanticvideo_qrcode">QR-Code</string>
-    <string name="semanticvideo_createdat">Erstellt am</string>
-    <string name="semanticvideo_uri">Dateiname auf dem Gerät</string>
     <string name="semanticvideo_genre">Genre</string>
     <string name="semanticvideo_uploaded">Hochgeladen</string>
-    <string name="semanticvideo_latitude">Breitengrad</string>
-    <string name="semanticvideo_longitude">Höhengrad</string>
-    <string name="semanticvideo_accuracy">Standortgenauigkeit</string>
     <string name="semanticvideo_unknown_creator">Unbekannter Ersteller</string>
     <string name="semanticvideo_unknown_location">Unbekannter Standort</string>
-    <string name="semanticvideo_no_qr">Kein QR-Code eingelesen</string>
-    <!-- /SemanticVideo data -->
+    <string name="semanticvideo_no_qr">Kein QR-Code vorhanden</string>
 
+    <string name="search">Suchen</string>
     <string name="search_hint">Nach Videos suchen</string>
-    <string name="title_activity_search">Suchen</string>
 
-    <string name="remote_video_separator">Videos auf dem Server</string>
-
-    <string name="url_found_label">Link gefunden:</string>
-    <string name="open_in_browser">Öffne im Browser</string>
-    <string name="latest_videos">Zuletzt</string>
-    <string name="recommended_videos">Empfohlene Videos</string>
-    <string name="no_connection">Keine Verbindung zur Cloud</string>
-    <string name="nearby_videos">Ähnliche Videos</string>
-    <string name="search_results">Suchergebnisse</string>
+    <string name="empty_results">Keine passenden Videos</string>
     <string name="add_video">Video hinzufügen</string>
-    <string name="author_is_me">Meine Videos</string>
-    <string name="author_is_unknown">Unbekannter Autor</string>
-    <string name="unknown_format">Unbekanntes Format oder kein Video</string>
-    <string name="video_already_exists">Dieses Video gibt es schon bei Ach so!</string>
-    <string name="login_successful">Login erfolgreich</string>
-    <string name="created_new_video">Ein neues Video wurde erstellt.</string>
-    <string name="code_added_to_videos">Ein Code wurde zu(m) Video(s) hinzugefügt.</string>
-    <string name="upload_successful">Upload erfolgreich.</string>
-    <string name="buffering">Zwischenspeicherung…</string>
-    <string name="logged_in_as">Eingeloggt als %s.</string>
-    <string name="connection_problem">Verbindungsproblem</string>
-    <string name="authentication_problem">Authentifizierungsproblem</string>
-    <string name="tethys_prefs">Tethys account</string>
-    <string name="action_register">Create account</string>
-    <string name="prompt_fullname">Full name</string>
-    <string name="confirm_pass">Repeat password</string>
-    <string name="error_passwords_dont_match">Password doesn\'t match with verification</string>
-    <string name="Welcome">Welcome</string>
-    <string name="openid_login">Login to Learning Layers OIDC Server</string>
-    <string name="login_failed_help_text">Login failed. Verify your credentials.</string>
-    <string name="registration_failed_help_text">Registration failed for following reason:</string>
-
+    <string name="video_author">Autor</string>
+    <string name="author_is_unknown">Unbekannt</string>
+    <string name="code_added_to_videos">Code zu ausgewählten Videos hinzugefügt.</string>
+    <string name="logged_in_as">Als %s eingeloggt.</string>
+    <string name="connection_problem">Problem mit der Verbindung</string>
+    <string name="tethys_prefs">Tethys Account</string>
     <string name="yes">Ja</string>
     <string name="no">Nein</string>
-    <string name="logged_out">Logged out.</string>
-    <string name="login_error">Could not log in: %s</string>
+    <string name="about">Über</string>
+    <string name="about_maps">Über Maps</string>
+    <string name="choose_account">Wählen Sie einen Account</string>
+    <string name="logged_out">Ausgeloggt.</string>
+    <string name="login_error">Konnte nicht einloggen: %s</string>
+    <string name="save">Speichern</string>
+
+    <string name="feedback">Feedback</string>
+    <string name="feedback_topic">Typ</string>
+    <string name="feedback_summary">Zusammenfassung</string>
+    <string name="feedback_body">Nachricht</string>
+    <string name="feedback_user">Name</string>
+    <string name="feedback_email">E-Mail</string>
+    <string name="feedback_send">Senden</string>
+    <string name="feedback_sent">Vielen Dank für Ihr Feedback.</string>
+    <string name="feedback_error">Es gab einen Fehler beim Senden des Feedbacks. Bitte später erneut versuchen.</string>
+
+    <string-array name="genres">
+        <item>Gute Arbeit</item>
+        <item>Problem</item>
+        <item>Standortüberblick</item>
+        <item>Tricks</item>
+    </string-array>
+
+    <string name="unknown_genre">Unbekanntes Genre</string>
+    <string name="unknown_title">Unbekannter Titel</string>
+
+    <plurals name="select_count">
+        <item quantity="one">%d Eintrag ausgewählt</item>
+        <item quantity="other">%d Einträge ausgewählt</item>
+    </plurals>
+
+    <string name="error_sharing">Einige Videos konnten nicht geteilt werden.</string>
+    <string name="annotation_hint">Beschreiben Sie diese Annotation</string>
+    <string name="comments">Kommentare</string>
+    <string name="select_genre">Genre wählen</string>
+    <string name="close">Schließen</string>
+    <string name="processing_video">Verarbeite Videos…</string>
+    <string name="migration_notification">Ach so! aktualisiert Ihre Videos…</string>
+    <string name="playback_error">Ein Wiedergabefehler ist aufgetreten.</string>
+    <string name="upload_error">Hochladen gescheitert; bitte erneut versuchen.</string>
 
 </resources>
