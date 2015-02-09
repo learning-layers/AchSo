@@ -24,8 +24,7 @@ import retrofit.client.Response;
 /**
  * Created by lassi on 17.11.14.
  */
-public class FeedbackDialogFragment extends DialogFragment implements Callback<String>,
-        MaterialDialog.SimpleCallback {
+public class FeedbackDialogFragment extends DialogFragment implements Callback<String> {
 
     public final static String ARG_EMAIL = "email";
     public final static String ARG_NAME = "name";
@@ -84,17 +83,9 @@ public class FeedbackDialogFragment extends DialogFragment implements Callback<S
                 .title(R.string.feedback)
                 .positiveText(R.string.feedback_send)
                 .negativeText(R.string.cancel)
-                .callback(this)
-                .customView(view)
+                .callback(new ButtonCallback())
+                .customView(view, true)
                 .build();
-    }
-
-    /**
-     * Called when the positive button is tapped.
-     */
-    @Override
-    public void onPositive(MaterialDialog materialDialog) {
-        sendFeedback();
     }
 
     /**
@@ -139,6 +130,18 @@ public class FeedbackDialogFragment extends DialogFragment implements Callback<S
     public void failure(RetrofitError error) {
         error.printStackTrace();
         Toast.makeText(this.context, R.string.feedback_error, Toast.LENGTH_LONG).show();
+    }
+
+    private class ButtonCallback extends MaterialDialog.ButtonCallback {
+
+        /**
+         * Called when the positive button is tapped.
+         */
+        @Override
+        public void onPositive(MaterialDialog dialog) {
+            sendFeedback();
+        }
+
     }
 
 }
