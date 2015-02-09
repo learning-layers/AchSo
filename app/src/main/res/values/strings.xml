@@ -2,6 +2,16 @@
 <resources>
 
     <string name="app_name">Ach so!</string>
+    <string name="contact_info">
+        Learning Environments research group,
+        \nAalto University School of Arts, Design and Architecture
+        \n
+        \nAalto University
+        \nSchool of Arts, Design and Architecture
+        \nPO Box 31000
+        \nFI-00076 AALTO
+        \nFINLAND
+    </string>
 
     <string name="my_videos">All videos</string>
     <string name="record">Record new video</string>
