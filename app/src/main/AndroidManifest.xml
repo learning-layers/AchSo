@@ -83,6 +83,17 @@
             android:name=".authentication.AuthorizationActivity"
             android:label="@string/app_name" />
 
+        <activity
+            android:name=".settings.SettingsActivity"
+            android:label="@string/settings"
+            android:parentActivityName=".browsing.BrowserActivity">
+
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".browsing.BrowserActivity" />
+
+        </activity>
+
         <service android:name=".storage.migration.SQLiteMigrationService" />
         <service android:name=".storage.remote.UploadService" />
         <service android:name=".authoring.VideoCreatorService" />

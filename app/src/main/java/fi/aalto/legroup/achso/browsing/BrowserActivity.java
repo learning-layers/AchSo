@@ -37,9 +37,9 @@ import fi.aalto.legroup.achso.authentication.LoginStateEvent;
 import fi.aalto.legroup.achso.authoring.GenreDialogFragment;
 import fi.aalto.legroup.achso.authoring.QRHelper;
 import fi.aalto.legroup.achso.authoring.VideoCreatorService;
+import fi.aalto.legroup.achso.settings.SettingsActivity;
 import fi.aalto.legroup.achso.storage.VideoRepositoryUpdatedEvent;
 import fi.aalto.legroup.achso.storage.local.ExportCreatorTaskResultEvent;
-import fi.aalto.legroup.achso.support.AboutDialogFragment;
 import fi.aalto.legroup.achso.support.FeedbackDialogFragment;
 import fi.aalto.legroup.achso.utilities.ProgressDialogFragment;
 import fi.aalto.legroup.achso.views.SlidingTabLayout;
@@ -168,8 +168,8 @@ public class BrowserActivity extends ActionBarActivity {
                 bus.post(new LoginRequestEvent(LoginRequestEvent.Type.EXPLICIT_LOGOUT));
                 return true;
 
-            case R.id.action_about:
-                AboutDialogFragment.newInstance(this).show(getFragmentManager(), "AboutDialog");
+            case R.id.action_settings:
+                showSettings();
                 return true;
 
             case R.id.action_feedback:
@@ -268,6 +268,11 @@ public class BrowserActivity extends ActionBarActivity {
         });
 
         fragment.show(getFragmentManager(), fragment.getClass().getSimpleName());
+    }
+
+    private void showSettings() {
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
     }
 
     @Subscribe
