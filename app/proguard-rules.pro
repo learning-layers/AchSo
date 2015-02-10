@@ -56,7 +56,7 @@
 
 #####
 # mp4parser
--keep com.coremedia.iso.boxes.** { *; }
+-keep class com.coremedia.iso.boxes.** { *; }
 
 #####
 # Guava
