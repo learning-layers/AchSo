@@ -55,6 +55,10 @@
 -dontwarn com.actionbarsherlock.**
 
 #####
+# mp4parser
+-keep com.coremedia.iso.boxes.** { *; }
+
+#####
 # Guava
 -dontwarn sun.misc.Unsafe
 -dontwarn com.google.common.collect.MinMaxPriorityQueue

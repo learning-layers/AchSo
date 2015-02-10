@@ -5,6 +5,8 @@ import android.app.DialogFragment;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.TextView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.bugsnag.android.Bugsnag;
@@ -50,12 +52,18 @@ public class AboutDialogFragment extends DialogFragment {
             return super.onCreateDialog(savedInstanceState);
         }
 
+        View dialogView = View.inflate(getActivity(), R.layout.dialog_about, null);
+
         String appName = arguments.getString(ARG_APP_NAME, "");
         String versionName = arguments.getString(ARG_VERSION_NAME, "");
 
+        TextView versionText = (TextView) dialogView.findViewById(R.id.versionText);
+
+        versionText.setText(versionName);
+
         return new MaterialDialog.Builder(getActivity())
             .title(appName)
-            .content(versionName)
+            .customView(dialogView, true)
             .positiveText(R.string.close)
             .show();
     }
