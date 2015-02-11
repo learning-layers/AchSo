@@ -22,7 +22,17 @@ Process process(List processArray) {
  * have an asterisk as the suffix if the project contains staged changes.
  */
 String getVersionName() {
-    def args = ['git', '-C', rootDir, 'describe', '--tags', '--long', '--always', '--dirty=*']
+    def args = [
+            'git',
+            "--git-dir=${rootDir}/.git",
+            "--work-tree=${rootDir}",
+            'describe',
+            '--tags',
+            '--long',
+            '--always',
+            '--dirty=*'
+    ]
+
     def git = this.process(args) as Process
 
     def (version, build, sha) = git.text.trim().tokenize('-')
@@ -37,7 +47,15 @@ String getVersionName() {
  * Returns a UNIX timestamp of the latest commit.
  */
 long getVersionCode() {
-    def args = ['git', '-C', rootDir, 'show', '--no-patch', '--format=%at']
+    def args = [
+            'git',
+            "--git-dir=${rootDir}/.git",
+            "--work-tree=${rootDir}",
+            'show',
+            '--no-patch',
+            '--format=%at'
+    ]
+
     def git = this.process(args) as Process
 
     git.text.trim() as long
