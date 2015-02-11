@@ -11,7 +11,7 @@ Process process(List processArray) {
 
     if (status != 0) {
         def errors = process.err.text
-        throw new IOException("Process exited with non-zero code $status.\n\n$errors")
+        throw new IOException("Process exited with non-zero code ${status}.\n\n${errors}")
     }
 
     process
@@ -40,7 +40,7 @@ String getVersionName() {
     // Remove the g prefix in the SHA that stands for Git
     sha = sha.replace('g', '')
 
-    "$version ($build @ $sha)"
+    "${version} (${build} @ ${sha})"
 }
 
 /**
@@ -68,8 +68,8 @@ ext {
 
         print   "\n"
         println "~~~~~~~~~~~~~~~ VERSION DATA ~~~~~~~~~~~~~~~"
-        println "versionName: $versionName"
-        println "versionCode: $versionCode"
+        println "versionName: ${versionName}"
+        println "versionCode: ${versionCode}"
         println "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
         print   "\n"
 
