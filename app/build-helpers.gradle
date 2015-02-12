@@ -52,7 +52,7 @@ long getVersionCode() {
             "--git-dir=${rootDir}/.git",
             "--work-tree=${rootDir}",
             'show',
-            '--no-patch',
+            '--quiet',
             '--format=%at'
     ]
 
