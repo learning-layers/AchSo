@@ -2,6 +2,8 @@ package fi.aalto.legroup.achso.entities;
 
 import android.net.Uri;
 
+import com.google.common.base.Objects;
+
 import java.util.Date;
 import java.util.UUID;
 
@@ -85,6 +87,32 @@ public class VideoInfo implements JsonSerializable {
 
     public Date getDate() {
         return this.date;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object == this) {
+            return true;
+        }
+
+        if (object == null || getClass() != object.getClass()) {
+            return false;
+        }
+
+        VideoInfo that = (VideoInfo) object;
+
+        return Objects.equal(videoUri, that.videoUri)
+                && Objects.equal(thumbUri, that.thumbUri)
+                && Objects.equal(id, that.id)
+                && Objects.equal(title, that.title)
+                && Objects.equal(genre, that.genre)
+                && Objects.equal(tag, that.tag)
+                && Objects.equal(date, that.date);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(videoUri, thumbUri, id, title, genre, tag, date);
     }
 
 }
