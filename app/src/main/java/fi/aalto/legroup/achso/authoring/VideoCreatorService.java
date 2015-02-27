@@ -426,10 +426,10 @@ public final class VideoCreatorService extends IntentService {
             parcel.writeString(tag);
             parcel.writeString(authorName);
 
-            if (date != null) {
-                parcel.writeLong(date.getTime());
-            } else {
+            if (date == null) {
                 parcel.writeLong(-1);
+            } else {
+                parcel.writeLong(date.getTime());
             }
 
             if (annotations == null) {
