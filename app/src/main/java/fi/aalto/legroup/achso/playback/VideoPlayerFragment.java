@@ -38,6 +38,7 @@ import fi.aalto.legroup.achso.entities.Annotation;
 import fi.aalto.legroup.achso.playback.annotations.AnnotationRenderer;
 import fi.aalto.legroup.achso.playback.annotations.MarkerStrategy;
 import fi.aalto.legroup.achso.playback.annotations.SubtitleStrategy;
+import fi.aalto.legroup.achso.playback.utilities.VideoOrientationPatcher;
 import fi.aalto.legroup.achso.views.MarkerCanvas;
 
 import static android.media.MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT;

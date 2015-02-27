@@ -1,30 +1,20 @@
-package fi.aalto.legroup.achso.playback;
+package fi.aalto.legroup.achso.playback.utilities;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Matrix;
-import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Build;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 
-import com.coremedia.iso.IsoFile;
-import com.coremedia.iso.boxes.Box;
-import com.coremedia.iso.boxes.MovieBox;
-import com.coremedia.iso.boxes.TrackBox;
-import com.coremedia.iso.boxes.TrackHeaderBox;
 import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
-import com.googlecode.mp4parser.FileDataSourceImpl;
 
 import java.io.File;
-import java.io.IOException;
 
 import javax.annotation.Nullable;
 
 import static android.media.MediaCodec.CryptoException;
-import static android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION;
 import static com.google.android.exoplayer.MediaCodecTrackRenderer.DecoderInitializationException;
 
 /**
@@ -69,10 +59,18 @@ public final class VideoOrientationPatcher implements MediaCodecVideoTrackRender
     }
 
     public void setVideoUri(@Nullable Uri videoUri) {
-        if (videoUri != null) {
-            rotationDegrees = readOrientation(context, videoUri);
-            isPortrait = (rotationDegrees == 90 || rotationDegrees == 270);
+        if (videoUri == null) {
+            return;
         }
+
+        if (!videoUri.getScheme().trim().equalsIgnoreCase("file")) {
+            throw new IllegalArgumentException("Only file:// URIs are supported.");
+        }
+
+        File file = new File(videoUri.getPath());
+
+        rotationDegrees = readOrientation(context, file);
+        isPortrait = (rotationDegrees == 90 || rotationDegrees == 270);
     }
 
     public void setView(@Nullable TextureView view) {
@@ -90,107 +88,11 @@ public final class VideoOrientationPatcher implements MediaCodecVideoTrackRender
     /**
      * Returns the orientation of the given video, or -1 if it cannot be read.
      */
-    private int readOrientation(Context context, Uri videoUri) {
-        try {
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN) {
-                return readOrientationApi17Plus(context, videoUri);
-            } else {
-                return readOrientationApi16(videoUri);
-            }
-        } catch (IOException e) {
-            return -1;
-        }
-    }
-
-    /**
-     * Reads orientation metadata using MediaMetadataRetriever and returns the angle of the video.
-     *
-     * @throws IOException If the video cannot be parsed.
-     */
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-    private int readOrientationApi17Plus(Context context, Uri videoUri) throws IOException {
-        MediaMetadataRetriever retriever = null;
-
-        try {
-            retriever = new MediaMetadataRetriever();
-            retriever.setDataSource(context, videoUri);
-
-            return Integer.parseInt(retriever.extractMetadata(METADATA_KEY_VIDEO_ROTATION));
-        } catch (NumberFormatException e) {
-            throw new IOException("Invalid orientation.", e);
-        } finally {
-            if (retriever != null) {
-                retriever.release();
-            }
-        }
-    }
-
-    /**
-     * Reads orientation metadata using mp4parser and returns the angle of the video.
-     *
-     * @throws IOException If the video cannot be parsed.
-     */
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-    private int readOrientationApi16(Uri videoUri) throws IOException {
-        String scheme = videoUri.getScheme();
-
-        if (scheme == null || !scheme.equals("file")) {
-            throw new IOException("Scheme must be file://.");
-        }
-
-        File videoFile = new File(videoUri.getPath());
-        IsoFile isoFile = new IsoFile(new FileDataSourceImpl(videoFile));
-
-        com.googlecode.mp4parser.util.Matrix rotationMatrix = parseRotationMatrix(isoFile);
-
-        return getRotationAngle(rotationMatrix);
-    }
-
-    /**
-     * Returns the mp4parser rotation matrix for the given file or null if none is found.
-     */
-    @Nullable
-    private com.googlecode.mp4parser.util.Matrix parseRotationMatrix(IsoFile file) {
-        MovieBox movieBox = file.getMovieBox();
-
-        if (movieBox == null) {
-            return null;
-        }
-
-        for (Box box : movieBox.getBoxes()) {
-            String type = box.getType();
-
-            if (type.equals("trak")) {
-                TrackHeaderBox headerBox = ((TrackBox) box).getTrackHeaderBox();
-
-                if (headerBox == null) {
-                    return null;
-                }
-
-                return headerBox.getMatrix();
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Returns the angle for the given rotation matrix. Returns -1 if the matrix is not one of
-     * Matrix.ROTATE_0, Matrix.ROTATE_90, Matrix.ROTATE_180 or Matrix.ROTATE_270.
-     */
-    private int getRotationAngle(@Nullable com.googlecode.mp4parser.util.Matrix matrix) {
-        if (matrix == null) {
-            return -1;
-        } else if (matrix.equals(com.googlecode.mp4parser.util.Matrix.ROTATE_0)) {
-            return 0;
-        } else if (matrix.equals(com.googlecode.mp4parser.util.Matrix.ROTATE_90)) {
-            return 90;
-        } else if (matrix.equals(com.googlecode.mp4parser.util.Matrix.ROTATE_180)) {
-            return 180;
-        } else if (matrix.equals(com.googlecode.mp4parser.util.Matrix.ROTATE_270)) {
-            return 270;
+    private int readOrientation(Context context, File file) {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN) {
+            return FrameworkOrientationReader.readOrientation(context, file);
         } else {
-            return -1;
+            return Mp4ParserOrientationReader.readOrientation(file);
         }
     }
 
@@ -238,7 +140,7 @@ public final class VideoOrientationPatcher implements MediaCodecVideoTrackRender
             return;
         }
 
-        if (view == null || changedView != view) {
+        if (rotationDegrees == -1 || view == null || changedView != view) {
             return;
         }
 
