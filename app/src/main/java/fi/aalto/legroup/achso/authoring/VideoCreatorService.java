@@ -3,15 +3,12 @@ package fi.aalto.legroup.achso.authoring;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.provider.MediaStore;
 
 import com.squareup.otto.Bus;
 
@@ -125,9 +122,7 @@ public final class VideoCreatorService extends IntentService {
             title = buildTitle(date, location);
         }
 
-        File manifestFile = getStorageFile(id, "json");
         File videoFile = getStorageFile(id, "mp4");
-        File thumbFile = getStorageFile(id, "jpg");
 
         try {
             ensureVideoContent(videoContentUri, videoFile);
@@ -138,19 +133,10 @@ public final class VideoCreatorService extends IntentService {
             return;
         }
 
-        try {
-            createThumbnail(videoFile, thumbFile);
-        } catch (IOException e) {
-            // TODO: Error message
-            e.printStackTrace();
-        }
+        Uri uri = Uri.fromFile(videoFile);
 
-        Uri manifestUri = Uri.fromFile(manifestFile);
-        Uri videoUri = Uri.fromFile(videoFile);
-        Uri thumbUri = Uri.fromFile(thumbFile);
-
-        Video video = new Video(App.videoRepository, manifestUri, videoUri, thumbUri, id, title,
-                genre, tag, date, author, location, annotations);
+        Video video = new Video(App.videoRepository, uri, id, title, genre, tag, date, author,
+                location, annotations);
 
         video.save();
 
@@ -194,26 +180,6 @@ public final class VideoCreatorService extends IntentService {
         } finally {
             if (from != null) from.close();
             if (to != null) to.close();
-        }
-    }
-
-    private void createThumbnail(File videoFile, File thumbFile) throws IOException {
-        Bitmap thumbnail = ThumbnailUtils.createVideoThumbnail(videoFile.getAbsolutePath(),
-                MediaStore.Video.Thumbnails.MINI_KIND);
-
-        if (thumbnail == null) {
-            return;
-        }
-
-        OutputStream stream = null;
-
-        try {
-            stream = new FileOutputStream(thumbFile);
-            thumbnail.compress(Bitmap.CompressFormat.JPEG, 74, stream);
-        } finally {
-            if (stream != null) {
-                stream.close();
-            }
         }
     }
 

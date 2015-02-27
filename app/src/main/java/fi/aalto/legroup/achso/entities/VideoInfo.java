@@ -14,10 +14,8 @@ import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
  */
 public class VideoInfo implements JsonSerializable {
 
-    protected transient Uri manifestUri;
+    protected transient Uri uri;
 
-    protected Uri videoUri;
-    protected Uri thumbUri;
     protected UUID id;
     protected String title;
     protected String genre;
@@ -29,11 +27,8 @@ public class VideoInfo implements JsonSerializable {
         // For serialization
     }
 
-    protected VideoInfo(Uri manifestUri, Uri videoUri, Uri thumbUri, UUID id, String title,
-                        String genre, String tag, Date date) {
-        this.manifestUri = manifestUri;
-        this.videoUri = videoUri;
-        this.thumbUri = thumbUri;
+    protected VideoInfo(Uri uri, UUID id, String title, String genre, String tag, Date date) {
+        this.uri = uri;
         this.id = id;
         this.title = title;
         this.genre = genre;
@@ -43,7 +38,9 @@ public class VideoInfo implements JsonSerializable {
 
     public boolean isLocal() {
         // Uris without a scheme are assumed to be local
-        if (this.videoUri.isRelative()) return true;
+        if (this.uri.isRelative()) {
+            return true;
+        }
 
         String scheme = getVideoUri().getScheme().trim().toLowerCase();
 
@@ -61,20 +58,8 @@ public class VideoInfo implements JsonSerializable {
         return !isLocal();
     }
 
-    public Uri getManifestUri() {
-        return manifestUri;
-    }
-
-    public void setManifestUri(Uri manifestUri) {
-        this.manifestUri = manifestUri;
-    }
-
     public Uri getVideoUri() {
-        return this.videoUri;
-    }
-
-    public Uri getThumbUri() {
-        return this.thumbUri;
+        return this.uri;
     }
 
     public UUID getId() {
@@ -109,9 +94,7 @@ public class VideoInfo implements JsonSerializable {
 
         VideoInfo that = (VideoInfo) object;
 
-        return Objects.equal(manifestUri, that.manifestUri)
-                && Objects.equal(videoUri, that.videoUri)
-                && Objects.equal(thumbUri, that.thumbUri)
+        return Objects.equal(uri, that.uri)
                 && Objects.equal(id, that.id)
                 && Objects.equal(title, that.title)
                 && Objects.equal(genre, that.genre)
@@ -121,7 +104,7 @@ public class VideoInfo implements JsonSerializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(manifestUri, videoUri, thumbUri, id, title, genre, tag, date);
+        return Objects.hashCode(uri, id, title, genre, tag, date);
     }
 
 }

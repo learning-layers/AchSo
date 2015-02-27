@@ -22,6 +22,8 @@ import fi.aalto.legroup.achso.authentication.LoginManager;
 import fi.aalto.legroup.achso.authentication.LoginRequestEvent;
 import fi.aalto.legroup.achso.authoring.LocationManager;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
+import fi.aalto.legroup.achso.storage.formats.mp4.Mp4Reader;
+import fi.aalto.legroup.achso.storage.formats.mp4.Mp4Writer;
 import fi.aalto.legroup.achso.storage.local.LocalVideoInfoRepository;
 import fi.aalto.legroup.achso.storage.local.LocalVideoRepository;
 import fi.aalto.legroup.achso.storage.remote.strategies.ClViTra2Strategy;
@@ -41,8 +43,6 @@ public final class App extends MultiDexApplication
     public static OkHttpClient httpClient;
     public static AuthenticatedHttpClient authenticatedHttpClient;
     public static LocationManager locationManager;
-
-    public static JsonSerializer jsonSerializer;
 
     public static LocalVideoInfoRepository videoInfoRepository;
     public static LocalVideoRepository videoRepository;
@@ -88,12 +88,15 @@ public final class App extends MultiDexApplication
             Toast.makeText(this, R.string.storage_error, Toast.LENGTH_LONG).show();
         }
 
-        jsonSerializer = new JsonSerializer();
+        JsonSerializer jsonSerializer = new JsonSerializer();
+        Mp4Reader mp4Reader = new Mp4Reader(jsonSerializer);
+        Mp4Writer mp4Writer = new Mp4Writer(this, jsonSerializer);
 
-        videoInfoRepository = new LocalVideoInfoRepository(bus, jsonSerializer,
-                localStorageDirectory);
+        videoInfoRepository =
+                new LocalVideoInfoRepository(mp4Reader, mp4Writer, localStorageDirectory, bus);
 
-        videoRepository = new LocalVideoRepository(bus, jsonSerializer, localStorageDirectory);
+        videoRepository =
+                new LocalVideoRepository(mp4Reader, mp4Writer, localStorageDirectory, bus);
 
         bus.post(new LoginRequestEvent(LoginRequestEvent.Type.LOGIN));
 

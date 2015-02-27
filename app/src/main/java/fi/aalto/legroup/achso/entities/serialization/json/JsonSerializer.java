@@ -86,4 +86,20 @@ public final class JsonSerializer extends Serializer<JsonSerializable> {
         }
     }
 
+    @Nonnull
+    public <T extends JsonSerializable> T read(Class<T> type, String input) throws IOException {
+        T object = gson.fromJson(input, type);
+
+        if (object == null) {
+            throw new IOException("Got EOF when trying to read " + input);
+        }
+
+        return object;
+    }
+
+    @Nonnull
+    public String write(JsonSerializable object) {
+        return gson.toJson(object);
+    }
+
 }

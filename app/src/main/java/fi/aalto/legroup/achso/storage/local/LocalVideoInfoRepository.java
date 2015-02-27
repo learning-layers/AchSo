@@ -21,9 +21,10 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 
 import fi.aalto.legroup.achso.entities.VideoInfo;
-import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
 import fi.aalto.legroup.achso.storage.VideoInfoRepository;
 import fi.aalto.legroup.achso.storage.VideoRepositoryUpdatedEvent;
+import fi.aalto.legroup.achso.storage.formats.mp4.Mp4Reader;
+import fi.aalto.legroup.achso.storage.formats.mp4.Mp4Writer;
 
 /**
  * Stores videos locally as serialised XML files.
@@ -31,13 +32,14 @@ import fi.aalto.legroup.achso.storage.VideoRepositoryUpdatedEvent;
 public final class LocalVideoInfoRepository extends AbstractLocalVideoRepository
         implements VideoInfoRepository {
 
-    protected LoadingCache<UUID, VideoInfo> cache;
+    private LoadingCache<UUID, VideoInfo> cache;
 
     /**
      * TODO: Cache keys as well.
      */
-    public LocalVideoInfoRepository(Bus bus, JsonSerializer serializer, File storage) {
-        super(serializer, storage);
+    public LocalVideoInfoRepository(Mp4Reader reader, Mp4Writer writer, File storageDirectory,
+                                    Bus bus) {
+        super(reader, writer, storageDirectory);
 
         bus.register(this);
 
@@ -52,37 +54,40 @@ public final class LocalVideoInfoRepository extends AbstractLocalVideoRepository
      */
     @Override
     public List<UUID> getAll() throws IOException {
-        File[] manifests = storageDirectory.listFiles(this);
-        LinkedList<UUID> ids = new LinkedList<>();
+        File[] videos = storageDirectory.listFiles(this);
+        List<UUID> ids = new LinkedList<>();
 
-        if (manifests == null) throw new IOException("Couldn't list files in " + storageDirectory);
+        if (videos == null) {
+            throw new IOException("Couldn't list files in " + storageDirectory);
+        }
 
         // Sorting is ascending by default, needs to be reversed
-        Arrays.sort(manifests, Collections.reverseOrder(new DateModifiedComparator()));
+        Arrays.sort(videos, Collections.reverseOrder(new DateModifiedComparator()));
 
-        for (File manifest : manifests) {
-            ids.add(getIdFromManifest(manifest));
+        for (File file : videos) {
+            ids.add(getId(file));
         }
 
         return ids;
     }
 
     /**
-     * Returns a list of all available video IDs sorted by descending modification date.
+     * Returns a list of all available video IDs that have the given genre, sorted by descending
+     * modification date.
      */
     @Override
     public List<UUID> getByGenreString(String genre) throws IOException {
-        List<UUID> ids = this.getAll();
-        LinkedList<UUID> matching = new LinkedList<>();
+        List<UUID> ids = new LinkedList<>();
 
-        for(UUID id : ids) {
-            VideoInfo info = this.get(id);
-            if(info.getGenre().matches(genre)) {
-                matching.add(id);
+        for (UUID id : getAll()) {
+            VideoInfo video = get(id);
+
+            if (video.getGenre().equalsIgnoreCase(genre)) {
+                ids.add(id);
             }
         }
 
-        return matching;
+        return ids;
     }
 
     /**
@@ -130,12 +135,7 @@ public final class LocalVideoInfoRepository extends AbstractLocalVideoRepository
          */
         @Override
         public VideoInfo load(@Nonnull UUID id) throws Exception {
-            File manifest = getManifestFromId(id);
-            VideoInfo video = serializer.load(VideoInfo.class, manifest.toURI());
-
-            video.setManifestUri(Uri.fromFile(manifest));
-
-            return video;
+            return reader.readInfo(getFile(id));
         }
 
     }

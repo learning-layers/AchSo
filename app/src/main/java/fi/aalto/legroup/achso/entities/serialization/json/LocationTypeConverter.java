@@ -6,7 +6,6 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
@@ -20,7 +19,7 @@ public final class LocationTypeConverter implements JsonSerializer<Location>,
     private static final String ACCURACY_KEY = "accuracy";
 
     @Override
-    public JsonElement serialize(Location src, Type typeOfSrc, JsonSerializationContext context) {
+    public JsonElement serialize(Location src, Type type, JsonSerializationContext context) {
         JsonObject object = new JsonObject();
 
         object.addProperty(LATITUDE_KEY, src.getLatitude());
@@ -31,9 +30,7 @@ public final class LocationTypeConverter implements JsonSerializer<Location>,
     }
 
     @Override
-    public Location deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
-            throws JsonParseException {
-
+    public Location deserialize(JsonElement json, Type type, JsonDeserializationContext context) {
         JsonObject object = (JsonObject) json;
 
         Location location = new Location("deserialized");

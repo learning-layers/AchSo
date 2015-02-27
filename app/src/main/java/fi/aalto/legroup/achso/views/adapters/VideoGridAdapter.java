@@ -1,7 +1,6 @@
 package fi.aalto.legroup.achso.views.adapters;
 
 import android.content.Context;
-import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,8 +8,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-
-import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -75,10 +72,7 @@ public class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapter.View
         holder.getTitleText().setText(video.getTitle());
         holder.getGenreText().setText(video.getGenre());
 
-        Uri thumbUri = video.getThumbUri();
-        ImageView thumbImage = holder.getThumbImage();
-
-        Picasso.with(this.context).load(thumbUri).into(thumbImage);
+        // TODO: Thumbnail
 
         if (video.isLocal()) {
             holder.getUploadIndicator().setImageAlpha(0x80);

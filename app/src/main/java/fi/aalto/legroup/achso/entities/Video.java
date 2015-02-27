@@ -30,11 +30,11 @@ public class Video extends VideoInfo implements JsonSerializable {
         super();
     }
 
-    public Video(VideoRepository repository, Uri manifestUri, Uri videoUri, Uri thumbUri, UUID id,
-                 String title, String genre, String tag, Date date, User author, Location location,
+    public Video(VideoRepository repository, Uri uri, UUID id, String title, String genre,
+                 String tag, Date date, User author, Location location,
                  List<Annotation> annotations) {
 
-        super(manifestUri, videoUri, thumbUri, id, title, genre, tag, date);
+        super(uri, id, title, genre, tag, date);
 
         this.repository = repository;
         this.author = author;
@@ -60,12 +60,8 @@ public class Video extends VideoInfo implements JsonSerializable {
         this.repository = repository;
     }
 
-    public void setVideoUri(Uri videoUri) {
-        this.videoUri = videoUri;
-    }
-
-    public void setThumbUri(Uri thumbUri) {
-        this.thumbUri = thumbUri;
+    public void setVideoUri(Uri uri) {
+        this.uri = uri;
     }
 
     public void setId(UUID id) {

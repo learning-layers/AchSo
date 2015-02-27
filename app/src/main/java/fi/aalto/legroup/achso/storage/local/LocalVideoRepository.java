@@ -1,7 +1,5 @@
 package fi.aalto.legroup.achso.storage.local;
 
-import android.net.Uri;
-
 import com.squareup.otto.Bus;
 
 import java.io.File;
@@ -9,18 +7,19 @@ import java.io.IOException;
 import java.util.UUID;
 
 import fi.aalto.legroup.achso.entities.Video;
-import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
 import fi.aalto.legroup.achso.storage.VideoRepository;
 import fi.aalto.legroup.achso.storage.VideoRepositoryUpdatedEvent;
+import fi.aalto.legroup.achso.storage.formats.mp4.Mp4Reader;
+import fi.aalto.legroup.achso.storage.formats.mp4.Mp4Writer;
 
 public final class LocalVideoRepository extends AbstractLocalVideoRepository
         implements VideoRepository {
 
     private Bus bus;
 
-    public LocalVideoRepository(Bus bus, JsonSerializer serializer, File storageDirectory) {
-        super(serializer, storageDirectory);
-
+    public LocalVideoRepository(Mp4Reader reader, Mp4Writer writer, File storageDirectory,
+                                Bus bus) {
+        super(reader, writer, storageDirectory);
         this.bus = bus;
     }
 
@@ -29,10 +28,8 @@ public final class LocalVideoRepository extends AbstractLocalVideoRepository
      */
     @Override
     public Video get(UUID id) throws IOException {
-        File manifest = getManifestFromId(id);
-        Video video = serializer.load(Video.class, manifest.toURI());
+        Video video = reader.read(getFile(id));
 
-        video.setManifestUri(Uri.fromFile(manifest));
         video.setRepository(this);
 
         return video;
@@ -43,7 +40,10 @@ public final class LocalVideoRepository extends AbstractLocalVideoRepository
      */
     @Override
     public void save(Video video) throws IOException {
-        serializer.save(video, getManifestFromId(video.getId()).toURI());
+        UUID id = video.getId();
+
+        writer.write(video, getFile(id));
+
         bus.post(new VideoRepositoryUpdatedEvent(this));
     }
 
@@ -52,12 +52,12 @@ public final class LocalVideoRepository extends AbstractLocalVideoRepository
      */
     @Override
     public void delete(UUID id) throws IOException {
-        File manifest = getManifestFromId(id);
+        File file = getFile(id);
 
-        if (manifest.delete()) {
+        if (file.delete()) {
             bus.post(new VideoRepositoryUpdatedEvent(this));
         } else {
-            throw new IOException("Could not delete " + manifest);
+            throw new IOException("Could not delete " + file);
         }
     }
 
