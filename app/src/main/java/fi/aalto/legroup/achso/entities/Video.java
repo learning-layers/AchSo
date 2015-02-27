@@ -20,11 +20,11 @@ import fi.aalto.legroup.achso.storage.VideoRepository;
  */
 public class Video extends VideoInfo implements JsonSerializable {
 
+    protected transient VideoRepository repository;
+
     protected User author;
     protected Location location;
     protected List<Annotation> annotations;
-
-    protected transient VideoRepository repository;
 
     @SuppressWarnings("UnusedDeclaration")
     private Video() {
@@ -32,11 +32,11 @@ public class Video extends VideoInfo implements JsonSerializable {
         super();
     }
 
-    public Video(VideoRepository repository, Uri videoUri, Uri thumbUri, UUID id, String title,
-                 String genre, String tag, Date date, User author, Location location,
+    public Video(VideoRepository repository, Uri manifestUri, Uri videoUri, Uri thumbUri, UUID id,
+                 String title, String genre, String tag, Date date, User author, Location location,
                  List<Annotation> annotations) {
 
-        super(videoUri, thumbUri, id, title, genre, tag, date);
+        super(manifestUri, videoUri, thumbUri, id, title, genre, tag, date);
 
         this.repository = repository;
         this.author = author;

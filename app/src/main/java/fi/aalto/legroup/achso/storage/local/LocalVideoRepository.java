@@ -1,5 +1,7 @@
 package fi.aalto.legroup.achso.storage.local;
 
+import android.net.Uri;
+
 import com.squareup.otto.Bus;
 
 import java.io.File;
@@ -30,8 +32,10 @@ public final class LocalVideoRepository extends AbstractLocalVideoRepository
      */
     @Override
     public Video get(UUID id) throws IOException {
-        Video video = serializer.load(Video.class, getManifestFromId(id).toURI());
+        File manifest = getManifestFromId(id);
+        Video video = serializer.load(Video.class, manifest.toURI());
 
+        video.setManifestUri(Uri.fromFile(manifest));
         video.setRepository(this);
 
         return video;

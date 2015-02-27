@@ -16,6 +16,8 @@ import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
  */
 public class VideoInfo implements JsonSerializable {
 
+    protected transient Uri manifestUri;
+
     protected Uri videoUri;
     protected Uri thumbUri;
     protected UUID id;
@@ -29,9 +31,9 @@ public class VideoInfo implements JsonSerializable {
         // For serialization
     }
 
-    protected VideoInfo(Uri videoUri, Uri thumbUri, UUID id, String title, String genre,
-                        String tag, Date date) {
-
+    protected VideoInfo(Uri manifestUri, Uri videoUri, Uri thumbUri, UUID id, String title,
+                        String genre, String tag, Date date) {
+        this.manifestUri = manifestUri;
         this.videoUri = videoUri;
         this.thumbUri = thumbUri;
         this.id = id;
@@ -59,6 +61,14 @@ public class VideoInfo implements JsonSerializable {
 
     public boolean isRemote() {
         return !isLocal();
+    }
+
+    public Uri getManifestUri() {
+        return manifestUri;
+    }
+
+    public void setManifestUri(Uri manifestUri) {
+        this.manifestUri = manifestUri;
     }
 
     public Uri getVideoUri() {
@@ -101,7 +111,8 @@ public class VideoInfo implements JsonSerializable {
 
         VideoInfo that = (VideoInfo) object;
 
-        return Objects.equal(videoUri, that.videoUri)
+        return Objects.equal(manifestUri, that.manifestUri)
+                && Objects.equal(videoUri, that.videoUri)
                 && Objects.equal(thumbUri, that.thumbUri)
                 && Objects.equal(id, that.id)
                 && Objects.equal(title, that.title)
@@ -112,7 +123,7 @@ public class VideoInfo implements JsonSerializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(videoUri, thumbUri, id, title, genre, tag, date);
+        return Objects.hashCode(manifestUri, videoUri, thumbUri, id, title, genre, tag, date);
     }
 
 }

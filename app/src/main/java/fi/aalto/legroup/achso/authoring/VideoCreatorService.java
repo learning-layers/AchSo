@@ -127,6 +127,7 @@ public final class VideoCreatorService extends IntentService {
             title = buildTitle(date, location);
         }
 
+        File manifestFile = getStorageFile(id, "json");
         File videoFile = getStorageFile(id, "mp4");
         File thumbFile = getStorageFile(id, "jpg");
 
@@ -146,11 +147,12 @@ public final class VideoCreatorService extends IntentService {
             e.printStackTrace();
         }
 
+        Uri manifestUri = Uri.fromFile(manifestFile);
         Uri videoUri = Uri.fromFile(videoFile);
         Uri thumbUri = Uri.fromFile(thumbFile);
 
-        Video video = new Video(App.videoRepository, videoUri, thumbUri, id, title, genre, tag,
-                date, author, location, annotations);
+        Video video = new Video(App.videoRepository, manifestUri, videoUri, thumbUri, id, title,
+                genre, tag, date, author, location, annotations);
 
         video.save();
 
