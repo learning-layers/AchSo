@@ -62,7 +62,7 @@ public final class App extends MultiDexApplication {
 
         setupErrorReporting();
 
-        bus = new AndroidBus();
+        bus = new AppBus();
 
         connectivityManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
 
