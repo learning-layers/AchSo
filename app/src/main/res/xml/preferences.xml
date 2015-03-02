@@ -1,8 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    If you change keys in this file, you'll also need to change them in AppPreferences.java.
+-->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <Preference
-        android:key="BUTTON_ABOUT"
-        android:title="@string/about" />
+    <PreferenceCategory
+        android:title="@string/settings_playback"
+        >
+
+        <ListPreference
+            android:key="ANNOTATION_PAUSE_DURATION"
+            android:title="@string/settings_annotation_pause_title"
+            android:summary="@string/settings_annotation_pause_summary"
+            android:entries="@array/settings_annotation_pause_duration"
+            android:entryValues="@array/settings_annotation_pause_duration_values"
+            android:defaultValue="2000"
+            />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/help_and_feedback">
+
+        <!--
+            This key is used by SettingsFragment but not by AppPreferences; it's just a button.
+        -->
+        <Preference
+            android:key="BUTTON_ABOUT"
+            android:title="@string/about" />
+
+    </PreferenceCategory>
 
 </PreferenceScreen>

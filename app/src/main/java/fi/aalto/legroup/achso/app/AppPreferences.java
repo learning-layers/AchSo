@@ -17,4 +17,13 @@ public final class AppPreferences {
      */
     public static final String SHOULD_MIGRATE = "SHOULD_MIGRATE";
 
+    // NOTE:
+    // The preference keys below are user-facing. If you change them here, change them in
+    // preferences.xml also.
+
+    /**
+     * The base duration for an annotation pause.
+     */
+    public static final String ANNOTATION_PAUSE_DURATION = "ANNOTATION_PAUSE_DURATION";
+
 }

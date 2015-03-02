@@ -177,6 +177,7 @@ public final class VideoPlayerFragment extends Fragment implements ExoPlayer.Lis
         );
 
         annotationRenderer = new AnnotationRenderer(
+                getActivity(),
                 this,
                 new MarkerStrategy(markerCanvas, annotationEditor),
                 new SubtitleStrategy(R.layout.subtitle, subtitleContainer)
