@@ -276,7 +276,7 @@ public class BrowserActivity extends ActionBarActivity {
             case LOGGED_IN:
                 // TODO: Include user info in the event
                 String name = App.loginManager.getUserInfo().get("name").getAsString();
-                String welcome = String.format(getString(R.string.logged_in_as), name);
+                String welcome = getString(R.string.logged_in_as, name);
 
                 Toast.makeText(this, welcome, Toast.LENGTH_SHORT).show();
                 break;
@@ -291,7 +291,7 @@ public class BrowserActivity extends ActionBarActivity {
 
     @Subscribe
     public void onLoginError(LoginErrorEvent event) {
-        String message = String.format(getString(R.string.login_error), event.getMessage());
+        String message = getString(R.string.login_error, event.getMessage());
 
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
 
