@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <string name="app_name">Ach so!</string>
-    <string name="contant_info">
-        <![CDATA[\nLearning Environments research group, Aalto University School of Arts, Design and Architecture\n\nAalto University\nSchool of Arts, Design and Architecture\nPO Box 31000\nFI-00076 AALTO\nFINLAND]]>
-        </string>
-
-
     <string name="my_videos">Kõik videod</string>
     <string name="record">Salvesta uus video</string>
     <string name="read_qr_code">Otsi QR koodi abil</string>
