@@ -4,6 +4,7 @@
     <string name="record">Salvesta uus video</string>
     <string name="read_qr_code">Otsi QR koodi abil</string>
     <string name="title_activity_information">Video info</string>
+    <string name="settings">Seaded</string>
     <string name="genre_selection_title">Mis tüüpi videoga on tegemist?</string>
     <string name="delete">Kustuta</string>
     <string name="upload">Üleslaadimine</string>
