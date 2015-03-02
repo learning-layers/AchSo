@@ -102,7 +102,7 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
      * @param isContinuous Whether playback is continuous (playing) or discrete (paused, seeking).
      * @return Annotations rendered.
      */
-    private List renderAnnotations(long position, boolean isContinuous) {
+    private List<Annotation> renderAnnotations(long position, boolean isContinuous) {
         renderList.clear();
 
         synchronized (annotations) {
