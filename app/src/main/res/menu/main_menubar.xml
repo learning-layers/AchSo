@@ -2,44 +2,50 @@
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+
     <item
         android:id="@+id/action_search"
-        app:actionViewClass="android.support.v7.widget.SearchView"
+        android:title="@string/search"
         android:icon="@drawable/md_magnify"
-
         app:showAsAction="collapseActionView|ifRoom"
-        android:title="@string/search" />
+        app:actionViewClass="android.support.v7.widget.SearchView" />
+
     <item
         android:id="@+id/action_new_video"
+        android:title="@string/record"
         android:icon="@drawable/md_camcorder"
-        app:showAsAction="ifRoom"
-        android:title="@string/record" />
+        app:showAsAction="ifRoom" />
+
     <item
         android:id="@+id/action_add_video"
+        android:title="@string/add_video"
         android:icon="@drawable/md_folder"
-        app:showAsAction="ifRoom"
-        android:title="@string/add_video" />
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_read_qrcode"
+        android:title="@string/read_qr_code"
         android:icon="@drawable/md_qr_code"
-        app:showAsAction="ifRoom"
-        android:title="@string/read_qr_code" />
+        app:showAsAction="ifRoom" />
+
     <item
         android:id="@+id/action_logout"
-        app:showAsAction="never"
-        android:title="@string/logout" />
+        android:title="@string/logout"
+        app:showAsAction="never" />
+
     <item
         android:id="@+id/action_login"
-        app:showAsAction="never"
-        android:title="@string/login" />
+        android:title="@string/login"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_settings"
+        android:title="@string/settings"
+        app:showAsAction="never" />
 
     <item
         android:id="@+id/action_feedback"
-        app:showAsAction="never"
-        android:title="@string/feedback" />
-    <item
-        android:id="@+id/action_about"
-        app:showAsAction="never"
-        android:title="@string/about" />
+        android:title="@string/feedback"
+        app:showAsAction="never" />
+
 </menu>

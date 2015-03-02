@@ -8,6 +8,7 @@
     <string name="read_qr_code">Mit QR-Code suchen</string>
     <string name="title_activity_information">Video-Informationen</string>
     <string name="genre_selection_title">Zu welchem Genre gehört das Video?</string>
+    <string name="settings">Einstellungen</string>
     <string name="delete">Löschen</string>
     <string name="upload">Hochladen</string>
     <string name="qr_to_video">QR-Code hinzufügen</string>

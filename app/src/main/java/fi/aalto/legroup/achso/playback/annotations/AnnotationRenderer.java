@@ -1,19 +1,23 @@
 package fi.aalto.legroup.achso.playback.annotations;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Looper;
+import android.preference.PreferenceManager;
 
 import com.google.android.exoplayer.ExoPlaybackException;
 import com.google.android.exoplayer.TrackRenderer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.Nullable;
 
 import fi.aalto.legroup.achso.entities.Annotation;
+
+import static fi.aalto.legroup.achso.app.AppPreferences.ANNOTATION_PAUSE_DURATION;
 
 /**
  * Renderer for annotation "tracks" that handles all playback-related functionality, e.g. pausing,
@@ -27,7 +31,7 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
     /**
      * How long a pause should last for each annotation.
      */
-    private static final int PAUSE_PER_ANNOTATION_MILLISECONDS = 2000;
+    private static final int PAUSE_PER_ANNOTATION_MILLISECONDS_BASE = 2000;
 
     /**
      * How long to pause per character in annotation
@@ -61,16 +65,23 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
      */
     private long previousPosition = 0;
 
+    /**
+     * Length for the pause per annotation that will be populated from settings
+     */
+    private int annotationPauseLength;
+
     @Nullable
     private EventListener listener;
 
-    public AnnotationRenderer(@Nullable EventListener listener, Strategy... strategies) {
+    public AnnotationRenderer(Context context, @Nullable EventListener listener,
+                              Strategy... strategies) {
         this.listener = listener;
         this.strategies = Arrays.asList(strategies);
+        this.annotationPauseLength = readAnnotationLengthSetting(context);
     }
 
-    public AnnotationRenderer(Strategy... strategies) {
-        this(null, strategies);
+    public AnnotationRenderer(Context context, Strategy... strategies) {
+        this(context, null, strategies);
     }
 
     /**
@@ -100,9 +111,8 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
      *
      * @param position     Position to render annotations for.
      * @param isContinuous Whether playback is continuous (playing) or discrete (paused, seeking).
-     * @return Annotations rendered.
      */
-    private List<Annotation> renderAnnotations(long position, boolean isContinuous) {
+    private void renderAnnotations(long position, boolean isContinuous) {
         renderList.clear();
 
         synchronized (annotations) {
@@ -114,10 +124,6 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
         }
 
         previousPosition = position;
-
-        if (renderList.isEmpty()) {
-            return Collections.emptyList();
-        }
 
         // If renderList was passed to the main thread, by the time it was executed, it might have
         // been already cleared. Shallow copying it here avoids concurrency issues without creating
@@ -132,8 +138,6 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
                 }
             }
         });
-
-        return renderList;
     }
 
     /**
@@ -235,18 +239,21 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
             return;
         }
 
-        List<Annotation> toRender = renderAnnotations(position, true);
-        int pause = 0;
+        renderAnnotations(position, true);
 
-        // Pause for a fixed amount per annotation + amount dependant on the text of annotation
-        for (Annotation anno : toRender) {
-            pause += PAUSE_PER_ANNOTATION_MILLISECONDS;
-            pause += anno.getText().length() * PAUSE_PER_CHARACTER_MILLISECONDS;
+        if (renderList.isEmpty()) {
+            return;
         }
 
-        if (pause > 0) {
-            startPause(pause);
+        int pauseDuration = 0;
+
+        // Pause for a fixed duration per annotation + a duration dependent on the content length.
+        for (Annotation annotation : renderList) {
+            pauseDuration += this.annotationPauseLength;
+            pauseDuration += annotation.getText().length() * PAUSE_PER_CHARACTER_MILLISECONDS;
         }
+
+        startPause(pauseDuration);
     }
 
     /**
@@ -337,6 +344,18 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
     protected long getBufferedPositionUs() {
         // Buffered instantly
         return END_OF_TRACK_US;
+    }
+
+    /**
+     * Reads the base duration for an annotation pause from the shared preferences.
+     */
+    private int readAnnotationLengthSetting(Context context) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+
+        String durationDefault = Integer.toString(PAUSE_PER_ANNOTATION_MILLISECONDS_BASE);
+        String durationString = preferences.getString(ANNOTATION_PAUSE_DURATION, durationDefault);
+
+        return Integer.parseInt(durationString);
     }
 
     /**

@@ -1,21 +1,11 @@
 package fi.aalto.legroup.achso.app;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-
 /**
- * Holds preference keys and convenience methods.
- *
- * TODO: Some syntactic sugar for retrieving preferences and their default values. Use annotations?
+ * Holds preference keys for programmatic usage.
  *
  * @author Leo Nikkilä
  */
 public final class AppPreferences {
-
-    /**
-     * Name for the app preference collection.
-     */
-    public static final String NAME = "AchSoPreferences";
 
     /**
      * The account name used for logging in automatically.
@@ -27,8 +17,13 @@ public final class AppPreferences {
      */
     public static final String SHOULD_MIGRATE = "SHOULD_MIGRATE";
 
-    public static SharedPreferences with(Context context) {
-        return context.getSharedPreferences(NAME, Context.MODE_PRIVATE);
-    }
+    // NOTE:
+    // The preference keys below are user-facing. If you change them here, change them in
+    // preferences.xml also.
+
+    /**
+     * The base duration for an annotation pause.
+     */
+    public static final String ANNOTATION_PAUSE_DURATION = "ANNOTATION_PAUSE_DURATION";
 
 }

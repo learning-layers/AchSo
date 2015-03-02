@@ -6,7 +6,7 @@
     <string name="record">Tee uusi video</string>
     <string name="read_qr_code">Hae QR-koodilla</string>
     <string name="title_activity_information">Videon tiedot</string>
-    <string name="action_settings">Asetukset</string>
+    <string name="settings">Asetukset</string>
     <string name="genre_selection_title">Millainen video tämä oli?</string>
 
     <string name="delete">Poista</string>

@@ -6,6 +6,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.support.annotation.StringRes;
 import android.support.multidex.MultiDexApplication;
 import android.widget.Toast;
@@ -97,6 +98,7 @@ public final class App extends MultiDexApplication {
         bus.post(new LoginRequestEvent(LoginRequestEvent.Type.LOGIN));
 
         checkMigration();
+        loadSettings();
     }
 
     public static void showError(@StringRes int resId) {
@@ -120,8 +122,12 @@ public final class App extends MultiDexApplication {
         return singleton;
     }
 
+    private void loadSettings() {
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+    }
+
     private void checkMigration() {
-        SharedPreferences prefs = AppPreferences.with(this);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         boolean shouldMigrate = prefs.getBoolean(AppPreferences.SHOULD_MIGRATE, true);
 
         if (shouldMigrate) {

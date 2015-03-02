@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -57,10 +58,9 @@ public class LoginManager {
      * this will do nothing.
      */
     public void login() {
-        SharedPreferences prefs = AppPreferences.with(context);
-
         // Get auto-login preferences, abort if none in store
-        String accountName = prefs.getString(AppPreferences.AUTO_LOGIN_ACCOUNT, null);
+        String accountName = PreferenceManager.getDefaultSharedPreferences(context)
+                .getString(AppPreferences.AUTO_LOGIN_ACCOUNT, null);
 
         if (accountName == null) {
             return;
@@ -92,11 +92,11 @@ public class LoginManager {
      * Logs out from the account and disables auto-login. Use this if the user manually logs out.
      */
     public void logoutExplicitly() {
-        SharedPreferences prefs = AppPreferences.with(context);
-        SharedPreferences.Editor prefsEditor = prefs.edit();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
 
-        prefsEditor.remove(AppPreferences.AUTO_LOGIN_ACCOUNT);
-        prefsEditor.apply();
+        prefs.edit()
+                .remove(AppPreferences.AUTO_LOGIN_ACCOUNT)
+                .apply();
 
         logout();
     }
@@ -234,11 +234,11 @@ public class LoginManager {
             }
 
             // Remember this account for auto-login
-            SharedPreferences prefs = AppPreferences.with(context);
-            SharedPreferences.Editor prefsEditor = prefs.edit();
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
 
-            prefsEditor.putString(AppPreferences.AUTO_LOGIN_ACCOUNT, account.name);
-            prefsEditor.apply();
+            prefs.edit()
+                    .putString(AppPreferences.AUTO_LOGIN_ACCOUNT, account.name)
+                    .apply();
 
             setState(LoginState.LOGGED_IN);
         }
