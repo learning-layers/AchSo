@@ -8,6 +8,7 @@ import com.google.android.exoplayer.TrackRenderer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -27,6 +28,11 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
      * How long a pause should last for each annotation.
      */
     private static final int PAUSE_PER_ANNOTATION_MILLISECONDS = 2000;
+
+    /**
+     * How long to pause per character in annotation
+     */
+    private static final int PAUSE_PER_CHARACTER_MILLISECONDS = 50;
 
     /**
      * List of annotations. Access to this field needs to be synchronised, as it is modified across
@@ -94,9 +100,9 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
      *
      * @param position     Position to render annotations for.
      * @param isContinuous Whether playback is continuous (playing) or discrete (paused, seeking).
-     * @return Number of annotations rendered.
+     * @return Annotations rendered.
      */
-    private int renderAnnotations(long position, boolean isContinuous) {
+    private List renderAnnotations(long position, boolean isContinuous) {
         renderList.clear();
 
         synchronized (annotations) {
@@ -110,7 +116,7 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
         previousPosition = position;
 
         if (renderList.isEmpty()) {
-            return 0;
+            return Collections.emptyList();
         }
 
         // If renderList was passed to the main thread, by the time it was executed, it might have
@@ -127,7 +133,7 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
             }
         });
 
-        return renderList.size();
+        return renderList;
     }
 
     /**
@@ -229,10 +235,17 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
             return;
         }
 
-        int renderCount = renderAnnotations(position, true);
+        List<Annotation> toRender = renderAnnotations(position, true);
+        int pause = 0;
 
-        if (renderCount > 0) {
-            startPause(renderCount * PAUSE_PER_ANNOTATION_MILLISECONDS);
+        // Pause for a fixed amount per annotation + amount dependant on the text of annotation
+        for (Annotation anno : toRender) {
+            pause += PAUSE_PER_ANNOTATION_MILLISECONDS;
+            pause += anno.getText().length() * PAUSE_PER_CHARACTER_MILLISECONDS;
+        }
+
+        if (pause > 0) {
+            startPause(pause);
         }
     }
 
