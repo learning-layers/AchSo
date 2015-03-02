@@ -23,8 +23,6 @@ import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -39,7 +37,6 @@ import fi.aalto.legroup.achso.authoring.QRHelper;
 import fi.aalto.legroup.achso.authoring.VideoCreatorService;
 import fi.aalto.legroup.achso.settings.SettingsActivity;
 import fi.aalto.legroup.achso.storage.VideoRepositoryUpdatedEvent;
-import fi.aalto.legroup.achso.storage.local.ExportCreatorTaskResultEvent;
 import fi.aalto.legroup.achso.support.FeedbackDialogFragment;
 import fi.aalto.legroup.achso.utilities.ProgressDialogFragment;
 import fi.aalto.legroup.achso.views.SlidingTabLayout;
@@ -335,30 +332,6 @@ public class BrowserActivity extends ActionBarActivity {
 
                 break;
         }
-    }
-
-    @Subscribe
-    public void onExportCreatorTaskResult(ExportCreatorTaskResultEvent event) {
-        List<Uri> uris = event.getResult();
-
-        if (uris == null || uris.isEmpty()) {
-            App.showError(R.string.error_sharing);
-            return;
-        }
-
-        Intent intent;
-
-        if (uris.size() == 1) {
-            intent = new Intent(Intent.ACTION_SEND);
-            intent.putExtra(Intent.EXTRA_STREAM, uris.get(0));
-        } else {
-            intent = new Intent(Intent.ACTION_SEND_MULTIPLE);
-            intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, new ArrayList<>(uris));
-        }
-
-        intent.setType("application/achso");
-
-        startActivity(Intent.createChooser(intent, getString(R.string.video_share)));
     }
 
 }
