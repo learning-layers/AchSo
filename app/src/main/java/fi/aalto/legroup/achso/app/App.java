@@ -97,6 +97,9 @@ public final class App extends MultiDexApplication {
         bus.post(new LoginRequestEvent(LoginRequestEvent.Type.LOGIN));
 
         loadSettings();
+
+        // Trim the caches asynchronously
+        AppCache.trim(this);
     }
 
     public static void showError(@StringRes int resId) {
