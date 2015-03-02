@@ -12,11 +12,6 @@ public final class AppPreferences {
      */
     public static final String AUTO_LOGIN_ACCOUNT = "AUTO_LOGIN_ACCOUNT";
 
-    /**
-     * Whether migration is needed or not.
-     */
-    public static final String SHOULD_MIGRATE = "SHOULD_MIGRATE";
-
     // NOTE:
     // The preference keys below are user-facing. If you change them here, change them in
     // preferences.xml also.
