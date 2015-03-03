@@ -137,8 +137,6 @@ public final class App extends MultiDexApplication {
         }
 
         Rollbar.init(this, getString(R.string.rollbarApiKey), releaseStage);
-
-        Rollbar.reportMessage("Testing, testing!");
     }
 
     private void checkMigration() {
