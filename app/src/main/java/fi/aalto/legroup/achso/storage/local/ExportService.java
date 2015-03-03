@@ -209,7 +209,7 @@ public final class ExportService extends IntentService {
         // TODO: We should not rely on the repository
         VideoInfo video = videoInfoRepository.get(videoId);
 
-        String fileName = videoId + ".achso";
+        String fileName = sanitizeFilename(video.getTitle()) + ".achso";
         File outputFile = new File(directory, fileName);
 
         Closer closer = Closer.create();
@@ -404,6 +404,25 @@ public final class ExportService extends IntentService {
         }
 
         return Okio.buffer(Okio.source(stream));
+    }
+
+    /**
+     * Returns a sanitised version of the given filename that should be safe to use on other
+     * systems.
+     */
+    private String sanitizeFilename(String filename) {
+        String replacementCharacter = "_";
+
+        // Windows forbids using any of < > : " / | \ ? *
+        String windowsBlacklist = "[<>:\"/\\|\\?\\*]";
+
+        // Dots at the beginning of a file name are problematic on Unix since they hide the file
+        String unixBlacklist = "^\\.";
+
+        filename = filename.replaceAll(windowsBlacklist, replacementCharacter);
+        filename = filename.replaceAll(unixBlacklist, replacementCharacter);
+
+        return filename;
     }
 
 }
