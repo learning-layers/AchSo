@@ -51,10 +51,6 @@
 -dontwarn org.joda.convert.**
 
 #####
-# Bugsnag
--dontwarn com.actionbarsherlock.**
-
-#####
 # mp4parser
 -keep class com.coremedia.iso.boxes.** { *; }
 

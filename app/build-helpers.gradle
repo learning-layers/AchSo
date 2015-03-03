@@ -11,7 +11,7 @@ Process process(List processArray) {
 
     if (status != 0) {
         def errors = process.err.text
-        throw new IOException("Process exited with non-zero code $status.\n\n$errors")
+        throw new IOException("Process exited with non-zero code ${status}.\n\n${errors}")
     }
 
     process
@@ -22,7 +22,17 @@ Process process(List processArray) {
  * have an asterisk as the suffix if the project contains staged changes.
  */
 String getVersionName() {
-    def args = ['git', '-C', rootDir, 'describe', '--tags', '--long', '--always', '--dirty=*']
+    def args = [
+            'git',
+            "--git-dir=${rootDir}/.git",
+            "--work-tree=${rootDir}",
+            'describe',
+            '--tags',
+            '--long',
+            '--always',
+            '--dirty=*'
+    ]
+
     def git = this.process(args) as Process
 
     def (version, build, sha) = git.text.trim().tokenize('-')
@@ -30,14 +40,22 @@ String getVersionName() {
     // Remove the g prefix in the SHA that stands for Git
     sha = sha.replace('g', '')
 
-    "$version ($build @ $sha)"
+    "${version} (${build} @ ${sha})"
 }
 
 /**
  * Returns a UNIX timestamp of the latest commit.
  */
 long getVersionCode() {
-    def args = ['git', '-C', rootDir, 'show', '--no-patch', '--format=%at']
+    def args = [
+            'git',
+            "--git-dir=${rootDir}/.git",
+            "--work-tree=${rootDir}",
+            'show',
+            '--quiet',
+            '--format=%at'
+    ]
+
     def git = this.process(args) as Process
 
     git.text.trim() as long
@@ -50,8 +68,8 @@ ext {
 
         print   "\n"
         println "~~~~~~~~~~~~~~~ VERSION DATA ~~~~~~~~~~~~~~~"
-        println "versionName: $versionName"
-        println "versionCode: $versionCode"
+        println "versionName: ${versionName}"
+        println "versionCode: ${versionCode}"
         println "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
         print   "\n"
 

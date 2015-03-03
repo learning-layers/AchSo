@@ -89,7 +89,6 @@
         <item quantity="other">%d items selected</item>
     </plurals>
 
-    <string name="error_sharing">Some videos could not be shared.</string>
     <string name="annotation_hint">Describe this annotation</string>
     <string name="comments">Comments</string>
     <string name="select_genre">Select genre</string>
@@ -98,5 +97,44 @@
     <string name="migration_notification">Ach so! is updating your videos…</string>
     <string name="playback_error">A playback error occurred.</string>
     <string name="upload_error">Uploading failed; please try again.</string>
+
+    <string name="share_preparing_toast">You will be notified when the videos are ready for sharing.</string>
+
+    <plurals name="share_preparing">
+        <item quantity="one">Preparing %d video for sharing…</item>
+        <item quantity="other">Preparing %d videos for sharing…</item>
+    </plurals>
+
+    <plurals name="share_ready">
+        <item quantity="one">%d video ready for sharing</item>
+        <item quantity="other">%d videos ready for sharing</item>
+    </plurals>
+
+    <string name="share_ready_subtitle">Tap to share</string>
+
+    <plurals name="share_failed">
+        <item quantity="one">%d video could not be shared</item>
+        <item quantity="other">%d videos could not be shared</item>
+    </plurals>
+
+    <string name="share_failed_subtitle">Tap to try again</string>
+
+    <string name="settings">Settings</string>
+    <string name="help_and_feedback"><![CDATA[Help & Feedback]]></string>
+    <string name="settings_playback">Playback</string>
+    <string name="settings_annotation_pause_title">Annotation speed</string>
+    <string name="settings_annotation_pause_summary">The speed at which annotations are shown</string>
+
+    <string-array name="settings_annotation_pause_duration">
+        <item name="1000">Fast</item>
+        <item name="2000">Normal</item>
+        <item name="4000">Slow</item>
+    </string-array>
+
+    <string-array name="settings_annotation_pause_duration_values">
+        <item name="1000">1000</item>
+        <item name="2000">2000</item>
+        <item name="4000">4000</item>
+    </string-array>
 
 </resources>

@@ -19,7 +19,6 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.bugsnag.android.Bugsnag;
 import com.google.android.exoplayer.ExoPlaybackException;
 import com.google.android.exoplayer.ExoPlayer;
 import com.google.android.exoplayer.FrameworkSampleSource;
@@ -28,6 +27,7 @@ import com.google.android.exoplayer.MediaCodecTrackRenderer;
 import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.google.android.exoplayer.SampleSource;
 import com.google.android.exoplayer.TrackRenderer;
+import com.rollbar.android.Rollbar;
 
 import java.util.List;
 
@@ -38,6 +38,7 @@ import fi.aalto.legroup.achso.entities.Annotation;
 import fi.aalto.legroup.achso.playback.annotations.AnnotationRenderer;
 import fi.aalto.legroup.achso.playback.annotations.MarkerStrategy;
 import fi.aalto.legroup.achso.playback.annotations.SubtitleStrategy;
+import fi.aalto.legroup.achso.playback.utilities.VideoOrientationPatcher;
 import fi.aalto.legroup.achso.views.MarkerCanvas;
 
 import static android.media.MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT;
@@ -176,6 +177,7 @@ public final class VideoPlayerFragment extends Fragment implements ExoPlayer.Lis
         );
 
         annotationRenderer = new AnnotationRenderer(
+                getActivity(),
                 this,
                 new MarkerStrategy(markerCanvas, annotationEditor),
                 new SubtitleStrategy(R.layout.subtitle, subtitleContainer)
@@ -322,7 +324,7 @@ public final class VideoPlayerFragment extends Fragment implements ExoPlayer.Lis
     @Override
     public void onPlayerError(ExoPlaybackException error) {
         Toast.makeText(getActivity(), R.string.playback_error, Toast.LENGTH_LONG).show();
-        Bugsnag.notify(error);
+        Rollbar.reportException(error);
     }
 
     /**
@@ -374,7 +376,7 @@ public final class VideoPlayerFragment extends Fragment implements ExoPlayer.Lis
     @Override
     public void onDecoderInitializationError(MediaCodecTrackRenderer.
                                                          DecoderInitializationException error) {
-        Bugsnag.notify(error);
+        Rollbar.reportException(error);
     }
 
     /**
@@ -382,7 +384,7 @@ public final class VideoPlayerFragment extends Fragment implements ExoPlayer.Lis
      */
     @Override
     public void onCryptoError(MediaCodec.CryptoException error) {
-        Bugsnag.notify(error);
+        Rollbar.reportException(error);
     }
 
     /**

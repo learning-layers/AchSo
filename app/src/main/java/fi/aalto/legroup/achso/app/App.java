@@ -1,21 +1,22 @@
 package fi.aalto.legroup.achso.app;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.support.annotation.StringRes;
 import android.support.multidex.MultiDexApplication;
 import android.widget.Toast;
 
-import com.bugsnag.android.Bugsnag;
+import com.rollbar.android.Rollbar;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.otto.Bus;
 
 import java.io.File;
 
+import fi.aalto.legroup.achso.BuildConfig;
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.authentication.AuthenticatedHttpClient;
 import fi.aalto.legroup.achso.authentication.LoginManager;
@@ -24,7 +25,6 @@ import fi.aalto.legroup.achso.authoring.LocationManager;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
 import fi.aalto.legroup.achso.storage.local.LocalVideoInfoRepository;
 import fi.aalto.legroup.achso.storage.local.LocalVideoRepository;
-import fi.aalto.legroup.achso.storage.migration.SQLiteMigrationService;
 import fi.aalto.legroup.achso.storage.remote.strategies.ClViTra2Strategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.SssStrategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.Strategy;
@@ -60,9 +60,9 @@ public final class App extends MultiDexApplication {
 
         singleton = this;
 
-        Bugsnag.register(this, getString(R.string.bugsnagApiKey));
+        setupErrorReporting();
 
-        bus = new AndroidBus();
+        bus = new AppBus();
 
         connectivityManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
 
@@ -96,7 +96,10 @@ public final class App extends MultiDexApplication {
 
         bus.post(new LoginRequestEvent(LoginRequestEvent.Type.LOGIN));
 
-        checkMigration();
+        loadSettings();
+
+        // Trim the caches asynchronously
+        AppCache.trim(this);
     }
 
     public static void showError(@StringRes int resId) {
@@ -120,18 +123,20 @@ public final class App extends MultiDexApplication {
         return singleton;
     }
 
-    private void checkMigration() {
-        SharedPreferences prefs = AppPreferences.with(this);
-        boolean shouldMigrate = prefs.getBoolean(AppPreferences.SHOULD_MIGRATE, true);
+    private void loadSettings() {
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+    }
 
-        if (shouldMigrate) {
-            SQLiteMigrationService.run(this);
+    private void setupErrorReporting() {
+        String releaseStage;
 
-            // Clear the migration flag
-            prefs.edit()
-                    .putBoolean(AppPreferences.SHOULD_MIGRATE, false)
-                    .apply();
+        if (BuildConfig.DEBUG) {
+            releaseStage = "debug";
+        } else {
+            releaseStage = "production";
         }
+
+        Rollbar.init(this, getString(R.string.rollbarApiKey), releaseStage);
     }
 
 }

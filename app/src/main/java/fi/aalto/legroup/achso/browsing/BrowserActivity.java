@@ -18,13 +18,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.google.gson.JsonObject;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -37,10 +34,8 @@ import fi.aalto.legroup.achso.authentication.LoginStateEvent;
 import fi.aalto.legroup.achso.authoring.GenreDialogFragment;
 import fi.aalto.legroup.achso.authoring.QRHelper;
 import fi.aalto.legroup.achso.authoring.VideoCreatorService;
+import fi.aalto.legroup.achso.settings.SettingsActivity;
 import fi.aalto.legroup.achso.storage.VideoRepositoryUpdatedEvent;
-import fi.aalto.legroup.achso.storage.local.ExportCreatorTaskResultEvent;
-import fi.aalto.legroup.achso.support.AboutDialogFragment;
-import fi.aalto.legroup.achso.support.FeedbackDialogFragment;
 import fi.aalto.legroup.achso.utilities.ProgressDialogFragment;
 import fi.aalto.legroup.achso.views.SlidingTabLayout;
 import fi.aalto.legroup.achso.views.adapters.VideoTabAdapter;
@@ -168,24 +163,8 @@ public class BrowserActivity extends ActionBarActivity {
                 bus.post(new LoginRequestEvent(LoginRequestEvent.Type.EXPLICIT_LOGOUT));
                 return true;
 
-            case R.id.action_about:
-                AboutDialogFragment.newInstance(this).show(getFragmentManager(), "AboutDialog");
-                return true;
-
-            case R.id.action_feedback:
-                String name = "";
-                String email = "";
-
-                JsonObject userInfo = App.loginManager.getUserInfo();
-
-                if (userInfo != null) {
-                    name = userInfo.get("name").getAsString();
-                    email = userInfo.get("email").getAsString();
-                }
-
-                FeedbackDialogFragment.newInstance(name, email)
-                        .show(getFragmentManager(), "FeedbackDialog");
-
+            case R.id.action_settings:
+                showSettings();
                 return true;
         }
 
@@ -270,13 +249,18 @@ public class BrowserActivity extends ActionBarActivity {
         fragment.show(getFragmentManager(), fragment.getClass().getSimpleName());
     }
 
+    private void showSettings() {
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
+    }
+
     @Subscribe
     public void onLoginState(LoginStateEvent event) {
         switch (event.getState()) {
             case LOGGED_IN:
                 // TODO: Include user info in the event
                 String name = App.loginManager.getUserInfo().get("name").getAsString();
-                String welcome = String.format(getString(R.string.logged_in_as), name);
+                String welcome = getString(R.string.logged_in_as, name);
 
                 Toast.makeText(this, welcome, Toast.LENGTH_SHORT).show();
                 break;
@@ -291,7 +275,7 @@ public class BrowserActivity extends ActionBarActivity {
 
     @Subscribe
     public void onLoginError(LoginErrorEvent event) {
-        String message = String.format(getString(R.string.login_error), event.getMessage());
+        String message = getString(R.string.login_error, event.getMessage());
 
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
 
@@ -330,30 +314,6 @@ public class BrowserActivity extends ActionBarActivity {
 
                 break;
         }
-    }
-
-    @Subscribe
-    public void onExportCreatorTaskResult(ExportCreatorTaskResultEvent event) {
-        List<Uri> uris = event.getResult();
-
-        if (uris == null || uris.isEmpty()) {
-            App.showError(R.string.error_sharing);
-            return;
-        }
-
-        Intent intent;
-
-        if (uris.size() == 1) {
-            intent = new Intent(Intent.ACTION_SEND);
-            intent.putExtra(Intent.EXTRA_STREAM, uris.get(0));
-        } else {
-            intent = new Intent(Intent.ACTION_SEND_MULTIPLE);
-            intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, new ArrayList<>(uris));
-        }
-
-        intent.setType("application/achso");
-
-        startActivity(Intent.createChooser(intent, getString(R.string.video_share)));
     }
 
 }

@@ -1,93 +1,90 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <resources>
-
-    <string name="app_name">Ach so!</string>
-    <string name="my_videos">Minu videod</string>
-    <string name="loading">Laeb</string>
+    <string name="my_videos">Kõik videod</string>
     <string name="record">Salvesta uus video</string>
-    <string name="read_qr_code">Otsi QR koodi jrgi</string>
-    <string name="title_activity_genre_selection">Vali video tp</string>
+    <string name="read_qr_code">Otsi QR koodi abil</string>
     <string name="title_activity_information">Video info</string>
-    <string name="action_settings">Seaded</string>
-    <string name="genre_selection_title">Milline video see oli?</string>
-
+    <string name="settings">Seaded</string>
+    <string name="genre_selection_title">Mis tüüpi videoga on tegemist?</string>
     <string name="delete">Kustuta</string>
-    <string name="upload">Lae les</string>
+    <string name="upload">Üleslaadimine</string>
     <string name="qr_to_video">Lisa QR kood</string>
+    <string name="view_video_info">Näita lisainfot</string>
     <string name="deletion_title">Video kustutamine</string>
-    <string name="deletion_question">Kas sa tahad kustutada valitud video(d) ja seotud mrkused?</string>
+    <string name="deletion_question">Kustuta valitud videod ja nende annotatsioonid?</string>
+    <string name="storage_error">Ei pääsenud videote hoidlale ligi.</string>
 
-    <string name="first_page">Kik videod</string>
-
-    <string name="login_description">Sisene serverisse</string>
-    <string name="user">Kasutajanimi</string>
-    <string name="pass">Parool</string>
-    <string name="login">Sisene</string>
-    <string name="login_nag_text">Vigane kasutajanimi vi parool</string>
-    <string name="title_activity_login">Sisene serverisse</string>
-
-    <string name="not_loggedin_nag_title">Ei ole sisse loginud</string>
-    <string name="not_loggedin_nag_text">Video leslaadimiseks peab enne keskkonda sisse logima</string>
-
-    <string name="location_not_enabled">Asukohaphised teenused keelatud</string>
-    <string name="location_not_enabled_text">Asukohaphised teenused ei ole lubatud. Kas sa soovid neid nd vimaldada?</string>
-
+    <string name="login">Logi sisse</string>
+    <string name="logout">Välju</string>
+    <string name="not_loggedin_nag_title">Pole sisse loginud</string>
+    <string name="video_no_location">Asukohainfo puudub</string>
     <string name="ok">OK</string>
-    <string name="cancel">Thista</string>
-
+    <string name="cancel">Katkesta</string>
     <string name="edit_text">Muuda teksti</string>
+    <string name="video_share">Jaga</string>
 
-    <!-- SemanticVideo data -->
     <string name="semanticvideo_title">Pealkiri</string>
-    <string name="semanticvideo_creator">Autor</string>
+    <string name="semanticvideo_creator">Looja</string>
     <string name="semanticvideo_qrcode">QR kood</string>
-    <string name="semanticvideo_createdat">Loodud</string>
-    <string name="semanticvideo_uri">Faili nimi seadmes</string>
-    <string name="semanticvideo_genre">Genre</string>
-    <string name="semanticvideo_uploaded">les laetud</string>
-    <string name="semanticvideo_latitude">Laius</string>
-    <string name="semanticvideo_longitude">Pikkus</string>
-    <string name="semanticvideo_accuracy">Asukoha tpsus</string>
-    <string name="semanticvideo_unknown_creator">Teadmata autor</string>
-    <string name="semanticvideo_unknown_location">Teadmata asukoht</string>
-    <string name="semanticvideo_no_qr">QR kood puudub</string>
-    <!-- /SemanticVideo data -->
+    <string name="semanticvideo_genre">Žanr</string>
+    <string name="semanticvideo_uploaded">Üleslaetud</string>
+    <string name="semanticvideo_unknown_creator">Tundmatu looja</string>
+    <string name="semanticvideo_unknown_location">Tundmatu asukoht</string>
+    <string name="semanticvideo_no_qr">Ei saanud QR koodi lugeda</string>
 
-    <string name="search_hint">Otsi videoid</string>
-    <string name="title_activity_search">Otsi</string>
+    <string name="search">Otsing</string>
+    <string name="search_hint">Videote otsing</string>
 
-    <string name="remote_video_separator">Vlised videod</string>
-
-    <string name="keep">Keep</string>
-    <string name="no_connection">No connection to cloud</string>
-    <string name="nearby_videos">Nearby</string>
-    <string name="search_results">Search results</string>
-    <string name="add_video">Add video</string>
-    <string name="author_is_me">Me</string>
-    <string name="author_is_unknown">Unknown</string>
-    <string name="unknown_format">Unknown format, or file is not a video</string>
-    <string name="video_already_exists">This video is already in Ach so!</string>
-    <string name="login_successful">Login successful</string>
-    <string name="created_new_video">Created new video.</string>
-    <string name="code_added_to_videos">Code added to selected video(s).</string>
-    <string name="upload_successful">Upload successful.</string>
-    <string name="buffering">Buffering…</string>
-    <string name="logged_in_as">Logged in as %s.</string>
-    <string name="connection_problem">Connection problem</string>
-    <string name="authentication_problem">Authentication problem</string>
-    <string name="tethys_prefs">Tethys account</string>
-    <string name="action_register">Create account</string>
-    <string name="prompt_fullname">Full name</string>
-    <string name="confirm_pass">Repeat password</string>
-    <string name="error_passwords_dont_match">Password doesn\'t match with verification</string>
-    <string name="Welcome">Welcome</string>
-    <string name="openid_login">Login to Learning Layers OIDC Server</string>
-    <string name="login_failed_help_text">Login failed. Verify your credentials.</string>
-    <string name="registration_failed_help_text">Registration failed for following reason:</string>
-
+    <string name="empty_results">Pole sobivaid videosid</string>
+    <string name="add_video">Lisa video</string>
+    <string name="video_author">Looja</string>
+    <string name="author_is_unknown">Tundmatu</string>
+    <string name="code_added_to_videos">Kood lisatud valitud videotele.</string>
+    <string name="logged_in_as">Logisid sisse kasutajana %s.</string>
+    <string name="connection_problem">Ühenduse probleem</string>
+    <string name="tethys_prefs">Tethys konto</string>
     <string name="yes">Jah</string>
     <string name="no">Ei</string>
-    <string name="logged_out">Logged out.</string>
-    <string name="login_error">Could not log in: %s</string>
+    <string name="about">Info</string>
+    <string name="about_maps">Kaardiinfo</string>
+    <string name="choose_account">Vali konto</string>
+    <string name="logged_out">Välja logitud.</string>
+    <string name="login_error">Polnud võimalik sisse logida kasutajana: %s</string>
+    <string name="save">Salvesta</string>
+
+    <string name="feedback">Tagasiside</string>
+    <string name="feedback_topic">Liik</string>
+    <string name="feedback_summary">Lühikokkuvõte</string>
+    <string name="feedback_body">Sõnum</string>
+    <string name="feedback_user">Täisnimi</string>
+    <string name="feedback_email">E-post</string>
+    <string name="feedback_send">Saada</string>
+    <string name="feedback_sent">Täname tagasisde eest.</string>
+    <string name="feedback_error">Polnud võimalik sinu tagasisidet saata. Proovi hiljem uuesti.</string>
+
+    <string-array name="genres">
+        <item>Tubli töö</item>
+        <item>Mure</item>
+        <item>Portaali ülevaade</item>
+        <item>Trick of trade</item>
+    </string-array>
+
+    <string name="unknown_genre">Tundmatu žanr</string>
+    <string name="unknown_title">Tundmatu pealkiri</string>
+
+    <plurals name="select_count">
+        <item quantity="one">%d kirje valitud</item>
+        <item quantity="other">%d kirjet valitud</item>
+    </plurals>
+
+    <string name="error_sharing">Mõningaid videosid polnud võimalik jagada.</string>
+    <string name="annotation_hint">Kirjeldage seda märkust</string>
+    <string name="comments">Kommentaatid</string>
+    <string name="select_genre">Vali žanr</string>
+    <string name="close">Sulge</string>
+    <string name="processing_video">Töötlen videot…</string>
+    <string name="migration_notification">Ach so! uuendab su videosid…</string>
+    <string name="playback_error">Video esitluse viga.</string>
+    <string name="upload_error">Üleslaadimne ebaõnnestus; proovi uuesti.</string>
+
 </resources>
