@@ -9,7 +9,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
-import com.bugsnag.android.Bugsnag;
+import com.rollbar.android.Rollbar;
 
 import fi.aalto.legroup.achso.R;
 
@@ -36,7 +36,7 @@ public class AboutDialogFragment extends DialogFragment {
             String versionName = manager.getPackageInfo(packageName, 0).versionName;
             arguments.putString(ARG_VERSION_NAME, versionName);
         } catch (PackageManager.NameNotFoundException e) {
-            Bugsnag.notify(e);
+            Rollbar.reportException(e);
         }
 
         fragment.setArguments(arguments);
