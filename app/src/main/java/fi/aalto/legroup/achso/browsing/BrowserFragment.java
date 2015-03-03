@@ -29,7 +29,7 @@ import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.authoring.QRHelper;
 import fi.aalto.legroup.achso.authoring.VideoHelper;
 import fi.aalto.legroup.achso.playback.VideoPlayerActivity;
-import fi.aalto.legroup.achso.storage.local.ExportCreatorTask;
+import fi.aalto.legroup.achso.storage.local.ExportService;
 import fi.aalto.legroup.achso.storage.remote.UploadErrorEvent;
 import fi.aalto.legroup.achso.storage.remote.UploadService;
 import fi.aalto.legroup.achso.storage.remote.UploadStateEvent;
@@ -133,8 +133,7 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
                 return true;
 
             case R.id.action_share_video:
-                List<UUID> list = this.getSelection();
-                new ExportCreatorTask(this.getActivity()).execute(list.toArray(new UUID[list.size()]));
+                ExportService.export(getActivity(), getSelection());
                 mode.finish();
                 return true;
 

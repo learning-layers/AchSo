@@ -1,7 +1,6 @@
 package fi.aalto.legroup.achso.app;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -26,7 +25,6 @@ import fi.aalto.legroup.achso.authoring.LocationManager;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
 import fi.aalto.legroup.achso.storage.local.LocalVideoInfoRepository;
 import fi.aalto.legroup.achso.storage.local.LocalVideoRepository;
-import fi.aalto.legroup.achso.storage.migration.SQLiteMigrationService;
 import fi.aalto.legroup.achso.storage.remote.strategies.ClViTra2Strategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.SssStrategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.Strategy;
@@ -64,7 +62,7 @@ public final class App extends MultiDexApplication {
 
         setupErrorReporting();
 
-        bus = new AndroidBus();
+        bus = new AppBus();
 
         connectivityManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
 
@@ -98,8 +96,10 @@ public final class App extends MultiDexApplication {
 
         bus.post(new LoginRequestEvent(LoginRequestEvent.Type.LOGIN));
 
-        checkMigration();
         loadSettings();
+
+        // Trim the caches asynchronously
+        AppCache.trim(this);
     }
 
     public static void showError(@StringRes int resId) {
@@ -137,20 +137,6 @@ public final class App extends MultiDexApplication {
         }
 
         Rollbar.init(this, getString(R.string.rollbarApiKey), releaseStage);
-    }
-
-    private void checkMigration() {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        boolean shouldMigrate = prefs.getBoolean(AppPreferences.SHOULD_MIGRATE, true);
-
-        if (shouldMigrate) {
-            SQLiteMigrationService.run(this);
-
-            // Clear the migration flag
-            prefs.edit()
-                    .putBoolean(AppPreferences.SHOULD_MIGRATE, false)
-                    .apply();
-        }
     }
 
 }

@@ -13,7 +13,7 @@ import com.squareup.otto.Bus;
  * @author Jake Wharton
  * @author pommedeterresautee
  */
-public final class AndroidBus extends Bus {
+public final class AppBus extends Bus {
 
     private final Handler handler = new Handler(Looper.getMainLooper());
 
@@ -25,7 +25,7 @@ public final class AndroidBus extends Bus {
             handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    AndroidBus.super.post(event);
+                    AppBus.super.post(event);
                 }
             });
         }

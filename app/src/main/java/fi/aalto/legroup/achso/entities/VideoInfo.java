@@ -2,6 +2,8 @@ package fi.aalto.legroup.achso.entities;
 
 import android.net.Uri;
 
+import com.google.common.base.Objects;
+
 import java.util.Date;
 import java.util.UUID;
 
@@ -13,6 +15,8 @@ import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
  * @author Leo Nikkilä
  */
 public class VideoInfo implements JsonSerializable {
+
+    protected transient Uri manifestUri;
 
     protected Uri videoUri;
     protected Uri thumbUri;
@@ -27,9 +31,9 @@ public class VideoInfo implements JsonSerializable {
         // For serialization
     }
 
-    protected VideoInfo(Uri videoUri, Uri thumbUri, UUID id, String title, String genre,
-                        String tag, Date date) {
-
+    protected VideoInfo(Uri manifestUri, Uri videoUri, Uri thumbUri, UUID id, String title,
+                        String genre, String tag, Date date) {
+        this.manifestUri = manifestUri;
         this.videoUri = videoUri;
         this.thumbUri = thumbUri;
         this.id = id;
@@ -59,6 +63,14 @@ public class VideoInfo implements JsonSerializable {
         return !isLocal();
     }
 
+    public Uri getManifestUri() {
+        return manifestUri;
+    }
+
+    public void setManifestUri(Uri manifestUri) {
+        this.manifestUri = manifestUri;
+    }
+
     public Uri getVideoUri() {
         return this.videoUri;
     }
@@ -85,6 +97,33 @@ public class VideoInfo implements JsonSerializable {
 
     public Date getDate() {
         return this.date;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object == this) {
+            return true;
+        }
+
+        if (object == null || getClass() != object.getClass()) {
+            return false;
+        }
+
+        VideoInfo that = (VideoInfo) object;
+
+        return Objects.equal(manifestUri, that.manifestUri)
+                && Objects.equal(videoUri, that.videoUri)
+                && Objects.equal(thumbUri, that.thumbUri)
+                && Objects.equal(id, that.id)
+                && Objects.equal(title, that.title)
+                && Objects.equal(genre, that.genre)
+                && Objects.equal(tag, that.tag)
+                && Objects.equal(date, that.date);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(manifestUri, videoUri, thumbUri, id, title, genre, tag, date);
     }
 
 }

@@ -94,7 +94,7 @@
 
         </activity>
 
-        <service android:name=".storage.migration.SQLiteMigrationService" />
+        <service android:name=".storage.local.ExportService" />
         <service android:name=".storage.remote.UploadService" />
         <service android:name=".authoring.VideoCreatorService" />
 

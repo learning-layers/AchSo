@@ -1,5 +1,7 @@
 package fi.aalto.legroup.achso.storage.local;
 
+import android.net.Uri;
+
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -130,7 +132,12 @@ public final class LocalVideoInfoRepository extends AbstractLocalVideoRepository
          */
         @Override
         public VideoInfo load(@Nonnull UUID id) throws Exception {
-            return serializer.load(VideoInfo.class, getManifestFromId(id).toURI());
+            File manifest = getManifestFromId(id);
+            VideoInfo video = serializer.load(VideoInfo.class, manifest.toURI());
+
+            video.setManifestUri(Uri.fromFile(manifest));
+
+            return video;
         }
 
     }
