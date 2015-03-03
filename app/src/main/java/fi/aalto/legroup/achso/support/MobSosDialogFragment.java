@@ -13,7 +13,7 @@ import android.widget.EditText;
 import android.widget.RatingBar;
 import android.widget.Toast;
 
-import com.bugsnag.android.Bugsnag;
+import com.rollbar.android.Rollbar;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -110,7 +110,7 @@ public class MobSosDialogFragment extends DialogFragment implements Callback<Res
     @Override
     public void failure(RetrofitError error) {
         Toast.makeText(this.context, R.string.feedback_error, Toast.LENGTH_LONG).show();
-        Bugsnag.notify(error);
+        Rollbar.reportException(error);
         error.printStackTrace();
     }
 

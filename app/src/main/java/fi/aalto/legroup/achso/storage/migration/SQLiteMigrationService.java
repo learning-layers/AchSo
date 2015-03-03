@@ -12,7 +12,7 @@ import android.graphics.PointF;
 import android.location.Location;
 import android.net.Uri;
 
-import com.bugsnag.android.Bugsnag;
+import com.rollbar.android.Rollbar;
 
 import java.io.File;
 import java.text.ParseException;
@@ -112,7 +112,7 @@ public class SQLiteMigrationService extends IntentService {
 
             migrateVideos(database);
         } catch (SQLiteException e) {
-            Bugsnag.notify(e);
+            Rollbar.reportException(e);
         } finally {
             if (database != null) {
                 database.close();

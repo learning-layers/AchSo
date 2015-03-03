@@ -11,12 +11,13 @@ import android.support.annotation.StringRes;
 import android.support.multidex.MultiDexApplication;
 import android.widget.Toast;
 
-import com.bugsnag.android.Bugsnag;
+import com.rollbar.android.Rollbar;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.otto.Bus;
 
 import java.io.File;
 
+import fi.aalto.legroup.achso.BuildConfig;
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.authentication.AuthenticatedHttpClient;
 import fi.aalto.legroup.achso.authentication.LoginManager;
@@ -61,7 +62,7 @@ public final class App extends MultiDexApplication {
 
         singleton = this;
 
-        Bugsnag.register(this, getString(R.string.bugsnagApiKey));
+        setupErrorReporting();
 
         bus = new AndroidBus();
 
@@ -124,6 +125,20 @@ public final class App extends MultiDexApplication {
 
     private void loadSettings() {
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+    }
+
+    private void setupErrorReporting() {
+        String releaseStage;
+
+        if (BuildConfig.DEBUG) {
+            releaseStage = "debug";
+        } else {
+            releaseStage = "production";
+        }
+
+        Rollbar.init(this, getString(R.string.rollbarApiKey), releaseStage);
+
+        Rollbar.reportMessage("Testing, testing!");
     }
 
     private void checkMigration() {
