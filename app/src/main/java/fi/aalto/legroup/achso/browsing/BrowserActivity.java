@@ -18,7 +18,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.google.gson.JsonObject;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
@@ -37,7 +36,6 @@ import fi.aalto.legroup.achso.authoring.QRHelper;
 import fi.aalto.legroup.achso.authoring.VideoCreatorService;
 import fi.aalto.legroup.achso.settings.SettingsActivity;
 import fi.aalto.legroup.achso.storage.VideoRepositoryUpdatedEvent;
-import fi.aalto.legroup.achso.support.FeedbackDialogFragment;
 import fi.aalto.legroup.achso.utilities.ProgressDialogFragment;
 import fi.aalto.legroup.achso.views.SlidingTabLayout;
 import fi.aalto.legroup.achso.views.adapters.VideoTabAdapter;
@@ -167,22 +165,6 @@ public class BrowserActivity extends ActionBarActivity {
 
             case R.id.action_settings:
                 showSettings();
-                return true;
-
-            case R.id.action_feedback:
-                String name = "";
-                String email = "";
-
-                JsonObject userInfo = App.loginManager.getUserInfo();
-
-                if (userInfo != null) {
-                    name = userInfo.get("name").getAsString();
-                    email = userInfo.get("email").getAsString();
-                }
-
-                FeedbackDialogFragment.newInstance(name, email)
-                        .show(getFragmentManager(), "FeedbackDialog");
-
                 return true;
         }
 

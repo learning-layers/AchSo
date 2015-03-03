@@ -23,8 +23,12 @@
         android:title="@string/help_and_feedback">
 
         <!--
-            This key is used by SettingsFragment but not by AppPreferences; it's just a button.
+            These are used by SettingsFragment but not by AppPreferences; they're just buttons.
         -->
+        <Preference
+            android:key="BUTTON_FEEDBACK"
+            android:title="@string/feedback" />
+
         <Preference
             android:key="BUTTON_ABOUT"
             android:title="@string/about" />

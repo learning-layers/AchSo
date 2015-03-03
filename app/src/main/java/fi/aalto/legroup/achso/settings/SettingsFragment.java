@@ -4,8 +4,12 @@ import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 
+import com.google.gson.JsonObject;
+
 import fi.aalto.legroup.achso.R;
+import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.support.AboutDialogFragment;
+import fi.aalto.legroup.achso.support.FeedbackDialogFragment;
 
 /**
  * @author Leo Nikkilä
@@ -14,6 +18,7 @@ public class SettingsFragment extends PreferenceFragment
         implements Preference.OnPreferenceClickListener {
 
     private static final String BUTTON_ABOUT = "BUTTON_ABOUT";
+    private static final String BUTTON_FEEDBACK = "BUTTON_FEEDBACK";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -21,7 +26,11 @@ public class SettingsFragment extends PreferenceFragment
 
         addPreferencesFromResource(R.xml.preferences);
 
-        findPreference(BUTTON_ABOUT).setOnPreferenceClickListener(this);
+        Preference aboutButton = findPreference(BUTTON_ABOUT);
+        Preference feedbackButton = findPreference(BUTTON_FEEDBACK);
+
+        aboutButton.setOnPreferenceClickListener(this);
+        feedbackButton.setOnPreferenceClickListener(this);
     }
 
     @Override
@@ -32,6 +41,10 @@ public class SettingsFragment extends PreferenceFragment
             case BUTTON_ABOUT:
                 showAboutDialog();
                 return true;
+
+            case BUTTON_FEEDBACK:
+                showFeedbackDialog();
+                return true;
         }
 
         return false;
@@ -39,6 +52,21 @@ public class SettingsFragment extends PreferenceFragment
 
     private void showAboutDialog() {
         AboutDialogFragment.newInstance(getActivity()).show(getFragmentManager(), "AboutDialog");
+    }
+
+    private void showFeedbackDialog() {
+        String name = "";
+        String email = "";
+
+        JsonObject userInfo = App.loginManager.getUserInfo();
+
+        if (userInfo != null) {
+            name = userInfo.get("name").getAsString();
+            email = userInfo.get("email").getAsString();
+        }
+
+        FeedbackDialogFragment.newInstance(name, email)
+                .show(getFragmentManager(), "FeedbackDialog");
     }
 
 }
