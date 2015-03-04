@@ -4,9 +4,6 @@ import android.graphics.PointF;
 
 import fi.aalto.legroup.achso.entities.Annotation;
 
-/**
- * @author Leo Nikkilä
- */
 public interface AnnotationEditor {
 
     /**

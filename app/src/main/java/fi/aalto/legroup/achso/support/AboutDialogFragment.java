@@ -13,10 +13,6 @@ import com.rollbar.android.Rollbar;
 
 import fi.aalto.legroup.achso.R;
 
-/**
- * @author István Koren
- * @author Leo Nikkilä
- */
 public class AboutDialogFragment extends DialogFragment {
 
     private static final String ARG_APP_NAME = "ARG_APP_NAME";

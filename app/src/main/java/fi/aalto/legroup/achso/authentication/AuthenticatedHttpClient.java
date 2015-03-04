@@ -18,8 +18,6 @@ import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
 
 /**
  * Utilises HttpClient to provide automatic token renewal.
- *
- * @author Leo Nikkilä
  */
 public class AuthenticatedHttpClient {
 

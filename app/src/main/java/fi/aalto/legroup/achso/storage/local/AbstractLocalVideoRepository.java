@@ -11,8 +11,6 @@ import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
 
 /**
  * An abstract local video repository that dictates the general behaviour.
- *
- * @author Leo Nikkilä
  */
 public abstract class AbstractLocalVideoRepository implements FilenameFilter {
 

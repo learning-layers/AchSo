@@ -15,8 +15,6 @@ import javax.annotation.Nonnull;
  *
  * It's up to the parent view to set an OnClickedListener and to react to dragged and dropped
  * markers via the onDragEvent method.
- *
- * @author Leo Nikkilä
  */
 public class Marker extends View {
 

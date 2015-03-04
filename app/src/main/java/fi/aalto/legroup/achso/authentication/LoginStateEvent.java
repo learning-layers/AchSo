@@ -2,8 +2,6 @@ package fi.aalto.legroup.achso.authentication;
 
 /**
  * TODO: Make this more specific.
- *
- * @author Leo Nikkilä
  */
 public class LoginStateEvent {
 

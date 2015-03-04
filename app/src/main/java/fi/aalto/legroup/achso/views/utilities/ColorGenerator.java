@@ -4,8 +4,6 @@ import java.util.Random;
 
 /**
  * Generates colours based on an object's identity. Will return the same colour for equal objects.
- *
- * @author Leo Nikkilä
  */
 public final class ColorGenerator {
 

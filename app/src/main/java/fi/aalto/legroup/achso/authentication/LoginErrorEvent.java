@@ -1,8 +1,5 @@
 package fi.aalto.legroup.achso.authentication;
 
-/**
- * @author Leo Nikkilä
- */
 public class LoginErrorEvent {
 
     private String message;

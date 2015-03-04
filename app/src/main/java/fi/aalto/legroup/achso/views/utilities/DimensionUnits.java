@@ -4,8 +4,6 @@ import android.content.Context;
 
 /**
  * Utility class for converting between px and dp units.
- *
- * @author Leo Nikkilä
  */
 public final class DimensionUnits {
 

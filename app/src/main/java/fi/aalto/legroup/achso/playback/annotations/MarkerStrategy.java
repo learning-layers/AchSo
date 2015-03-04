@@ -14,8 +14,6 @@ import fi.aalto.legroup.achso.views.MarkerCanvas;
 
 /**
  * Draws markers on a canvas for each annotation. Delegates marker actions to an editor class.
- *
- * @author Leo Nikkilä
  */
 public final class MarkerStrategy implements AnnotationRenderer.Strategy, MarkerCanvas.Listener {
 
