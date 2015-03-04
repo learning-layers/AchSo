@@ -8,9 +8,6 @@ import retrofit.http.Header;
 import retrofit.http.Headers;
 import retrofit.http.POST;
 
-/**
- * Created by lassi on 14.11.14.
- */
 public interface OsTicketService {
 
     @POST("/api/tickets.json")

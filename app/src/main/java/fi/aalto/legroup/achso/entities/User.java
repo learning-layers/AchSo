@@ -7,9 +7,6 @@ import android.os.Parcelable;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
 import fi.aalto.legroup.achso.views.utilities.ColorGenerator;
 
-/**
- * @author Leo Nikkilä
- */
 public class User implements JsonSerializable, Parcelable {
 
     protected String name;

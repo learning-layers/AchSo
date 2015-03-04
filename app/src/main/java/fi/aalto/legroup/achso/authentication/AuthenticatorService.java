@@ -6,8 +6,6 @@ import android.os.IBinder;
 
 /**
  * The service that lets Android know about the custom Authenticator.
- *
- * @author Leo Nikkilä
  */
 public class AuthenticatorService extends Service {
 

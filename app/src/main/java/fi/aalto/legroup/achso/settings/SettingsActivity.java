@@ -6,9 +6,6 @@ import android.support.v7.widget.Toolbar;
 
 import fi.aalto.legroup.achso.R;
 
-/**
- * @author Leo Nikkilä
- */
 public class SettingsActivity extends ActionBarActivity {
 
     @Override

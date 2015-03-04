@@ -16,8 +16,6 @@ import fi.aalto.legroup.achso.app.App;
 
 /**
  * TODO: This should be a fragment or something.
- *
- * @author Leo Nikkilä
  */
 public class LoginActivity extends Activity {
 

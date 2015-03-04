@@ -22,9 +22,6 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.entities.VideoInfo;
 import fi.aalto.legroup.achso.storage.VideoInfoRepository;
 
-/**
- * Created by lassi on 31.10.14.
- */
 public class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapter.ViewHolder> {
 
     private Context context;

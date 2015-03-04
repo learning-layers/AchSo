@@ -11,8 +11,6 @@ import com.google.android.gms.location.LocationServices;
 
 /**
  * Manages listening for location updates and returning the last found location.
- *
- * @author Leo Nikkilä
  */
 public class LocationManager implements GoogleApiClient.ConnectionCallbacks, LocationListener {
 

@@ -7,9 +7,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.StringRes;
 
-/**
- * @author Leo Nikkilä
- */
 public class ProgressDialogFragment extends DialogFragment {
 
     private static final String ARG_DIALOG_MESSAGE = "ARG_DIALOG_TITLE";

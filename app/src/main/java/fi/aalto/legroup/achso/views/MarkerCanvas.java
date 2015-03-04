@@ -14,8 +14,6 @@ import javax.annotation.Nonnull;
 
 /**
  * An area for markers that can be positioned, selected, and dragged around.
- *
- * @author Leo Nikkilä
  */
 public class MarkerCanvas extends FrameLayout implements View.OnClickListener {
 

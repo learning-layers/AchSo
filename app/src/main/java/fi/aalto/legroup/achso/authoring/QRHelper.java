@@ -19,9 +19,6 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.Video;
 
-/**
- * Created by lassi on 7.11.14.
- */
 public class QRHelper {
     private static boolean launchedForAdding;
     private static ActionMode mode;

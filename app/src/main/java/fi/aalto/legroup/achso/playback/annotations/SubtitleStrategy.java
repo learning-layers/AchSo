@@ -19,8 +19,6 @@ import fi.aalto.legroup.achso.entities.Annotation;
  * Renders subtitles for textual annotations. TextViews are recycled. The number of views kept in
  * memory is equal to the maximum number of annotations with visible text on the screen
  * simultaneously.
- *
- * @author Leo Nikkilä
  */
 public final class SubtitleStrategy implements AnnotationRenderer.Strategy {
 

@@ -13,9 +13,6 @@ import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
 import fi.aalto.legroup.achso.storage.VideoRepository;
 import fi.aalto.legroup.achso.storage.VideoRepositoryUpdatedEvent;
 
-/**
- * @author Leo Nikkilä
- */
 public final class LocalVideoRepository extends AbstractLocalVideoRepository
         implements VideoRepository {
 

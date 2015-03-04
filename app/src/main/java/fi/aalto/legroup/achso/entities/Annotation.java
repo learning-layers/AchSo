@@ -8,8 +8,6 @@ import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
 
 /**
  * An annotation entity that describes a video's annotation.
- *
- * @author Leo Nikkilä
  */
 public class Annotation implements JsonSerializable, Parcelable {
 
