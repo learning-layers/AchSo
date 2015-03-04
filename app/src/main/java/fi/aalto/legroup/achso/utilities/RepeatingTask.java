@@ -4,8 +4,6 @@ import android.os.Handler;
 
 /**
  * Performs a task repeatedly until stopped. Can be started and stopped multiple times.
- *
- * @author Leo Nikkilä
  */
 public abstract class RepeatingTask implements Runnable {
 

@@ -8,8 +8,6 @@ import fi.aalto.legroup.achso.entities.VideoInfo;
 
 /**
  * Provides cached read-only access to video information objects.
- *
- * @author Leo Nikkilä
  */
 public interface VideoInfoRepository {
 

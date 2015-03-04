@@ -15,8 +15,6 @@ import fi.aalto.legroup.achso.storage.VideoRepository;
  * A video entity that represents a video and is an aggregate root for annotations.
  *
  * TODO: Extending VideoInfo is semantically wrong and may result in some problems later on.
- *
- * @author Leo Nikkilä
  */
 public class Video extends VideoInfo implements JsonSerializable {
 

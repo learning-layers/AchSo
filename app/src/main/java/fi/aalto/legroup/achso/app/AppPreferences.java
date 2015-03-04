@@ -2,8 +2,6 @@ package fi.aalto.legroup.achso.app;
 
 /**
  * Holds preference keys for programmatic usage.
- *
- * @author Leo Nikkilä
  */
 public final class AppPreferences {
 

@@ -11,8 +11,6 @@ import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
 
 /**
  * An information object that describes a video entity.
- *
- * @author Leo Nikkilä
  */
 public class VideoInfo implements JsonSerializable {
 

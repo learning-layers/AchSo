@@ -27,8 +27,6 @@ import fi.aalto.legroup.achso.storage.VideoRepositoryUpdatedEvent;
 
 /**
  * Stores videos locally as serialised XML files.
- *
- * @author Leo Nikkilä
  */
 public final class LocalVideoInfoRepository extends AbstractLocalVideoRepository
         implements VideoInfoRepository {

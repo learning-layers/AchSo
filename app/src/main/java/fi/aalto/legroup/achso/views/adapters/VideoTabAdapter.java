@@ -17,9 +17,6 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.browsing.BrowserFragment;
 
-/**
- * Created by lassi on 31.10.14.
- */
 public class VideoTabAdapter extends FragmentStatePagerAdapter {
     String[] tabNames;
 

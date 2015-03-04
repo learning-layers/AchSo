@@ -8,9 +8,6 @@ import retrofit.http.Body;
 import retrofit.http.POST;
 import retrofit.http.Path;
 
-/**
- * @author Leo Nikkilä
- */
 public interface MobSosService {
 
     @POST("/surveys/{id}/responses")
