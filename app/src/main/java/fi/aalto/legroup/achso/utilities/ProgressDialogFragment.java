@@ -2,42 +2,46 @@ package fi.aalto.legroup.achso.utilities;
 
 import android.app.Dialog;
 import android.app.DialogFragment;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.StringRes;
 
+import com.afollestad.materialdialogs.MaterialDialog;
+
 public class ProgressDialogFragment extends DialogFragment {
 
-    private static final String ARG_DIALOG_MESSAGE = "ARG_DIALOG_TITLE";
+    protected String message = "";
 
     public static ProgressDialogFragment newInstance(Context context, @StringRes int messageRes) {
-        String title = context.getString(messageRes);
-        return newInstance(title);
+        return newInstance(context.getString(messageRes));
     }
 
     public static ProgressDialogFragment newInstance(String message) {
         ProgressDialogFragment fragment = new ProgressDialogFragment();
-        Bundle arguments = new Bundle();
 
-        arguments.putString(ARG_DIALOG_MESSAGE, message);
-
-        fragment.setArguments(arguments);
+        fragment.setMessage(message);
 
         return fragment;
     }
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setRetainInstance(true);
+    }
+
+    @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        String message = getArguments().getString(ARG_DIALOG_MESSAGE, "");
-        ProgressDialog dialog = new ProgressDialog(getActivity());
-
-        dialog.setMessage(message);
-        dialog.setIndeterminate(true);
-
         setCancelable(false);
 
-        return dialog;
+        return new MaterialDialog.Builder(getActivity())
+                .content(message)
+                .progress(true, 0)
+                .build();
+    }
+
+    protected void setMessage(String message) {
+        this.message = message;
     }
 
 }
