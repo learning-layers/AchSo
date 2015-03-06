@@ -27,7 +27,7 @@ import java.util.UUID;
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.authoring.QRHelper;
-import fi.aalto.legroup.achso.authoring.VideoHelper;
+import fi.aalto.legroup.achso.authoring.VideoDeletionFragment;
 import fi.aalto.legroup.achso.playback.VideoPlayerActivity;
 import fi.aalto.legroup.achso.storage.local.ExportService;
 import fi.aalto.legroup.achso.storage.remote.UploadErrorEvent;
@@ -138,7 +138,8 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
                 return true;
 
             case R.id.action_delete:
-                VideoHelper.deleteVideos(getActivity(), getSelection(), mode);
+                VideoDeletionFragment.newInstance(getSelection())
+                        .show(getFragmentManager(), "DeletionFragment");
                 mode.finish();
                 return true;
 
