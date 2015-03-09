@@ -4,9 +4,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.view.ActionMode;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -262,7 +263,7 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
     }
 
     private void startActionMode() {
-        this.actionMode = getActivity().startActionMode(this);
+        this.actionMode = ((ActionBarActivity) getActivity()).startSupportActionMode(this);
     }
 
     /**
