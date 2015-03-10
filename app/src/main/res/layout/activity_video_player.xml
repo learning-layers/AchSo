@@ -17,7 +17,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <include layout="@layout/partial_toolbar" />
+        <include layout="@layout/partial_toolbar_with_nav_button" />
 
         <include
             layout="@layout/partial_playback_controls"
