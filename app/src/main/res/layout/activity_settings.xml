@@ -4,11 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <include
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        layout="@layout/partial_toolbar" />
+    <include layout="@layout/partial_toolbar" />
 
     <fragment
         android:id="@+id/settingsFragment"
