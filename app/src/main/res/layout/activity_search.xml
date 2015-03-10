@@ -5,7 +5,7 @@
     android:orientation="vertical"
     tools:context="fi.aalto.legroup.achso.browsing.SearchActivity">
 
-    <include layout="@layout/partial_toolbar" />
+    <include layout="@layout/partial_toolbar_with_nav_button" />
 
     <fragment
         android:name="fi.aalto.legroup.achso.browsing.BrowserFragment"
