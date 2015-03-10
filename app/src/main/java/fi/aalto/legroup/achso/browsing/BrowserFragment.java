@@ -167,7 +167,7 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
     }
 
     @Override
-    public void onItemClick(View view, int position) {
+    public void onItemClick(View childView, int position) {
         if (actionMode == null) {
             showVideo(position);
         } else {
@@ -176,7 +176,7 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
     }
 
     @Override
-    public void onItemLongPress(View view, int position) {
+    public void onItemLongPress(View childView, int position) {
         if (actionMode == null) {
             startActionMode();
         }
