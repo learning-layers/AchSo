@@ -27,8 +27,6 @@ import retrofit.client.Response;
 /**
  * TODO: Authentication using OpenID Connect
  * TODO: Don't hard-code the survey and response IDs.
- *
- * @author Leo Nikkilä
  */
 public class MobSosDialogFragment extends DialogFragment implements Callback<Response>,
         DialogInterface.OnClickListener {

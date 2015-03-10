@@ -3,8 +3,8 @@ package fi.aalto.legroup.achso.authoring;
 import android.app.Activity;
 import android.content.Intent;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v7.view.ActionMode;
 import android.support.v7.widget.SearchView;
-import android.view.ActionMode;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -19,9 +19,6 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.Video;
 
-/**
- * Created by lassi on 7.11.14.
- */
 public class QRHelper {
     private static boolean launchedForAdding;
     private static ActionMode mode;

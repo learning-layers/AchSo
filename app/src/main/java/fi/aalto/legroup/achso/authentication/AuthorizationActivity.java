@@ -32,8 +32,6 @@ import fi.aalto.legroup.achso.R;
  * After the Authorization Token has successfully been obtained, we use the single-use token to
  * fetch an ID Token, an Access Token and a Refresh Token. We create an Account and persist these
  * tokens.
- *
- * @author Leo Nikkilä
  */
 public class AuthorizationActivity extends AccountAuthenticatorActivity {
 

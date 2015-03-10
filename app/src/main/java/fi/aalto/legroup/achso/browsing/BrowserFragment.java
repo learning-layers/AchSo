@@ -4,9 +4,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.view.ActionMode;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,7 +28,7 @@ import java.util.UUID;
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.authoring.QRHelper;
-import fi.aalto.legroup.achso.authoring.VideoHelper;
+import fi.aalto.legroup.achso.authoring.VideoDeletionFragment;
 import fi.aalto.legroup.achso.playback.VideoPlayerActivity;
 import fi.aalto.legroup.achso.storage.local.ExportService;
 import fi.aalto.legroup.achso.storage.remote.UploadErrorEvent;
@@ -138,7 +139,8 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
                 return true;
 
             case R.id.action_delete:
-                VideoHelper.deleteVideos(getActivity(), getSelection(), mode);
+                VideoDeletionFragment.newInstance(getSelection())
+                        .show(getFragmentManager(), "DeletionFragment");
                 mode.finish();
                 return true;
 
@@ -165,7 +167,7 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
     }
 
     @Override
-    public void onItemClick(View view, int position) {
+    public void onItemClick(View childView, int position) {
         if (actionMode == null) {
             showVideo(position);
         } else {
@@ -174,7 +176,7 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
     }
 
     @Override
-    public void onItemLongPress(View view, int position) {
+    public void onItemLongPress(View childView, int position) {
         if (actionMode == null) {
             startActionMode();
         }
@@ -261,7 +263,7 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
     }
 
     private void startActionMode() {
-        this.actionMode = getActivity().startActionMode(this);
+        this.actionMode = ((ActionBarActivity) getActivity()).startSupportActionMode(this);
     }
 
     /**

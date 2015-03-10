@@ -2,9 +2,6 @@ package fi.aalto.legroup.achso.storage.remote;
 
 import java.util.UUID;
 
-/**
- * @author Leo Nikkilä
- */
 public class UploadStateEvent {
 
     private UUID videoId;

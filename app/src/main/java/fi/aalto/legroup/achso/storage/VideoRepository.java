@@ -7,8 +7,6 @@ import fi.aalto.legroup.achso.entities.Video;
 
 /**
  * Provides full read/write access to video root entities.
- *
- * @author Leo Nikkilä
  */
 public interface VideoRepository {
 

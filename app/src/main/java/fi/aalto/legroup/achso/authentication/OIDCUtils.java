@@ -29,8 +29,6 @@ import fi.aalto.legroup.achso.app.App;
  *
  * Currently this helper class is fairly limited. It's suitable for our use case and pretty much
  * nothing else.
- *
- * @author Leo Nikkilä
  */
 public class OIDCUtils {
 

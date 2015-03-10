@@ -5,9 +5,6 @@ import com.squareup.otto.Bus;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.storage.remote.UploadErrorEvent;
 
-/**
- * @author Leo Nikkilä
- */
 public abstract class Strategy {
 
     protected Bus bus;

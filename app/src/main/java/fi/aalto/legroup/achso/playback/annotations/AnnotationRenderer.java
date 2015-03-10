@@ -23,8 +23,6 @@ import static fi.aalto.legroup.achso.app.AppPreferences.ANNOTATION_PAUSE_DURATIO
  * Renderer for annotation "tracks" that handles all playback-related functionality, e.g. pausing,
  * and delegates all view-related tasks to special strategy classes. Runs on ExoPlayer's playback
  * thread, but Strategy implementations are run on the main thread so that they can access the UI.
- *
- * @author Leo Nikkilä
  */
 public final class AnnotationRenderer extends TrackRenderer implements Runnable {
 

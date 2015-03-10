@@ -22,9 +22,6 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.entities.VideoInfo;
 import fi.aalto.legroup.achso.storage.VideoInfoRepository;
 
-/**
- * Created by lassi on 31.10.14.
- */
 public class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapter.ViewHolder> {
 
     private Context context;
@@ -88,7 +85,7 @@ public class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapter.View
             holder.getUploadIndicator().setImageResource(R.drawable.ic_cloud_off_white_24dp);
         } else {
             holder.getUploadIndicator().setImageAlpha(0xFF);
-            holder.getUploadIndicator().setImageResource(R.drawable.ic_cloud_white_24dp);
+            holder.getUploadIndicator().setImageResource(R.drawable.ic_cloud_done_white_24dp);
         }
     }
 

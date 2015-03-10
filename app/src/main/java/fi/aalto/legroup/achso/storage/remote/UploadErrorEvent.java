@@ -4,9 +4,6 @@ import java.util.UUID;
 
 import fi.aalto.legroup.achso.storage.remote.strategies.Strategy;
 
-/**
- * @author Leo Nikkilä
- */
 public class UploadErrorEvent {
 
     private Strategy strategy;

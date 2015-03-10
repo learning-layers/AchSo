@@ -1,7 +1,17 @@
 <resources>
 
-    <!-- Default screen margins, per the Android Design guidelines. -->
-    <dimen name="activity_horizontal_margin">16dp</dimen>
-    <dimen name="activity_vertical_margin">16dp</dimen>
+    <!--
+        Keylines
+        https://www.google.com/design/spec/layout/metrics-keylines.html
+     -->
+    <dimen name="first_keyline">16dp</dimen>
+    <dimen name="second_keyline">72dp</dimen>
+
+    <!--
+        Toolbar overrides
+        https://medium.com/@lucasurbas/making-android-toolbar-responsive-2627d4e07129
+        http://www.google.com/design/spec/layout/structure.html#structure-app-bar
+     -->
+    <dimen name="toolbar_horizontal_padding">4dp</dimen>
 
 </resources>

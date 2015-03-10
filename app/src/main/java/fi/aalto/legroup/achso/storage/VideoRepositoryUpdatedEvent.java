@@ -2,8 +2,6 @@ package fi.aalto.legroup.achso.storage;
 
 /**
  * TODO: Split this event into something more specific.
- *
- * @author Leo Nikkilä
  */
 public class VideoRepositoryUpdatedEvent {
 
