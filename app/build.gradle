@@ -57,6 +57,11 @@ dependencies {
     // Material design dialogs
     compile 'com.afollestad:material-dialogs:0.6.3.5'
 
+    // Material design tab strip. Note that this is jpardogo's fork, not the original version
+    // that's no longer updated. The class name of the view is still same, though.
+    // See https://github.com/jpardogo/PagerSlidingTabStrip
+    compile 'com.jpardogo.materialtabstrip:library:1.0.9'
+
     // Nice core libraries for a multitude of tasks
     compile 'com.google.guava:guava:18.0'
 

@@ -18,6 +18,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.astuetz.PagerSlidingTabStrip;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
@@ -37,7 +38,6 @@ import fi.aalto.legroup.achso.authoring.VideoCreatorService;
 import fi.aalto.legroup.achso.settings.SettingsActivity;
 import fi.aalto.legroup.achso.storage.VideoRepositoryUpdatedEvent;
 import fi.aalto.legroup.achso.utilities.ProgressDialogFragment;
-import fi.aalto.legroup.achso.views.SlidingTabLayout;
 import fi.aalto.legroup.achso.views.adapters.VideoTabAdapter;
 
 /**
@@ -65,38 +65,37 @@ public class BrowserActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // TODO: Inject instead
+        this.bus = App.bus;
+
+        setContentView(R.layout.activity_main);
+
+        Toolbar toolbar = (Toolbar) this.findViewById(R.id.toolbar);
+
+        setSupportActionBar(toolbar);
+
         if (savedInstanceState != null) {
             videoBuilder = savedInstanceState.getParcelable(STATE_VIDEO_BUILDER);
         }
 
-        // TODO: Inject instead
-        this.bus = App.bus;
+        this.tabAdapter = new VideoTabAdapter(this, getSupportFragmentManager());
 
-        bus.register(this);
+        ViewPager pager = (ViewPager) findViewById(R.id.pager);
+        PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) findViewById(R.id.toolbar_tabs);
 
-        this.setContentView(R.layout.activity_main);
-
-        Toolbar toolbar = (Toolbar) this.findViewById(R.id.toolbar);
-        this.setSupportActionBar(toolbar);
-
-        this.tabAdapter = new VideoTabAdapter(this, this.getSupportFragmentManager());
-
-        ViewPager tabs = (ViewPager) this.findViewById(R.id.pager);
-        tabs.setAdapter(this.tabAdapter);
-
-        SlidingTabLayout slidingTabs = (SlidingTabLayout) this.findViewById(R.id.main_tabs);
-        slidingTabs.setViewPager(tabs);
+        pager.setAdapter(this.tabAdapter);
+        tabs.setViewPager(pager);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        App.bus.register(this);
+        bus.register(this);
     }
 
     @Override
     protected void onPause() {
-        App.bus.unregister(this);
+        bus.unregister(this);
         super.onPause();
     }
 

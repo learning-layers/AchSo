@@ -5,20 +5,29 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <include
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        layout="@layout/partial_toolbar" />
+        android:orientation="vertical">
 
-    <fi.aalto.legroup.achso.views.SlidingTabLayout
-        android:id="@+id/main_tabs"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        <include layout="@layout/partial_toolbar" />
+
+        <com.astuetz.PagerSlidingTabStrip
+            style="@style/Widget.Custom.Toolbar.TabStrip"
+            android:id="@+id/toolbar_tabs"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="?attr/colorPrimary"
+            android:paddingLeft="@dimen/toolbar_horizontal_padding"
+            android:paddingRight="@dimen/toolbar_horizontal_padding" />
+
+    </LinearLayout>
 
     <android.support.v4.view.ViewPager
         android:id="@+id/pager"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
 </LinearLayout>
 
