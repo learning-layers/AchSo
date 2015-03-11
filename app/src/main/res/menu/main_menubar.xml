@@ -11,22 +11,16 @@
         app:showAsAction="collapseActionView|ifRoom" />
 
     <item
-        android:id="@+id/action_new_video"
-        android:icon="@drawable/ic_videocam_white_24dp"
-        android:title="@string/record"
+        android:id="@+id/action_read_qrcode"
+        android:icon="@drawable/ic_qrcode_white_24dp"
+        android:title="@string/read_qr_code"
         app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_import_video"
         android:icon="@drawable/ic_add_to_photos_white_24dp"
         android:title="@string/import_video"
-        app:showAsAction="ifRoom" />
-
-    <item
-        android:id="@+id/action_read_qrcode"
-        android:icon="@drawable/ic_qrcode_white_24dp"
-        android:title="@string/read_qr_code"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="never" />
 
     <item
         android:id="@+id/action_logout"

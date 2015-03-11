@@ -17,6 +17,7 @@ import android.view.ViewTreeObserver;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.melnykov.fab.ScrollDirectionListener;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
@@ -37,9 +38,10 @@ import fi.aalto.legroup.achso.storage.remote.UploadStateEvent;
 import fi.aalto.legroup.achso.views.RecyclerItemClickListener;
 import fi.aalto.legroup.achso.views.adapters.VideoGridAdapter;
 import fi.aalto.legroup.achso.views.utilities.DimensionUnits;
+import fi.aalto.legroup.achso.views.utilities.ScrollDirectionListenable;
 
 public final class BrowserFragment extends Fragment implements ActionMode.Callback,
-        RecyclerItemClickListener.OnItemClickListener {
+        RecyclerItemClickListener.OnItemClickListener, ScrollDirectionListenable {
 
     private Bus bus;
 
@@ -49,6 +51,9 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
 
     private VideoGridAdapter adapter;
     private ActionMode actionMode;
+
+    @Nullable
+    private ScrollDirectionListener scrollListener;
 
     public static BrowserFragment newInstance(List<UUID> videos) {
         BrowserFragment fragment = new BrowserFragment();
@@ -98,6 +103,7 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
         grid.setAdapter(this.adapter);
         grid.setLayoutManager(layoutManager);
         grid.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), this));
+        grid.setOnScrollListener(new RecyclerScrollListener());
 
         // This listener sets the span count on layout and then stops listening.
         new GridOnLayoutChangeListener(grid);
@@ -267,6 +273,16 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
     }
 
     /**
+     * Sets the scroll direction listener.
+     *
+     * @param listener Scroll direction listener, or null to remove a previously set listener.
+     */
+    @Override
+    public void setScrollDirectionListener(@Nullable ScrollDirectionListener listener) {
+        this.scrollListener = listener;
+    }
+
+    /**
      * Shows or hides the placeholder text appropriately when the adapter items change.
      */
     private class PlaceholderDataObserver extends RecyclerView.AdapterDataObserver {
@@ -325,6 +341,35 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
 
             // This listener needs to be removed to avoid an infinite loop due to the workaround.
             grid.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+        }
+
+    }
+
+    private class RecyclerScrollListener extends RecyclerView.OnScrollListener {
+
+        private static final int THRESHOLD = 100;
+
+        private int scrolledDistance = 0;
+
+        @Override
+        public void onScrolled(RecyclerView recyclerView, int deltaX, int deltaY) {
+            if (scrollListener == null) {
+                return;
+            }
+
+            scrolledDistance += deltaY;
+
+            if (Math.abs(scrolledDistance) < THRESHOLD) {
+                return;
+            }
+
+            if (scrolledDistance > 0) {
+                scrollListener.onScrollDown();
+            } else {
+                scrollListener.onScrollUp();
+            }
+
+            scrolledDistance = 0;
         }
 
     }

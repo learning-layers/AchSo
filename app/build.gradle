@@ -62,6 +62,9 @@ dependencies {
     // See https://github.com/jpardogo/PagerSlidingTabStrip
     compile 'com.jpardogo.materialtabstrip:library:1.0.9'
 
+    // Material design floating action button
+    compile 'com.melnykov:floatingactionbutton:1.2.0'
+
     // Nice core libraries for a multitude of tasks
     compile 'com.google.guava:guava:18.0'
 

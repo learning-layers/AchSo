@@ -16,9 +16,12 @@ import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
 import com.astuetz.PagerSlidingTabStrip;
+import com.melnykov.fab.FloatingActionButton;
+import com.melnykov.fab.ScrollDirectionListener;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
@@ -45,7 +48,8 @@ import fi.aalto.legroup.achso.views.adapters.VideoTabAdapter;
  *
  * TODO: Extract video creation stuff into its own activity.
  */
-public class BrowserActivity extends ActionBarActivity {
+public class BrowserActivity extends ActionBarActivity implements View.OnClickListener,
+        ScrollDirectionListener {
 
     private static final int REQUEST_RECORD_VIDEO = 1;
     private static final int REQUEST_CHOOSE_VIDEO = 2;
@@ -54,6 +58,7 @@ public class BrowserActivity extends ActionBarActivity {
 
     private Bus bus;
 
+    private FloatingActionButton fab;
     private VideoTabAdapter tabAdapter;
     private MenuItem searchItem;
 
@@ -80,11 +85,17 @@ public class BrowserActivity extends ActionBarActivity {
 
         this.tabAdapter = new VideoTabAdapter(this, getSupportFragmentManager());
 
+        tabAdapter.setScrollDirectionListener(this);
+
         ViewPager pager = (ViewPager) findViewById(R.id.pager);
         PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) findViewById(R.id.toolbar_tabs);
 
         pager.setAdapter(this.tabAdapter);
         tabs.setViewPager(pager);
+
+        fab = (FloatingActionButton) findViewById(R.id.fab);
+
+        fab.setOnClickListener(this);
     }
 
     @Override
@@ -127,11 +138,9 @@ public class BrowserActivity extends ActionBarActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_new_video:
-                recordVideo();
-                return true;
+        int id = item.getItemId();
 
+        switch (id) {
             case R.id.action_import_video:
                 chooseVideo();
                 return true;
@@ -171,6 +180,27 @@ public class BrowserActivity extends ActionBarActivity {
                 QRHelper.readQRCodeResult(this, requestCode, resultCode, data);
                 break;
         }
+    }
+
+    @Override
+    public void onClick(View view) {
+        int id = view.getId();
+
+        switch (id) {
+            case R.id.fab:
+                recordVideo();
+                break;
+        }
+    }
+
+    @Override
+    public void onScrollDown() {
+        fab.hide();
+    }
+
+    @Override
+    public void onScrollUp() {
+        fab.show();
     }
 
     private void recordVideo() {
