@@ -203,7 +203,12 @@ public class BrowserActivity extends ActionBarActivity {
 
         intent.putExtra(MediaStore.EXTRA_OUTPUT, videoFile);
 
-        startActivityForResult(intent, REQUEST_RECORD_VIDEO);
+        try {
+            startActivityForResult(intent, REQUEST_RECORD_VIDEO);
+        } catch (ActivityNotFoundException e) {
+            // TODO: Offer alternatives
+            Toast.makeText(this, "No camera app is installed.", Toast.LENGTH_LONG).show();
+        }
     }
 
     private void chooseVideo() {
