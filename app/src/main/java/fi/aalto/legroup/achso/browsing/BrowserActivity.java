@@ -175,9 +175,7 @@ public class BrowserActivity extends ActionBarActivity {
         switch (requestCode) {
             case REQUEST_RECORD_VIDEO:
             case REQUEST_CHOOSE_VIDEO:
-                if (resultCode == RESULT_OK) {
-                    createVideo(data);
-                }
+                createVideo(resultCode, data);
                 break;
 
             // FIXME: Default is not good here
@@ -234,7 +232,11 @@ public class BrowserActivity extends ActionBarActivity {
         }
     }
 
-    private void createVideo(@Nullable Intent resultData) {
+    private void createVideo(int resultCode, @Nullable Intent resultData) {
+        if (resultCode != RESULT_OK) {
+            return;
+        }
+
         // Data might not be there, in which case a fallback has been set in #recordVideo().
         if (resultData != null) {
             videoBuilder.setVideoUri(resultData.getData());
