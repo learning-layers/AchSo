@@ -39,7 +39,7 @@
     <string name="search_hint">Nach Videos suchen</string>
 
     <string name="empty_results">Keine passenden Videos</string>
-    <string name="add_video">Video hinzufügen</string>
+    <string name="import_video">Video hinzufügen</string>
     <string name="video_author">Autor</string>
     <string name="author_is_unknown">Unbekannt</string>
     <string name="code_added_to_videos">Code zu ausgewählten Videos hinzugefügt.</string>

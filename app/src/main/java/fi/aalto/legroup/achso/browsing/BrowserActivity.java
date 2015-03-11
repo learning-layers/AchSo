@@ -105,18 +105,6 @@ public class BrowserActivity extends ActionBarActivity {
         super.onSaveInstanceState(savedInstanceState);
     }
 
-    /**
-     * FIXME: Temporarily removing the ability to choose videos.
-     */
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        MenuItem addVideo = menu.findItem(R.id.action_add_video);
-
-        addVideo.setVisible(false);
-
-        return super.onPrepareOptionsMenu(menu);
-    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         this.getMenuInflater().inflate(R.menu.main_menubar, menu);
@@ -144,7 +132,7 @@ public class BrowserActivity extends ActionBarActivity {
                 recordVideo();
                 return true;
 
-            case R.id.action_add_video:
+            case R.id.action_import_video:
                 chooseVideo();
                 return true;
 
@@ -210,6 +198,8 @@ public class BrowserActivity extends ActionBarActivity {
     }
 
     private void chooseVideo() {
+        videoBuilder = VideoCreatorService.build();
+
         Intent intent;
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
@@ -219,10 +209,7 @@ public class BrowserActivity extends ActionBarActivity {
             intent.setFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
         }
 
-        // TODO: Specify video/* when other mime types are supported
         intent.setType("video/mp4");
-
-        intent.putExtra(Intent.CATEGORY_OPENABLE, true);
 
         try {
             startActivityForResult(intent, REQUEST_CHOOSE_VIDEO);

@@ -17,9 +17,9 @@
         app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/action_add_video"
+        android:id="@+id/action_import_video"
         android:icon="@drawable/ic_add_to_photos_white_24dp"
-        android:title="@string/add_video"
+        android:title="@string/import_video"
         app:showAsAction="ifRoom" />
 
     <item
