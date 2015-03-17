@@ -52,7 +52,7 @@ public final class VideoOrientationPatcher implements MediaCodecVideoTrackRender
 
     public VideoOrientationPatcher(Context context,
                                    MediaCodecVideoTrackRenderer.EventListener delegate) {
-        this.context = context;
+        this.context = context.getApplicationContext();
         this.delegate = delegate;
     }
 
