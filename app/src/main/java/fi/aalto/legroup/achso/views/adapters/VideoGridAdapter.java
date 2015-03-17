@@ -3,7 +3,6 @@ package fi.aalto.legroup.achso.views.adapters;
 import android.content.Context;
 import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -25,7 +24,6 @@ import fi.aalto.legroup.achso.storage.VideoInfoRepository;
 public class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapter.ViewHolder> {
 
     private Context context;
-    private LayoutInflater inflater;
     private VideoInfoRepository repository;
 
     private List<UUID> videoIds = Collections.emptyList();
@@ -35,13 +33,12 @@ public class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapter.View
 
     public VideoGridAdapter(Context context, VideoInfoRepository repository) {
         this.context = context;
-        this.inflater = LayoutInflater.from(context);
         this.repository = repository;
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int position) {
-        View view = this.inflater.inflate(R.layout.item_video_browser_grid, parent, false);
+        View view = View.inflate(context, R.layout.item_video_browser_grid, parent);
         return new ViewHolder(view);
     }
 
