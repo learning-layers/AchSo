@@ -1,12 +1,10 @@
 package fi.aalto.legroup.achso.app;
 
-import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.support.annotation.StringRes;
 import android.support.multidex.MultiDexApplication;
 import android.widget.Toast;
 
@@ -33,8 +31,6 @@ public final class App extends MultiDexApplication {
 
     private static final String ACH_SO_LOCAL_STORAGE_NAME = "Ach so!";
 
-    private static App singleton;
-
     public static Bus bus;
 
     public static ConnectivityManager connectivityManager;
@@ -57,8 +53,6 @@ public final class App extends MultiDexApplication {
     @Override
     public void onCreate() {
         super.onCreate();
-
-        singleton = this;
 
         setupErrorReporting();
 
@@ -102,14 +96,6 @@ public final class App extends MultiDexApplication {
         AppCache.trim(this);
     }
 
-    public static void showError(@StringRes int resId) {
-        App.showError(getContext().getString(resId));
-    }
-
-    public static void showError(String error) {
-        Toast.makeText(getContext(), error, Toast.LENGTH_LONG).show();
-    }
-
     public static boolean isConnected() {
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
         return networkInfo != null && networkInfo.isConnected();
@@ -117,10 +103,6 @@ public final class App extends MultiDexApplication {
 
     public static boolean isDisconnected() {
         return !isConnected();
-    }
-
-    public static Context getContext() {
-        return singleton;
     }
 
     private void loadSettings() {
