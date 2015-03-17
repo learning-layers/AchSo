@@ -6,6 +6,7 @@ import android.app.SearchManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -86,6 +87,9 @@ public class BrowserActivity extends ActionBarActivity {
 
         SlidingTabLayout slidingTabs = (SlidingTabLayout) this.findViewById(R.id.main_tabs);
         slidingTabs.setViewPager(tabs);
+
+        // Control the media volume instead of the ringer volume
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
     }
 
     @Override
