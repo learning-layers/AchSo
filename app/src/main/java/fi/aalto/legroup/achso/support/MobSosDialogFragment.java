@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import fi.aalto.legroup.achso.R;
+import fi.aalto.legroup.achso.app.App;
 import retrofit.Callback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
@@ -83,7 +84,8 @@ public class MobSosDialogFragment extends DialogFragment implements Callback<Res
     }
 
     private void sendResponse(int rating, String comments) {
-        String endpointUrl = getString(R.string.mobSosUrl);
+        String servicePath = getString(R.string.mobSosUrl);
+        String endpointUrl = App.getLayersServiceUrl(servicePath).toString();
 
         MobSosService service = new RestAdapter.Builder()
                 .setEndpoint(endpointUrl)
