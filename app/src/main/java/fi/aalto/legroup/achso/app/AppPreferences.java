@@ -19,4 +19,9 @@ public final class AppPreferences {
      */
     public static final String ANNOTATION_PAUSE_DURATION = "ANNOTATION_PAUSE_DURATION";
 
+    /**
+     * Layers box base URL.
+     */
+    public static final String LAYERS_BOX_URL = "LAYERS_BOX_URL";
+
 }

@@ -35,7 +35,7 @@ public class SssStrategy extends Strategy {
      */
     public SssStrategy(Bus bus, Uri endpointUrl) {
         super(bus);
-        this.endpointUrl = endpointUrl;
+        this.endpointUrl = App.getLayersServiceUrl(endpointUrl);
     }
 
     /**

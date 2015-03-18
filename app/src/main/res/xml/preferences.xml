@@ -14,6 +14,13 @@
             android:summary="@string/settings_annotation_pause_summary"
             android:title="@string/settings_annotation_pause_title" />
 
+        <com.afollestad.materialdialogs.prefs.MaterialEditTextPreference
+            android:defaultValue="@string/layersBoxUrl"
+            android:inputType="textUri"
+            android:key="LAYERS_BOX_URL"
+            android:summary="@string/settings_layers_box_summary"
+            android:title="@string/settings_layers_box_title" />
+
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/help_and_feedback">

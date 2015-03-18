@@ -86,5 +86,7 @@
     <string name="migration_notification">Ach so! uuendab su videosid…</string>
     <string name="playback_error">Video esitluse viga.</string>
     <string name="upload_error">Üleslaadimne ebaõnnestus; proovi uuesti.</string>
+    <string name="settings_layers_box_summary">The URL to the Layers box</string>
+    <string name="settings_layers_box_title">Layers box address</string>
 
 </resources>

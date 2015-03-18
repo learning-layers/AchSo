@@ -124,6 +124,8 @@
     <string name="settings_playback">Playback</string>
     <string name="settings_annotation_pause_title">Annotation speed</string>
     <string name="settings_annotation_pause_summary">The speed at which annotations are shown</string>
+    <string name="settings_layers_box_summary">The URL to the Layers box</string>
+    <string name="settings_layers_box_title">Layers box address</string>
 
     <string-array name="settings_annotation_pause_duration">
         <item name="1000">Fast</item>
