@@ -57,7 +57,7 @@ public final class AppCache {
         private Context context;
 
         private CacheTrimmingRunnable(Context context) {
-            this.context = context;
+            this.context = context.getApplicationContext();
         }
 
         @Override

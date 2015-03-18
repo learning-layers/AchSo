@@ -40,7 +40,7 @@ public class Authenticator extends AbstractAccountAuthenticator {
 
     public Authenticator(Context context) {
         super(context);
-        this.context = context;
+        this.context = context.getApplicationContext();
 
         accountManager = AccountManager.get(context);
     }
