@@ -3,6 +3,7 @@ package fi.aalto.legroup.achso.playback;
 import android.animation.ObjectAnimator;
 import android.app.Fragment;
 import android.graphics.SurfaceTexture;
+import android.media.AudioManager;
 import android.media.MediaCodec;
 import android.net.Uri;
 import android.os.Bundle;
@@ -115,6 +116,9 @@ public final class VideoPlayerFragment extends Fragment implements ExoPlayer.Lis
 
         // ExoPlayer doesn't handle video orientation correctly: we need to fix it manually.
         orientationPatcher = new VideoOrientationPatcher(getActivity(), this);
+
+        // Control the media volume instead of the ringer volume
+        getActivity().setVolumeControlStream(AudioManager.STREAM_MUSIC);
     }
 
     @Override

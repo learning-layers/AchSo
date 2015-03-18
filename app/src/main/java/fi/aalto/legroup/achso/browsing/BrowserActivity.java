@@ -18,6 +18,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
+import android.media.AudioManager;
 
 import com.astuetz.PagerSlidingTabStrip;
 import com.melnykov.fab.FloatingActionButton;
@@ -96,6 +97,9 @@ public class BrowserActivity extends ActionBarActivity implements View.OnClickLi
         fab = (FloatingActionButton) findViewById(R.id.fab);
 
         fab.setOnClickListener(this);
+
+        // Control the media volume instead of the ringer volume
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
     }
 
     @Override
