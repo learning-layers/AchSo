@@ -4,9 +4,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.view.ActionMode;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,6 +17,7 @@ import android.view.ViewTreeObserver;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.melnykov.fab.ScrollDirectionListener;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
@@ -27,7 +29,7 @@ import java.util.UUID;
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.authoring.QRHelper;
-import fi.aalto.legroup.achso.authoring.VideoHelper;
+import fi.aalto.legroup.achso.authoring.VideoDeletionFragment;
 import fi.aalto.legroup.achso.playback.VideoPlayerActivity;
 import fi.aalto.legroup.achso.storage.local.ExportService;
 import fi.aalto.legroup.achso.storage.remote.UploadErrorEvent;
@@ -36,9 +38,10 @@ import fi.aalto.legroup.achso.storage.remote.UploadStateEvent;
 import fi.aalto.legroup.achso.views.RecyclerItemClickListener;
 import fi.aalto.legroup.achso.views.adapters.VideoGridAdapter;
 import fi.aalto.legroup.achso.views.utilities.DimensionUnits;
+import fi.aalto.legroup.achso.views.utilities.ScrollDirectionListenable;
 
 public final class BrowserFragment extends Fragment implements ActionMode.Callback,
-        RecyclerItemClickListener.OnItemClickListener {
+        RecyclerItemClickListener.OnItemClickListener, ScrollDirectionListenable {
 
     private Bus bus;
 
@@ -48,6 +51,9 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
 
     private VideoGridAdapter adapter;
     private ActionMode actionMode;
+
+    @Nullable
+    private ScrollDirectionListener scrollListener;
 
     public static BrowserFragment newInstance(List<UUID> videos) {
         BrowserFragment fragment = new BrowserFragment();
@@ -97,6 +103,7 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
         grid.setAdapter(this.adapter);
         grid.setLayoutManager(layoutManager);
         grid.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), this));
+        grid.setOnScrollListener(new RecyclerScrollListener());
 
         // This listener sets the span count on layout and then stops listening.
         new GridOnLayoutChangeListener(grid);
@@ -138,7 +145,8 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
                 return true;
 
             case R.id.action_delete:
-                VideoHelper.deleteVideos(getActivity(), getSelection(), mode);
+                VideoDeletionFragment.newInstance(getSelection())
+                        .show(getFragmentManager(), "DeletionFragment");
                 mode.finish();
                 return true;
 
@@ -165,7 +173,7 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
     }
 
     @Override
-    public void onItemClick(View view, int position) {
+    public void onItemClick(View childView, int position) {
         if (actionMode == null) {
             showVideo(position);
         } else {
@@ -174,7 +182,7 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
     }
 
     @Override
-    public void onItemLongPress(View view, int position) {
+    public void onItemLongPress(View childView, int position) {
         if (actionMode == null) {
             startActionMode();
         }
@@ -261,7 +269,17 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
     }
 
     private void startActionMode() {
-        this.actionMode = getActivity().startActionMode(this);
+        this.actionMode = ((ActionBarActivity) getActivity()).startSupportActionMode(this);
+    }
+
+    /**
+     * Sets the scroll direction listener.
+     *
+     * @param listener Scroll direction listener, or null to remove a previously set listener.
+     */
+    @Override
+    public void setScrollDirectionListener(@Nullable ScrollDirectionListener listener) {
+        this.scrollListener = listener;
     }
 
     /**
@@ -323,6 +341,35 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
 
             // This listener needs to be removed to avoid an infinite loop due to the workaround.
             grid.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+        }
+
+    }
+
+    private class RecyclerScrollListener extends RecyclerView.OnScrollListener {
+
+        private static final int THRESHOLD = 100;
+
+        private int scrolledDistance = 0;
+
+        @Override
+        public void onScrolled(RecyclerView recyclerView, int deltaX, int deltaY) {
+            if (scrollListener == null) {
+                return;
+            }
+
+            scrolledDistance += deltaY;
+
+            if (Math.abs(scrolledDistance) < THRESHOLD) {
+                return;
+            }
+
+            if (scrolledDistance > 0) {
+                scrollListener.onScrollDown();
+            } else {
+                scrollListener.onScrollUp();
+            }
+
+            scrolledDistance = 0;
         }
 
     }

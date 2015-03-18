@@ -1,23 +1,33 @@
 package fi.aalto.legroup.achso.authoring;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
-import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.view.View;
+
+import com.afollestad.materialdialogs.MaterialDialog;
 
 import fi.aalto.legroup.achso.R;
 
-public class GenreDialogFragment extends DialogFragment implements DialogInterface.OnClickListener {
+/**
+ * A dialog fragment for selecting a genre for videos.
+ */
+public final class GenreDialogFragment extends DialogFragment {
 
-    private int selection = 0;
+    @Nullable
+    private Callback callback;
 
     private String[] genres;
-    private Callback callback;
+
+    private int selection = 0;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Don't destroy the fragment on orientation change, preserving the selection and callback
+        // fields.
         setRetainInstance(true);
     }
 
@@ -25,13 +35,18 @@ public class GenreDialogFragment extends DialogFragment implements DialogInterfa
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         genres = getResources().getStringArray(R.array.genres);
 
+        DialogCallback dialogCallback = new DialogCallback();
+
         setCancelable(false);
 
-        return new AlertDialog.Builder(getActivity())
-                .setTitle(R.string.genre_selection_title)
-                .setSingleChoiceItems(genres, selection, this)
-                .setPositiveButton(R.string.select_genre, this)
-                .create();
+        return new MaterialDialog.Builder(getActivity())
+                .title(R.string.genre_selection_title)
+                .positiveText(R.string.select_genre)
+                .items(genres)
+                .itemsCallbackSingleChoice(selection, dialogCallback)
+                .alwaysCallSingleChoiceCallback()
+                .callback(dialogCallback)
+                .build();
     }
 
     /**
@@ -51,44 +66,58 @@ public class GenreDialogFragment extends DialogFragment implements DialogInterfa
         super.onDestroyView();
     }
 
-    public GenreDialogFragment setCallback(Callback callback) {
+    /**
+     * Sets the callback that should be notified with events from this fragment. Pass null to
+     * remove the callback.
+     *
+     * @param callback Callback that should be set or null.
+     *
+     * @return This fragment for chaining.
+     */
+    public GenreDialogFragment setCallback(@Nullable Callback callback) {
         this.callback = callback;
         return this;
     }
 
     /**
-     * Called when an item is selected.
+     * Callback that should be notified with events from this fragment.
      */
-    @Override
-    public void onClick(DialogInterface dialog, int which) {
-        switch (which) {
-            case DialogInterface.BUTTON_POSITIVE:
-                finish();
-                break;
-
-            case DialogInterface.BUTTON_NEGATIVE:
-                // Not used
-                break;
-
-            case DialogInterface.BUTTON_NEUTRAL:
-                // Not used
-                break;
-
-            default:
-                selection = which;
-        }
-    }
-
-    private void finish() {
-        if (callback != null) {
-            String selectedGenre = genres[selection];
-            callback.onGenreSelected(selectedGenre);
-        }
-    }
-
     public static interface Callback {
 
+        /**
+         * Called when the user has selected a genre using the dialog.
+         *
+         * @param genre User's selected genre.
+         */
         public void onGenreSelected(String genre);
+
+    }
+
+    /**
+     * Class for listening to dialog events.
+     */
+    private class DialogCallback extends MaterialDialog.ButtonCallback implements
+            MaterialDialog.ListCallback {
+
+        /**
+         * Called each time the user selects an item.
+         */
+        @Override
+        public void onSelection(MaterialDialog dialog, View item, int index, CharSequence label) {
+            selection = index;
+        }
+
+        /**
+         * Called when the user presses the positive button.
+         */
+        @Override
+        public void onPositive(MaterialDialog dialog) {
+            String genre = genres[selection];
+
+            if (callback != null) {
+                callback.onGenreSelected(genre);
+            }
+        }
 
     }
 

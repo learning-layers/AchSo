@@ -85,7 +85,7 @@ public class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapter.View
             holder.getUploadIndicator().setImageResource(R.drawable.ic_cloud_off_white_24dp);
         } else {
             holder.getUploadIndicator().setImageAlpha(0xFF);
-            holder.getUploadIndicator().setImageResource(R.drawable.ic_cloud_white_24dp);
+            holder.getUploadIndicator().setImageResource(R.drawable.ic_cloud_done_white_24dp);
         }
     }
 

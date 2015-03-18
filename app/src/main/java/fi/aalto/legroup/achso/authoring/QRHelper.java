@@ -3,8 +3,8 @@ package fi.aalto.legroup.achso.authoring;
 import android.app.Activity;
 import android.content.Intent;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v7.view.ActionMode;
 import android.support.v7.widget.SearchView;
-import android.view.ActionMode;
 import android.view.MenuItem;
 import android.widget.Toast;
 

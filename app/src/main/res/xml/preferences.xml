@@ -4,23 +4,19 @@
 -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <PreferenceCategory
-        android:title="@string/settings_playback"
-        >
+    <PreferenceCategory android:title="@string/settings_playback">
 
-        <ListPreference
-            android:key="ANNOTATION_PAUSE_DURATION"
-            android:title="@string/settings_annotation_pause_title"
-            android:summary="@string/settings_annotation_pause_summary"
+        <com.afollestad.materialdialogs.prefs.MaterialListPreference
+            android:defaultValue="2000"
             android:entries="@array/settings_annotation_pause_duration"
             android:entryValues="@array/settings_annotation_pause_duration_values"
-            android:defaultValue="2000"
-            />
+            android:key="ANNOTATION_PAUSE_DURATION"
+            android:summary="@string/settings_annotation_pause_summary"
+            android:title="@string/settings_annotation_pause_title" />
 
     </PreferenceCategory>
 
-    <PreferenceCategory
-        android:title="@string/help_and_feedback">
+    <PreferenceCategory android:title="@string/help_and_feedback">
 
         <!--
             These are used by SettingsFragment but not by AppPreferences; they're just buttons.

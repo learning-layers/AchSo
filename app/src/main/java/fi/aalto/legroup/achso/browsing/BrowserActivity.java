@@ -16,8 +16,12 @@ import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
+import com.astuetz.PagerSlidingTabStrip;
+import com.melnykov.fab.FloatingActionButton;
+import com.melnykov.fab.ScrollDirectionListener;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
@@ -37,7 +41,6 @@ import fi.aalto.legroup.achso.authoring.VideoCreatorService;
 import fi.aalto.legroup.achso.settings.SettingsActivity;
 import fi.aalto.legroup.achso.storage.VideoRepositoryUpdatedEvent;
 import fi.aalto.legroup.achso.utilities.ProgressDialogFragment;
-import fi.aalto.legroup.achso.views.SlidingTabLayout;
 import fi.aalto.legroup.achso.views.adapters.VideoTabAdapter;
 
 /**
@@ -45,7 +48,8 @@ import fi.aalto.legroup.achso.views.adapters.VideoTabAdapter;
  *
  * TODO: Extract video creation stuff into its own activity.
  */
-public class BrowserActivity extends ActionBarActivity {
+public class BrowserActivity extends ActionBarActivity implements View.OnClickListener,
+        ScrollDirectionListener {
 
     private static final int REQUEST_RECORD_VIDEO = 1;
     private static final int REQUEST_CHOOSE_VIDEO = 2;
@@ -54,6 +58,7 @@ public class BrowserActivity extends ActionBarActivity {
 
     private Bus bus;
 
+    private FloatingActionButton fab;
     private VideoTabAdapter tabAdapter;
     private MenuItem searchItem;
 
@@ -65,38 +70,43 @@ public class BrowserActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // TODO: Inject instead
+        this.bus = App.bus;
+
+        setContentView(R.layout.activity_main);
+
+        Toolbar toolbar = (Toolbar) this.findViewById(R.id.toolbar);
+
+        setSupportActionBar(toolbar);
+
         if (savedInstanceState != null) {
             videoBuilder = savedInstanceState.getParcelable(STATE_VIDEO_BUILDER);
         }
 
-        // TODO: Inject instead
-        this.bus = App.bus;
+        this.tabAdapter = new VideoTabAdapter(this, getSupportFragmentManager());
 
-        bus.register(this);
+        tabAdapter.setScrollDirectionListener(this);
 
-        this.setContentView(R.layout.activity_main);
+        ViewPager pager = (ViewPager) findViewById(R.id.pager);
+        PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) findViewById(R.id.toolbar_tabs);
 
-        Toolbar toolbar = (Toolbar) this.findViewById(R.id.toolbar);
-        this.setSupportActionBar(toolbar);
+        pager.setAdapter(this.tabAdapter);
+        tabs.setViewPager(pager);
 
-        this.tabAdapter = new VideoTabAdapter(this, this.getSupportFragmentManager());
+        fab = (FloatingActionButton) findViewById(R.id.fab);
 
-        ViewPager tabs = (ViewPager) this.findViewById(R.id.pager);
-        tabs.setAdapter(this.tabAdapter);
-
-        SlidingTabLayout slidingTabs = (SlidingTabLayout) this.findViewById(R.id.main_tabs);
-        slidingTabs.setViewPager(tabs);
+        fab.setOnClickListener(this);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        App.bus.register(this);
+        bus.register(this);
     }
 
     @Override
     protected void onPause() {
-        App.bus.unregister(this);
+        bus.unregister(this);
         super.onPause();
     }
 
@@ -104,18 +114,6 @@ public class BrowserActivity extends ActionBarActivity {
     protected void onSaveInstanceState(Bundle savedInstanceState) {
         savedInstanceState.putParcelable(STATE_VIDEO_BUILDER, videoBuilder);
         super.onSaveInstanceState(savedInstanceState);
-    }
-
-    /**
-     * FIXME: Temporarily removing the ability to choose videos.
-     */
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        MenuItem addVideo = menu.findItem(R.id.action_add_video);
-
-        addVideo.setVisible(false);
-
-        return super.onPrepareOptionsMenu(menu);
     }
 
     @Override
@@ -140,12 +138,10 @@ public class BrowserActivity extends ActionBarActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_new_video:
-                recordVideo();
-                return true;
+        int id = item.getItemId();
 
-            case R.id.action_add_video:
+        switch (id) {
+            case R.id.action_import_video:
                 chooseVideo();
                 return true;
 
@@ -176,9 +172,7 @@ public class BrowserActivity extends ActionBarActivity {
         switch (requestCode) {
             case REQUEST_RECORD_VIDEO:
             case REQUEST_CHOOSE_VIDEO:
-                if (resultCode == RESULT_OK) {
-                    createVideo(data);
-                }
+                createVideo(resultCode, data);
                 break;
 
             // FIXME: Default is not good here
@@ -186,6 +180,27 @@ public class BrowserActivity extends ActionBarActivity {
                 QRHelper.readQRCodeResult(this, requestCode, resultCode, data);
                 break;
         }
+    }
+
+    @Override
+    public void onClick(View view) {
+        int id = view.getId();
+
+        switch (id) {
+            case R.id.fab:
+                recordVideo();
+                break;
+        }
+    }
+
+    @Override
+    public void onScrollDown() {
+        fab.hide();
+    }
+
+    @Override
+    public void onScrollUp() {
+        fab.show();
     }
 
     private void recordVideo() {
@@ -204,10 +219,17 @@ public class BrowserActivity extends ActionBarActivity {
 
         intent.putExtra(MediaStore.EXTRA_OUTPUT, videoFile);
 
-        startActivityForResult(intent, REQUEST_RECORD_VIDEO);
+        try {
+            startActivityForResult(intent, REQUEST_RECORD_VIDEO);
+        } catch (ActivityNotFoundException e) {
+            // TODO: Offer alternatives
+            Toast.makeText(this, "No camera app is installed.", Toast.LENGTH_LONG).show();
+        }
     }
 
     private void chooseVideo() {
+        videoBuilder = VideoCreatorService.build();
+
         Intent intent;
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
@@ -217,10 +239,7 @@ public class BrowserActivity extends ActionBarActivity {
             intent.setFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
         }
 
-        // TODO: Specify video/* when other mime types are supported
         intent.setType("video/mp4");
-
-        intent.putExtra(Intent.CATEGORY_OPENABLE, true);
 
         try {
             startActivityForResult(intent, REQUEST_CHOOSE_VIDEO);
@@ -230,7 +249,11 @@ public class BrowserActivity extends ActionBarActivity {
         }
     }
 
-    private void createVideo(@Nullable Intent resultData) {
+    private void createVideo(int resultCode, @Nullable Intent resultData) {
+        if (resultCode != RESULT_OK) {
+            return;
+        }
+
         // Data might not be there, in which case a fallback has been set in #recordVideo().
         if (resultData != null) {
             videoBuilder.setVideoUri(resultData.getData());

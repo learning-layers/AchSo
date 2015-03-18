@@ -5,28 +5,22 @@
 
     <item
         android:id="@+id/action_search"
+        android:icon="@drawable/ic_search_white_24dp"
         android:title="@string/search"
-        android:icon="@drawable/md_magnify"
-        app:showAsAction="collapseActionView|ifRoom"
-        app:actionViewClass="android.support.v7.widget.SearchView" />
-
-    <item
-        android:id="@+id/action_new_video"
-        android:title="@string/record"
-        android:icon="@drawable/md_camcorder"
-        app:showAsAction="ifRoom" />
-
-    <item
-        android:id="@+id/action_add_video"
-        android:title="@string/add_video"
-        android:icon="@drawable/md_folder"
-        app:showAsAction="ifRoom" />
+        app:actionViewClass="android.support.v7.widget.SearchView"
+        app:showAsAction="collapseActionView|ifRoom" />
 
     <item
         android:id="@+id/action_read_qrcode"
+        android:icon="@drawable/ic_qrcode_white_24dp"
         android:title="@string/read_qr_code"
-        android:icon="@drawable/md_qr_code"
         app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_import_video"
+        android:icon="@drawable/ic_add_to_photos_white_24dp"
+        android:title="@string/import_video"
+        app:showAsAction="never" />
 
     <item
         android:id="@+id/action_logout"
