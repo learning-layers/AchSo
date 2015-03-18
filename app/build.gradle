@@ -2,13 +2,13 @@ apply plugin: 'com.android.application'
 apply from: 'build-helpers.gradle'
 
 android {
-    compileSdkVersion 21
-    buildToolsVersion '21.1.2'
+    compileSdkVersion 22
+    buildToolsVersion '22.0.0'
 
     defaultConfig {
         applicationId 'fi.aalto.legroup.achso'
         minSdkVersion 16
-        targetSdkVersion 21
+        targetSdkVersion 22
         multiDexEnabled true
 
         (versionName, versionCode) = project.getGitVersions()
@@ -16,11 +16,6 @@ android {
 
     dexOptions {
         javaMaxHeapSize '4g'
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
     }
 
     buildTypes {
@@ -50,9 +45,9 @@ dependencies {
 
     // Android backwards-compatibility
     compile 'com.android.support:multidex:1.0.1'
-    compile 'com.android.support:support-v4:21.0.3'
-    compile 'com.android.support:appcompat-v7:21.0.3'
-    compile 'com.android.support:recyclerview-v7:21.0.3'
+    compile 'com.android.support:support-v4:22.0.0'
+    compile 'com.android.support:appcompat-v7:22.0.0'
+    compile 'com.android.support:recyclerview-v7:22.0.0'
 
     // Material design dialogs
     compile 'com.afollestad:material-dialogs:0.6.3.5'
