@@ -213,15 +213,16 @@ public class BrowserActivity extends ActionBarActivity implements View.OnClickLi
         videoBuilder = VideoCreatorService.build();
 
         File videoFile = VideoCreatorService.getStorageVideoFile(videoBuilder);
+        Uri videoUri = Uri.fromFile(videoFile);
 
         // Some camera apps (looking at you, Samsung) don't return any data if the EXTRA_OUTPUT
         // flag is set. The storage file is a good fallback in case the camera app doesn't give us
         // a URI.
-        videoBuilder.setVideoUri(Uri.fromFile(videoFile));
+        videoBuilder.setVideoUri(videoUri);
 
         Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
 
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, videoFile);
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, videoUri);
 
         try {
             startActivityForResult(intent, REQUEST_RECORD_VIDEO);
