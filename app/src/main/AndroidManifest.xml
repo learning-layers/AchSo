@@ -1,27 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="fi.aalto.legroup.achso">
+<manifest
+    package="fi.aalto.legroup.achso"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
-    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
-    <uses-permission android:name="android.permission.USE_CREDENTIALS" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.USE_CREDENTIALS" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
+
     <uses-feature
         android:name="android.hardware.camera.autofocus"
         android:required="false" />
+
     <uses-feature
         android:name="android.hardware.location.gps"
         android:required="false" />
+
     <uses-feature
         android:name="android.hardware.location"
         android:required="false" />
@@ -51,49 +55,68 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
+
         <activity
             android:name=".playback.VideoPlayerActivity"
             android:parentActivityName=".browsing.BrowserActivity"
             android:theme="@style/Theme.Custom.Immersive">
 
-            <intent-filter android:label="@string/app_name" android:icon="@drawable/ic_launcher" android:priority="1">
+            <intent-filter
+                android:icon="@drawable/ic_launcher"
+                android:label="@string/app_name"
+                android:priority="1">
+
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:host="*" android:mimeType="application/achso" android:pathPattern=".*\\.achso" />
+                <data
+                    android:host="*"
+                    android:mimeType="application/achso"
+                    android:pathPattern=".*\\.achso" />
+
             </intent-filter>
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".browsing.BrowserActivity" />
 
         </activity>
+
         <activity
-            android:name=".browsing.DetailActivity"
-            android:label="@string/title_activity_information"
+            android:name=".browsing.SearchActivity"
+            android:label="@string/search"
+            android:launchMode="singleTop"
             android:parentActivityName=".browsing.BrowserActivity">
+
             <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".browsing.BrowserActivity" />
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+            </intent-filter>
+
         </activity>
-        <activity
-            android:name=".authentication.LoginActivity"
-            android:label="@string/choose_account" />
-        <activity
-            android:name=".authentication.AuthorizationActivity"
-            android:label="@string/app_name" />
 
         <activity
             android:name=".settings.SettingsActivity"
             android:label="@string/settings"
-            android:parentActivityName=".browsing.BrowserActivity">
+            android:parentActivityName=".browsing.BrowserActivity" />
 
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".browsing.BrowserActivity" />
+        <activity
+            android:name=".browsing.DetailActivity"
+            android:label="@string/title_activity_information"
+            android:parentActivityName=".browsing.BrowserActivity" />
 
-        </activity>
+        <activity
+            android:name=".authentication.AuthorizationActivity"
+            android:label="@string/app_name"
+            android:parentActivityName=".browsing.BrowserActivity" />
+
+        <activity
+            android:name=".authentication.LoginActivity"
+            android:label="@string/choose_account"
+            android:parentActivityName=".browsing.BrowserActivity" />
 
         <service android:name=".storage.local.ExportService" />
         <service android:name=".storage.remote.UploadService" />
@@ -101,7 +124,7 @@
 
         <service
             android:name=".authentication.AuthenticatorService"
-            android:exported="true">
+            android:permission="android.permission.ACCOUNT_MANAGER">
 
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator" />
@@ -110,6 +133,7 @@
             <meta-data
                 android:name="android.accounts.AccountAuthenticator"
                 android:resource="@xml/authenticator" />
+
         </service>
 
         <meta-data
@@ -120,25 +144,6 @@
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="@string/google_maps_api_key" />
 
-
-        <activity
-            android:name=".browsing.SearchActivity"
-            android:label="@string/search"
-            android:launchMode="singleTop"
-            android:parentActivityName=".browsing.BrowserActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".browsing.BrowserActivity" />
-
-
-            <meta-data
-                android:name="android.app.searchable"
-                android:resource="@xml/searchable" />
-
-            <intent-filter>
-                <action android:name="android.intent.action.SEARCH" />
-            </intent-filter>
-        </activity>
     </application>
 
 </manifest>
