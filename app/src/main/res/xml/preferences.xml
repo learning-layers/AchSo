@@ -16,6 +16,7 @@
 
         <com.afollestad.materialdialogs.prefs.MaterialEditTextPreference
             android:defaultValue="@string/layersBoxUrl"
+            android:inputType="textUri"
             android:key="LAYERS_BOX_URL"
             android:summary="@string/settings_layers_box_summary"
             android:title="@string/settings_layers_box_title" />
