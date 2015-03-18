@@ -24,7 +24,7 @@ import fi.aalto.legroup.achso.entities.Annotation;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.entities.VideoInfo;
 
-public class SearchActivity extends ActionBarActivity {
+public final class SearchActivity extends ActionBarActivity {
 
     private static final String STATE_MATCHES = "STATE_MATCHES";
 

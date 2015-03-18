@@ -26,7 +26,7 @@ import fi.aalto.legroup.achso.entities.User;
 /**
  * Performs login routines and manages the login state.
  */
-public class LoginManager {
+public final class LoginManager {
 
     private final User defaultUser;
 

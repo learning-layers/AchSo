@@ -49,7 +49,7 @@ import fi.aalto.legroup.achso.views.adapters.VideoTabAdapter;
  *
  * TODO: Extract video creation stuff into its own activity.
  */
-public class BrowserActivity extends ActionBarActivity implements View.OnClickListener,
+public final class BrowserActivity extends ActionBarActivity implements View.OnClickListener,
         ScrollDirectionListener {
 
     private static final int REQUEST_RECORD_VIDEO = 1;

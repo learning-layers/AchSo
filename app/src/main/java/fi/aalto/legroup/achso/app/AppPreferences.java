@@ -5,6 +5,10 @@ package fi.aalto.legroup.achso.app;
  */
 public final class AppPreferences {
 
+    private AppPreferences() {
+        // Static access only
+    }
+
     /**
      * The account name used for logging in automatically.
      */

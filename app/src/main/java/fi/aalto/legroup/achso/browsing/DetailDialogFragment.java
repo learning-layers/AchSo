@@ -34,7 +34,7 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.Video;
 
-public class DetailDialogFragment extends DialogFragment {
+public final class DetailDialogFragment extends DialogFragment {
 
     private static final String ARG_ID = "id";
 

@@ -30,7 +30,8 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.Video;
 
-public class DetailActivity extends FragmentActivity implements MenuItem.OnMenuItemClickListener {
+public final class DetailActivity extends FragmentActivity
+        implements MenuItem.OnMenuItemClickListener {
 
     public static final String ARG_VIDEO_ID = "ARG_VIDEO_ID";
 

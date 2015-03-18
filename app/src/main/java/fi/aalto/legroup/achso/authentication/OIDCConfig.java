@@ -31,7 +31,11 @@ import fi.aalto.legroup.achso.app.App;
 /**
  * TODO: Why not read these directly?
  */
-public class OIDCConfig {
+public final class OIDCConfig {
+
+    private OIDCConfig() {
+        // Static access only
+    }
 
     public static String getClientId(Context context) {
         return context.getString(R.string.oidcClientId);

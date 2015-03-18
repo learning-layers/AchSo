@@ -33,7 +33,7 @@ import fi.aalto.legroup.achso.R;
  * fetch an ID Token, an Access Token and a Refresh Token. We create an Account and persist these
  * tokens.
  */
-public class AuthorizationActivity extends AccountAuthenticatorActivity {
+public final class AuthorizationActivity extends AccountAuthenticatorActivity {
 
     private final String TAG = getClass().getSimpleName();
 

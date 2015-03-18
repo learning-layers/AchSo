@@ -29,7 +29,7 @@ import retrofit.client.Response;
  * TODO: Authentication using OpenID Connect
  * TODO: Don't hard-code the survey and response IDs.
  */
-public class MobSosDialogFragment extends DialogFragment implements Callback<Response>,
+public final class MobSosDialogFragment extends DialogFragment implements Callback<Response>,
         DialogInterface.OnClickListener {
 
     private final static String RESPONSE_KEY_RATING = "SFQ.OS";
