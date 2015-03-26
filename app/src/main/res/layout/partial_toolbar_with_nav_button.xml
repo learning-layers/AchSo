@@ -11,5 +11,5 @@
     android:background="?attr/colorPrimary"
     android:minHeight="?attr/actionBarSize"
     app:contentInsetStart="@dimen/second_keyline"
-    app:popupTheme="@style/Theme.Custom.Toolbar.Popup"
-    app:theme="@style/Theme.Custom.Toolbar" />
+    app:popupTheme="@style/Theme.Custom.Light"
+    app:theme="@style/Theme.Custom" />
