@@ -39,7 +39,7 @@
     <string name="search_hint">Nach Videos suchen</string>
 
     <string name="empty_results">Keine passenden Videos</string>
-    <string name="add_video">Video hinzufügen</string>
+    <string name="import_video">Video hinzufügen</string>
     <string name="video_author">Autor</string>
     <string name="author_is_unknown">Unbekannt</string>
     <string name="code_added_to_videos">Code zu ausgewählten Videos hinzugefügt.</string>
@@ -89,5 +89,7 @@
     <string name="migration_notification">Ach so! aktualisiert Ihre Videos…</string>
     <string name="playback_error">Ein Wiedergabefehler ist aufgetreten.</string>
     <string name="upload_error">Hochladen gescheitert; bitte erneut versuchen.</string>
+    <string name="settings_layers_box_summary">The URL to the Layers box</string>
+    <string name="settings_layers_box_title">Layers box address</string>
 
 </resources>

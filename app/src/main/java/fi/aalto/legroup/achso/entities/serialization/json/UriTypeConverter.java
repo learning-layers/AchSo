@@ -12,9 +12,6 @@ import com.google.gson.JsonSerializer;
 
 import java.lang.reflect.Type;
 
-/**
- * @author Leo Nikkilä
- */
 public final class UriTypeConverter implements JsonSerializer<Uri>, JsonDeserializer<Uri> {
 
     @Override

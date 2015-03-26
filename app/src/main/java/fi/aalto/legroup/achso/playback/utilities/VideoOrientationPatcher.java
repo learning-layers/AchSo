@@ -37,8 +37,6 @@ import static com.google.android.exoplayer.MediaCodecTrackRenderer.DecoderInitia
  *
  * On all API levels:
  *   - Reported video dimensions in onVideoSizeChanged must be swapped if the video is portrait
- *
- * @author Leo Nikkilä
  */
 public final class VideoOrientationPatcher implements MediaCodecVideoTrackRenderer.EventListener,
         View.OnLayoutChangeListener {
@@ -54,7 +52,7 @@ public final class VideoOrientationPatcher implements MediaCodecVideoTrackRender
 
     public VideoOrientationPatcher(Context context,
                                    MediaCodecVideoTrackRenderer.EventListener delegate) {
-        this.context = context;
+        this.context = context.getApplicationContext();
         this.delegate = delegate;
     }
 
@@ -63,7 +61,11 @@ public final class VideoOrientationPatcher implements MediaCodecVideoTrackRender
             return;
         }
 
-        if (!videoUri.getScheme().trim().equalsIgnoreCase("file")) {
+        // Assuming that URIs without a scheme are local.
+        String scheme = videoUri.getScheme();
+        boolean isLocal = (scheme == null || scheme.equalsIgnoreCase("file"));
+
+        if (!isLocal) {
             throw new IllegalArgumentException("Only file:// URIs are supported.");
         }
 

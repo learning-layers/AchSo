@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import fi.aalto.legroup.achso.R;
+import fi.aalto.legroup.achso.app.App;
 import retrofit.Callback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
@@ -27,8 +28,6 @@ import retrofit.client.Response;
 /**
  * TODO: Authentication using OpenID Connect
  * TODO: Don't hard-code the survey and response IDs.
- *
- * @author Leo Nikkilä
  */
 public class MobSosDialogFragment extends DialogFragment implements Callback<Response>,
         DialogInterface.OnClickListener {
@@ -85,7 +84,8 @@ public class MobSosDialogFragment extends DialogFragment implements Callback<Res
     }
 
     private void sendResponse(int rating, String comments) {
-        String endpointUrl = getString(R.string.mobSosUrl);
+        String servicePath = getString(R.string.mobSosUrl);
+        String endpointUrl = App.getLayersServiceUrl(servicePath).toString();
 
         MobSosService service = new RestAdapter.Builder()
                 .setEndpoint(endpointUrl)

@@ -1,11 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Include this toolbar in all activities whenever practical. You can always access it using
+    `R.id.toolbar`.
+
+    ```xml
+    <include layout="@layout/partial_toolbar" />
+    ```
+
+    If your toolbar has a navigation button (usually a left-pointing arrow), you need to include
+    R.layout.partial_toolbar_with_nav_button instead.
+
+    You can override `layout_*` attributes if you want to. In this case `android:layout_width` and
+    `android:layout_height` attributes need to be explicitly set:
+
+    ```xml
+    <include
+        layout="@layout/partial_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1" />
+    ```
+ -->
 <android.support.v7.widget.Toolbar
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/toolbar"
     android:layout_width="match_parent"
-    android:layout_height="?attr/actionBarSize"
+    android:layout_height="wrap_content"
     android:background="?attr/colorPrimary"
-    app:theme="@style/Theme.AchSo.Toolbar"
-    app:popupTheme="@style/Theme.AchSo"
-    app:elevation="8dp" />
+    android:minHeight="?attr/actionBarSize"
+    app:popupTheme="@style/Theme.Custom.Light"
+    app:theme="@style/Theme.Custom" />

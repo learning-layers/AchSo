@@ -1,11 +1,6 @@
 package fi.aalto.legroup.achso.authoring;
 
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.net.Uri;
-import android.view.ActionMode;
-import android.widget.Toast;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -15,12 +10,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 
 /**
@@ -30,34 +23,6 @@ import fi.aalto.legroup.achso.app.App;
  * code together if it isn't reused.
  */
 public class VideoHelper {
-
-    public static void deleteVideos(final Activity activity, final List<UUID> ids,
-                                    final ActionMode mode) {
-        new AlertDialog.Builder(activity).setTitle(R.string.deletion_title)
-                .setMessage(R.string.deletion_question)
-                .setPositiveButton(activity.getString(R.string.delete),
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                for (UUID id : ids) {
-                                    try {
-                                        App.videoRepository.delete(id);
-                                        App.videoInfoRepository.invalidate(id);
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                        Toast.makeText(activity, R.string.storage_error,
-                                                Toast.LENGTH_SHORT).show();
-                                        break;
-                                    }
-                                }
-
-                                if (mode != null) {
-                                    mode.finish();
-                                }
-                            }
-                        })
-                .setNegativeButton(activity.getString(R.string.cancel), null)
-                .show();
-    }
 
     public static void moveFile(Uri inputPath, String outputPath) {
 

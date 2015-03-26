@@ -2,6 +2,7 @@ package fi.aalto.legroup.achso.app;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.os.Environment;
 
 import com.google.common.collect.ObjectArrays;
 
@@ -47,22 +48,51 @@ public final class AppCache {
      */
     public static void trim(Context context) {
         AsyncTask.execute(new CacheTrimmingRunnable(context));
+        AsyncTask.execute(new LegacyCacheClearingRunnable());
+    }
+
+    /**
+     * Clears old shared .achso files from the external storage root.
+     * TODO: Remove by the next release.
+     */
+    private static class LegacyCacheClearingRunnable implements Runnable, FileFilter {
+
+        @Override
+        public void run() {
+            File legacyCache = Environment.getExternalStorageDirectory();
+            File[] cacheFileList = legacyCache.listFiles(this);
+
+            for (File file : cacheFileList) {
+                //noinspection ResultOfMethodCallIgnored
+                file.delete();
+            }
+        }
+
+        @Override
+        public boolean accept(File file) {
+            return file.getName().endsWith(".achso");
+        }
+
     }
 
     /**
      * Runnable for trimming the cache.
      */
-    private static class CacheTrimmingRunnable implements Runnable {
+    private static class CacheTrimmingRunnable implements Runnable, FileFilter {
+
+        /**
+         * Cached files expire after 24 hours.
+         */
+        private static final DateTime THRESHOLD = DateTime.now().minusDays(1);
 
         private Context context;
 
         private CacheTrimmingRunnable(Context context) {
-            this.context = context;
+            this.context = context.getApplicationContext();
         }
 
         @Override
         public void run() {
-            FileFilter cacheFilter = new CacheExpirationFileFilter();
             File internalCache = context.getCacheDir();
 
             // The external cache can be null if the filesystem is not available
@@ -72,10 +102,10 @@ public final class AppCache {
             File[] cacheFileList;
 
             if (externalCache == null || internalCache.equals(externalCache)) {
-                cacheFileList = internalCache.listFiles(cacheFilter);
+                cacheFileList = internalCache.listFiles(this);
             } else {
-                File[] internalList = internalCache.listFiles(cacheFilter);
-                File[] externalList = externalCache.listFiles(cacheFilter);
+                File[] internalList = internalCache.listFiles(this);
+                File[] externalList = externalCache.listFiles(this);
 
                 cacheFileList = ObjectArrays.concat(internalList, externalList, File.class);
             }
@@ -85,18 +115,6 @@ public final class AppCache {
                 file.delete();
             }
         }
-
-    }
-
-    /**
-     * Filter for expired cache files.
-     */
-    private static class CacheExpirationFileFilter implements FileFilter {
-
-        /**
-         * Cached files expire after 24 hours.
-         */
-        private static final DateTime THRESHOLD = DateTime.now().minusDays(1);
 
         @Override
         public boolean accept(File file) {

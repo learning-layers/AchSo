@@ -1,0 +1,23 @@
+<resources>
+
+    <!--
+        Keylines
+        https://www.google.com/design/spec/layout/metrics-keylines.html
+     -->
+    <dimen name="first_keyline">24dp</dimen>
+    <dimen name="second_keyline">80dp</dimen>
+
+    <!--
+        Toolbar overrides
+        https://medium.com/@lucasurbas/making-android-toolbar-responsive-2627d4e07129
+        http://www.google.com/design/spec/layout/structure.html#structure-app-bar
+     -->
+    <dimen name="toolbar_horizontal_padding">12dp</dimen>
+
+    <!--
+        Floating action button
+        http://www.google.com/design/spec/components/buttons.html#buttons-floating-action-button
+     -->
+    <dimen name="fab_margin">24dp</dimen>
+
+</resources>

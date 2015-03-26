@@ -16,8 +16,6 @@ import javax.annotation.Nullable;
 
 /**
  * Reads the orientation of an MP4 video using mp4parser.
- *
- * @author Leo Nikkilä
  */
 public final class Mp4ParserOrientationReader {
 

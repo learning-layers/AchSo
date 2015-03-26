@@ -27,11 +27,11 @@ import fi.aalto.legroup.achso.entities.Video;
  */
 public class ClViTra2Strategy extends Strategy {
 
-    private String endpointUrl;
+    private Uri endpointUrl;
 
-    public ClViTra2Strategy(Bus bus, String endpointUrl) {
+    public ClViTra2Strategy(Bus bus, Uri endpointUrl) {
         super(bus);
-        this.endpointUrl = endpointUrl;
+        this.endpointUrl = App.getLayersServiceUrl(endpointUrl);
     }
 
     /**
@@ -65,7 +65,10 @@ public class ClViTra2Strategy extends Strategy {
 
         // Resolve the mime type of the video file to include it in the request
         String mimeType = URLConnection.guessContentTypeFromName(videoFile.getPath());
-        if (mimeType == null) mimeType = "application/octet-stream";
+
+        if (mimeType == null) {
+            mimeType = "application/octet-stream";
+        }
 
         MediaType mediaType = MediaType.parse(mimeType);
 
@@ -81,8 +84,10 @@ public class ClViTra2Strategy extends Strategy {
                 )
                 .build();
 
+        Uri requestUrl = endpointUrl.buildUpon().appendEncodedPath("videos").build();
+
         Request request = new Request.Builder()
-                .url(endpointUrl + "videos")
+                .url(requestUrl.toString())
                 .post(body)
                 .build();
 
@@ -123,11 +128,15 @@ public class ClViTra2Strategy extends Strategy {
         JsonObject video = null;
 
         for (JsonElement element : body.get("Videos").getAsJsonArray()) {
-            if (!element.isJsonObject()) continue;
+            if (!element.isJsonObject()) {
+                continue;
+            }
 
             JsonObject object = element.getAsJsonObject();
 
-            if (!object.has("Video_Name")) continue;
+            if (!object.has("Video_Name")) {
+                continue;
+            }
 
             String videoName = object.get("Video_Name").getAsString();
 

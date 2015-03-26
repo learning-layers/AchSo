@@ -46,7 +46,7 @@ public class LoginManager {
     private LoginState state = LoginState.LOGGED_OUT;
 
     public LoginManager(Context context, Bus bus) {
-        this.context = context;
+        this.context = context.getApplicationContext();
         this.bus = bus;
         this.defaultUser = new User(context.getString(R.string.author_is_unknown), Uri.EMPTY);
 

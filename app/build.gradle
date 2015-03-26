@@ -2,13 +2,13 @@ apply plugin: 'com.android.application'
 apply from: 'build-helpers.gradle'
 
 android {
-    compileSdkVersion 21
-    buildToolsVersion '21.1.2'
+    compileSdkVersion 22
+    buildToolsVersion '22.0.0'
 
     defaultConfig {
         applicationId 'fi.aalto.legroup.achso'
         minSdkVersion 16
-        targetSdkVersion 21
+        targetSdkVersion 22
         multiDexEnabled true
 
         (versionName, versionCode) = project.getGitVersions()
@@ -16,11 +16,6 @@ android {
 
     dexOptions {
         javaMaxHeapSize '4g'
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
     }
 
     buildTypes {
@@ -50,18 +45,28 @@ dependencies {
 
     // Android backwards-compatibility
     compile 'com.android.support:multidex:1.0.1'
-    compile 'com.android.support:support-v4:21.0.3'
-    compile 'com.android.support:appcompat-v7:21.0.3'
-    compile 'com.android.support:recyclerview-v7:21.0.3'
+    compile 'com.android.support:support-v4:22.0.0'
+    compile 'com.android.support:appcompat-v7:22.0.0'
+    compile 'com.android.support:recyclerview-v7:22.0.0'
 
     // Material design dialogs
-    compile 'com.afollestad:material-dialogs:0.6.2.3'
+    compile 'com.afollestad:material-dialogs:0.6.4.5'
+
+    // Material design tab strip. Note that this is jpardogo's fork, not the original version
+    // that's no longer updated. The class name of the view is still same, though.
+    // See https://github.com/jpardogo/PagerSlidingTabStrip
+    compile 'com.jpardogo.materialtabstrip:library:1.0.9'
+
+    // Material design floating action button
+    compile 'com.melnykov:floatingactionbutton:1.2.0'
 
     // Nice core libraries for a multitude of tasks
     compile 'com.google.guava:guava:18.0'
 
     // Google Play Services APIs
-    compile 'com.google.android.gms:play-services:6.5.87'
+    compile 'com.google.android.gms:play-services-base:6.5.87'
+    compile 'com.google.android.gms:play-services-maps:6.5.87'
+    compile 'com.google.android.gms:play-services-location:6.5.87'
 
     // OAuth2 library for OpenID Connect
     compile('com.google.oauth-client:google-oauth-client:1.18.0-rc') {

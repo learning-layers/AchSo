@@ -2,8 +2,6 @@ package fi.aalto.legroup.achso.app;
 
 /**
  * Holds preference keys for programmatic usage.
- *
- * @author Leo Nikkilä
  */
 public final class AppPreferences {
 
@@ -20,5 +18,10 @@ public final class AppPreferences {
      * The base duration for an annotation pause.
      */
     public static final String ANNOTATION_PAUSE_DURATION = "ANNOTATION_PAUSE_DURATION";
+
+    /**
+     * Layers box base URL.
+     */
+    public static final String LAYERS_BOX_URL = "LAYERS_BOX_URL";
 
 }

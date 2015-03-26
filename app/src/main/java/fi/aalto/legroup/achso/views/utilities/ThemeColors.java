@@ -9,8 +9,6 @@ import fi.aalto.legroup.achso.R;
 
 /**
  * Utility class for resolving colours from the current theme.
- *
- * @author Leo Nikkilä
  */
 public final class ThemeColors {
 

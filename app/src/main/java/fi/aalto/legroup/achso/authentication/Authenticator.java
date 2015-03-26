@@ -24,8 +24,6 @@ import java.io.IOException;
  * ID Token:      TOKEN_TYPE_ID
  * Access Token:  TOKEN_TYPE_ACCESS  (replaceable by the ID Token, so we're not really using this)
  * Refresh Token: TOKEN_TYPE_REFRESH
- *
- * @author Leo Nikkilä
  */
 public class Authenticator extends AbstractAccountAuthenticator {
 
@@ -42,7 +40,7 @@ public class Authenticator extends AbstractAccountAuthenticator {
 
     public Authenticator(Context context) {
         super(context);
-        this.context = context;
+        this.context = context.getApplicationContext();
 
         accountManager = AccountManager.get(context);
     }

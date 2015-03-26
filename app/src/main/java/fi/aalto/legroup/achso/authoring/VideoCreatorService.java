@@ -41,8 +41,6 @@ import okio.Source;
  *
  * TODO: Copying the stream from the content URI is lazy; persist it instead.
  * TODO: Delegate storage-specific things.
- *
- * @author Leo Nikkilä
  */
 public final class VideoCreatorService extends IntentService {
 

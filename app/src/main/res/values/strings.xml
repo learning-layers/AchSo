@@ -48,7 +48,7 @@
     <string name="search_hint">Search for videos</string>
 
     <string name="empty_results">No matching videos</string>
-    <string name="add_video">Add video</string>
+    <string name="import_video">Import video</string>
     <string name="video_author">Author</string>
     <string name="author_is_unknown">Unknown</string>
     <string name="code_added_to_videos">Code added to selected video(s).</string>
@@ -124,6 +124,8 @@
     <string name="settings_playback">Playback</string>
     <string name="settings_annotation_pause_title">Annotation speed</string>
     <string name="settings_annotation_pause_summary">The speed at which annotations are shown</string>
+    <string name="settings_layers_box_summary">The URL to the Layers box</string>
+    <string name="settings_layers_box_title">Layers box address</string>
 
     <string-array name="settings_annotation_pause_duration">
         <item name="1000">Fast</item>

@@ -1,8 +1,66 @@
 <resources>
 
     <style name="InformationLabel">
+
         <item name="android:textSize">14sp</item>
         <item name="android:textAllCaps">true</item>
+
     </style>
+
+    <!-- TODO: Remove these styles when the button style in AppCompat is fixed. -->
+    <style name="Widget.Custom.Button"
+        parent="Widget.AppCompat.Button">
+
+        <item name="android:background">@drawable/material_button_fallback_dark</item>
+        <item name="android:textStyle">bold</item>
+
+    </style>
+
+    <style name="Widget.Custom.Toolbar"
+        parent="Widget.AppCompat.Toolbar">
+
+        <item name="maxButtonHeight">48dp</item>
+        <item name="contentInsetStart">@dimen/first_keyline</item>
+
+        <item name="android:paddingLeft">@dimen/toolbar_horizontal_padding</item>
+        <item name="android:paddingRight">@dimen/toolbar_horizontal_padding</item>
+
+    </style>
+
+    <style name="Widget.Custom.Toolbar.Button.Navigation"
+        parent="Widget.AppCompat.Toolbar.Button.Navigation">
+
+        <item name="android:minWidth">48dp</item>
+
+    </style>
+
+    <style name="Widget.Custom.ActionButton.Overflow"
+        parent="Widget.AppCompat.ActionButton.Overflow">
+
+        <item name="android:paddingLeft">0dp</item>
+        <item name="android:paddingRight">0dp</item>
+
+    </style>
+
+    <style name="Widget.Custom.Actionbar"
+        parent="Widget.AppCompat.ActionBar.Solid" />
+
+    <style name="Widget.Custom.ActionMode"
+        parent="Widget.AppCompat.ActionMode">
+
+        <item name="android:paddingLeft">@dimen/toolbar_horizontal_padding</item>
+        <item name="android:paddingRight">@dimen/toolbar_horizontal_padding</item>
+
+    </style>
+
+    <style name="Widget.Custom.ActionButton.CloseMode"
+        parent="Widget.AppCompat.ActionButton.CloseMode">
+
+        <item name="android:layout_marginRight">20dp</item>
+
+    </style>
+
+    <style name="Widget.Custom.Toolbar.TabStrip"
+        parent="Theme.Custom" />
 
 </resources>

@@ -26,6 +26,7 @@ package fi.aalto.legroup.achso.authentication;
 import android.content.Context;
 
 import fi.aalto.legroup.achso.R;
+import fi.aalto.legroup.achso.app.App;
 
 /**
  * TODO: Why not read these directly?
@@ -41,15 +42,18 @@ public class OIDCConfig {
     }
 
     public static String getAuthorizationServerUrl(Context context) {
-        return context.getString(R.string.oidcAuthorizationServerUrl);
+        String path = context.getString(R.string.oidcAuthorizationServerUrl);
+        return App.getLayersServiceUrl(path).toString();
     }
 
     public static String getTokenServerUrl(Context context) {
-        return context.getString(R.string.oidcTokenServerUrl);
+        String path = context.getString(R.string.oidcTokenServerUrl);
+        return App.getLayersServiceUrl(path).toString();
     }
 
     public static String getUserInfoUrl(Context context) {
-        return context.getString(R.string.oidcUserInfoUrl);
+        String path = context.getString(R.string.oidcUserInfoUrl);
+        return App.getLayersServiceUrl(path).toString();
     }
 
     public static String getRedirectUrl(Context context) {

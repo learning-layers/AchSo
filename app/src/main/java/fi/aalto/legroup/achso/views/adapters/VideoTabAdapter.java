@@ -1,14 +1,18 @@
 package fi.aalto.legroup.achso.views.adapters;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.view.ViewGroup;
 
+import com.melnykov.fab.ScrollDirectionListener;
+
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -16,43 +20,43 @@ import java.util.UUID;
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.browsing.BrowserFragment;
+import fi.aalto.legroup.achso.views.utilities.ScrollDirectionListenable;
 
-/**
- * Created by lassi on 31.10.14.
- */
-public class VideoTabAdapter extends FragmentStatePagerAdapter {
-    String[] tabNames;
-
-    private final int EXTRA_TABS = 1;
+public class VideoTabAdapter extends FragmentStatePagerAdapter implements
+        ScrollDirectionListenable {
 
     private Map<Integer, Object> activeItems = new HashMap<>();
+    private List<String> tabNames = new LinkedList<>();
 
-    private Context context;
+    @Nullable
+    private ScrollDirectionListener scrollListener;
+
+    @Nullable
+    private ScrollDirectionListenable scrollDelegate;
 
     public VideoTabAdapter(Context context, FragmentManager manager) {
         super(manager);
 
-        this.context = context;
-        this.tabNames = this.context.getResources().getStringArray(R.array.genres);
+        String allVideos = context.getString(R.string.my_videos);
+        String[] genres = context.getResources().getStringArray(R.array.genres);
+
+        tabNames.add(allVideos);
+
+        Collections.addAll(tabNames, genres);
     }
 
     @Override
     public CharSequence getPageTitle(int position) {
-        switch (position) {
-            case 0:
-                return context.getString(R.string.my_videos);
+        if (position < tabNames.size()) {
+            return tabNames.get(position);
         }
 
-        if (position - 1 < this.tabNames.length) {
-            return this.tabNames[position - 1];
-        }
-
-        return Integer.toString(position);
+        return String.valueOf(position);
     }
 
     @Override
     public Fragment getItem(int position) {
-        List<UUID> videos = this.getVideosForPosition(position);
+        List<UUID> videos = getVideosForPosition(position);
         return BrowserFragment.newInstance(videos);
     }
 
@@ -68,13 +72,34 @@ public class VideoTabAdapter extends FragmentStatePagerAdapter {
     @Override
     public void destroyItem(ViewGroup container, int position, Object item) {
         activeItems.remove(position);
-
         super.destroyItem(container, position, item);
+    }
+
+    /**
+     * Forward the scroll direction listener to the currently active item.
+     */
+    @Override
+    public void setPrimaryItem(ViewGroup container, int position, Object object) {
+        if (scrollDelegate != null) {
+            scrollDelegate.setScrollDirectionListener(null);
+        }
+
+        if (object instanceof ScrollDirectionListenable) {
+            scrollDelegate = ((ScrollDirectionListenable) object);
+            scrollDelegate.setScrollDirectionListener(scrollListener);
+        }
+
+        // The new fragment is scrolled to the top
+        if (scrollListener != null) {
+            scrollListener.onScrollUp();
+        }
+
+        super.setPrimaryItem(container, position, object);
     }
 
     @Override
     public int getCount() {
-        return this.tabNames.length + this.EXTRA_TABS;
+        return tabNames.size();
     }
 
     @Override
@@ -86,8 +111,8 @@ public class VideoTabAdapter extends FragmentStatePagerAdapter {
 
             if (item instanceof BrowserFragment) {
                 int position = entry.getKey();
-
                 List<UUID> videos = getVideosForPosition(position);
+
                 ((BrowserFragment) item).setVideos(videos);
             }
         }
@@ -102,16 +127,28 @@ public class VideoTabAdapter extends FragmentStatePagerAdapter {
                     e.printStackTrace();
                     break;
                 }
+
             default:
                 try {
-                    return App.videoInfoRepository.getByGenreString(this.tabNames[position - 1]);
+                    String genre = tabNames.get(position);
+                    return App.videoInfoRepository.getByGenreString(genre);
                 } catch (IOException e) {
                     e.printStackTrace();
                     break;
                 }
         }
 
-        return new ArrayList<>();
+        return Collections.emptyList();
+    }
+
+    /**
+     * Sets the scroll direction listener.
+     *
+     * @param listener Scroll direction listener, or null to remove a previously set listener.
+     */
+    @Override
+    public void setScrollDirectionListener(@Nullable ScrollDirectionListener listener) {
+        this.scrollListener = listener;
     }
 
 }

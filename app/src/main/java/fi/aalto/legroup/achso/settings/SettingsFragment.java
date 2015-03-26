@@ -11,9 +11,6 @@ import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.support.AboutDialogFragment;
 import fi.aalto.legroup.achso.support.FeedbackDialogFragment;
 
-/**
- * @author Leo Nikkilä
- */
 public class SettingsFragment extends PreferenceFragment
         implements Preference.OnPreferenceClickListener {
 

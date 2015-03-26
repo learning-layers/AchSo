@@ -36,6 +36,7 @@ import javax.annotation.Nonnull;
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.authoring.QRHelper;
+import fi.aalto.legroup.achso.authoring.VideoDeletionFragment;
 import fi.aalto.legroup.achso.authoring.VideoHelper;
 import fi.aalto.legroup.achso.browsing.DetailActivity;
 import fi.aalto.legroup.achso.entities.Annotation;
@@ -181,7 +182,8 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
                 return true;
 
             case R.id.action_delete:
-                VideoHelper.deleteVideos(VideoPlayerActivity.this, videos, null);
+                VideoDeletionFragment.newInstance(videos)
+                        .show(getSupportFragmentManager(), "DeletionFragment");
                 return true;
         }
 

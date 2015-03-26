@@ -12,8 +12,6 @@ import static android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION;
 
 /**
  * Reads the orientation of a video using Android's MediaMetadataRetriever.
- *
- * @author Leo Nikkilä
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 public final class FrameworkOrientationReader {

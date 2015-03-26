@@ -17,9 +17,6 @@ import javax.annotation.Nonnull;
 
 import fi.aalto.legroup.achso.entities.serialization.Serializer;
 
-/**
- * @author Leo Nikkilä
- */
 public final class JsonSerializer extends Serializer<JsonSerializable> {
 
     private Gson gson;

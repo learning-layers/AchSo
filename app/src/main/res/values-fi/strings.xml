@@ -49,7 +49,7 @@
     <string name="no_connection">Ei yhteyttä pilveen</string>
     <string name="nearby_videos">Lähellä</string>
     <string name="search_results">Hakutulokset</string>
-    <string name="add_video">Tuo video</string>
+    <string name="import_video">Tuo video</string>
     <string name="author_is_me">Minä</string>
     <string name="author_is_unknown">Tuntematon</string>
     <string name="unknown_format">Tuntematon videotyyppi tai tiedosto ei ole video</string>
@@ -114,4 +114,6 @@
     <string name="logout">Kirjaudu ulos</string>
     <string name="search">Etsi</string>
     <string name="upload_error">Lähettäminen epäonnistui; yritäthän uudelleen.</string>
+    <string name="settings_layers_box_summary">The URL to the Layers box</string>
+    <string name="settings_layers_box_title">Layers box address</string>
 </resources>

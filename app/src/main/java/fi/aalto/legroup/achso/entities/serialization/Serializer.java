@@ -11,8 +11,6 @@ import javax.annotation.Nonnull;
 
 /**
  * A service for serialising objects.
- *
- * @author Leo Nikkilä
  */
 public abstract class Serializer<S extends Serializable> {
 

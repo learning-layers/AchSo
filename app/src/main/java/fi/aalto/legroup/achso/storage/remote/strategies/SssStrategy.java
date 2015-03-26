@@ -23,8 +23,6 @@ import fi.aalto.legroup.achso.entities.Video;
  * Uploads metadata from videos to a Social Semantic Server instance.
  *
  * TODO: Extract API stuff into an API wrapper.
- *
- * @author Leo Nikkilä
  */
 public class SssStrategy extends Strategy {
 
@@ -37,7 +35,7 @@ public class SssStrategy extends Strategy {
      */
     public SssStrategy(Bus bus, Uri endpointUrl) {
         super(bus);
-        this.endpointUrl = endpointUrl;
+        this.endpointUrl = App.getLayersServiceUrl(endpointUrl);
     }
 
     /**
