@@ -6,8 +6,8 @@
     android:layout_height="match_parent">
 
     <fragment
-        android:id="@+id/videoPlayerFragment"
         android:name="fi.aalto.legroup.achso.playback.VideoPlayerFragment"
+        android:id="@+id/videoPlayerFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:layout="@layout/fragment_video_player" />
@@ -17,21 +17,23 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <include layout="@layout/partial_toolbar_with_nav_button" />
+        <include layout="@layout/partial_toolbar_with_nav_button_transparent" />
 
         <include
             layout="@layout/partial_playback_controls"
             android:id="@+id/playbackControls"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true" />
+            android:layout_alignParentBottom="true"
+            android:layout_margin="16dp" />
 
         <ViewStub
-            android:layout="@layout/partial_annotation_controls"
             android:id="@+id/annotationControls"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true" />
+            android:layout_alignParentBottom="true"
+            android:layout_margin="16dp"
+            android:layout="@layout/partial_annotation_controls" />
 
     </RelativeLayout>
 

@@ -4,7 +4,43 @@
         Better toolbar styles adapted from Lucas Urbas's Medium post.
         https://medium.com/@lucasurbas/making-android-toolbar-responsive-2627d4e07129
      -->
+
+    <!--
+        This is the dark variant of the theme. Overrides are the same as in the light theme.
+        When editing, remember to update both.
+     -->
     <style name="Theme.Custom"
+        parent="Theme.AppCompat.NoActionBar">
+
+        <item name="windowActionModeOverlay">true</item>
+
+        <item name="colorPrimary">@color/teal_800</item>
+        <item name="colorPrimaryDark">@color/teal_900</item>
+        <item name="colorAccent">@color/red_A400</item>
+
+        <item name="actionModeStyle">@style/Widget.Custom.ActionMode</item>
+        <item name="actionModeBackground">?attr/colorPrimary</item>
+        <item name="actionModeCloseButtonStyle">@style/Widget.Custom.ActionButton.CloseMode</item>
+
+        <item name="actionBarStyle">@style/Widget.Custom.Actionbar</item>
+        <item name="actionOverflowButtonStyle">@style/Widget.Custom.ActionButton.Overflow</item>
+
+        <!-- For the action mode popup, despite the name -->
+        <item name="actionBarPopupTheme">@style/Theme.Custom.Light</item>
+
+        <item name="toolbarStyle">@style/Widget.Custom.Toolbar</item>
+
+        <item name="toolbarNavigationButtonStyle">
+            @style/Widget.Custom.Toolbar.Button.Navigation
+        </item>
+
+    </style>
+
+    <!--
+        This is the light variant of the theme. Overrides are the same as in the dark theme.
+        When editing, remember to update both.
+     -->
+    <style name="Theme.Custom.Light"
         parent="Theme.AppCompat.Light.NoActionBar">
 
         <item name="windowActionModeOverlay">true</item>
@@ -21,7 +57,7 @@
         <item name="actionOverflowButtonStyle">@style/Widget.Custom.ActionButton.Overflow</item>
 
         <!-- For the action mode popup, despite the name -->
-        <item name="actionBarPopupTheme">@style/Theme.Custom.Toolbar.Popup</item>
+        <item name="actionBarPopupTheme">@style/Theme.Custom.Light</item>
 
         <item name="toolbarStyle">@style/Widget.Custom.Toolbar</item>
 
@@ -31,19 +67,15 @@
 
     </style>
 
-    <style name="Theme.Custom.Toolbar"
+    <!--
+        Immersive version of the dark theme.
+     -->
+    <style name="Theme.Custom.Immersive"
         parent="Theme.Custom">
 
-        <item name="android:textColorPrimary">@color/bright_foreground_material_dark</item>
-        <item name="android:textColorSecondary">@color/dim_foreground_material_dark</item>
-        <item name="android:textColorHint">@color/hint_foreground_material_dark</item>
-
-        <item name="colorControlNormal">@color/bright_foreground_material_dark</item>
-        <item name="colorControlHighlight">@color/ripple_material_dark</item>
+        <item name="colorPrimary">@android:color/black</item>
+        <item name="colorPrimaryDark">@android:color/black</item>
 
     </style>
-
-    <style name="Theme.Custom.Toolbar.Popup"
-        parent="Theme.AppCompat.Light" />
 
 </resources>

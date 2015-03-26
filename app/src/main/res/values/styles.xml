@@ -7,6 +7,15 @@
 
     </style>
 
+    <!-- TODO: Remove these styles when the button style in AppCompat is fixed. -->
+    <style name="Widget.Custom.Button"
+        parent="Widget.AppCompat.Button">
+
+        <item name="android:background">@drawable/material_button_fallback_dark</item>
+        <item name="android:textStyle">bold</item>
+
+    </style>
+
     <style name="Widget.Custom.Toolbar"
         parent="Widget.AppCompat.Toolbar">
 
@@ -52,6 +61,6 @@
     </style>
 
     <style name="Widget.Custom.Toolbar.TabStrip"
-        parent="Theme.Custom.Toolbar" />
+        parent="Theme.Custom" />
 
 </resources>

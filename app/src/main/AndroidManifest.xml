@@ -37,7 +37,7 @@
         android:hardwareAccelerated="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/Theme.Custom">
+        android:theme="@style/Theme.Custom.Light">
 
         <activity
             android:name=".browsing.BrowserActivity"
@@ -54,7 +54,8 @@
         </activity>
         <activity
             android:name=".playback.VideoPlayerActivity"
-            android:parentActivityName=".browsing.BrowserActivity">
+            android:parentActivityName=".browsing.BrowserActivity"
+            android:theme="@style/Theme.Custom.Immersive">
 
             <intent-filter android:label="@string/app_name" android:icon="@drawable/ic_launcher" android:priority="1">
                 <action android:name="android.intent.action.VIEW" />
