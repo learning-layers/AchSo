@@ -6,6 +6,7 @@ import android.app.SearchManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -17,12 +18,12 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
-import android.media.AudioManager;
 
 import com.astuetz.PagerSlidingTabStrip;
 import com.melnykov.fab.FloatingActionButton;
 import com.melnykov.fab.ScrollDirectionListener;
+import com.nispok.snackbar.Snackbar;
+import com.nispok.snackbar.SnackbarManager;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
@@ -228,7 +229,7 @@ public final class BrowserActivity extends ActionBarActivity implements View.OnC
             startActivityForResult(intent, REQUEST_RECORD_VIDEO);
         } catch (ActivityNotFoundException e) {
             // TODO: Offer alternatives
-            Toast.makeText(this, "No camera app is installed.", Toast.LENGTH_LONG).show();
+            SnackbarManager.show(Snackbar.with(this).text("No camera app is installed."));
         }
     }
 
@@ -250,7 +251,7 @@ public final class BrowserActivity extends ActionBarActivity implements View.OnC
             startActivityForResult(intent, REQUEST_CHOOSE_VIDEO);
         } catch (ActivityNotFoundException e) {
             // TODO: Offer alternatives
-            Toast.makeText(this, "No file manager is installed.", Toast.LENGTH_LONG).show();
+            SnackbarManager.show(Snackbar.with(this).text("No file manager is installed."));
         }
     }
 
@@ -290,11 +291,11 @@ public final class BrowserActivity extends ActionBarActivity implements View.OnC
                 String name = App.loginManager.getUserInfo().get("name").getAsString();
                 String welcome = getString(R.string.logged_in_as, name);
 
-                Toast.makeText(this, welcome, Toast.LENGTH_SHORT).show();
+                SnackbarManager.show(Snackbar.with(this).text(welcome));
                 break;
 
             case LOGGED_OUT:
-                Toast.makeText(this, R.string.logged_out, Toast.LENGTH_SHORT).show();
+                SnackbarManager.show(Snackbar.with(this).text(R.string.logged_out));
                 break;
         }
 
@@ -305,7 +306,7 @@ public final class BrowserActivity extends ActionBarActivity implements View.OnC
     public void onLoginError(LoginErrorEvent event) {
         String message = getString(R.string.login_error, event.getMessage());
 
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+        SnackbarManager.show(Snackbar.with(this).text(message));
 
         invalidateOptionsMenu();
     }
@@ -332,7 +333,7 @@ public final class BrowserActivity extends ActionBarActivity implements View.OnC
                 break;
 
             case ERROR:
-                Toast.makeText(this, R.string.storage_error, Toast.LENGTH_LONG).show();
+                SnackbarManager.show(Snackbar.with(this).text(R.string.storage_error));
                 // Fall through
 
             case FINISHED:

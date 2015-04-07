@@ -18,7 +18,6 @@ import android.view.ViewParent;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.google.android.exoplayer.ExoPlaybackException;
 import com.google.android.exoplayer.ExoPlayer;
@@ -28,6 +27,8 @@ import com.google.android.exoplayer.MediaCodecTrackRenderer;
 import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.google.android.exoplayer.SampleSource;
 import com.google.android.exoplayer.TrackRenderer;
+import com.nispok.snackbar.Snackbar;
+import com.nispok.snackbar.SnackbarManager;
 import com.rollbar.android.Rollbar;
 
 import java.util.List;
@@ -327,7 +328,7 @@ public final class PlayerFragment extends Fragment implements ExoPlayer.Listener
      */
     @Override
     public void onPlayerError(ExoPlaybackException error) {
-        Toast.makeText(getActivity(), R.string.playback_error, Toast.LENGTH_LONG).show();
+        SnackbarManager.show(Snackbar.with(getActivity()).text(R.string.playback_error));
         Rollbar.reportException(error);
     }
 

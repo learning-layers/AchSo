@@ -6,10 +6,11 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.SearchView;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
+import com.nispok.snackbar.Snackbar;
+import com.nispok.snackbar.SnackbarManager;
 
 import java.io.IOException;
 import java.util.List;
@@ -61,8 +62,8 @@ public class QRHelper {
                 }
             }
 
-            Toast toast = Toast.makeText(activity.getApplicationContext(), activity.getString(R.string.code_added_to_videos), Toast.LENGTH_SHORT);
-            toast.show();
+            SnackbarManager.show(Snackbar.with(activity).text(R.string.code_added_to_videos));
+
             if (mode != null) {
                 mode.finish();
             }

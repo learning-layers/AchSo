@@ -17,13 +17,14 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.nispok.snackbar.Snackbar;
+import com.nispok.snackbar.SnackbarManager;
 
 import java.io.IOException;
 import java.util.List;
@@ -120,7 +121,7 @@ public final class DetailDialogFragment extends DialogFragment {
         this.video.setTitle(title);
 
         if (!this.video.save()) {
-            Toast.makeText(getActivity(), R.string.storage_error, Toast.LENGTH_LONG).show();
+            SnackbarManager.show(Snackbar.with(getActivity()).text(R.string.storage_error));
         }
     }
 
