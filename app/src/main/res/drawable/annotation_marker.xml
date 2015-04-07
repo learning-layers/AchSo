@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:drawable="@drawable/annotation_marker_outer_ring" />
+    <item android:drawable="@drawable/annotation_marker_middle_ring" />
+    <item android:drawable="@drawable/annotation_marker_inner_ring_shadow" android:top="4dp" />
+    <item android:drawable="@drawable/annotation_marker_inner_ring" />
+
+</layer-list>

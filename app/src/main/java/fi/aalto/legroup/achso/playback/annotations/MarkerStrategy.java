@@ -1,8 +1,11 @@
 package fi.aalto.legroup.achso.playback.annotations;
 
+import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.PointF;
-import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
+import android.support.annotation.DrawableRes;
 
 import java.util.List;
 
@@ -17,16 +20,14 @@ import fi.aalto.legroup.achso.views.MarkerCanvas;
  */
 public final class MarkerStrategy implements AnnotationRenderer.Strategy, MarkerCanvas.Listener {
 
-    private static final int MARKER_BACKGROUND_DRAWABLE = R.drawable.marker_square;
-
-    private MarkerCanvas canvas;
-    private AnnotationEditor editor;
-    private Drawable markerBackground;
+    private final MarkerCanvas canvas;
+    private final AnnotationEditor editor;
+    private final Drawable markerBackground;
 
     public MarkerStrategy(MarkerCanvas canvas, AnnotationEditor editor) {
         this.canvas = canvas;
         this.editor = editor;
-        this.markerBackground = canvas.getResources().getDrawable(MARKER_BACKGROUND_DRAWABLE);
+        this.markerBackground = getDrawable(canvas.getContext(), R.drawable.annotation_marker);
 
         canvas.setListener(this);
     }
@@ -35,11 +36,8 @@ public final class MarkerStrategy implements AnnotationRenderer.Strategy, Marker
     public void render(final List<Annotation> annotations) {
         for (Annotation annotation : annotations) {
             PointF markerPosition = annotation.getPosition();
-            int color = annotation.getAuthor().getColor();
-
-            markerBackground.setColorFilter(color, PorterDuff.Mode.MULTIPLY);
-
             Marker marker = canvas.addMarker(markerPosition, markerBackground);
+
             marker.setTag(annotation);
         }
     }
@@ -64,6 +62,18 @@ public final class MarkerStrategy implements AnnotationRenderer.Strategy, Marker
     @Override
     public void onCanvasTapped(PointF position) {
         editor.createAnnotation(position);
+    }
+
+    @SuppressWarnings("deprecation")
+    private static Drawable getDrawable(Context context, @DrawableRes int resource) {
+        Resources resources = context.getResources();
+
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT_WATCH) {
+            Resources.Theme theme = context.getTheme();
+            return resources.getDrawable(resource, theme);
+        } else {
+            return resources.getDrawable(resource);
+        }
     }
 
 }
