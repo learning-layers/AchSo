@@ -5,7 +5,6 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
-import fi.aalto.legroup.achso.views.utilities.ColorGenerator;
 
 public class User implements JsonSerializable, Parcelable {
 
@@ -25,10 +24,6 @@ public class User implements JsonSerializable, Parcelable {
     protected User(Parcel parcel) {
         this.name = parcel.readString();
         this.uri = (Uri) parcel.readValue(Uri.class.getClassLoader());
-    }
-
-    public int getColor() {
-        return ColorGenerator.getSeededColor(this.uri);
     }
 
     public String getName() {

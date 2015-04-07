@@ -412,6 +412,7 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
                 seekBarUpdater.run();
 
                 refreshAnnotations();
+                anchorSubtitleContainerTo(playbackControls);
                 break;
 
             case PLAYING:
