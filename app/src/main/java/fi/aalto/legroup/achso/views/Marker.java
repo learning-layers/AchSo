@@ -42,6 +42,9 @@ public class Marker extends ImageView {
 
     private void init() {
         gestureDetector = new GestureDetector(getContext(), new OnGestureListener());
+
+        // Keeps the view from shrinking when limited by the parent bounds
+        setAdjustViewBounds(true);
     }
 
     /**
