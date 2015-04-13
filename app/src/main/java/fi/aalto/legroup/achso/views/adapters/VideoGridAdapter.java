@@ -41,7 +41,7 @@ public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapte
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int position) {
-        View view = this.inflater.inflate(R.layout.item_video_browser_grid, parent, false);
+        View view = this.inflater.inflate(R.layout.item_browser_grid, parent, false);
         return new ViewHolder(view);
     }
 

@@ -6,11 +6,11 @@
     android:layout_height="match_parent">
 
     <fragment
-        android:name="fi.aalto.legroup.achso.playback.VideoPlayerFragment"
+        android:name="fi.aalto.legroup.achso.playback.PlayerFragment"
         android:id="@+id/videoPlayerFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:layout="@layout/fragment_video_player" />
+        tools:layout="@layout/fragment_player" />
 
     <RelativeLayout
         android:id="@+id/controlsOverlay"

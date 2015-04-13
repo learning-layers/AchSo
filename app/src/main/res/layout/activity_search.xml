@@ -12,6 +12,6 @@
         android:id="@+id/fragment_search_video"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:layout="@layout/fragment_video_browser" />
+        tools:layout="@layout/fragment_browser" />
 
 </LinearLayout>

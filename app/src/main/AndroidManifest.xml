@@ -59,7 +59,7 @@
         </activity>
 
         <activity
-            android:name=".playback.VideoPlayerActivity"
+            android:name=".playback.PlayerActivity"
             android:parentActivityName=".browsing.BrowserActivity"
             android:theme="@style/Theme.Custom.Immersive">
 

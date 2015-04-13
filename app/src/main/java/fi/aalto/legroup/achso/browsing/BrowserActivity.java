@@ -74,7 +74,7 @@ public final class BrowserActivity extends ActionBarActivity implements View.OnC
         // TODO: Inject instead
         this.bus = App.bus;
 
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_browser);
 
         Toolbar toolbar = (Toolbar) this.findViewById(R.id.toolbar);
 
@@ -122,7 +122,7 @@ public final class BrowserActivity extends ActionBarActivity implements View.OnC
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        this.getMenuInflater().inflate(R.menu.main_menubar, menu);
+        this.getMenuInflater().inflate(R.menu.activity_browser, menu);
 
         SearchManager manager = (SearchManager) this.getSystemService(Context.SEARCH_SERVICE);
         SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
