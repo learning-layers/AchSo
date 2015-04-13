@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<!--This is for showing authenticator as a settings|accounts item.-->
 <account-authenticator xmlns:android="http://schemas.android.com/apk/res/android"
-                       android:accountType="fi.aalto.legroup.achso.ll_oidc"
-                       android:icon="@drawable/ic_launcher"
-                       android:smallIcon="@drawable/ic_launcher"
-                       android:label="@string/tethys_prefs" />
+    android:accountType="fi.aalto.legroup.achso.ll_oidc"
+    android:icon="@drawable/ic_launcher"
+    android:label="@string/tethys_prefs"
+    android:smallIcon="@drawable/ic_launcher" />
