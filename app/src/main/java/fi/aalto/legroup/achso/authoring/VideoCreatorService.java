@@ -7,12 +7,14 @@ import android.graphics.Bitmap;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.media.MediaMetadataRetriever;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.provider.MediaStore;
 
+import com.google.android.gms.analytics.HitBuilders;
 import com.squareup.otto.Bus;
 
 import java.io.File;
@@ -29,12 +31,15 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import fi.aalto.legroup.achso.app.App;
+import fi.aalto.legroup.achso.app.AppAnalytics;
 import fi.aalto.legroup.achso.entities.Annotation;
 import fi.aalto.legroup.achso.entities.User;
 import fi.aalto.legroup.achso.entities.Video;
 import okio.BufferedSink;
 import okio.Okio;
 import okio.Source;
+
+import static android.media.MediaMetadataRetriever.METADATA_KEY_DURATION;
 
 /**
  * Creates videos in the background.
@@ -144,6 +149,9 @@ public final class VideoCreatorService extends IntentService {
             // TODO: Error message
             e.printStackTrace();
         }
+
+        // Send an analytics hit
+        sendAnalytics(genre, getDuration(videoFile));
 
         Uri manifestUri = Uri.fromFile(manifestFile);
         Uri videoUri = Uri.fromFile(videoFile);
@@ -266,6 +274,56 @@ public final class VideoCreatorService extends IntentService {
         }
 
         return addressList.get(0).getAddressLine(0);
+    }
+
+    /**
+     * Sends an analytics hit for creating a video.
+     *
+     * @param genre    Genre of the created video.
+     * @param duration Duration of the created video (in milliseconds) or -1 to not report it.
+     */
+    private void sendAnalytics(String genre, long duration) {
+        HitBuilders.EventBuilder event = new HitBuilders.EventBuilder()
+                .setCategory(AppAnalytics.CATEGORY_VIDEOS)
+                .setAction(AppAnalytics.ACTION_CREATE)
+                .setLabel(genre);
+
+        // Round the duration
+        if (duration != -1) {
+            int durationSeconds = Math.round(duration / 1000);
+            event.setValue(durationSeconds);
+        }
+
+        AppAnalytics.send(event.build());
+    }
+
+    /**
+     * Parses the duration of the given video file.
+     *
+     * @param videoFile File to parse.
+     *
+     * @return Duration of the video in milliseconds, or -1 if it could not be parsed.
+     */
+    private long getDuration(File videoFile) {
+        MediaMetadataRetriever retriever = null;
+        String duration = null;
+
+        try {
+            retriever = new MediaMetadataRetriever();
+            retriever.setDataSource(videoFile.getAbsolutePath());
+
+            duration = retriever.extractMetadata(METADATA_KEY_DURATION);
+        } finally {
+            if (retriever != null) {
+                retriever.release();
+            }
+        }
+
+        if (duration == null) {
+            return -1;
+        }
+
+        return Long.parseLong(duration);
     }
 
     public static final class VideoCreationStateEvent {
