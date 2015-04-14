@@ -12,18 +12,16 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.SearchView;
-import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.DecelerateInterpolator;
 
 import com.astuetz.PagerSlidingTabStrip;
 import com.melnykov.fab.FloatingActionButton;
 import com.melnykov.fab.ScrollDirectionListener;
 import com.nispok.snackbar.Snackbar;
-import com.nispok.snackbar.SnackbarManager;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
@@ -42,6 +40,7 @@ import fi.aalto.legroup.achso.authoring.QRHelper;
 import fi.aalto.legroup.achso.authoring.VideoCreatorService;
 import fi.aalto.legroup.achso.settings.SettingsActivity;
 import fi.aalto.legroup.achso.storage.VideoRepositoryUpdatedEvent;
+import fi.aalto.legroup.achso.utilities.BaseActivity;
 import fi.aalto.legroup.achso.utilities.ProgressDialogFragment;
 import fi.aalto.legroup.achso.views.adapters.VideoTabAdapter;
 
@@ -50,7 +49,7 @@ import fi.aalto.legroup.achso.views.adapters.VideoTabAdapter;
  *
  * TODO: Extract video creation stuff into its own activity.
  */
-public final class BrowserActivity extends ActionBarActivity implements View.OnClickListener,
+public final class BrowserActivity extends BaseActivity implements View.OnClickListener,
         ScrollDirectionListener {
 
     private static final int REQUEST_RECORD_VIDEO = 1;
@@ -76,10 +75,6 @@ public final class BrowserActivity extends ActionBarActivity implements View.OnC
         this.bus = App.bus;
 
         setContentView(R.layout.activity_browser);
-
-        Toolbar toolbar = (Toolbar) this.findViewById(R.id.toolbar);
-
-        setSupportActionBar(toolbar);
 
         if (savedInstanceState != null) {
             videoBuilder = savedInstanceState.getParcelable(STATE_VIDEO_BUILDER);
@@ -208,6 +203,26 @@ public final class BrowserActivity extends ActionBarActivity implements View.OnC
         fab.show();
     }
 
+    @Override
+    public void onShow(Snackbar snackbar) {
+        int height = snackbar.getHeight();
+
+        fab.animate()
+                .setInterpolator(new DecelerateInterpolator())
+                .setDuration(200)
+                .translationY(-height)
+                .start();
+    }
+
+    @Override
+    public void onDismissed(Snackbar snackbar) {
+        fab.animate()
+                .setInterpolator(new DecelerateInterpolator())
+                .setDuration(200)
+                .translationY(0)
+                .start();
+    }
+
     private void recordVideo() {
         App.locationManager.startLocationUpdates();
 
@@ -229,7 +244,7 @@ public final class BrowserActivity extends ActionBarActivity implements View.OnC
             startActivityForResult(intent, REQUEST_RECORD_VIDEO);
         } catch (ActivityNotFoundException e) {
             // TODO: Offer alternatives
-            SnackbarManager.show(Snackbar.with(this).text("No camera app is installed."));
+            showSnackbar("No camera app is installed.");
         }
     }
 
@@ -251,7 +266,7 @@ public final class BrowserActivity extends ActionBarActivity implements View.OnC
             startActivityForResult(intent, REQUEST_CHOOSE_VIDEO);
         } catch (ActivityNotFoundException e) {
             // TODO: Offer alternatives
-            SnackbarManager.show(Snackbar.with(this).text("No file manager is installed."));
+            showSnackbar("No file manager is installed.");
         }
     }
 
@@ -291,11 +306,11 @@ public final class BrowserActivity extends ActionBarActivity implements View.OnC
                 String name = App.loginManager.getUserInfo().get("name").getAsString();
                 String welcome = getString(R.string.logged_in_as, name);
 
-                SnackbarManager.show(Snackbar.with(this).text(welcome));
+                showSnackbar(welcome);
                 break;
 
             case LOGGED_OUT:
-                SnackbarManager.show(Snackbar.with(this).text(R.string.logged_out));
+                showSnackbar(R.string.logged_out);
                 break;
         }
 
@@ -306,7 +321,7 @@ public final class BrowserActivity extends ActionBarActivity implements View.OnC
     public void onLoginError(LoginErrorEvent event) {
         String message = getString(R.string.login_error, event.getMessage());
 
-        SnackbarManager.show(Snackbar.with(this).text(message));
+        showSnackbar(message);
 
         invalidateOptionsMenu();
     }
@@ -333,7 +348,7 @@ public final class BrowserActivity extends ActionBarActivity implements View.OnC
                 break;
 
             case ERROR:
-                SnackbarManager.show(Snackbar.with(this).text(R.string.storage_error));
+                showSnackbar(R.string.storage_error);
                 // Fall through
 
             case FINISHED:
