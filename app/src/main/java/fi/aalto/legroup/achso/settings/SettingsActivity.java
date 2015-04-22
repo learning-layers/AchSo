@@ -6,7 +6,7 @@ import android.support.v7.widget.Toolbar;
 
 import fi.aalto.legroup.achso.R;
 
-public class SettingsActivity extends ActionBarActivity {
+public final class SettingsActivity extends ActionBarActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

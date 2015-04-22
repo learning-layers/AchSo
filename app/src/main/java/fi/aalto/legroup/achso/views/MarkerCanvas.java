@@ -51,7 +51,7 @@ public class MarkerCanvas extends FrameLayout implements View.OnClickListener {
     public Marker addMarker(PointF position, Drawable background, boolean isDraggable) {
         Marker marker = new Marker(getContext());
 
-        marker.setBackground(background);
+        marker.setImageDrawable(background);
         marker.setDraggable(isDraggable);
         marker.setOnClickListener(this);
 
@@ -91,7 +91,9 @@ public class MarkerCanvas extends FrameLayout implements View.OnClickListener {
     }
 
     private void canvasTapped(@Nonnull MotionEvent event) {
-        if (listener == null) return;
+        if (listener == null) {
+            return;
+        }
 
         float posX = event.getX() / getWidth();
         float posY = event.getY() / getHeight();
@@ -111,7 +113,9 @@ public class MarkerCanvas extends FrameLayout implements View.OnClickListener {
      */
     @Override
     public void onClick(View view) {
-        if (listener != null) listener.onMarkerTapped((Marker) view);
+        if (listener != null) {
+            listener.onMarkerTapped((Marker) view);
+        }
     }
 
     /**
@@ -124,14 +128,14 @@ public class MarkerCanvas extends FrameLayout implements View.OnClickListener {
         if (action == DragEvent.ACTION_DROP) {
             Marker marker = (Marker) event.getLocalState();
 
-            Float posX = event.getX();
-            Float posY = event.getY();
+            float posX = event.getX();
+            float posY = event.getY();
 
             marker.setX(posX - marker.getWidth() / 2f);
             marker.setY(posY - marker.getHeight() / 2f);
 
-            Float relativeX = posX / getWidth();
-            Float relativeY = posY / getHeight();
+            float relativeX = posX / getWidth();
+            float relativeY = posY / getHeight();
 
             PointF pos = new PointF(relativeX, relativeY);
 

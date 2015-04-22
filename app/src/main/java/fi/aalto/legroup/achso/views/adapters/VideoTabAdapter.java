@@ -22,7 +22,7 @@ import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.browsing.BrowserFragment;
 import fi.aalto.legroup.achso.views.utilities.ScrollDirectionListenable;
 
-public class VideoTabAdapter extends FragmentStatePagerAdapter implements
+public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
         ScrollDirectionListenable {
 
     private Map<Integer, Object> activeItems = new HashMap<>();

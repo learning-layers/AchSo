@@ -1,22 +1,25 @@
 package fi.aalto.legroup.achso.views;
 
 import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.DragEvent;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import javax.annotation.Nonnull;
 
 /**
  * A marker that can be clicked and dragged.
  *
+ * Set an image using #setImageDrawable or some of the other methods.
+ *
  * It's up to the parent view to set an OnClickedListener and to react to dragged and dropped
  * markers via the onDragEvent method.
  */
-public class Marker extends View {
+public class Marker extends ImageView {
 
     private GestureDetector gestureDetector;
 
@@ -39,6 +42,9 @@ public class Marker extends View {
 
     private void init() {
         gestureDetector = new GestureDetector(getContext(), new OnGestureListener());
+
+        // Keeps the view from shrinking when limited by the parent bounds
+        setAdjustViewBounds(true);
     }
 
     /**
@@ -49,24 +55,18 @@ public class Marker extends View {
     }
 
     /**
-     * Sets the background drawable dimensions as the marker view dimensions.
+     * Set the dimensions when attached.
      */
     @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int width;
-        int height;
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
 
-        Drawable background = getBackground();
+        ViewGroup.LayoutParams params = getLayoutParams();
 
-        if (background == null) {
-            width = MeasureSpec.getSize(widthMeasureSpec);
-            height = MeasureSpec.getSize(heightMeasureSpec);
-        } else {
-            width = background.getIntrinsicWidth();
-            height = background.getIntrinsicHeight();
-        }
+        params.width = ViewGroup.LayoutParams.WRAP_CONTENT;
+        params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
 
-        setMeasuredDimension(width, height);
+        setLayoutParams(params);
     }
 
     @Override
@@ -111,7 +111,9 @@ public class Marker extends View {
         public boolean onScroll(MotionEvent downEvent, MotionEvent scrollEvent, float distanceX,
                                 float distanceY) {
 
-            if (isDraggable) startDrag(null, new DragShadowBuilder(Marker.this), Marker.this, 0);
+            if (isDraggable) {
+                startDrag(null, new DragShadowBuilder(Marker.this), Marker.this, 0);
+            }
 
             return false;
         }
@@ -121,8 +123,7 @@ public class Marker extends View {
          */
         @Override
         public boolean onSingleTapUp(MotionEvent event) {
-            performClick();
-            return super.onSingleTapUp(event);
+            return performClick();
         }
 
         @Override

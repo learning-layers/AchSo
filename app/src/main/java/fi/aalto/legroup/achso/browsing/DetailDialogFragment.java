@@ -17,13 +17,14 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.nispok.snackbar.Snackbar;
+import com.nispok.snackbar.SnackbarManager;
 
 import java.io.IOException;
 import java.util.List;
@@ -34,7 +35,7 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.Video;
 
-public class DetailDialogFragment extends DialogFragment {
+public final class DetailDialogFragment extends DialogFragment {
 
     private static final String ARG_ID = "id";
 
@@ -64,7 +65,7 @@ public class DetailDialogFragment extends DialogFragment {
         LayoutInflater inflater = LayoutInflater.from(context);
         final Dialog dialog = new Dialog(getActivity());
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        this.view = inflater.inflate(R.layout.fragment_video_information, null);
+        this.view = inflater.inflate(R.layout.dialog_information, null);
 
         UUID id = UUID.fromString(this.getArguments().getString(ARG_ID));
 
@@ -120,7 +121,7 @@ public class DetailDialogFragment extends DialogFragment {
         this.video.setTitle(title);
 
         if (!this.video.save()) {
-            Toast.makeText(getActivity(), R.string.storage_error, Toast.LENGTH_LONG).show();
+            SnackbarManager.show(Snackbar.with(getActivity()).text(R.string.storage_error));
         }
     }
 

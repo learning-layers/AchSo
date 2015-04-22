@@ -59,7 +59,6 @@ public final class SubtitleStrategy implements AnnotationRenderer.Strategy {
             }
 
             view.setText(annotationText);
-            view.setTextColor(annotation.getAuthor().getColor());
 
             container.addView(view);
         }

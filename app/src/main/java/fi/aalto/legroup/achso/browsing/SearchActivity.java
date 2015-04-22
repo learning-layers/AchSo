@@ -24,7 +24,7 @@ import fi.aalto.legroup.achso.entities.Annotation;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.entities.VideoInfo;
 
-public class SearchActivity extends ActionBarActivity {
+public final class SearchActivity extends ActionBarActivity {
 
     private static final String STATE_MATCHES = "STATE_MATCHES";
 
@@ -79,7 +79,7 @@ public class SearchActivity extends ActionBarActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_search, menu);
+        getMenuInflater().inflate(R.menu.activity_search, menu);
 
         SearchManager manager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         String query = getIntent().getStringExtra(SearchManager.QUERY);

@@ -25,6 +25,12 @@
 
     <PreferenceCategory android:title="@string/help_and_feedback">
 
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="ANALYTICS_OPT_IN"
+            android:summary="@string/settings_analytics_summary"
+            android:title="@string/settings_analytics_title" />
+
         <!--
             These are used by SettingsFragment but not by AppPreferences; they're just buttons.
         -->

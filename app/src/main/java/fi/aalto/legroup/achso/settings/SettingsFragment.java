@@ -11,7 +11,7 @@ import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.support.AboutDialogFragment;
 import fi.aalto.legroup.achso.support.FeedbackDialogFragment;
 
-public class SettingsFragment extends PreferenceFragment
+public final class SettingsFragment extends PreferenceFragment
         implements Preference.OnPreferenceClickListener {
 
     private static final String BUTTON_ABOUT = "BUTTON_ABOUT";

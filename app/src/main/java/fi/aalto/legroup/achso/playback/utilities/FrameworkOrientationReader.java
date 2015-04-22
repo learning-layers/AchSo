@@ -31,7 +31,7 @@ public final class FrameworkOrientationReader {
             retriever.setDataSource(context, Uri.fromFile(file));
 
             return Integer.parseInt(retriever.extractMetadata(METADATA_KEY_VIDEO_ROTATION));
-        } catch (NumberFormatException e) {
+        } catch (IllegalArgumentException e) {
             return -1;
         } finally {
             if (retriever != null) {

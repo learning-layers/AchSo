@@ -1,16 +1,17 @@
 package fi.aalto.legroup.achso.storage.local;
 
+import android.app.Activity;
 import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.widget.Toast;
 
 import com.google.common.base.Optional;
 import com.google.common.io.Closer;
+import com.nispok.snackbar.Snackbar;
+import com.nispok.snackbar.SnackbarManager;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
@@ -70,34 +71,34 @@ public final class ExportService extends IntentService {
      * Convenience method for exporting a video into Android's cache directory. When the video has
      * been exported, an ExportResultEvent is broadcast.
      *
-     * @param context Context to use.
-     * @param video   ID of the video to export.
+     * @param activity Activity to use.
+     * @param video    ID of the video to export.
      */
-    public static void export(Context context, UUID video) {
-        export(context, Collections.singletonList(video));
+    public static void export(Activity activity, UUID video) {
+        export(activity, Collections.singletonList(video));
     }
 
     /**
      * Convenience method for exporting videos. Exports the videos into Android's cache directory.
      * When all videos have been exported, an ExportResultEvent is broadcast.
      *
-     * @param context Context to use.
-     * @param videos  List of video IDs to export.
+     * @param activity Activity to use.
+     * @param videos   List of video IDs to export.
      */
-    public static void export(Context context, List<UUID> videos) {
-        export(context, AppCache.getCache(context), videos);
+    public static void export(Activity activity, List<UUID> videos) {
+        export(activity, AppCache.getCache(activity), videos);
     }
 
     /**
      * Convenience method for exporting videos. When all videos have been exported, an
      * ExportResultEvent is broadcast.
      *
-     * @param context         Context to use.
+     * @param activity        Activity to use.
      * @param outputDirectory Directory where the exported videos should be output.
      * @param videos          List of video IDs to export.
      */
-    public static void export(Context context, File outputDirectory, List<UUID> videos) {
-        Intent intent = new Intent(context, ExportService.class);
+    public static void export(Activity activity, File outputDirectory, List<UUID> videos) {
+        Intent intent = new Intent(activity, ExportService.class);
 
         // If the list is serializable, it can be used like that. If not, a new ArrayList is
         // created with the contents.
@@ -112,10 +113,10 @@ public final class ExportService extends IntentService {
         intent.putExtra(ARG_OUTPUT_DIRECTORY, outputDirectory);
         intent.putExtra(ARG_VIDEO_IDS, serializableVideos);
 
-        context.startService(intent);
+        activity.startService(intent);
 
-        // Show a toast telling the user that we'll get back to them.
-        Toast.makeText(context, R.string.share_preparing_toast, Toast.LENGTH_LONG).show();
+        // Show a snackbar telling the user that we'll get back to them.
+        SnackbarManager.show(Snackbar.with(activity).text(R.string.share_preparing_toast));
     }
 
     public ExportService() {
@@ -133,7 +134,7 @@ public final class ExportService extends IntentService {
     }
 
     @Override
-    protected void onHandleIntent(Intent intent)  {
+    protected void onHandleIntent(Intent intent) {
         File outputDirectory = (File) intent.getSerializableExtra(ARG_OUTPUT_DIRECTORY);
 
         // This cast is expensive to check: it's your fault if you stick something else in there.
@@ -200,9 +201,10 @@ public final class ExportService extends IntentService {
      * Exports a video as an .achso file.
      *
      * @param directory Where the video should be exported.
-     * @param videoId     Video to export.
+     * @param videoId   Video to export.
      *
      * @return The file where the video was exported.
+     *
      * @throws IOException If the video could not be exported.
      */
     private File exportVideo(File directory, UUID videoId) throws IOException {
@@ -376,31 +378,19 @@ public final class ExportService extends IntentService {
      *
      * @param uri The URI to stream.
      *
-     * @throws IOException If a stream cannot be opened.
+     * @throws IOException              If a stream cannot be opened.
      * @throws IllegalArgumentException If the scheme is not supported.
      */
     private BufferedSource getSource(Uri uri) throws IOException {
         InputStream stream;
 
-        String scheme = uri.getScheme().trim().toLowerCase();
+        if (isLocal(uri)) {
+            stream = getContentResolver().openInputStream(uri);
+        } else {
+            Request request = new Request.Builder().url(uri.toString()).build();
+            Response response = httpClient.newCall(request).execute();
 
-        switch (scheme) {
-            case "file":
-            case "content":
-                stream = getContentResolver().openInputStream(uri);
-                break;
-
-            case "http":
-            case "https":
-                String uriString = uri.toString();
-                Request request = new Request.Builder().url(uriString).build();
-                Response response = httpClient.newCall(request).execute();
-
-                stream = response.body().byteStream();
-                break;
-
-            default:
-                throw new IllegalArgumentException("Scheme must be one of the supported types.");
+            stream = response.body().byteStream();
         }
 
         return Okio.buffer(Okio.source(stream));
@@ -423,6 +413,39 @@ public final class ExportService extends IntentService {
         filename = filename.replaceAll(unixBlacklist, replacementCharacter);
 
         return filename;
+    }
+
+    /**
+     * Returns whether the given URI is local or not.
+     *
+     * Accepts the following schemes:
+     *   - file
+     *   - content
+     *   - http
+     *   - https
+     *
+     * @throws IllegalArgumentException If the scheme is unknown.
+     */
+    private boolean isLocal(Uri uri) throws IllegalArgumentException {
+        String scheme = uri.getScheme();
+
+        // Assume that URIs without a scheme are local.
+        if (scheme == null) {
+            return true;
+        }
+
+        switch (scheme.trim().toLowerCase()) {
+            case "file":
+            case "content":
+                return true;
+
+            case "http":
+            case "https":
+                return false;
+
+            default:
+                throw new IllegalArgumentException("Unknown scheme " + scheme);
+        }
     }
 
 }

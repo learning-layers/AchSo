@@ -22,7 +22,9 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import com.nispok.snackbar.Snackbar;
+import com.nispok.snackbar.SnackbarManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,8 +53,8 @@ import fi.aalto.legroup.achso.views.MarkedSeekBar;
  *
  * TODO: Extract annotation editing into a separate fragment.
  */
-public final class VideoPlayerActivity extends ActionBarActivity implements AnnotationEditor,
-        VideoPlayerFragment.PlaybackStateListener, SeekBar.OnSeekBarChangeListener,
+public final class PlayerActivity extends ActionBarActivity implements AnnotationEditor,
+        PlayerFragment.PlaybackStateListener, SeekBar.OnSeekBarChangeListener,
         View.OnClickListener {
 
     public static final String ARG_VIDEO_ID = "ARG_VIDEO_ID";
@@ -63,7 +65,7 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
     // Animation duration for hiding and showing controls (in milliseconds)
     private static final int CONTROLS_ANIMATION_DURATION = 300;
 
-    private VideoPlayerFragment playerFragment;
+    private PlayerFragment playerFragment;
 
     private RelativeLayout controlsOverlay;
     private LinearLayout playbackControls;
@@ -89,7 +91,7 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         App.bus.register(this);
-        setContentView(R.layout.activity_video_player);
+        setContentView(R.layout.activity_player);
 
         Intent intent = this.getIntent();
         this.intentFile = intent.getData();
@@ -112,7 +114,7 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_player, menu);
+        getMenuInflater().inflate(R.menu.activity_player, menu);
         return true;
     }
 
@@ -141,12 +143,12 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
             populateVideoInformation();
         } catch (IOException e) {
             e.printStackTrace();
-            Toast.makeText(this, R.string.storage_error, Toast.LENGTH_LONG).show();
+            SnackbarManager.show(Snackbar.with(this).text(R.string.storage_error));
             finish();
             return;
         }
 
-        playerFragment = (VideoPlayerFragment)
+        playerFragment = (PlayerFragment)
                 getFragmentManager().findFragmentById(R.id.videoPlayerFragment);
 
         playerFragment.setListener(this);
@@ -221,7 +223,7 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
     }
 
     public void togglePlayback() {
-        if (playerFragment.getState() == VideoPlayerFragment.State.PLAYING) {
+        if (playerFragment.getState() == PlayerFragment.State.PLAYING) {
             playerFragment.pause();
         } else {
             playerFragment.play();
@@ -258,7 +260,7 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
             @Override
             public void run() {
                 // Don't hide if we're paused
-                if (playerFragment.getState() == VideoPlayerFragment.State.PAUSED) {
+                if (playerFragment.getState() == PlayerFragment.State.PAUSED) {
                     return;
                 }
 
@@ -285,7 +287,7 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
     @Override
     public void createAnnotation(PointF position) {
         // Allow creating annotations only when paused
-        if (playerFragment.getState() != VideoPlayerFragment.State.PAUSED) {
+        if (playerFragment.getState() != PlayerFragment.State.PAUSED) {
             return;
         }
 
@@ -296,7 +298,7 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
         video.getAnnotations().add(annotation);
 
         if (!video.save()) {
-            Toast.makeText(this, R.string.storage_error, Toast.LENGTH_LONG).show();
+            SnackbarManager.show(Snackbar.with(this).text(R.string.storage_error));
         }
 
         editAnnotation(annotation);
@@ -309,7 +311,7 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
         annotation.setPosition(position);
 
         if (!video.save()) {
-            Toast.makeText(this, R.string.storage_error, Toast.LENGTH_LONG).show();
+            SnackbarManager.show(Snackbar.with(this).text(R.string.storage_error));
         }
 
         refreshAnnotations();
@@ -318,7 +320,7 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
     @Override
     public void editAnnotation(final Annotation annotation) {
         // Allow editing annotations only when paused
-        if (playerFragment.getState() != VideoPlayerFragment.State.PAUSED) {
+        if (playerFragment.getState() != PlayerFragment.State.PAUSED) {
             return;
         }
 
@@ -334,8 +336,8 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
                 annotation.setText(text);
 
                 if (!video.save()) {
-                    Toast.makeText(VideoPlayerActivity.this, R.string.storage_error,
-                            Toast.LENGTH_LONG).show();
+                    SnackbarManager.show(Snackbar.with(PlayerActivity.this)
+                            .text(R.string.storage_error));
                 }
 
                 refreshAnnotations();
@@ -350,8 +352,8 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
                 video.getAnnotations().remove(annotation);
 
                 if (!video.save()) {
-                    Toast.makeText(VideoPlayerActivity.this, R.string.storage_error,
-                            Toast.LENGTH_LONG).show();
+                    SnackbarManager.show(Snackbar.with(PlayerActivity.this)
+                            .text(R.string.storage_error));
                 }
 
                 refreshAnnotations();
@@ -403,7 +405,7 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
      * Fired when the player fragment changes state.
      */
     @Override
-    public void onPlaybackStateChanged(VideoPlayerFragment.State state) {
+    public void onPlaybackStateChanged(PlayerFragment.State state) {
         switch (state) {
             case PREPARED:
                 // Initialise the seek bar now that we have a duration and a position
@@ -412,6 +414,7 @@ public final class VideoPlayerActivity extends ActionBarActivity implements Anno
                 seekBarUpdater.run();
 
                 refreshAnnotations();
+                anchorSubtitleContainerTo(playbackControls);
                 break;
 
             case PLAYING:

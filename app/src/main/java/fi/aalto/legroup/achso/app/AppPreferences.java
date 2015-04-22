@@ -5,6 +5,10 @@ package fi.aalto.legroup.achso.app;
  */
 public final class AppPreferences {
 
+    private AppPreferences() {
+        // Static access only
+    }
+
     /**
      * The account name used for logging in automatically.
      */
@@ -23,5 +27,10 @@ public final class AppPreferences {
      * Layers box base URL.
      */
     public static final String LAYERS_BOX_URL = "LAYERS_BOX_URL";
+
+    /**
+     * Whether analytics data should be sent.
+     */
+    public static final String ANALYTICS_OPT_IN = "ANALYTICS_OPT_IN";
 
 }

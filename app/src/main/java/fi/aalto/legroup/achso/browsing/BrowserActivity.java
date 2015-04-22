@@ -6,23 +6,22 @@ import android.app.SearchManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.SearchView;
-import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
-import android.media.AudioManager;
+import android.view.animation.DecelerateInterpolator;
 
 import com.astuetz.PagerSlidingTabStrip;
 import com.melnykov.fab.FloatingActionButton;
 import com.melnykov.fab.ScrollDirectionListener;
+import com.nispok.snackbar.Snackbar;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
@@ -41,6 +40,7 @@ import fi.aalto.legroup.achso.authoring.QRHelper;
 import fi.aalto.legroup.achso.authoring.VideoCreatorService;
 import fi.aalto.legroup.achso.settings.SettingsActivity;
 import fi.aalto.legroup.achso.storage.VideoRepositoryUpdatedEvent;
+import fi.aalto.legroup.achso.utilities.BaseActivity;
 import fi.aalto.legroup.achso.utilities.ProgressDialogFragment;
 import fi.aalto.legroup.achso.views.adapters.VideoTabAdapter;
 
@@ -49,7 +49,7 @@ import fi.aalto.legroup.achso.views.adapters.VideoTabAdapter;
  *
  * TODO: Extract video creation stuff into its own activity.
  */
-public class BrowserActivity extends ActionBarActivity implements View.OnClickListener,
+public final class BrowserActivity extends BaseActivity implements View.OnClickListener,
         ScrollDirectionListener {
 
     private static final int REQUEST_RECORD_VIDEO = 1;
@@ -74,11 +74,7 @@ public class BrowserActivity extends ActionBarActivity implements View.OnClickLi
         // TODO: Inject instead
         this.bus = App.bus;
 
-        setContentView(R.layout.activity_main);
-
-        Toolbar toolbar = (Toolbar) this.findViewById(R.id.toolbar);
-
-        setSupportActionBar(toolbar);
+        setContentView(R.layout.activity_browser);
 
         if (savedInstanceState != null) {
             videoBuilder = savedInstanceState.getParcelable(STATE_VIDEO_BUILDER);
@@ -122,7 +118,7 @@ public class BrowserActivity extends ActionBarActivity implements View.OnClickLi
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        this.getMenuInflater().inflate(R.menu.main_menubar, menu);
+        this.getMenuInflater().inflate(R.menu.activity_browser, menu);
 
         SearchManager manager = (SearchManager) this.getSystemService(Context.SEARCH_SERVICE);
         SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
@@ -207,6 +203,26 @@ public class BrowserActivity extends ActionBarActivity implements View.OnClickLi
         fab.show();
     }
 
+    @Override
+    public void onShow(Snackbar snackbar) {
+        int height = snackbar.getHeight();
+
+        fab.animate()
+                .setInterpolator(new DecelerateInterpolator())
+                .setDuration(200)
+                .translationY(-height)
+                .start();
+    }
+
+    @Override
+    public void onDismissed(Snackbar snackbar) {
+        fab.animate()
+                .setInterpolator(new DecelerateInterpolator())
+                .setDuration(200)
+                .translationY(0)
+                .start();
+    }
+
     private void recordVideo() {
         App.locationManager.startLocationUpdates();
 
@@ -228,7 +244,7 @@ public class BrowserActivity extends ActionBarActivity implements View.OnClickLi
             startActivityForResult(intent, REQUEST_RECORD_VIDEO);
         } catch (ActivityNotFoundException e) {
             // TODO: Offer alternatives
-            Toast.makeText(this, "No camera app is installed.", Toast.LENGTH_LONG).show();
+            showSnackbar("No camera app is installed.");
         }
     }
 
@@ -250,7 +266,7 @@ public class BrowserActivity extends ActionBarActivity implements View.OnClickLi
             startActivityForResult(intent, REQUEST_CHOOSE_VIDEO);
         } catch (ActivityNotFoundException e) {
             // TODO: Offer alternatives
-            Toast.makeText(this, "No file manager is installed.", Toast.LENGTH_LONG).show();
+            showSnackbar("No file manager is installed.");
         }
     }
 
@@ -290,11 +306,11 @@ public class BrowserActivity extends ActionBarActivity implements View.OnClickLi
                 String name = App.loginManager.getUserInfo().get("name").getAsString();
                 String welcome = getString(R.string.logged_in_as, name);
 
-                Toast.makeText(this, welcome, Toast.LENGTH_SHORT).show();
+                showSnackbar(welcome);
                 break;
 
             case LOGGED_OUT:
-                Toast.makeText(this, R.string.logged_out, Toast.LENGTH_SHORT).show();
+                showSnackbar(R.string.logged_out);
                 break;
         }
 
@@ -305,7 +321,7 @@ public class BrowserActivity extends ActionBarActivity implements View.OnClickLi
     public void onLoginError(LoginErrorEvent event) {
         String message = getString(R.string.login_error, event.getMessage());
 
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+        showSnackbar(message);
 
         invalidateOptionsMenu();
     }
@@ -332,7 +348,7 @@ public class BrowserActivity extends ActionBarActivity implements View.OnClickLi
                 break;
 
             case ERROR:
-                Toast.makeText(this, R.string.storage_error, Toast.LENGTH_LONG).show();
+                showSnackbar(R.string.storage_error);
                 // Fall through
 
             case FINISHED:

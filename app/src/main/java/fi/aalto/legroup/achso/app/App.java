@@ -9,6 +9,7 @@ import android.preference.PreferenceManager;
 import android.support.multidex.MultiDexApplication;
 import android.widget.Toast;
 
+import com.google.android.gms.analytics.GoogleAnalytics;
 import com.rollbar.android.Rollbar;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.otto.Bus;
@@ -99,6 +100,9 @@ public final class App extends MultiDexApplication
 
         // Trim the caches asynchronously
         AppCache.trim(this);
+
+        // Setup Google Analytics
+        AppAnalytics.setup(this);
     }
 
     public static Uri getLayersBoxUrl() {
@@ -179,16 +183,23 @@ public final class App extends MultiDexApplication
     }
 
     /**
-     * Listens for changes to the Layers box URL preference and updates the internal field.
+     * Listens for changes to the shared preferences.
      */
     @Override
     public void onSharedPreferenceChanged(SharedPreferences preferences, String key) {
         switch (key) {
+            // Listen for changes to the Layers box URL preference and update the internal field.
             case AppPreferences.LAYERS_BOX_URL:
                 String defaultUrlString = getString(R.string.layersBoxUrl);
                 String urlString = preferences.getString(key, defaultUrlString);
 
                 layersBoxUrl = Uri.parse(urlString);
+                break;
+
+            // Listen for changes to the analytics opt in preference.
+            case AppPreferences.ANALYTICS_OPT_IN:
+                boolean hasOptedIn = preferences.getBoolean(key, false);
+                GoogleAnalytics.getInstance(this).setAppOptOut(!hasOptedIn);
                 break;
         }
     }

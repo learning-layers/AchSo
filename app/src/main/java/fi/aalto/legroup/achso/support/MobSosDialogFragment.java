@@ -1,18 +1,19 @@
 package fi.aalto.legroup.achso.support;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.RatingBar;
-import android.widget.Toast;
 
+import com.nispok.snackbar.Snackbar;
+import com.nispok.snackbar.SnackbarManager;
 import com.rollbar.android.Rollbar;
 
 import java.util.HashMap;
@@ -29,13 +30,13 @@ import retrofit.client.Response;
  * TODO: Authentication using OpenID Connect
  * TODO: Don't hard-code the survey and response IDs.
  */
-public class MobSosDialogFragment extends DialogFragment implements Callback<Response>,
+public final class MobSosDialogFragment extends DialogFragment implements Callback<Response>,
         DialogInterface.OnClickListener {
 
     private final static String RESPONSE_KEY_RATING = "SFQ.OS";
     private final static String RESPONSE_KEY_COMMENTS = "SFQ.C";
 
-    private Context context;
+    private Activity activity;
 
     private EditText commentsField;
     private RatingBar ratingBar;
@@ -47,9 +48,9 @@ public class MobSosDialogFragment extends DialogFragment implements Callback<Res
     @Override
     @SuppressLint("InflateParams")
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        this.context = getActivity();
+        this.activity = getActivity();
 
-        LayoutInflater inflater = LayoutInflater.from(this.context);
+        LayoutInflater inflater = LayoutInflater.from(this.activity);
 
         // Building dialogs with views is one of the rare cases where null as the root is valid.
         View view = inflater.inflate(R.layout.dialog_mobsos, null);
@@ -60,7 +61,7 @@ public class MobSosDialogFragment extends DialogFragment implements Callback<Res
         // Don't close the dialog if the user taps the background
         setCancelable(false);
 
-        return new AlertDialog.Builder(this.context)
+        return new AlertDialog.Builder(this.activity)
                 .setTitle(R.string.feedback)
                 .setPositiveButton(R.string.feedback_send, this)
                 .setNegativeButton(R.string.cancel, null)
@@ -104,12 +105,12 @@ public class MobSosDialogFragment extends DialogFragment implements Callback<Res
 
     @Override
     public void success(Response body, Response response) {
-        Toast.makeText(this.context, R.string.feedback_sent, Toast.LENGTH_LONG).show();
+        SnackbarManager.show(Snackbar.with(activity).text(R.string.feedback_sent));
     }
 
     @Override
     public void failure(RetrofitError error) {
-        Toast.makeText(this.context, R.string.feedback_error, Toast.LENGTH_LONG).show();
+        SnackbarManager.show(Snackbar.with(activity).text(R.string.feedback_error));
         Rollbar.reportException(error);
         error.printStackTrace();
     }

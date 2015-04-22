@@ -4,11 +4,13 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:gravity="center_horizontal"
+    android:maxWidth="500sp"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
     android:shadowColor="@android:color/black"
     android:shadowDx="0"
     android:shadowDy="0"
     android:shadowRadius="10"
-    android:textStyle="bold"
-    android:textSize="28sp">
+    android:textAppearance="@style/TextAppearance.AppCompat.Title">
 
 </TextView>

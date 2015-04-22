@@ -1,16 +1,17 @@
 package fi.aalto.legroup.achso.support;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Dialog;
 import android.app.DialogFragment;
-import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.nispok.snackbar.Snackbar;
+import com.nispok.snackbar.SnackbarManager;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,12 +22,12 @@ import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
-public class FeedbackDialogFragment extends DialogFragment implements Callback<String> {
+public final class FeedbackDialogFragment extends DialogFragment implements Callback<String> {
 
     public final static String ARG_EMAIL = "email";
     public final static String ARG_NAME = "name";
 
-    private Context context;
+    private Activity activity;
 
     private TextView bodyText;
     private TextView summaryText;
@@ -54,9 +55,9 @@ public class FeedbackDialogFragment extends DialogFragment implements Callback<S
     @Override
     @SuppressLint("InflateParams")
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        this.context = getActivity();
+        this.activity = getActivity();
 
-        LayoutInflater inflater = LayoutInflater.from(this.context);
+        LayoutInflater inflater = LayoutInflater.from(this.activity);
 
         // Building dialogs with views is one of the rare cases where null as the root is valid.
         View view = inflater.inflate(R.layout.fragment_feedback, null);
@@ -76,7 +77,7 @@ public class FeedbackDialogFragment extends DialogFragment implements Callback<S
         // Don't close the dialog if the user taps the background
         setCancelable(false);
 
-        return new MaterialDialog.Builder(this.context)
+        return new MaterialDialog.Builder(this.activity)
                 .title(R.string.feedback)
                 .positiveText(R.string.feedback_send)
                 .negativeText(R.string.cancel)
@@ -119,14 +120,14 @@ public class FeedbackDialogFragment extends DialogFragment implements Callback<S
 
     @Override
     public void success(String body, Response response) {
-        Toast.makeText(this.context, R.string.feedback_sent, Toast.LENGTH_LONG).show();
+        SnackbarManager.show(Snackbar.with(activity).text(R.string.feedback_sent));
         dismiss();
     }
 
     @Override
     public void failure(RetrofitError error) {
         error.printStackTrace();
-        Toast.makeText(this.context, R.string.feedback_error, Toast.LENGTH_LONG).show();
+        SnackbarManager.show(Snackbar.with(activity).text(R.string.feedback_error));
     }
 
     private class ButtonCallback extends MaterialDialog.ButtonCallback {

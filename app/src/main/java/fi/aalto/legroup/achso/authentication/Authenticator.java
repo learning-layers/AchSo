@@ -25,7 +25,7 @@ import java.io.IOException;
  * Access Token:  TOKEN_TYPE_ACCESS  (replaceable by the ID Token, so we're not really using this)
  * Refresh Token: TOKEN_TYPE_REFRESH
  */
-public class Authenticator extends AbstractAccountAuthenticator {
+public final class Authenticator extends AbstractAccountAuthenticator {
 
     public static final String ACH_SO_ACCOUNT_TYPE = "fi.aalto.legroup.achso.ll_oidc";
 
