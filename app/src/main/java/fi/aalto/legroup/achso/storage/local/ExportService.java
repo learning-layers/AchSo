@@ -134,7 +134,7 @@ public final class ExportService extends IntentService {
     }
 
     @Override
-    protected void onHandleIntent(Intent intent)  {
+    protected void onHandleIntent(Intent intent) {
         File outputDirectory = (File) intent.getSerializableExtra(ARG_OUTPUT_DIRECTORY);
 
         // This cast is expensive to check: it's your fault if you stick something else in there.
@@ -201,9 +201,10 @@ public final class ExportService extends IntentService {
      * Exports a video as an .achso file.
      *
      * @param directory Where the video should be exported.
-     * @param videoId     Video to export.
+     * @param videoId   Video to export.
      *
      * @return The file where the video was exported.
+     *
      * @throws IOException If the video could not be exported.
      */
     private File exportVideo(File directory, UUID videoId) throws IOException {
@@ -377,31 +378,19 @@ public final class ExportService extends IntentService {
      *
      * @param uri The URI to stream.
      *
-     * @throws IOException If a stream cannot be opened.
+     * @throws IOException              If a stream cannot be opened.
      * @throws IllegalArgumentException If the scheme is not supported.
      */
     private BufferedSource getSource(Uri uri) throws IOException {
         InputStream stream;
 
-        String scheme = uri.getScheme().trim().toLowerCase();
+        if (isLocal(uri)) {
+            stream = getContentResolver().openInputStream(uri);
+        } else {
+            Request request = new Request.Builder().url(uri.toString()).build();
+            Response response = httpClient.newCall(request).execute();
 
-        switch (scheme) {
-            case "file":
-            case "content":
-                stream = getContentResolver().openInputStream(uri);
-                break;
-
-            case "http":
-            case "https":
-                String uriString = uri.toString();
-                Request request = new Request.Builder().url(uriString).build();
-                Response response = httpClient.newCall(request).execute();
-
-                stream = response.body().byteStream();
-                break;
-
-            default:
-                throw new IllegalArgumentException("Scheme must be one of the supported types.");
+            stream = response.body().byteStream();
         }
 
         return Okio.buffer(Okio.source(stream));
@@ -424,6 +413,39 @@ public final class ExportService extends IntentService {
         filename = filename.replaceAll(unixBlacklist, replacementCharacter);
 
         return filename;
+    }
+
+    /**
+     * Returns whether the given URI is local or not.
+     *
+     * Accepts the following schemes:
+     *   - file
+     *   - content
+     *   - http
+     *   - https
+     *
+     * @throws IllegalArgumentException If the scheme is unknown.
+     */
+    private boolean isLocal(Uri uri) throws IllegalArgumentException {
+        String scheme = uri.getScheme();
+
+        // Assume that URIs without a scheme are local.
+        if (scheme == null) {
+            return true;
+        }
+
+        switch (scheme.trim().toLowerCase()) {
+            case "file":
+            case "content":
+                return true;
+
+            case "http":
+            case "https":
+                return false;
+
+            default:
+                throw new IllegalArgumentException("Unknown scheme " + scheme);
+        }
     }
 
 }
