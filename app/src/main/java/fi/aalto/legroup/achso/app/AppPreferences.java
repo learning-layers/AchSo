@@ -24,4 +24,9 @@ public final class AppPreferences {
      */
     public static final String LAYERS_BOX_URL = "LAYERS_BOX_URL";
 
+    /**
+     * Whether analytics data should be sent.
+     */
+    public static final String ANALYTICS_OPT_IN = "ANALYTICS_OPT_IN";
+
 }
