@@ -15,9 +15,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.melnykov.fab.ScrollDirectionListener;
+import com.nispok.snackbar.Snackbar;
+import com.nispok.snackbar.SnackbarManager;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
@@ -227,7 +228,7 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
             message = getString(R.string.upload_error);
         }
 
-        Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+        SnackbarManager.show(Snackbar.with(getActivity()).text(message));
     }
 
     private List<UUID> getSelection() {

@@ -60,6 +60,9 @@ dependencies {
     // Material design floating action button
     compile 'com.melnykov:floatingactionbutton:1.2.0'
 
+    // Material design snackbars
+    compile 'com.nispok:snackbar:2.10.6'
+
     // Nice core libraries for a multitude of tasks
     compile 'com.google.guava:guava:18.0'
 

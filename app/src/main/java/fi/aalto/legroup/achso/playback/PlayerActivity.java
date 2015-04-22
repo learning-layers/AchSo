@@ -22,7 +22,9 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import com.nispok.snackbar.Snackbar;
+import com.nispok.snackbar.SnackbarManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -141,7 +143,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
             populateVideoInformation();
         } catch (IOException e) {
             e.printStackTrace();
-            Toast.makeText(this, R.string.storage_error, Toast.LENGTH_LONG).show();
+            SnackbarManager.show(Snackbar.with(this).text(R.string.storage_error));
             finish();
             return;
         }
@@ -296,7 +298,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         video.getAnnotations().add(annotation);
 
         if (!video.save()) {
-            Toast.makeText(this, R.string.storage_error, Toast.LENGTH_LONG).show();
+            SnackbarManager.show(Snackbar.with(this).text(R.string.storage_error));
         }
 
         editAnnotation(annotation);
@@ -309,7 +311,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         annotation.setPosition(position);
 
         if (!video.save()) {
-            Toast.makeText(this, R.string.storage_error, Toast.LENGTH_LONG).show();
+            SnackbarManager.show(Snackbar.with(this).text(R.string.storage_error));
         }
 
         refreshAnnotations();
@@ -334,8 +336,8 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
                 annotation.setText(text);
 
                 if (!video.save()) {
-                    Toast.makeText(PlayerActivity.this, R.string.storage_error,
-                            Toast.LENGTH_LONG).show();
+                    SnackbarManager.show(Snackbar.with(PlayerActivity.this)
+                            .text(R.string.storage_error));
                 }
 
                 refreshAnnotations();
@@ -350,8 +352,8 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
                 video.getAnnotations().remove(annotation);
 
                 if (!video.save()) {
-                    Toast.makeText(PlayerActivity.this, R.string.storage_error,
-                            Toast.LENGTH_LONG).show();
+                    SnackbarManager.show(Snackbar.with(PlayerActivity.this)
+                            .text(R.string.storage_error));
                 }
 
                 refreshAnnotations();

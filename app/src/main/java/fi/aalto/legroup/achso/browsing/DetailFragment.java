@@ -10,9 +10,10 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.api.client.util.Strings;
+import com.nispok.snackbar.Snackbar;
+import com.nispok.snackbar.SnackbarManager;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
@@ -128,8 +129,8 @@ public final class DetailFragment extends Fragment {
                         App.videoInfoRepository.invalidate(video.getId());
 
                         if (!video.save()) {
-                            Toast.makeText(getActivity(), R.string.storage_error,
-                                    Toast.LENGTH_LONG).show();
+                            SnackbarManager.show(
+                                    Snackbar.with(getActivity()).text(R.string.storage_error));
                         }
 
                         populateInformation();
@@ -149,7 +150,7 @@ public final class DetailFragment extends Fragment {
                 App.videoInfoRepository.invalidate(video.getId());
 
                 if (!video.save()) {
-                    Toast.makeText(getActivity(), R.string.storage_error, Toast.LENGTH_LONG).show();
+                    SnackbarManager.show(Snackbar.with(getActivity()).text(R.string.storage_error));
                 }
 
                 populateInformation();

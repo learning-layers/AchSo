@@ -12,7 +12,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebView;
-import android.widget.Toast;
 
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -22,6 +21,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.nispok.snackbar.Snackbar;
+import com.nispok.snackbar.SnackbarManager;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -47,7 +48,7 @@ public final class DetailActivity extends FragmentActivity
             video = App.videoRepository.get(videoId);
         } catch (IOException e) {
             e.printStackTrace();
-            Toast.makeText(this, R.string.storage_error, Toast.LENGTH_LONG).show();
+            SnackbarManager.show(Snackbar.with(this).text(R.string.storage_error));
             finish();
             return;
         }
