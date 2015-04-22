@@ -48,7 +48,7 @@ import static android.media.MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT;
  * Provides a convenient fragment for playing annotated videos. The host is responsible for
  * implementing any playback controls.
  */
-public final class VideoPlayerFragment extends Fragment implements ExoPlayer.Listener,
+public final class PlayerFragment extends Fragment implements ExoPlayer.Listener,
         TextureView.SurfaceTextureListener, MediaCodecVideoTrackRenderer.EventListener,
         AnnotationRenderer.EventListener {
 
@@ -88,7 +88,7 @@ public final class VideoPlayerFragment extends Fragment implements ExoPlayer.Lis
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedState) {
-        return inflater.inflate(R.layout.fragment_video_player, container, false);
+        return inflater.inflate(R.layout.fragment_player, container, false);
     }
 
     @Override

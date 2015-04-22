@@ -22,7 +22,7 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.entities.VideoInfo;
 import fi.aalto.legroup.achso.storage.VideoInfoRepository;
 
-public class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapter.ViewHolder> {
+public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapter.ViewHolder> {
 
     private Context context;
     private LayoutInflater inflater;
@@ -41,7 +41,7 @@ public class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapter.View
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int position) {
-        View view = this.inflater.inflate(R.layout.item_video_browser_grid, parent, false);
+        View view = this.inflater.inflate(R.layout.item_browser_grid, parent, false);
         return new ViewHolder(view);
     }
 

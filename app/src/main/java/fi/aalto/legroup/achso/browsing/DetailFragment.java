@@ -19,7 +19,7 @@ import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.authoring.GenreDialogFragment;
 import fi.aalto.legroup.achso.entities.Video;
 
-public class DetailFragment extends Fragment {
+public final class DetailFragment extends Fragment {
 
     private TextView titleField;
     private TextView genreField;

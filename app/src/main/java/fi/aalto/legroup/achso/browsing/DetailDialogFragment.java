@@ -34,7 +34,7 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.Video;
 
-public class DetailDialogFragment extends DialogFragment {
+public final class DetailDialogFragment extends DialogFragment {
 
     private static final String ARG_ID = "id";
 
@@ -64,7 +64,7 @@ public class DetailDialogFragment extends DialogFragment {
         LayoutInflater inflater = LayoutInflater.from(context);
         final Dialog dialog = new Dialog(getActivity());
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        this.view = inflater.inflate(R.layout.fragment_video_information, null);
+        this.view = inflater.inflate(R.layout.dialog_information, null);
 
         UUID id = UUID.fromString(this.getArguments().getString(ARG_ID));
 

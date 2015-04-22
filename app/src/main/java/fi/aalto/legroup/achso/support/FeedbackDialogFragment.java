@@ -21,7 +21,7 @@ import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
-public class FeedbackDialogFragment extends DialogFragment implements Callback<String> {
+public final class FeedbackDialogFragment extends DialogFragment implements Callback<String> {
 
     public final static String ARG_EMAIL = "email";
     public final static String ARG_NAME = "name";

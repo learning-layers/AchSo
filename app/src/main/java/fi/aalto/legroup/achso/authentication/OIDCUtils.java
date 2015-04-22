@@ -30,7 +30,11 @@ import fi.aalto.legroup.achso.app.App;
  * Currently this helper class is fairly limited. It's suitable for our use case and pretty much
  * nothing else.
  */
-public class OIDCUtils {
+public final class OIDCUtils {
+
+    private OIDCUtils() {
+        // Static access only
+    }
 
     /**
      * Generates an URL to the Authorization Endpoint. The user can then authenticate themselves,

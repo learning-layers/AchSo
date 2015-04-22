@@ -17,7 +17,7 @@ import fi.aalto.legroup.achso.app.App;
 /**
  * TODO: This should be a fragment or something.
  */
-public class LoginActivity extends Activity {
+public final class LoginActivity extends Activity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

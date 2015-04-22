@@ -30,7 +30,7 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.authoring.QRHelper;
 import fi.aalto.legroup.achso.authoring.VideoDeletionFragment;
-import fi.aalto.legroup.achso.playback.VideoPlayerActivity;
+import fi.aalto.legroup.achso.playback.PlayerActivity;
 import fi.aalto.legroup.achso.storage.local.ExportService;
 import fi.aalto.legroup.achso.storage.remote.UploadErrorEvent;
 import fi.aalto.legroup.achso.storage.remote.UploadService;
@@ -82,7 +82,7 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedState) {
-        return inflater.inflate(R.layout.fragment_video_browser, parent, false);
+        return inflater.inflate(R.layout.fragment_browser, parent, false);
     }
 
     @Override
@@ -122,7 +122,7 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
 
     @Override
     public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-        mode.getMenuInflater().inflate(R.menu.video_context_menu, menu);
+        mode.getMenuInflater().inflate(R.menu.activity_browser_action_mode, menu);
         return true;
     }
 
@@ -260,10 +260,10 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
     }
 
     private void showVideo(int position) {
-        Intent detailIntent = new Intent(getActivity(), VideoPlayerActivity.class);
+        Intent detailIntent = new Intent(getActivity(), PlayerActivity.class);
         UUID id = this.adapter.getItem(position);
 
-        detailIntent.putExtra(VideoPlayerActivity.ARG_VIDEO_ID, id);
+        detailIntent.putExtra(PlayerActivity.ARG_VIDEO_ID, id);
 
         startActivity(detailIntent);
     }
