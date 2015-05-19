@@ -62,6 +62,10 @@ public final class AppCache {
             File legacyCache = Environment.getExternalStorageDirectory();
             File[] cacheFileList = legacyCache.listFiles(this);
 
+            if (cacheFileList ==  null) {
+                return;
+            }
+
             for (File file : cacheFileList) {
                 //noinspection ResultOfMethodCallIgnored
                 file.delete();
