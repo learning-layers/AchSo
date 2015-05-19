@@ -290,10 +290,10 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         if (playerFragment.getState() != PlayerFragment.State.PAUSED) {
             return;
         }
-		// Disallow creating annotations when an annotation is being edited
-		if (areAnnotationControlsVisible()) {
-			return;
-		}
+        // Disallow creating annotations when an annotation is being edited
+        if (areAnnotationControlsVisible()) {
+            return;
+        }
 
         long time = playerFragment.getPlaybackPosition();
 
@@ -391,13 +391,13 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         anchorSubtitleContainerTo(playbackControls);
     }
 
-	private boolean areAnnotationControlsVisible() {
-		if (annotationControls == null)
-			return false;
-		if (annotationControls.getVisibility() == View.VISIBLE)
-			return true;
-		return false;
-	}
+    private boolean areAnnotationControlsVisible() {
+        if (annotationControls == null)
+            return false;
+        if (annotationControls.getVisibility() == View.VISIBLE)
+            return true;
+        return false;
+    }
 
     private void enableControls() {
         seekBar.setEnabled(true);
