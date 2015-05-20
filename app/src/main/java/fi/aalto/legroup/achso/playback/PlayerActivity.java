@@ -28,7 +28,7 @@ import com.nispok.snackbar.SnackbarManager;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -167,7 +167,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        List<UUID> videos = Arrays.asList(video.getId());
+        List<UUID> videos = Collections.singletonList(video.getId());
 
         switch (item.getItemId()) {
             case android.R.id.home:
