@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -12,29 +12,22 @@
         android:layout_height="match_parent"
         tools:layout="@layout/fragment_player" />
 
-    <RelativeLayout
-        android:id="@+id/controlsOverlay"
+    <include layout="@layout/partial_toolbar_with_nav_button_transparent" />
+
+    <include
+        layout="@layout/partial_playback_controls"
+        android:id="@+id/playbackControls"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="16dp" />
 
-        <include layout="@layout/partial_toolbar_with_nav_button_transparent" />
+    <ViewStub
+        android:id="@+id/annotationControls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="16dp"
+        android:layout="@layout/partial_annotation_controls" />
 
-        <include
-            layout="@layout/partial_playback_controls"
-            android:id="@+id/playbackControls"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_margin="16dp" />
-
-        <ViewStub
-            android:id="@+id/annotationControls"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_margin="16dp"
-            android:layout="@layout/partial_annotation_controls" />
-
-    </RelativeLayout>
-
-</FrameLayout>
+</RelativeLayout>
