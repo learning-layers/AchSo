@@ -86,4 +86,14 @@ public final class JsonSerializer extends Serializer<JsonSerializable> {
         }
     }
 
+    /**
+     * Serialises an object into a string.
+     *
+     * @param object Object to serialise.
+     */
+    @Override
+    public String write(JsonSerializable object) {
+        return gson.toJson(object);
+    }
+
 }
