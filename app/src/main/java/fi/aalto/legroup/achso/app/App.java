@@ -23,7 +23,8 @@ import fi.aalto.legroup.achso.authentication.LoginManager;
 import fi.aalto.legroup.achso.authentication.LoginRequestEvent;
 import fi.aalto.legroup.achso.authoring.LocationManager;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
-import fi.aalto.legroup.achso.storage.local.LocalVideoInfoRepository;
+import fi.aalto.legroup.achso.storage.VideoInfoRepository;
+import fi.aalto.legroup.achso.storage.VideoRepository;
 import fi.aalto.legroup.achso.storage.local.LocalVideoRepository;
 import fi.aalto.legroup.achso.storage.remote.strategies.ClViTra2Strategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.SssStrategy;
@@ -45,8 +46,9 @@ public final class App extends MultiDexApplication
 
     public static JsonSerializer jsonSerializer;
 
-    public static LocalVideoInfoRepository videoInfoRepository;
-    public static LocalVideoRepository videoRepository;
+    public static LocalVideoRepository localVideoRepository;
+    public static VideoRepository videoRepository;
+    public static VideoInfoRepository videoInfoRepository;
 
     public static File localStorageDirectory;
 
@@ -91,10 +93,9 @@ public final class App extends MultiDexApplication
 
         jsonSerializer = new JsonSerializer();
 
-        videoInfoRepository = new LocalVideoInfoRepository(bus, jsonSerializer,
-                localStorageDirectory);
-
-        videoRepository = new LocalVideoRepository(bus, jsonSerializer, localStorageDirectory);
+        localVideoRepository = new LocalVideoRepository(bus, jsonSerializer, localStorageDirectory);
+        videoRepository = localVideoRepository;
+        videoInfoRepository = localVideoRepository;
 
         bus.post(new LoginRequestEvent(LoginRequestEvent.Type.LOGIN));
 

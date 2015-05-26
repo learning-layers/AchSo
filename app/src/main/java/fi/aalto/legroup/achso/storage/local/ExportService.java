@@ -209,7 +209,7 @@ public final class ExportService extends IntentService {
      */
     private File exportVideo(File directory, UUID videoId) throws IOException {
         // TODO: We should not rely on the repository
-        VideoInfo video = videoInfoRepository.get(videoId);
+        VideoInfo video = videoInfoRepository.getVideoInfo(videoId);
 
         String fileName = sanitizeFilename(video.getTitle()) + ".achso";
         File outputFile = new File(directory, fileName);

@@ -23,6 +23,7 @@ import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.Annotation;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.entities.VideoInfo;
+import fi.aalto.legroup.achso.storage.VideoInfoRepository;
 
 public final class SearchActivity extends ActionBarActivity {
 
@@ -118,7 +119,7 @@ public final class SearchActivity extends ActionBarActivity {
         List<UUID> ids;
 
         try {
-            ids = App.videoInfoRepository.getAll();
+            ids = VideoInfoRepository.FindResult.toIds(App.videoInfoRepository.getAllSorted());
         } catch (IOException e) {
             e.printStackTrace();
             return;
@@ -143,7 +144,7 @@ public final class SearchActivity extends ActionBarActivity {
      * annotations.
      */
     private boolean isMatch(UUID id, String query) throws IOException {
-        VideoInfo videoInfo = App.videoInfoRepository.get(id);
+        VideoInfo videoInfo = App.videoInfoRepository.getVideoInfo(id);
 
         if (query.equals(videoInfo.getTag())) {
             return true;
@@ -153,7 +154,7 @@ public final class SearchActivity extends ActionBarActivity {
             return true;
         }
 
-        Video video = App.videoRepository.get(id);
+        Video video = App.videoRepository.getVideo(id);
 
         for (Annotation annotation : video.getAnnotations()) {
             if (annotation.getText().toLowerCase().contains(query)) {

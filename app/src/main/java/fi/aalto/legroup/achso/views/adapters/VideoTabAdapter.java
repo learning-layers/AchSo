@@ -20,6 +20,7 @@ import java.util.UUID;
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.browsing.BrowserFragment;
+import fi.aalto.legroup.achso.storage.VideoInfoRepository;
 import fi.aalto.legroup.achso.views.utilities.ScrollDirectionListenable;
 
 public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
@@ -122,7 +123,8 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
         switch (position) {
             case 0:
                 try {
-                    return App.videoInfoRepository.getAll();
+                    List<VideoInfoRepository.FindResult> results = App.videoInfoRepository.getAllSorted();
+                    return VideoInfoRepository.FindResult.toIds(results);
                 } catch (IOException e) {
                     e.printStackTrace();
                     break;
@@ -131,7 +133,8 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
             default:
                 try {
                     String genre = tabNames.get(position);
-                    return App.videoInfoRepository.getByGenreString(genre);
+                    List<VideoInfoRepository.FindResult> results = App.videoInfoRepository.getByGenreStringSorted(genre);
+                    return VideoInfoRepository.FindResult.toIds(results);
                 } catch (IOException e) {
                     e.printStackTrace();
                     break;
