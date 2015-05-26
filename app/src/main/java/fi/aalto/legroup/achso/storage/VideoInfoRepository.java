@@ -1,8 +1,10 @@
 package fi.aalto.legroup.achso.storage;
 
-
 import java.io.IOException;
+import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,11 +32,69 @@ public interface VideoInfoRepository {
         public long getLastModified() {
             return lastModified;
         }
+    }
 
-        public static List<UUID> toIds(List<FindResult> results) {
+    /**
+     * Compares results based on their modification dates.
+     */
+    final class FindResultComparator implements Comparator<FindResult> {
 
-            List<UUID> ids = new ArrayList<>(results.size());
+        @Override
+        public int compare(FindResult left, FindResult right) {
+            long leftModified = left.getLastModified();
+            long rightModified = right.getLastModified();
 
+            if (leftModified > rightModified) {
+                return 1;
+            }
+            if (leftModified < rightModified) {
+                return -1;
+            }
+
+            return 0;
+        }
+
+    }
+    class FindResults extends AbstractList<FindResult> {
+
+        private List<FindResult> results;
+
+        public FindResults(List<FindResult> results) {
+            this.results = results;
+        }
+
+        @Override
+        public FindResult get(int location) {
+            return results.get(location);
+        }
+
+        @Override
+        public int size() {
+            return results.size();
+        }
+
+        @Override
+        public void add(int location, FindResult object) {
+            results.add(location, object);
+        }
+
+        @Override
+        public FindResult remove(int location) {
+            return results.remove(location);
+        }
+
+        @Override
+        public FindResult set(int location, FindResult object) {
+            return results.set(location, object);
+        }
+
+        public void sort() {
+            Collections.sort(results, new FindResultComparator());
+        }
+
+        public List<UUID> getIDs() {
+
+            List<UUID> ids = new ArrayList<>(size());
             for (FindResult result : results) {
                 ids.add(result.getId());
             }
@@ -45,24 +105,24 @@ public interface VideoInfoRepository {
     /**
      * Returns a list of all entity IDs with times.
      */
-    public List<FindResult> getAll() throws IOException;
+    public FindResults getAll() throws IOException;
 
     /**
      * Returns a list of all entity IDs sorted descending by modify date.
      */
-    public List<FindResult> getAllSorted() throws IOException;
+    public FindResults getAllSorted() throws IOException;
 
     /**
      * Returns a list of all available video IDs that match the genre string
      * and their modification dates.
      */
-    public List<FindResult> getByGenreString(String genre) throws IOException;
+    public FindResults getByGenreString(String genre) throws IOException;
 
     /**
      * Returns a list of all available video IDs that match the genre string
      * sorted by descending modification date.
      */
-    public List<FindResult> getByGenreStringSorted(String genre) throws IOException;
+    public FindResults getByGenreStringSorted(String genre) throws IOException;
 
     /**
      * Get the time when a video with given ID has been last modified.

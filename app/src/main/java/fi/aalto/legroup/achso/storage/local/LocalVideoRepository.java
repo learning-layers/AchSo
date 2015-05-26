@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 import fi.aalto.legroup.achso.entities.Video;
@@ -40,7 +39,7 @@ public class LocalVideoRepository extends AbstractVideoRepository {
     }
 
     @Override
-    public List<FindResult> getAll() throws IOException {
+    public FindResults getAll() throws IOException {
 
         File[] manifests = storageDirectory.listFiles(new ManifestFileFilter());
 
@@ -53,7 +52,7 @@ public class LocalVideoRepository extends AbstractVideoRepository {
             results.add(new FindResult(getIdFromManifest(manifest), manifest.lastModified()));
         }
 
-        return results;
+        return new FindResults(results);
     }
 
     @Override

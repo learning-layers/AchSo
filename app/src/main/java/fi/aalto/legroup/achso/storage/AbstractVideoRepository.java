@@ -4,9 +4,6 @@ import com.squareup.otto.Bus;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 import java.util.UUID;
 
 import fi.aalto.legroup.achso.entities.Video;
@@ -20,35 +17,12 @@ public abstract class AbstractVideoRepository implements VideoInfoRepository, Vi
         this.bus = bus;
     }
 
-    /**
-     * Compares results based on their modification dates.
-     */
-    protected static final class FindResultComparator implements Comparator<FindResult> {
 
-        @Override
-        public int compare(FindResult left, FindResult right) {
-            // Room for improvement: this quick and dirty implementation calls File.lastModified()
-            // even if the value has previously been retrieved for that file.
-
-            long leftModified = left.getLastModified();
-            long rightModified = right.getLastModified();
-
-            if (leftModified > rightModified) {
-                return 1;
-            }
-            if (leftModified < rightModified) {
-                return -1;
-            }
-
-            return 0;
-        }
-
-    }
 
     /**
      * Returns a list of all available video IDs and their modification dates.
      */
-    public abstract List<FindResult> getAll() throws IOException;
+    public abstract FindResults getAll() throws IOException;
 
     /**
      * Get the time when a video with given ID has been last modified.
@@ -90,10 +64,10 @@ public abstract class AbstractVideoRepository implements VideoInfoRepository, Vi
     /**
      * Returns a list of all available video IDs sorted by descending modification date.
      */
-    public List<FindResult> getAllSorted() throws IOException {
+    public FindResults getAllSorted() throws IOException {
 
-        List<FindResult> results = getAll();
-        Collections.sort(results, new FindResultComparator());
+        FindResults results = getAll();
+        results.sort();
 
         return results;
     }
@@ -102,9 +76,9 @@ public abstract class AbstractVideoRepository implements VideoInfoRepository, Vi
      * Returns a list of all available video IDs that match the genre string
      * and their modification dates.
      */
-    public List<FindResult> getByGenreString(String genre) throws IOException {
+    public FindResults getByGenreString(String genre) throws IOException {
 
-        List<FindResult> results = getAll();
+        FindResults results = getAll();
         ArrayList<FindResult> matching = new ArrayList<>(results.size());
 
         for (FindResult result : results) {
@@ -114,17 +88,17 @@ public abstract class AbstractVideoRepository implements VideoInfoRepository, Vi
         }
         matching.trimToSize();
 
-        return matching;
+        return new FindResults(matching);
     }
 
     /**
      * Returns a list of all available video IDs that match the genre string
      * sorted by descending modification date.
      */
-    public List<FindResult> getByGenreStringSorted(String genre) throws IOException {
+    public FindResults getByGenreStringSorted(String genre) throws IOException {
 
-        List<FindResult> results = getByGenreString(genre);
-        Collections.sort(results, new FindResultComparator());
+        FindResults results = getByGenreString(genre);
+        results.sort();
 
         return results;
     }
