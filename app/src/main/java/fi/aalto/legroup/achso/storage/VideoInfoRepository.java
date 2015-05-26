@@ -15,8 +15,17 @@ import fi.aalto.legroup.achso.entities.VideoInfo;
  */
 public interface VideoInfoRepository {
 
+    /**
+     * Result type of doing queries for videos. In most cases the last modify date is easily
+     * obtained when iterating all the videos and it almost always used immediately afterwards so
+     * keep them stored together with the ids.
+     */
     class FindResult {
 
+        /**
+         * @param id           ID of the video manifest.
+         * @param lastModified UNIX timestamp of when the video manifest has been modified.
+         */
         public FindResult(UUID id, long lastModified) {
             this.id = id;
             this.lastModified = lastModified;
@@ -44,6 +53,7 @@ public interface VideoInfoRepository {
             long leftModified = left.getLastModified();
             long rightModified = right.getLastModified();
 
+            // Compare ascending date for default
             if (leftModified > rightModified) {
                 return 1;
             }
@@ -59,6 +69,10 @@ public interface VideoInfoRepository {
 
         private List<FindResult> results;
 
+        /**
+         * Create a new view into results with some useful methods
+         * @param results A reference to a list to use internally (NOTE: Not copied)
+         */
         public FindResults(List<FindResult> results) {
             this.results = results;
         }
@@ -88,10 +102,29 @@ public interface VideoInfoRepository {
             return results.set(location, object);
         }
 
-        public void sort() {
+        /**
+         * Sort the results from old to new
+         * NOTE: Modifies the underlying collection and returns self for performance! Clone first if
+         * you want to get a sorted version without sorting the original collection.
+         */
+        public FindResults sortAscending() {
             Collections.sort(results, new FindResultComparator());
+            return this;
         }
 
+        /**
+         * Sort the results from new to old
+         * NOTE: Modifies the underlying collection and returns self for performance! Clone first if
+         * you want to get a sorted version without sorting the original collection.
+         */
+        public FindResults sortDescending() {
+            Collections.sort(results, Collections.reverseOrder(new FindResultComparator()));
+            return this;
+        }
+
+        /**
+         * Get rid of the time data and return only the IDs.
+         */
         public List<UUID> getIDs() {
 
             List<UUID> ids = new ArrayList<>(size());
@@ -108,21 +141,10 @@ public interface VideoInfoRepository {
     public FindResults getAll() throws IOException;
 
     /**
-     * Returns a list of all entity IDs sorted descending by modify date.
-     */
-    public FindResults getAllSorted() throws IOException;
-
-    /**
      * Returns a list of all available video IDs that match the genre string
      * and their modification dates.
      */
     public FindResults getByGenreString(String genre) throws IOException;
-
-    /**
-     * Returns a list of all available video IDs that match the genre string
-     * sorted by descending modification date.
-     */
-    public FindResults getByGenreStringSorted(String genre) throws IOException;
 
     /**
      * Get the time when a video with given ID has been last modified.

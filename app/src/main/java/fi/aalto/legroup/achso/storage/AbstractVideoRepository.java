@@ -17,8 +17,6 @@ public abstract class AbstractVideoRepository implements VideoInfoRepository, Vi
         this.bus = bus;
     }
 
-
-
     /**
      * Returns a list of all available video IDs and their modification dates.
      */
@@ -53,24 +51,16 @@ public abstract class AbstractVideoRepository implements VideoInfoRepository, Vi
      * Invalidates the cached information object with the given ID.
      */
     public void invalidate(UUID id) {
+        // Do nothing for general case, only useful for caching repositories
     }
 
     /**
      * Invalidates the entire cache.
      */
     public void invalidateAll() {
+        // Do nothing for general case, only useful for caching repositories
     }
 
-    /**
-     * Returns a list of all available video IDs sorted by descending modification date.
-     */
-    public FindResults getAllSorted() throws IOException {
-
-        FindResults results = getAll();
-        results.sort();
-
-        return results;
-    }
 
     /**
      * Returns a list of all available video IDs that match the genre string
@@ -89,18 +79,6 @@ public abstract class AbstractVideoRepository implements VideoInfoRepository, Vi
         matching.trimToSize();
 
         return new FindResults(matching);
-    }
-
-    /**
-     * Returns a list of all available video IDs that match the genre string
-     * sorted by descending modification date.
-     */
-    public FindResults getByGenreStringSorted(String genre) throws IOException {
-
-        FindResults results = getByGenreString(genre);
-        results.sort();
-
-        return results;
     }
 }
 

@@ -136,8 +136,7 @@ public final class SearchActivity extends ActionBarActivity {
             }
         }
 
-        matching.sort();
-        this.matches.addAll(matching.getIDs());
+        this.matches.addAll(matching.sortDescending().getIDs());
         this.browserFragment.setVideos(this.matches);
     }
 
