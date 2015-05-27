@@ -13,7 +13,7 @@ public interface VideoRepository {
     /**
      * Returns an entity with the given ID.
      */
-    public Video get(UUID id) throws IOException;
+    public Video getVideo(UUID id) throws IOException;
 
     /**
      * Persists an entity, overwriting an existing one with the same ID if set.
@@ -24,5 +24,4 @@ public interface VideoRepository {
      * Deletes an entity with the given ID.
      */
     public void delete(UUID id) throws IOException;
-
 }

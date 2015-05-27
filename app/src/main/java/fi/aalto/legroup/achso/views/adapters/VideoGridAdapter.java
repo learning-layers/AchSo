@@ -66,7 +66,7 @@ public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapte
 
         try {
             UUID id = this.videoIds.get(position);
-            video = this.repository.get(id);
+            video = this.repository.getVideoInfo(id);
         } catch (IOException e) {
             e.printStackTrace();
             return;

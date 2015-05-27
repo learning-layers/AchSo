@@ -54,7 +54,7 @@ public class QRHelper {
         if (launchedForAdding) {
             for (UUID id : ids) {
                 try {
-                    Video video = App.videoRepository.get(id);
+                    Video video = App.videoRepository.getVideo(id);
                     video.setTag(code);
                     video.save();
                 } catch (IOException e) {
