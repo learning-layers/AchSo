@@ -40,6 +40,9 @@ public class OwnCloudVideoRepository extends AbstractVideoRepository {
     protected JsonSerializer serializer;
     protected Uri endpointUrl;
 
+    protected static final SimpleDateFormat davDateFormat
+            = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
+
     @Root
     class DAVPropfindXML {
 
@@ -131,11 +134,11 @@ public class OwnCloudVideoRepository extends AbstractVideoRepository {
                 continue;
             }
 
-            SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
+
             Date date = null;
 
             try {
-                date = dateFormat.parse(propResponse.getLastModified());
+                date = davDateFormat.parse(propResponse.getLastModified());
             } catch (ParseException e) {
                 throw new IOException("Invalid response XML: " + e.getMessage(), e);
             }
@@ -182,11 +185,10 @@ public class OwnCloudVideoRepository extends AbstractVideoRepository {
 
         DAVPropfindResponseXML propResponse = propRoot.getResponses().get(0);
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss zzz");
         Date date = null;
 
         try {
-            date = dateFormat.parse(propResponse.getLastModified());
+            date = davDateFormat.parse(propResponse.getLastModified());
         } catch (ParseException e) {
             throw new IOException("Invalid response XML: " + e.getMessage(), e);
         }
