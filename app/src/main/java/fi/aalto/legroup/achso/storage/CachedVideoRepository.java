@@ -110,8 +110,7 @@ public class CachedVideoRepository extends AbstractVideoRepository {
 
     /**
      * Videos in the cache whose timestamp is older than this should be considered outdated and
-     * need
-     * to be re-cached.
+     * need to be re-cached.
      */
     protected long getCacheExpireTime() {
 
@@ -120,9 +119,7 @@ public class CachedVideoRepository extends AbstractVideoRepository {
 
     /**
      * Try to find a video from the cache and add it if not found, does not prefetch because
-     * usually
-     * when this is called
-     * we want to find the VideoInfo or Video immediately afterwards.
+     * usually when this is called we want to find the VideoInfo or Video immediately afterwards.
      */
     protected CacheEntry getOrCache(UUID id) throws IOException {
 
