@@ -74,7 +74,6 @@
 -keep class * extends java.util.ListResourceBundle {
     protected Object[][] getContents();
 }
-
 -keep public class com.google.android.gms.common.internal.safeparcel.SafeParcelable {
     public static final *** NULL;
 }
@@ -86,6 +85,14 @@
 
 -keepnames class * implements android.os.Parcelable {
     public static final ** CREATOR;
+}
+
+
+#####
+# SimpleXML
+-keep class org.simpleframework.xml.** { *; }
+-keepclasseswithmembers class * {
+    @org.simpleframework.* *;
 }
 
 # If your project uses WebView with JS, uncomment the following

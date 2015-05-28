@@ -12,7 +12,6 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,7 +27,8 @@ public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapte
     private LayoutInflater inflater;
     private VideoInfoRepository repository;
 
-    private List<UUID> videoIds = Collections.emptyList();
+    //private List<UUID> videoIds = Collections.emptyList();
+    private List<VideoInfo> videos = Collections.emptyList();
 
     private List<Integer> selectedItems = new ArrayList<>();
     private List<Integer> itemsInProgress = new ArrayList<>();
@@ -47,7 +47,6 @@ public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapte
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        VideoInfo video;
 
         ProgressBar progressBar = holder.getProgressBar();
         View selectionOverlay = holder.getSelectionOverlay();
@@ -64,42 +63,48 @@ public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapte
             selectionOverlay.setVisibility(View.GONE);
         }
 
-        try {
-            UUID id = this.videoIds.get(position);
-            video = this.repository.getVideoInfo(id);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        }
+        if (position < this.videos.size()) {
+            VideoInfo video = this.videos.get(position);
 
-        holder.getTitleText().setText(video.getTitle());
-        holder.getGenreText().setText(video.getGenre());
+            holder.getTitleText().setText(video.getTitle());
+            holder.getGenreText().setText(video.getGenre());
 
-        Uri thumbUri = video.getThumbUri();
-        ImageView thumbImage = holder.getThumbImage();
+            Uri thumbUri = video.getThumbUri();
+            ImageView thumbImage = holder.getThumbImage();
 
-        Picasso.with(this.context).load(thumbUri).into(thumbImage);
+            Picasso.with(this.context).load(thumbUri).into(thumbImage);
 
-        if (video.isLocal()) {
-            holder.getUploadIndicator().setImageAlpha(0x80);
-            holder.getUploadIndicator().setImageResource(R.drawable.ic_cloud_off_white_24dp);
+            if (video.isLocal()) {
+                holder.getUploadIndicator().setImageAlpha(0x80);
+                holder.getUploadIndicator().setImageResource(R.drawable.ic_cloud_off_white_24dp);
+            } else {
+                holder.getUploadIndicator().setImageAlpha(0xFF);
+                holder.getUploadIndicator().setImageResource(R.drawable.ic_cloud_done_white_24dp);
+            }
         } else {
-            holder.getUploadIndicator().setImageAlpha(0xFF);
-            holder.getUploadIndicator().setImageResource(R.drawable.ic_cloud_done_white_24dp);
+            holder.getTitleText().setText("Loading");
+            holder.getGenreText().setText("Loading");
         }
     }
 
     @Override
     public int getItemCount() {
-        return this.videoIds.size();
+        return this.videos.size();
     }
 
-    public UUID getItem(int position) {
-        return this.videoIds.get(position);
+    public VideoInfo getItem(int position) {
+        return this.videos.get(position);
     }
 
-    public void setItems(List<UUID> videoIds) {
-        this.videoIds = videoIds;
+    /*
+       public void setItems(List<UUID> videoIds) {
+       this.videoIds = videoIds;
+       notifyDataSetChanged();
+       }
+       */
+
+    public void setVideos(List<VideoInfo> videos) {
+        this.videos = videos;
         notifyDataSetChanged();
     }
 
@@ -137,20 +142,30 @@ public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapte
         return this.itemsInProgress.contains(position);
     }
 
+    public int videoIndex(UUID id) {
+        for (int i = 0; i < this.videos.size(); i++) {
+            if (this.videos.get(i).getId() == id)
+                return i;
+        }
+        return -1;
+    }
+
     public void showProgress(UUID videoId) {
-        Integer position = this.videoIds.indexOf(videoId);
+        Integer position = videoIndex(videoId);
 
-        this.itemsInProgress.add(position);
-
-        notifyItemChanged(position);
+        if (position >= 0) {
+            this.itemsInProgress.add(position);
+            notifyItemChanged(position);
+        }
     }
 
     public void hideProgress(UUID videoId) {
-        Integer position = this.videoIds.indexOf(videoId);
+        Integer position = videoIndex(videoId);
 
-        this.itemsInProgress.remove(position);
-
-        notifyItemChanged(position);
+        if (position >= 0) {
+            this.itemsInProgress.remove(position);
+            notifyItemChanged(position);
+        }
     }
 
     protected static final class ViewHolder extends RecyclerView.ViewHolder {

@@ -43,10 +43,12 @@ public class OwnCloudVideoRepository extends AbstractVideoRepository {
     protected static final SimpleDateFormat davDateFormat
             = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
 
-    @Root
-    class DAVPropfindXML {
+    @Root(strict=false)
+    @Namespace(reference="DAV:", prefix="d")
+    static class DAVPropfindXML {
 
         @ElementList(inline=true)
+        @Namespace(reference="DAV:", prefix="d")
         private List<DAVPropfindResponseXML> responses;
 
         List<DAVPropfindResponseXML> getResponses() {
@@ -54,17 +56,17 @@ public class OwnCloudVideoRepository extends AbstractVideoRepository {
         }
     };
 
-    @Root
+    @Root(name="response", strict=false)
     @Namespace(reference="DAV:", prefix="d")
-    class DAVPropfindResponseXML {
+    static class DAVPropfindResponseXML {
 
         @Element
-        @Namespace(reference="DAV:")
+        @Namespace(reference="DAV:", prefix="d")
         private String href;
 
         @Element
         @Path("d:propstat/d:prop")
-        @Namespace(reference="DAV:")
+        @Namespace(reference="DAV:", prefix="d")
         private String getlastmodified;
 
         String getHref() { return href; }

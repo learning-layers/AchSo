@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 
 import com.melnykov.fab.ScrollDirectionListener;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -18,7 +17,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import fi.aalto.legroup.achso.R;
-import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.browsing.BrowserFragment;
 import fi.aalto.legroup.achso.views.utilities.ScrollDirectionListenable;
 
@@ -111,15 +109,15 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
 
             if (item instanceof BrowserFragment) {
                 int position = entry.getKey();
-                List<UUID> videos = getVideosForPosition(position);
+                //List<UUID> videos = getVideosForPosition(position);
 
-                ((BrowserFragment) item).setVideos(videos);
+                //((BrowserFragment) item).setVideos(videos);
             }
         }
     }
 
     private List<UUID> getVideosForPosition(int position) {
-        switch (position) {
+        /*switch (position) {
             case 0:
                 try {
                     return App.videoInfoRepository.getAll().sortDescending().getIDs();
@@ -136,7 +134,7 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
                     e.printStackTrace();
                     break;
                 }
-        }
+        }*/
 
         return Collections.emptyList();
     }

@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.GridLayoutManager;
@@ -31,18 +33,21 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.authoring.QRHelper;
 import fi.aalto.legroup.achso.authoring.VideoDeletionFragment;
+import fi.aalto.legroup.achso.binding.adapters.VideoGridAdapter;
+import fi.aalto.legroup.achso.binding.loaders.VideoGridLoader;
+import fi.aalto.legroup.achso.entities.VideoInfo;
 import fi.aalto.legroup.achso.playback.PlayerActivity;
 import fi.aalto.legroup.achso.storage.local.ExportService;
 import fi.aalto.legroup.achso.storage.remote.UploadErrorEvent;
 import fi.aalto.legroup.achso.storage.remote.UploadService;
 import fi.aalto.legroup.achso.storage.remote.UploadStateEvent;
 import fi.aalto.legroup.achso.views.RecyclerItemClickListener;
-import fi.aalto.legroup.achso.binding.adapters.VideoGridAdapter;
 import fi.aalto.legroup.achso.views.utilities.DimensionUnits;
 import fi.aalto.legroup.achso.views.utilities.ScrollDirectionListenable;
 
 public final class BrowserFragment extends Fragment implements ActionMode.Callback,
-        RecyclerItemClickListener.OnItemClickListener, ScrollDirectionListenable {
+        RecyclerItemClickListener.OnItemClickListener, ScrollDirectionListenable,
+        LoaderManager.LoaderCallbacks<List<VideoInfo>> {
 
     private Bus bus;
 
@@ -73,6 +78,9 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
 
         // TODO: Inject instead
         this.bus = App.bus;
+
+        getLoaderManager().enableDebugLogging(true);
+        getLoaderManager().initLoader(0, null, this);
     }
 
     @Override
@@ -98,7 +106,7 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
 
         this.adapter = new VideoGridAdapter(getActivity(), App.videoInfoRepository);
         this.adapter.registerAdapterDataObserver(new PlaceholderDataObserver());
-        this.adapter.setItems(videos);
+        //this.adapter.setItems(videos);
 
         grid.setHasFixedSize(true);
         grid.setAdapter(this.adapter);
@@ -198,7 +206,7 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
         this.videos = videos;
 
         if (this.adapter != null) {
-            this.adapter.setItems(videos);
+            //this.adapter.setItems(videos);
         }
     }
 
@@ -236,8 +244,9 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
         List<UUID> items = new ArrayList<>();
 
         for (int position : positions) {
-            UUID item = this.adapter.getItem(position);
-            items.add(item);
+            VideoInfo item = this.adapter.getItem(position);
+            if (item != null)
+                items.add(item.getId());
         }
 
         return items;
@@ -262,10 +271,12 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
 
     private void showVideo(int position) {
         Intent detailIntent = new Intent(getActivity(), PlayerActivity.class);
-        UUID id = this.adapter.getItem(position);
+        VideoInfo video = this.adapter.getItem(position);
 
-        detailIntent.putExtra(PlayerActivity.ARG_VIDEO_ID, id);
+        if (video == null)
+            return;
 
+        detailIntent.putExtra(PlayerActivity.ARG_VIDEO_ID, video.getId());
         startActivity(detailIntent);
     }
 
@@ -282,6 +293,25 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
     public void setScrollDirectionListener(@Nullable ScrollDirectionListener listener) {
         this.scrollListener = listener;
     }
+
+    @Override
+    public Loader<List<VideoInfo>> onCreateLoader(int id, Bundle args) {
+
+        return new VideoGridLoader(getActivity());
+    }
+
+    @Override
+    public void onLoadFinished(Loader<List<VideoInfo>> loader,
+            List<VideoInfo> data) {
+
+        adapter.setVideos(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<List<VideoInfo>> loader) {
+
+    }
+
 
     /**
      * Shows or hides the placeholder text appropriately when the adapter items change.
