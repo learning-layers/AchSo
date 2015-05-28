@@ -37,7 +37,7 @@ import fi.aalto.legroup.achso.storage.remote.UploadErrorEvent;
 import fi.aalto.legroup.achso.storage.remote.UploadService;
 import fi.aalto.legroup.achso.storage.remote.UploadStateEvent;
 import fi.aalto.legroup.achso.views.RecyclerItemClickListener;
-import fi.aalto.legroup.achso.views.adapters.VideoGridAdapter;
+import fi.aalto.legroup.achso.binding.adapters.VideoGridAdapter;
 import fi.aalto.legroup.achso.views.utilities.DimensionUnits;
 import fi.aalto.legroup.achso.views.utilities.ScrollDirectionListenable;
 

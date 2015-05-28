@@ -42,7 +42,7 @@ import fi.aalto.legroup.achso.settings.SettingsActivity;
 import fi.aalto.legroup.achso.storage.VideoRepositoryUpdatedEvent;
 import fi.aalto.legroup.achso.utilities.BaseActivity;
 import fi.aalto.legroup.achso.utilities.ProgressDialogFragment;
-import fi.aalto.legroup.achso.views.adapters.VideoTabAdapter;
+import fi.aalto.legroup.achso.binding.adapters.VideoTabAdapter;
 
 /**
  * Activity for browsing available videos.

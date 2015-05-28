@@ -27,7 +27,7 @@ import fi.aalto.legroup.achso.storage.AbstractVideoRepository;
 import fi.aalto.legroup.achso.storage.CachedVideoRepository;
 import fi.aalto.legroup.achso.storage.VideoInfoRepository;
 import fi.aalto.legroup.achso.storage.VideoRepository;
-import fi.aalto.legroup.achso.storage.local.LocalVideoRepository;
+import fi.aalto.legroup.achso.storage.remote.OwnCloudVideoRepository;
 import fi.aalto.legroup.achso.storage.remote.strategies.ClViTra2Strategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.SssStrategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.Strategy;

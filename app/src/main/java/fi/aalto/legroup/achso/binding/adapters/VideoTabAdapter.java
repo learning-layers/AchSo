@@ -1,4 +1,4 @@
-package fi.aalto.legroup.achso.views.adapters;
+package fi.aalto.legroup.achso.binding.adapters;
 
 import android.content.Context;
 import android.support.annotation.Nullable;
