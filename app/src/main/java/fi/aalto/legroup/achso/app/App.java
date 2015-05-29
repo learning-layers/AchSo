@@ -95,7 +95,11 @@ public final class App extends MultiDexApplication
 
         jsonSerializer = new JsonSerializer();
 
-        localVideoRepository = new CachedVideoRepository(bus, new LocalVideoRepository(bus, jsonSerializer, localStorageDirectory));
+        Uri ownCloudUrl = Uri.parse(getString(R.string.ownCloudUrl));
+        OwnCloudVideoRepository ownCloudRepo = new OwnCloudVideoRepository(bus, jsonSerializer, ownCloudUrl);
+
+        // HACK: Store the ownCloud repository as the local one
+        localVideoRepository = new CachedVideoRepository(bus, ownCloudRepo);
         videoRepository = localVideoRepository;
         videoInfoRepository = localVideoRepository;
 
