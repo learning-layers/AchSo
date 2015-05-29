@@ -257,10 +257,7 @@ public class CachedVideoRepository extends AbstractVideoRepository {
 
     @Override
     public void invalidateAll() {
-
-        // Force to re-cache the index next time
-        indexCacheTime = 0;
-
+        
         // There's no need to remove the cache, this checks if the videos are outdated and
         // fetches only the outdated ones
         try {
@@ -268,8 +265,10 @@ public class CachedVideoRepository extends AbstractVideoRepository {
         } catch (IOException e) {
 
             // If the updating of the cache somehow fails invalidate it by clearing
-            indexCacheTime = 0;
             cache.clear();
+
+            // Force to re-cache the index next time
+            indexCacheTime = 0;
         }
     }
 }
