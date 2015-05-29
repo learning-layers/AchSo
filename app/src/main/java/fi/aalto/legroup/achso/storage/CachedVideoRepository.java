@@ -31,7 +31,7 @@ public class CachedVideoRepository extends AbstractVideoRepository {
      * 2. VideoInfo structure
      * 3. Video structure
      */
-    protected class CacheEntry {
+    protected static class CacheEntry {
 
         public CacheEntry(long cacheTime, long lastModified) {
             this.cacheTime = cacheTime;

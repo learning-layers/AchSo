@@ -65,7 +65,7 @@ public interface VideoInfoRepository {
         }
 
     }
-    class FindResults extends AbstractList<FindResult> {
+    public static class FindResults extends AbstractList<FindResult> {
 
         private List<FindResult> results;
 
