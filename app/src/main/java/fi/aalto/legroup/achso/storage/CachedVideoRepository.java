@@ -3,6 +3,7 @@ package fi.aalto.legroup.achso.storage;
 import com.squareup.otto.Bus;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,8 +54,8 @@ public class CachedVideoRepository extends AbstractVideoRepository {
 
         public Video getVideo() { return video; }
 
-        public boolean isCacheTimeOlderThan(long modified) {
-            return lastModified < modified;
+        public boolean isCacheTimeOlderThan(long time) {
+            return cacheTime < time;
         }
 
         public boolean isModifyTimeOlderThan(long modified) {
@@ -86,7 +87,8 @@ public class CachedVideoRepository extends AbstractVideoRepository {
 
     protected Map<UUID, CacheEntry> cache = new HashMap<>();
     protected PrefetchLevel prefetchLevel = PrefetchLevel.PREFETCH_VIDEO_INFO;
-    protected long expireDuration = 60 * 5;
+    protected long expireDuration = 60 * 5 * 1000;
+    protected long indexCacheTime = 0;
 
     public CachedVideoRepository(Bus bus, AbstractVideoRepository inner) {
         super(bus);
@@ -168,11 +170,26 @@ public class CachedVideoRepository extends AbstractVideoRepository {
 
         }
 
+
+        indexCacheTime = getTime();
+
         return results;
     }
 
     @Override
     public FindResults getAll() throws IOException {
+
+        // Cache is still valid, iterate through it
+        if (indexCacheTime >= getCacheExpireTime()) {
+            
+            ArrayList<FindResult> results = new ArrayList<>(cache.size());
+            for (Map.Entry<UUID, CacheEntry> mapEntry : cache.entrySet()) {
+                UUID id = mapEntry.getKey();
+                CacheEntry cacheEntry = mapEntry.getValue();
+                results.add(new FindResult(id, cacheEntry.getLastModified()));
+            }
+            return new FindResults(results);
+        }
 
         return updateCache();
     }
@@ -232,11 +249,17 @@ public class CachedVideoRepository extends AbstractVideoRepository {
     @Override
     public void invalidate(UUID id) {
 
+        // Force to re-cache the index next time
+        indexCacheTime = 0;
+
         cache.remove(id);
     }
 
     @Override
     public void invalidateAll() {
+
+        // Force to re-cache the index next time
+        indexCacheTime = 0;
 
         // There's no need to remove the cache, this checks if the videos are outdated and
         // fetches only the outdated ones
@@ -245,6 +268,7 @@ public class CachedVideoRepository extends AbstractVideoRepository {
         } catch (IOException e) {
 
             // If the updating of the cache somehow fails invalidate it by clearing
+            indexCacheTime = 0;
             cache.clear();
         }
     }
