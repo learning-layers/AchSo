@@ -4,6 +4,7 @@ import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.graphics.PointF;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
@@ -125,6 +126,40 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         App.bus.register(this);
     }
 
+    /**
+     * Asynchronoysly gets the video manifest data from the repository.
+     */
+    private class FetchVideoTask extends AsyncTask<UUID, Void, Video> {
+
+        private IOException exception;
+
+        @Override
+        protected Video doInBackground(UUID... ids) {
+            if (ids.length != 1) {
+                String format = "GetVideoTask expects one argument, %d provided";
+                throw new IllegalArgumentException(String.format(format, ids.length));
+            }
+
+            UUID id = ids[0];
+
+            try {
+                return App.videoRepository.getVideo(id);
+            } catch (IOException e) {
+                exception = e;
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Video video) {
+            if (video != null) {
+                onVideoFetchSuccess(video);
+            } else {
+                onVideoFetchFail(exception);
+            }
+        }
+    }
+
     @Override
     protected void onResumeFragments() {
         super.onResumeFragments();
@@ -139,21 +174,27 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
             videoId = (UUID) getIntent().getSerializableExtra(ARG_VIDEO_ID);
         }
 
-        try {
-            video = App.videoRepository.getVideo(videoId);
-            populateVideoInformation();
-        } catch (IOException e) {
-            e.printStackTrace();
-            SnackbarManager.show(Snackbar.with(this).text(R.string.storage_error));
-            finish();
-            return;
-        }
+        // Get the video asynchronously as it may do networking, when found control flow returns to
+        // - onVideoFetchSuccess, if the video is found
+        // - onVideoFetchFail, if there was an IOException
+        new FetchVideoTask().execute(videoId);
+    }
+
+    protected void onVideoFetchSuccess(Video video) {
+        this.video = video;
+        populateVideoInformation();
 
         playerFragment = (PlayerFragment)
                 getFragmentManager().findFragmentById(R.id.videoPlayerFragment);
 
         playerFragment.setListener(this);
         playerFragment.prepare(video.getVideoUri(), this);
+    }
+
+    protected void onVideoFetchFail(IOException e) {
+        e.printStackTrace();
+        SnackbarManager.show(Snackbar.with(this).text(R.string.storage_error));
+        finish();
     }
 
     @Override
