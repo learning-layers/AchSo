@@ -57,6 +57,8 @@ public class VideoGridLoader extends AsyncTaskLoader<List<VideoInfo>> {
             for (UUID id : ids) {
 
                 // Only load if this thread is the newest loading task
+                if (newestLoadIndex.get() != loadIndex)
+                    return Collections.emptyList();
 
                 VideoInfo info = repo.getVideoInfo(id);
                 infos.add(info);
