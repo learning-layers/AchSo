@@ -37,6 +37,7 @@ import fi.aalto.legroup.achso.binding.adapters.VideoGridAdapter;
 import fi.aalto.legroup.achso.binding.loaders.VideoGridLoader;
 import fi.aalto.legroup.achso.entities.VideoInfo;
 import fi.aalto.legroup.achso.playback.PlayerActivity;
+import fi.aalto.legroup.achso.storage.VideoRepositoryUpdatedEvent;
 import fi.aalto.legroup.achso.storage.local.ExportService;
 import fi.aalto.legroup.achso.storage.remote.UploadErrorEvent;
 import fi.aalto.legroup.achso.storage.remote.UploadService;
@@ -58,15 +59,24 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
     private VideoGridAdapter adapter;
     private ActionMode actionMode;
 
+    private String genreName = "";
+
     @Nullable
     private ScrollDirectionListener scrollListener;
 
-    public static BrowserFragment newInstance(List<UUID> videos) {
+    public static BrowserFragment newInstance(String genreName) {
         BrowserFragment fragment = new BrowserFragment();
 
-        fragment.setVideos(videos);
+        fragment.genreName = genreName;
 
         return fragment;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        getLoaderManager().initLoader(0, null, this);
     }
 
     @Override
@@ -78,9 +88,6 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
 
         // TODO: Inject instead
         this.bus = App.bus;
-
-        getLoaderManager().enableDebugLogging(true);
-        getLoaderManager().initLoader(0, null, this);
     }
 
     @Override
@@ -297,14 +304,15 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
     @Override
     public Loader<List<VideoInfo>> onCreateLoader(int id, Bundle args) {
 
-        return new VideoGridLoader(getActivity());
+        return new VideoGridLoader(getActivity(), genreName);
     }
 
     @Override
     public void onLoadFinished(Loader<List<VideoInfo>> loader,
             List<VideoInfo> data) {
 
-        adapter.setVideos(data);
+        if (adapter != null)
+            adapter.setVideos(data);
     }
 
     @Override
@@ -312,6 +320,10 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
 
     }
 
+    @Subscribe
+    public void onVideoRepositoryUpdated(VideoRepositoryUpdatedEvent event) {
+        getLoaderManager().getLoader(0).forceLoad();
+    }
 
     /**
      * Shows or hides the placeholder text appropriately when the adapter items change.

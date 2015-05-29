@@ -52,10 +52,21 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
         return String.valueOf(position);
     }
 
+    public String getGenreNameForPosition(int position) {
+        switch (position) {
+            case 0:
+                return "";
+
+            default:
+                return tabNames.get(position);
+
+        }
+    }
+
     @Override
     public Fragment getItem(int position) {
-        List<UUID> videos = getVideosForPosition(position);
-        return BrowserFragment.newInstance(videos);
+        //List<UUID> videos = getVideosForPosition(position);
+        return BrowserFragment.newInstance(getGenreNameForPosition(position));
     }
 
     @Override
