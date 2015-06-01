@@ -102,6 +102,7 @@ public class OptimizedVideo {
          */
         public PooledVideo(int annotationCountHint) {
             video = new Video();
+            video.setLocation(new Location("pooled"));
             reserveAnnotations(annotationCountHint);
         }
 
@@ -188,12 +189,15 @@ public class OptimizedVideo {
 
     /**
      * Inflate the optimized video data into a heavier Video object.
+     * Does not allocate if:
+     *   - pooled has enough annotation capacity
+     *   - pooled video has location object
+     *   - every annotation has position object
      *
      * @param pooled The pooled video object to use for this, it has only one internal Video object
      *               so for every alive Video object there should be a PooledVideo. If the Video
      *               isn't needed anymore you can safely use the PooledVideo again to retrieve a
-     *               new
-     *               Video without having to allocate it.
+     *               new Video without having to allocate it.
      */
     public Video inflate(PooledVideo pooled) {
 
@@ -214,7 +218,7 @@ public class OptimizedVideo {
 
         Location location = video.getLocation();
         if (location == null) {
-            location = new Location("cached");
+            location = new Location("inflated");
             video.setLocation(location);
         }
         location.setLatitude(locationLatitude);
