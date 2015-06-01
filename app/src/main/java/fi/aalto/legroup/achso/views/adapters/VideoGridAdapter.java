@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.UUID;
 
 import fi.aalto.legroup.achso.R;
-import fi.aalto.legroup.achso.entities.VideoInfo;
+import fi.aalto.legroup.achso.entities.OptimizedVideo;
 import fi.aalto.legroup.achso.storage.VideoInfoRepository;
 
 public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapter.ViewHolder> {
@@ -47,7 +47,7 @@ public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapte
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        VideoInfo video;
+        OptimizedVideo video;
 
         ProgressBar progressBar = holder.getProgressBar();
         View selectionOverlay = holder.getSelectionOverlay();
@@ -66,7 +66,7 @@ public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapte
 
         try {
             UUID id = this.videoIds.get(position);
-            video = this.repository.getVideoInfo(id);
+            video = this.repository.getVideo(id);
         } catch (IOException e) {
             e.printStackTrace();
             return;

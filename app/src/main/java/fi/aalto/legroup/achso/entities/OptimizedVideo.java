@@ -5,6 +5,7 @@ import android.location.Location;
 import android.net.Uri;
 import android.util.Log;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -66,6 +67,82 @@ public class OptimizedVideo {
         }
         userPool.add(user);
         return user;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getGenre() {
+        return genre;
+    }
+
+    public Uri getVideoUri() {
+        return Uri.parse(videoUri);
+    }
+
+    public Uri getThumbUri() {
+        return Uri.parse(thumbUri);
+    }
+
+    public Uri getManifestUri() {
+        return Uri.parse(manifestUri);
+    }
+
+    public Location getLocation() {
+        Location location = new Location("optimized getter");
+        location.setLatitude(locationLatitude);
+        location.setLongitude(locationLongitude);
+        location.setAccuracy(locationAccuracy);
+        return location;
+    }
+
+    public String getTag() {
+        return tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
+    }
+
+    public int getAnnotationCount() {
+        return annotationTime.length;
+    }
+
+    public String getAnnotationText(int i) {
+        return annotationText[i];
+    }
+
+    public boolean isLocal() {
+        Uri videoUri = getVideoUri();
+
+        // Uris without a scheme are assumed to be local
+        if (videoUri.isRelative()) {
+            return true;
+        }
+
+        String scheme = videoUri.getScheme().trim().toLowerCase();
+
+        switch (scheme) {
+            case "file":
+            case "content":
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    public boolean isRemote() {
+        return !isLocal();
     }
 
     /**
@@ -281,6 +358,16 @@ public class OptimizedVideo {
      */
     public Video inflateNew() {
         return inflate(new PooledVideo(annotationTime.length));
+    }
+
+    public boolean save() {
+        try {
+            this.repository.save(this);
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }
 

@@ -8,6 +8,7 @@ import com.squareup.otto.Bus;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
@@ -21,6 +22,7 @@ import fi.aalto.legroup.achso.storage.VideoRepositoryUpdatedEvent;
 public class OptimizedLocalVideoRepository extends AbstractVideoRepository {
 
     private HashMap<UUID, OptimizedVideo> videos;
+    private ArrayList<FindResult> allResults;
     private static final OptimizedVideo.PooledVideo savePool = new OptimizedVideo.PooledVideo();
 
     protected JsonSerializer serializer;
@@ -41,6 +43,7 @@ public class OptimizedLocalVideoRepository extends AbstractVideoRepository {
             throw new IOException("Couldn't list files in " + storageDirectory);
         }
 
+        allResults = new ArrayList<>(manifests.length);
         for (File manifest : manifests) {
 
             Video video = serializer.load(Video.class, manifest.toURI());
@@ -51,8 +54,9 @@ public class OptimizedLocalVideoRepository extends AbstractVideoRepository {
 
             OptimizedVideo optimized = new OptimizedVideo(video);
             videos.put(optimized.getId(), optimized);
-        }
 
+            allResults.add(new FindResult(getIdFromManifest(manifest), manifest.lastModified()));
+        }
     }
 
     protected File getManifestFromId(UUID id) {
@@ -62,6 +66,11 @@ public class OptimizedLocalVideoRepository extends AbstractVideoRepository {
     private UUID getIdFromManifest(File manifest) {
         String basename = Files.getNameWithoutExtension(manifest.getName());
         return UUID.fromString(basename);
+    }
+
+    @Override
+    public FindResults getAll() throws IOException {
+        return new FindResults(allResults);
     }
 
     @Override
