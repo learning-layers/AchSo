@@ -159,7 +159,13 @@ public class OptimizedVideo {
         thumbUri = video.getThumbUri().toString();
         id = video.getId();
         title = video.getTitle();
+
         genre = video.getGenre();
+        if (genre != null) {
+            // Intern genres because there are only a few options for the field
+            genre = genre.intern();
+        }
+
         tag = video.getTag();
         dateInMs = video.getDate().getTime();
         author = internUser(video.getAuthor());
