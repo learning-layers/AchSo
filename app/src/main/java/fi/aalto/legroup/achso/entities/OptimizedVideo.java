@@ -14,7 +14,7 @@ import java.util.UUID;
 import fi.aalto.legroup.achso.storage.VideoRepository;
 
 /**
- * Store videos in a more GC friendly way. Should be equivaent with the Video class.
+ * Store videos in a more GC friendly way. Should be equivalent with the Video class.
  * You should use this class directly as much as possible and inflating to Video only when necessary.
  *
  * These should round trip:
