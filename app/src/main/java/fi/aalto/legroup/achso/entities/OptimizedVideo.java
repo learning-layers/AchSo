@@ -3,6 +3,7 @@ package fi.aalto.legroup.achso.entities;
 import android.graphics.PointF;
 import android.location.Location;
 import android.net.Uri;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -31,6 +32,7 @@ public class OptimizedVideo {
     private String genre;
     private String tag;
     private long dateInMs;
+    private long lastModifiedInMs;
     private User author;
     private double locationLatitude;
     private double locationLongitude;
@@ -52,6 +54,11 @@ public class OptimizedVideo {
      */
     public static User internUser(User user) {
 
+        // Nulls are unique as-is
+        if (user == null) {
+            return null;
+        }
+
         // TODO: This could be changed to a set?
         for (User u : userPool) {
             if (u.equals(user))
@@ -69,9 +76,20 @@ public class OptimizedVideo {
      * allocate annotations if it has enough storage for them. Otherwise it will allocate more
      * storage.
      */
-    public class PooledVideo {
+    public static class PooledVideo {
         private Video video;
         private ArrayList<Annotation> annotations;
+        private boolean inUse;
+
+        private static final int defaultAnnotationCount = 32;
+        private static final String TAG = PooledVideo.class.getSimpleName();
+
+        /**
+         * Create a new pooled Video instance with a default annotation capacity.
+         */
+        public PooledVideo() {
+            this(defaultAnnotationCount);
+        }
 
         /**
          * Create a new pooled Video instance.
@@ -108,7 +126,15 @@ public class OptimizedVideo {
         }
 
         /**
+         * Is the Video object of this pooled instance still in use.
+         */
+        public boolean isInUse() {
+            return inUse;
+        }
+
+        /**
          * Create the real Video object with the specified annotation count.
+         * Note: You should call free() after you are done with the video object.
          *
          * @param annotationCount How many annotations should the video contains. Does not allocate
          *                        if `annotationCount` is less or equal than
@@ -117,10 +143,25 @@ public class OptimizedVideo {
          */
         public Video create(int annotationCount) {
 
+            if (inUse) {
+                // Fallback
+                Log.w(TAG, "Created a new Video object from pool (old wasn't released)");
+                return new PooledVideo(annotationCount).create(annotationCount);
+            }
+
             reserveAnnotations(annotationCount);
             List<Annotation> subAnn = annotations.subList(0, annotationCount);
             video.setAnnotations(subAnn);
             return video;
+        }
+
+        /**
+         * Mark that the Video can be re-used from this pool safely again.
+         */
+        public void free() {
+
+            // Can be re-used safely again.
+            inUse = false;
         }
     };
 
@@ -148,6 +189,7 @@ public class OptimizedVideo {
 
         tag = video.getTag();
         dateInMs = video.getDate().getTime();
+        lastModifiedInMs = video.getLastModified().getTime();
         author = internUser(video.getAuthor());
 
         Location location = video.getLocation();
@@ -200,6 +242,7 @@ public class OptimizedVideo {
         video.setGenre(genre);
         video.setTag(tag);
         video.setDate(new Date(dateInMs));
+        video.setLastModified(new Date(lastModifiedInMs));
         video.setAuthor(author);
 
         Location location = video.getLocation();

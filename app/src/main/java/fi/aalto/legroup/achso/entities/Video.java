@@ -19,6 +19,7 @@ import fi.aalto.legroup.achso.storage.VideoRepository;
 public class Video extends VideoInfo implements JsonSerializable {
 
     protected transient VideoRepository repository;
+    protected transient Date lastModified;
 
     protected User author;
     protected Location location;
@@ -103,6 +104,14 @@ public class Video extends VideoInfo implements JsonSerializable {
 
     public void setLocation(Location location) {
         this.location = location;
+    }
+
+    public Date getLastModified() {
+        return this.lastModified;
+    }
+
+    public void setLastModified(Date lastModified) {
+        this.lastModified = lastModified;
     }
 
     public List<Annotation> getAnnotations() {
