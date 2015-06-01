@@ -39,6 +39,7 @@ public class OptimizedVideo {
     private double locationLongitude;
     private float locationAccuracy;
     private boolean hasLocation;
+    private boolean hasLastModified;
 
     // Annotations
     // X and Y coordinates are stored in interleaved pairs
@@ -296,7 +297,10 @@ public class OptimizedVideo {
 
         tag = video.getTag();
         dateInMs = video.getDate().getTime();
-        lastModifiedInMs = video.getLastModified().getTime();
+        if (video.getLastModified() != null) {
+            hasLastModified = true;
+            lastModifiedInMs = video.getLastModified().getTime();
+        }
         author = internUser(video.getAuthor());
 
         Location location = video.getLocation();
@@ -353,7 +357,11 @@ public class OptimizedVideo {
         video.setGenre(genre);
         video.setTag(tag);
         video.setDate(new Date(dateInMs));
-        video.setLastModified(new Date(lastModifiedInMs));
+        if (hasLastModified) {
+            video.setLastModified(new Date(lastModifiedInMs));
+        } else {
+            video.setLastModified(null);
+        }
         video.setAuthor(author);
 
         if (hasLocation) {
