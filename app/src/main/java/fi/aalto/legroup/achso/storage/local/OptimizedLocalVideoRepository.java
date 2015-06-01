@@ -84,6 +84,9 @@ public class OptimizedLocalVideoRepository extends AbstractVideoRepository {
         videos.put(video.getId(), new OptimizedVideo(video));
 
         serializer.save(video, getManifestFromId(video.getId()).toURI());
+
+        // FIXME: This is stupid
+        refresh();
         bus.post(new VideoRepositoryUpdatedEvent(this));
     }
 
@@ -98,6 +101,10 @@ public class OptimizedLocalVideoRepository extends AbstractVideoRepository {
         File manifest = getManifestFromId(id);
 
         if (manifest.delete()) {
+
+            // FIXME: This is stupid
+            refresh();
+
             bus.post(new VideoRepositoryUpdatedEvent(this));
         } else {
             throw new IOException("Could not delete " + manifest);
