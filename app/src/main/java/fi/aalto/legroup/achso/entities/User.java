@@ -43,6 +43,25 @@ public class User implements JsonSerializable, Parcelable {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof User)) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+
+        User user = (User) obj;
+        return name.equals(user.name)
+                && uri.equals(user.uri);
+    }
+
+    @Override
+    public int hashCode() {
+        return name.hashCode() ^ uri.hashCode();
+    }
+
+    @Override
     public int describeContents() {
         return 0;
     }

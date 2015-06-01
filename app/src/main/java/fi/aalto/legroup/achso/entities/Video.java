@@ -24,8 +24,7 @@ public class Video extends VideoInfo implements JsonSerializable {
     protected Location location;
     protected List<Annotation> annotations;
 
-    @SuppressWarnings("UnusedDeclaration")
-    private Video() {
+    public Video() {
         // For serialization
         super();
     }
@@ -59,6 +58,8 @@ public class Video extends VideoInfo implements JsonSerializable {
     public void setRepository(VideoRepository repository) {
         this.repository = repository;
     }
+
+    public VideoRepository getRepository() { return this.repository; }
 
     public void setVideoUri(Uri videoUri) {
         this.videoUri = videoUri;

@@ -16,8 +16,7 @@ public class Annotation implements JsonSerializable, Parcelable {
     protected String text;
     protected User author;
 
-    @SuppressWarnings("UnusedDeclaration")
-    private Annotation() {
+    public Annotation() {
         // For serialization
     }
 
