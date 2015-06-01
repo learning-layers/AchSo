@@ -161,16 +161,19 @@ public class OptimizedVideo {
     public static class PooledVideo {
         private Video video;
         private ArrayList<Annotation> annotations;
+        private Location location;
         private boolean inUse;
 
         private static final int defaultAnnotationCount = 32;
+        private static final boolean defaultHasLocation = true;
+
         private static final String TAG = PooledVideo.class.getSimpleName();
 
         /**
          * Create a new pooled Video instance with a default annotation capacity.
          */
         public PooledVideo() {
-            this(defaultAnnotationCount);
+            this(defaultAnnotationCount, defaultHasLocation);
         }
 
         /**
@@ -179,10 +182,16 @@ public class OptimizedVideo {
          * @param annotationCountHint The number of annotations to reserve storage for in advance.
          *                            This is only a hint and if a video requires more annotations
          *                            it will allocate when inflated.
+         * @param hasLocationHint Should the pooled video create a Location instance in advance.
+         *                        This is only a hint and if a video requires a location it will
+         *                        allocate when inflated.
          */
-        public PooledVideo(int annotationCountHint) {
+        public PooledVideo(int annotationCountHint, boolean hasLocationHint) {
             video = new Video();
             reserveAnnotations(annotationCountHint);
+            if (hasLocationHint) {
+                location = new Location("pooled");
+            }
         }
 
         private void reserveAnnotations(int count) {
@@ -226,18 +235,30 @@ public class OptimizedVideo {
          *                        if `annotationCount` is less or equal than
          *                        `getAnnotationCapacity()`.
          *                        Otherwise expands the annotation capacity to fit.
+         * @param hasLocation Should the returned Video have it's location field initialized, if
+         *                    set to true the location is initialized into the persistent location
+         *                    of this pool.
          */
-        public Video create(int annotationCount) {
+        public Video create(int annotationCount, boolean hasLocation) {
 
             if (inUse) {
-                // Fallback
+                // Fallback, this shouldn't happen often
                 Log.w(TAG, "Created a new Video object from pool (old wasn't released)");
-                return new PooledVideo(annotationCount).create(annotationCount);
+                return new PooledVideo(annotationCount, hasLocation).create(annotationCount,
+                        hasLocation);
             }
 
             reserveAnnotations(annotationCount);
             List<Annotation> subAnn = annotations.subList(0, annotationCount);
             video.setAnnotations(subAnn);
+            if (hasLocation) {
+                if (location == null) {
+                    location = new Location("dynamic pooled");
+                }
+                video.setLocation(location);
+            } else {
+                video.setLocation(null);
+            }
             return video;
         }
 
@@ -309,7 +330,7 @@ public class OptimizedVideo {
      * Inflate the optimized video data into a heavier Video object.
      * Does not allocate if:
      *   - pooled has enough annotation capacity
-     *   - pooled video has location object
+     *   - pooled video has location object or this doesn't have location
      *   - every annotation has position object
      *
      * @param pooled The pooled video object to use for this, it has only one internal Video object
@@ -320,7 +341,7 @@ public class OptimizedVideo {
     public Video inflate(PooledVideo pooled) {
 
         int annotationCount = annotationTime.length;
-        Video video = pooled.create(annotationCount);
+        Video video = pooled.create(annotationCount, hasLocation);
 
         video.setManifestUri(Uri.parse(manifestUri));
         video.setRepository(repository);
@@ -374,7 +395,7 @@ public class OptimizedVideo {
      * PooledVideo and use `inflate` instead of this.
      */
     public Video inflateNew() {
-        return inflate(new PooledVideo(annotationTime.length));
+        return inflate(new PooledVideo(annotationTime.length, hasLocation));
     }
 
     public boolean save() {
