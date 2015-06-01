@@ -4,8 +4,6 @@ import android.graphics.PointF;
 import android.location.Location;
 import android.net.Uri;
 
-import com.google.common.base.Objects;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -59,24 +57,6 @@ public class OptimizedVideo {
             if (u.equals(user))
                 return u;
         }
-        userPool.add(user);
-        return user;
-    }
-
-    /**
-     * Make the user object unique.
-     * @param name Forwarded to User constructor.
-     * @param uri Forwarded to User constructor.
-     * @return User object equal to `new User(name, uri)` but which is shared between equal ones.
-     */
-    public static User internNewUser(String name, Uri uri) {
-
-        // TODO: This could be changed to a set?
-        for (User u : userPool) {
-            if (Objects.equal(u.getName(), name) && Objects.equal(u.getUri(), uri))
-                return u;
-        }
-        User user = new User(name, uri);
         userPool.add(user);
         return user;
     }
