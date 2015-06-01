@@ -4,6 +4,8 @@ import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.common.base.Objects;
+
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
 
 public class User implements JsonSerializable, Parcelable {
@@ -58,7 +60,7 @@ public class User implements JsonSerializable, Parcelable {
 
     @Override
     public int hashCode() {
-        return name.hashCode() ^ uri.hashCode();
+        return Objects.hashCode(name.hashCode(), uri.hashCode());
     }
 
     @Override
