@@ -43,6 +43,7 @@ public class OptimizedLocalVideoRepository extends AbstractVideoRepository {
             throw new IOException("Couldn't list files in " + storageDirectory);
         }
 
+        videos = new HashMap<>(manifests.length * 2);
         allResults = new ArrayList<>(manifests.length);
         for (File manifest : manifests) {
 

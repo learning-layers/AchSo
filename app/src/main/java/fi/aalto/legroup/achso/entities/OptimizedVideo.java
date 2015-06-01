@@ -38,6 +38,7 @@ public class OptimizedVideo {
     private double locationLatitude;
     private double locationLongitude;
     private float locationAccuracy;
+    private boolean hasLocation;
 
     // Annotations
     // X and Y coordinates are stored in interleaved pairs
@@ -98,6 +99,10 @@ public class OptimizedVideo {
     }
 
     public Location getLocation() {
+        if (!hasLocation) {
+            return null;
+        }
+
         Location location = new Location("optimized getter");
         location.setLatitude(locationLatitude);
         location.setLongitude(locationLongitude);
@@ -177,13 +182,17 @@ public class OptimizedVideo {
          */
         public PooledVideo(int annotationCountHint) {
             video = new Video();
-            video.setLocation(new Location("pooled"));
             reserveAnnotations(annotationCountHint);
         }
 
         private void reserveAnnotations(int count) {
 
-            annotations.ensureCapacity(count);
+            if (annotations != null) {
+                annotations.ensureCapacity(count);
+            } else {
+                annotations = new ArrayList<>(count);
+            }
+
             while (annotations.size() < count) {
                 Annotation annotation = new Annotation();
 
@@ -270,9 +279,13 @@ public class OptimizedVideo {
         author = internUser(video.getAuthor());
 
         Location location = video.getLocation();
-        locationLatitude = location.getLatitude();
-        locationLongitude = location.getLongitude();
-        locationAccuracy = location.getAccuracy();
+
+        if (location != null) {
+            hasLocation = true;
+            locationLatitude = location.getLatitude();
+            locationLongitude = location.getLongitude();
+            locationAccuracy = location.getAccuracy();
+        }
 
         annotationTime = new long[annotationCount];
         annotationXY = new float[annotationCount * 2];
@@ -322,14 +335,18 @@ public class OptimizedVideo {
         video.setLastModified(new Date(lastModifiedInMs));
         video.setAuthor(author);
 
-        Location location = video.getLocation();
-        if (location == null) {
-            location = new Location("inflated");
-            video.setLocation(location);
+        if (hasLocation) {
+            Location location = video.getLocation();
+            if (location == null) {
+                location = new Location("inflated");
+                video.setLocation(location);
+            }
+            location.setLatitude(locationLatitude);
+            location.setLongitude(locationLongitude);
+            location.setAccuracy(locationAccuracy);
+        } else {
+            video.setLocation(null);
         }
-        location.setLatitude(locationLatitude);
-        location.setLongitude(locationLongitude);
-        location.setAccuracy(locationAccuracy);
 
         List<Annotation> annotations = video.getAnnotations();
         for (int i = 0; i < annotationCount; i++) {
