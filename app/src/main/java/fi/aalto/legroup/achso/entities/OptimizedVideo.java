@@ -39,9 +39,9 @@ public class OptimizedVideo {
     private float locationAccuracy;
 
     // Annotations
+    // X and Y coordinates are stored in interleaved pairs
     private long[] annotationTime;
-    private float[] annotationX;
-    private float[] annotationY;
+    private float[] annotationXY;
     private String[] annotationText;
     private User[] annotationAuthor;
 
@@ -169,8 +169,7 @@ public class OptimizedVideo {
         locationAccuracy = location.getAccuracy();
 
         annotationTime = new long[annotationCount];
-        annotationX = new float[annotationCount];
-        annotationY = new float[annotationCount];
+        annotationXY = new float[annotationCount * 2];
         annotationText = new String[annotationCount];
         annotationAuthor = new User[annotationCount];
 
@@ -180,8 +179,8 @@ public class OptimizedVideo {
             annotationTime[i] = annotation.getTime();
 
             PointF position = annotation.getPosition();
-            annotationX[i] = position.x;
-            annotationY[i] = position.y;
+            annotationXY[i * 2] = position.x;
+            annotationXY[i * 2 + 1] = position.y;
             annotationText[i] = annotation.getText();
             annotationAuthor[i] = internUser(annotation.getAuthor());
         }
@@ -233,7 +232,7 @@ public class OptimizedVideo {
                 position = new PointF();
                 annotation.setPosition(position);
             }
-            position.set(annotationX[i], annotationY[i]);
+            position.set(annotationXY[i * 2], annotationXY[i * 2 + 1]);
 
             annotation.setText(annotationText[i]);
             annotation.setAuthor(annotationAuthor[i]);
