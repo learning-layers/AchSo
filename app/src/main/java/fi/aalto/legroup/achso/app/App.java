@@ -95,7 +95,8 @@ public final class App extends MultiDexApplication
 
         jsonSerializer = new JsonSerializer();
 
-        localVideoRepository =  new OptimizedLocalVideoRepository(bus, jsonSerializer, localStorageDirectory);
+        localVideoRepository =
+                new OptimizedLocalVideoRepository(bus, jsonSerializer, localStorageDirectory);
         videoRepository = localVideoRepository;
         videoInfoRepository = localVideoRepository;
 
@@ -132,7 +133,6 @@ public final class App extends MultiDexApplication
      *
      * @param uri     Relative or absolute URI.
      * @param rootUri Absolute URI to use as the root in case the given URI is relative.
-     *
      * @return An absolute URI.
      */
     private static Uri resolveRelativeUri(Uri uri, Uri rootUri) {

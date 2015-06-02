@@ -16,6 +16,7 @@ import java.util.List;
  * storage.
  */
 public class PooledVideo {
+
     private Video video;
     private ArrayList<Annotation> annotations;
     private Location location;
@@ -39,9 +40,9 @@ public class PooledVideo {
      * @param annotationCountHint The number of annotations to reserve storage for in advance.
      *                            This is only a hint and if a video requires more annotations
      *                            it will allocate when inflated.
-     * @param hasLocationHint Should the pooled video create a Location instance in advance.
-     *                        This is only a hint and if a video requires a location it will
-     *                        allocate when inflated.
+     * @param hasLocationHint     Should the pooled video create a Location instance in advance.
+     *                            This is only a hint and if a video requires a location it will
+     *                            allocate when inflated.
      */
     public PooledVideo(int annotationCountHint, boolean hasLocationHint) {
         video = new Video();
@@ -59,7 +60,7 @@ public class PooledVideo {
             annotations = new ArrayList<>(count);
         }
 
-        // Pre-create annotation objects for the 
+        // Pre-create annotation objects for the
         while (annotations.size() < count) {
             Annotation annotation = new Annotation();
 
@@ -93,9 +94,9 @@ public class PooledVideo {
      *                        if `annotationCount` is less or equal than
      *                        `getAnnotationCapacity()`.
      *                        Otherwise expands the annotation capacity to fit.
-     * @param hasLocation Should the returned Video have it's location field initialized, if
-     *                    set to true the location is initialized into the persistent location
-     *                    of this pool.
+     * @param hasLocation     Should the returned Video have it's location field initialized, if
+     *                        set to true the location is initialized into the persistent location
+     *                        of this pool.
      */
     public Video create(int annotationCount, boolean hasLocation) {
 

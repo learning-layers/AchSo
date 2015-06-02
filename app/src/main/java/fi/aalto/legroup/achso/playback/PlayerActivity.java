@@ -395,10 +395,12 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
     }
 
     private boolean areAnnotationControlsVisible() {
-        if (annotationControls == null)
+        if (annotationControls == null) {
             return false;
-        if (annotationControls.getVisibility() == View.VISIBLE)
+        }
+        if (annotationControls.getVisibility() == View.VISIBLE) {
             return true;
+        }
         return false;
     }
 

@@ -12,6 +12,7 @@ public class UserPool {
 
     /**
      * Make the user object unique.
+     *
      * @param user User object to make unique.
      * @return Index to the user in the pool.
      */
@@ -25,8 +26,9 @@ public class UserPool {
         // Try to find the user from the pool.
         int maxUsers = userPool.size();
         for (int i = 0; i < maxUsers; i++) {
-            if (userPool.get(i).equals(user))
+            if (userPool.get(i).equals(user)) {
                 return i;
+            }
         }
 
         // If not found add it and return the index to the last element (the added user).
@@ -36,14 +38,16 @@ public class UserPool {
 
     /**
      * Retrieve the unique User object.
+     *
      * @param index User object to make unique.
      * @return The user object for the index
      */
     public static User getInternedUser(int index) {
 
         // Map null to -1
-        if (index == -1)
+        if (index == -1) {
             return null;
+        }
 
         return userPool.get(index);
     }
