@@ -15,6 +15,7 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.otto.Bus;
 
 import java.io.File;
+import java.io.IOException;
 
 import fi.aalto.legroup.achso.BuildConfig;
 import fi.aalto.legroup.achso.R;
@@ -23,8 +24,10 @@ import fi.aalto.legroup.achso.authentication.LoginManager;
 import fi.aalto.legroup.achso.authentication.LoginRequestEvent;
 import fi.aalto.legroup.achso.authoring.LocationManager;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
-import fi.aalto.legroup.achso.storage.local.LocalVideoInfoRepository;
-import fi.aalto.legroup.achso.storage.local.LocalVideoRepository;
+import fi.aalto.legroup.achso.storage.AbstractVideoRepository;
+import fi.aalto.legroup.achso.storage.VideoInfoRepository;
+import fi.aalto.legroup.achso.storage.VideoRepository;
+import fi.aalto.legroup.achso.storage.local.OptimizedLocalVideoRepository;
 import fi.aalto.legroup.achso.storage.remote.strategies.ClViTra2Strategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.SssStrategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.Strategy;
@@ -45,8 +48,9 @@ public final class App extends MultiDexApplication
 
     public static JsonSerializer jsonSerializer;
 
-    public static LocalVideoInfoRepository videoInfoRepository;
-    public static LocalVideoRepository videoRepository;
+    public static AbstractVideoRepository localVideoRepository;
+    public static VideoRepository videoRepository;
+    public static VideoInfoRepository videoInfoRepository;
 
     public static File localStorageDirectory;
 
@@ -91,10 +95,15 @@ public final class App extends MultiDexApplication
 
         jsonSerializer = new JsonSerializer();
 
-        videoInfoRepository = new LocalVideoInfoRepository(bus, jsonSerializer,
-                localStorageDirectory);
+        localVideoRepository =  new OptimizedLocalVideoRepository(bus, jsonSerializer, localStorageDirectory);
+        videoRepository = localVideoRepository;
+        videoInfoRepository = localVideoRepository;
 
-        videoRepository = new LocalVideoRepository(bus, jsonSerializer, localStorageDirectory);
+        try {
+            localVideoRepository.refresh();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         bus.post(new LoginRequestEvent(LoginRequestEvent.Type.LOGIN));
 

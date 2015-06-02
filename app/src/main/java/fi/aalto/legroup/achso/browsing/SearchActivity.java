@@ -13,16 +13,15 @@ import android.view.MenuItem;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.Nonnull;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
-import fi.aalto.legroup.achso.entities.Annotation;
-import fi.aalto.legroup.achso.entities.Video;
-import fi.aalto.legroup.achso.entities.VideoInfo;
+import fi.aalto.legroup.achso.entities.OptimizedVideo;
+import fi.aalto.legroup.achso.storage.VideoInfoRepository.FindResult;
+import fi.aalto.legroup.achso.storage.VideoInfoRepository.FindResults;
 
 public final class SearchActivity extends ActionBarActivity {
 
@@ -115,25 +114,27 @@ public final class SearchActivity extends ActionBarActivity {
      * Searches all videos for a match against the given query.
      */
     private void queryVideos(String query) {
-        List<UUID> ids;
+        FindResults results;
 
         try {
-            ids = App.videoInfoRepository.getAll();
+            results = App.videoInfoRepository.getAll();
         } catch (IOException e) {
             e.printStackTrace();
             return;
         }
 
-        for (UUID id : ids) {
+        FindResults matching = new FindResults(new ArrayList<FindResult>(results.size()));
+        for (FindResult result : results) {
             try {
-                if (isMatch(id, query)) {
-                    this.matches.add(id);
+                if (isMatch(result.getId(), query)) {
+                    matching.add(result);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
+        this.matches.addAll(matching.sortDescending().getIDs());
         this.browserFragment.setVideos(this.matches);
     }
 
@@ -143,20 +144,18 @@ public final class SearchActivity extends ActionBarActivity {
      * annotations.
      */
     private boolean isMatch(UUID id, String query) throws IOException {
-        VideoInfo videoInfo = App.videoInfoRepository.get(id);
+        OptimizedVideo video = App.videoInfoRepository.getVideo(id);
 
-        if (query.equals(videoInfo.getTag())) {
+        if (query.equals(video.getTag())) {
             return true;
         }
 
-        if (videoInfo.getTitle().toLowerCase().contains(query)) {
+        if (video.getTitle().toLowerCase().contains(query)) {
             return true;
         }
 
-        Video video = App.videoRepository.get(id);
-
-        for (Annotation annotation : video.getAnnotations()) {
-            if (annotation.getText().toLowerCase().contains(query)) {
+        for (int i = 0; i < video.getAnnotationCount(); i++) {
+            if (video.getAnnotationText(i).toLowerCase().contains(query)) {
                 return true;
             }
         }

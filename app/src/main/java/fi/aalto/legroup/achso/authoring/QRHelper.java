@@ -18,7 +18,7 @@ import java.util.UUID;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
-import fi.aalto.legroup.achso.entities.Video;
+import fi.aalto.legroup.achso.entities.OptimizedVideo;
 
 public class QRHelper {
     private static boolean launchedForAdding;
@@ -54,7 +54,7 @@ public class QRHelper {
         if (launchedForAdding) {
             for (UUID id : ids) {
                 try {
-                    Video video = App.videoRepository.get(id);
+                    OptimizedVideo video = App.videoRepository.getVideo(id);
                     video.setTag(code);
                     video.save();
                 } catch (IOException e) {

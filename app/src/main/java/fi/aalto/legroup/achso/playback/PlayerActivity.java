@@ -19,7 +19,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -29,7 +28,7 @@ import com.nispok.snackbar.SnackbarManager;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -63,13 +62,14 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
     private static final int CONTROLS_HIDE_DELAY = 5000;
 
     // Animation duration for hiding and showing controls (in milliseconds)
-    private static final int CONTROLS_ANIMATION_DURATION = 300;
+    private static final int CONTROLS_HIDE_DURATION = 300;
 
     private PlayerFragment playerFragment;
 
-    private RelativeLayout controlsOverlay;
     private LinearLayout playbackControls;
-    private LinearLayout annotationControls;
+
+    // Can be either a ViewStub or an inflated LinearLayout
+    private View annotationControls;
 
     private ImageButton playPauseButton;
     private TextView elapsedTimeText;
@@ -101,8 +101,9 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         setSupportActionBar(this.toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        controlsOverlay = (RelativeLayout) findViewById(R.id.controlsOverlay);
         playbackControls = (LinearLayout) findViewById(R.id.playbackControls);
+        annotationControls = findViewById(R.id.annotationControls);
+
         playPauseButton = (ImageButton) findViewById(R.id.playPauseButton);
         elapsedTimeText = (TextView) findViewById(R.id.elapsedTimeText);
         seekBar = (MarkedSeekBar) findViewById(R.id.seekBar);
@@ -139,7 +140,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         }
 
         try {
-            video = App.videoRepository.get(videoId);
+            video = App.videoRepository.getVideo(videoId).inflateNew();
             populateVideoInformation();
         } catch (IOException e) {
             e.printStackTrace();
@@ -166,7 +167,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        List<UUID> videos = Arrays.asList(video.getId());
+        List<UUID> videos = Collections.singletonList(video.getId());
 
         switch (item.getItemId()) {
             case android.R.id.home:
@@ -246,8 +247,9 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
     private void showControlsOverlay() {
         cancelControlsOverlayHide();
 
-        controlsOverlay.animate().alpha(1).setDuration(CONTROLS_ANIMATION_DURATION).start();
-        toolbar.animate().alpha(1).setDuration(CONTROLS_ANIMATION_DURATION).start();
+        playbackControls.animate().alpha(1).setDuration(CONTROLS_HIDE_DURATION).start();
+        annotationControls.animate().alpha(1).setDuration(CONTROLS_HIDE_DURATION).start();
+        toolbar.animate().alpha(1).setDuration(CONTROLS_HIDE_DURATION).start();
 
         anchorSubtitleContainerTo(playbackControls);
     }
@@ -264,8 +266,9 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
                     return;
                 }
 
-                toolbar.animate().alpha(0).setDuration(CONTROLS_ANIMATION_DURATION).start();
-                controlsOverlay.animate().alpha(0).setDuration(CONTROLS_ANIMATION_DURATION).start();
+                playbackControls.animate().alpha(0).setDuration(CONTROLS_HIDE_DURATION).start();
+                annotationControls.animate().alpha(0).setDuration(CONTROLS_HIDE_DURATION).start();
+                toolbar.animate().alpha(0).setDuration(CONTROLS_HIDE_DURATION).start();
 
                 anchorSubtitleContainerTo(null);
             }
@@ -288,6 +291,10 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
     public void createAnnotation(PointF position) {
         // Allow creating annotations only when paused
         if (playerFragment.getState() != PlayerFragment.State.PAUSED) {
+            return;
+        }
+        // Disallow creating annotations when an annotation is being edited
+        if (areAnnotationControlsVisible()) {
             return;
         }
 
@@ -365,9 +372,9 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
 
     private void showAnnotationControls() {
         // Inflate the view stub if necessary
-        if (annotationControls == null) {
-            ViewStub stub = (ViewStub) findViewById(R.id.annotationControls);
-            annotationControls = (LinearLayout) stub.inflate();
+        if (annotationControls instanceof ViewStub) {
+            ViewStub stub = (ViewStub) annotationControls;
+            annotationControls = stub.inflate();
 
             annotationText = (EditText) findViewById(R.id.annotationText);
             saveButton = (Button) findViewById(R.id.saveButton);
@@ -385,6 +392,14 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         annotationControls.setVisibility(View.GONE);
 
         anchorSubtitleContainerTo(playbackControls);
+    }
+
+    private boolean areAnnotationControlsVisible() {
+        if (annotationControls == null)
+            return false;
+        if (annotationControls.getVisibility() == View.VISIBLE)
+            return true;
+        return false;
     }
 
     private void enableControls() {

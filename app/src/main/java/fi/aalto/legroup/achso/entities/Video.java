@@ -16,25 +16,40 @@ import fi.aalto.legroup.achso.storage.VideoRepository;
  *
  * TODO: Extending VideoInfo is semantically wrong and may result in some problems later on.
  */
-public class Video extends VideoInfo implements JsonSerializable {
+public class Video implements JsonSerializable {
 
+    protected transient Uri manifestUri;
     protected transient VideoRepository repository;
+    protected transient Date lastModified;
+
+    protected Uri videoUri;
+    protected Uri thumbUri;
+    protected UUID id;
+    protected String title;
+    protected String genre;
+    protected String tag;
+    protected Date date;
 
     protected User author;
     protected Location location;
     protected List<Annotation> annotations;
 
-    @SuppressWarnings("UnusedDeclaration")
-    private Video() {
+    public Video() {
         // For serialization
-        super();
     }
 
     public Video(VideoRepository repository, Uri manifestUri, Uri videoUri, Uri thumbUri, UUID id,
                  String title, String genre, String tag, Date date, User author, Location location,
                  List<Annotation> annotations) {
 
-        super(manifestUri, videoUri, thumbUri, id, title, genre, tag, date);
+        this.manifestUri = manifestUri;
+        this.videoUri = videoUri;
+        this.thumbUri = thumbUri;
+        this.id = id;
+        this.title = title;
+        this.genre = genre;
+        this.tag = tag;
+        this.date = date;
 
         this.repository = repository;
         this.author = author;
@@ -55,10 +70,68 @@ public class Video extends VideoInfo implements JsonSerializable {
             return false;
         }
     }
+    public boolean isLocal() {
+        // Uris without a scheme are assumed to be local
+        if (this.videoUri.isRelative()) return true;
+
+        String scheme = getVideoUri().getScheme().trim().toLowerCase();
+
+        switch (scheme) {
+            case "file":
+            case "content":
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    public boolean isRemote() {
+        return !isLocal();
+    }
+
+    public Uri getManifestUri() {
+        return manifestUri;
+    }
+
+    public void setManifestUri(Uri manifestUri) {
+        this.manifestUri = manifestUri;
+    }
+
+    public Uri getVideoUri() {
+        return this.videoUri;
+    }
+
+    public Uri getThumbUri() {
+        return this.thumbUri;
+    }
+
+    public UUID getId() {
+        return this.id;
+    }
+
+    public String getTitle() {
+        return this.title;
+    }
+
+    public String getGenre() {
+        return this.genre;
+    }
+
+    public String getTag() {
+        return this.tag;
+    }
+
+    public Date getDate() {
+        return this.date;
+    }
+
 
     public void setRepository(VideoRepository repository) {
         this.repository = repository;
     }
+
+    public VideoRepository getRepository() { return this.repository; }
 
     public void setVideoUri(Uri videoUri) {
         this.videoUri = videoUri;
@@ -102,6 +175,14 @@ public class Video extends VideoInfo implements JsonSerializable {
 
     public void setLocation(Location location) {
         this.location = location;
+    }
+
+    public Date getLastModified() {
+        return this.lastModified;
+    }
+
+    public void setLastModified(Date lastModified) {
+        this.lastModified = lastModified;
     }
 
     public List<Annotation> getAnnotations() {
