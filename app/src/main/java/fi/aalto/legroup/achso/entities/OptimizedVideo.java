@@ -102,11 +102,20 @@ public class OptimizedVideo {
         this.tag = tag;
     }
 
+    /**
+     * Returns number of annotations the video has, query annotation details with functions
+     * taking index as a parameter
+     */
     public int getAnnotationCount() {
         return annotationTime.length;
     }
 
-    public String getAnnotationText(int i) {
+    /**
+     * Get the text specified for the annotation at index.
+     * @param annotationIndex In range [0, getAnnotationCount()[
+     * @return The text (subtitle) of the annotation
+     */
+    public String getAnnotationText(int annotationIndex) {
 
         // Annotation text data is stored in one giant buffer and is referenced with indices
         // The indices are stored in { Start0, End0, Start1, End1, ...} interleaved array
