@@ -70,7 +70,7 @@ public final class DetailDialogFragment extends DialogFragment {
         UUID id = UUID.fromString(this.getArguments().getString(ARG_ID));
 
         try {
-            this.video = App.videoRepository.getVideo(id).inflateNew();
+            this.video = App.videoRepository.getVideo(id).inflate();
 
             this.originals[ORG_TITLE] = video.getTitle();
             this.originals[ORG_GENRE] = video.getGenre();

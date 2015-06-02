@@ -346,7 +346,7 @@ public class OptimizedVideo {
      * Note: This version allocates a new video object, you probably should use some static
      * PooledVideo and use `inflate` instead of this.
      */
-    public Video inflateNew() {
+    public Video inflate() {
         return inflate(new PooledVideo(annotationTime.length, hasLocation));
     }
 

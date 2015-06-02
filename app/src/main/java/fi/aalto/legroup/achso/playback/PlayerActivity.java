@@ -140,7 +140,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         }
 
         try {
-            video = App.videoRepository.getVideo(videoId).inflateNew();
+            video = App.videoRepository.getVideo(videoId).inflate();
             populateVideoInformation();
         } catch (IOException e) {
             e.printStackTrace();
