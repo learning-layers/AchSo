@@ -16,8 +16,8 @@ public class Annotation implements JsonSerializable, Parcelable {
     protected String text;
     protected User author;
 
-    public Annotation() {
-        // For serialization
+    Annotation() {
+        // For serialization and pooling
     }
 
     public Annotation(long time, PointF position, String text, User author) {

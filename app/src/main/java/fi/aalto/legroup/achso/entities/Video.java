@@ -34,8 +34,8 @@ public class Video implements JsonSerializable {
     protected Location location;
     protected List<Annotation> annotations;
 
-    public Video() {
-        // For serialization
+    Video() {
+        // For serialization and pooling
     }
 
     public Video(VideoRepository repository, Uri manifestUri, Uri videoUri, Uri thumbUri, UUID id,
