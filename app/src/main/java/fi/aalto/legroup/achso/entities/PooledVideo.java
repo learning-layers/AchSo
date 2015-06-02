@@ -124,7 +124,7 @@ public class PooledVideo {
     /**
      * Mark that the Video can be re-used from this pool safely again.
      */
-    public void free() {
+    public void release() {
 
         // Can be re-used safely again.
         inUse = false;

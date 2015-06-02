@@ -94,7 +94,7 @@ public class OptimizedLocalVideoRepository extends AbstractVideoRepository {
     @Override
     public void save(OptimizedVideo video) throws IOException {
         save(video.inflate(savePool));
-        savePool.free();
+        savePool.release();
     }
 
     @Override
