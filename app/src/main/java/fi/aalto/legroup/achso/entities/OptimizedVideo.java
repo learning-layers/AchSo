@@ -34,41 +34,63 @@ public class OptimizedVideo {
     private String tag;
     private long dateInMs;
     private long lastModifiedInMs;
-    private User author;
     private double locationLatitude;
     private double locationLongitude;
     private float locationAccuracy;
     private boolean hasLocation;
     private boolean hasLastModified;
 
+    // This stores all the annotation text data. The single annotations refer
+    // to parts of this buffer with indices specified in annotationTextStartEnd.
+    private String annotationTextBuffer;
+
+    // Index to the User pool
+    private int authorUserIndex;
+
     // Annotations
     // X and Y coordinates are stored in interleaved pairs
+    // Text is stored in (begin, end) pairs to annotationTextBuffer
+    // Author indices are to user pool
     private long[] annotationTime;
     private float[] annotationXY;
-    private String[] annotationText;
-    private User[] annotationAuthor;
+    private int[] annotationTextStartEnd;
+    private int[] annotationAuthorUserIndex;
 
     protected static ArrayList<User> userPool = new ArrayList<>();
 
     /**
      * Make the user object unique.
      * @param user User object to make unique.
-     * @return User object equal to `user` but which is shared between equal ones.
+     * @return Index to the user in the pool.
      */
-    public static User internUser(User user) {
+    public static int internUser(User user) {
 
-        // Nulls are unique as-is
+        // Map null to -1
         if (user == null) {
-            return null;
+            return -1;
         }
 
-        // TODO: This could be changed to a set?
-        for (User u : userPool) {
-            if (u.equals(user))
-                return u;
+        int maxUsers = userPool.size();
+        for (int i = 0; i < maxUsers; i++) {
+            if (userPool.get(i).equals(user))
+                return i;
         }
         userPool.add(user);
-        return user;
+        return maxUsers;
+    }
+
+    /**
+     * Retrieve the unique User object.
+     * @param index User object to make unique.
+     * @return The user object for the index
+     */
+    public static User getInternedUser(int index) {
+
+        // Map null to -1
+        if (index == -1)
+            return null;
+
+        return userPool.get(index);
     }
 
     public UUID getId() {
@@ -124,7 +146,19 @@ public class OptimizedVideo {
     }
 
     public String getAnnotationText(int i) {
-        return annotationText[i];
+
+        // Annotation text data is stored in one giant buffer and is referenced with indices
+        int start = annotationTextStartEnd[i * 2];
+        int end = annotationTextStartEnd[i * 2 + 1];
+
+        // Mark null with negative
+        if (start < 0 || end < 0) {
+            return null;
+        } else if (start == end) {
+            return "";
+        } else {
+            return annotationTextBuffer.substring(start, end);
+        }
     }
 
     public boolean isLocal() {
@@ -301,7 +335,7 @@ public class OptimizedVideo {
             hasLastModified = true;
             lastModifiedInMs = video.getLastModified().getTime();
         }
-        author = internUser(video.getAuthor());
+        authorUserIndex = internUser(video.getAuthor());
 
         Location location = video.getLocation();
 
@@ -314,8 +348,10 @@ public class OptimizedVideo {
 
         annotationTime = new long[annotationCount];
         annotationXY = new float[annotationCount * 2];
-        annotationText = new String[annotationCount];
-        annotationAuthor = new User[annotationCount];
+        annotationTextStartEnd = new int[annotationCount * 2];
+        annotationAuthorUserIndex = new int[annotationCount];
+
+        StringBuilder annotationBufferBuilder = new StringBuilder();
 
         for (int i = 0; i < annotationCount; i++) {
             Annotation annotation = annotations.get(i);
@@ -325,9 +361,31 @@ public class OptimizedVideo {
             PointF position = annotation.getPosition();
             annotationXY[i * 2] = position.x;
             annotationXY[i * 2 + 1] = position.y;
-            annotationText[i] = annotation.getText();
-            annotationAuthor[i] = internUser(annotation.getAuthor());
+
+            String text = annotation.getText();
+
+            int start, end;
+
+            if (text == null) {
+                // Mark null with negative
+                start = -1;
+                end = -1;
+            } else if (text.isEmpty()) {
+                // Don't append empty strings
+                start = 0;
+                end = 0;
+            } else {
+                start = annotationBufferBuilder.length();
+                annotationBufferBuilder.append(text);
+                end = annotationBufferBuilder.length();
+            }
+
+            annotationTextStartEnd[i * 2] = start;
+            annotationTextStartEnd[i * 2 + 1] = end;
+            annotationAuthorUserIndex[i] = internUser(annotation.getAuthor());
         }
+
+        annotationTextBuffer = annotationBufferBuilder.toString();
     }
 
     /**
@@ -362,7 +420,7 @@ public class OptimizedVideo {
         } else {
             video.setLastModified(null);
         }
-        video.setAuthor(author);
+        video.setAuthor(getInternedUser(authorUserIndex));
 
         if (hasLocation) {
             Location location = video.getLocation();
@@ -390,8 +448,8 @@ public class OptimizedVideo {
             }
             position.set(annotationXY[i * 2], annotationXY[i * 2 + 1]);
 
-            annotation.setText(annotationText[i]);
-            annotation.setAuthor(annotationAuthor[i]);
+            annotation.setText(getAnnotationText(i));
+            annotation.setAuthor(getInternedUser(annotationAuthorUserIndex[i]));
         }
 
         return video;
