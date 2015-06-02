@@ -22,8 +22,8 @@ public class PooledVideo {
     private Location location;
     private boolean inUse;
 
-    private static final int defaultAnnotationCount = 32;
-    private static final boolean defaultHasLocation = true;
+    private static final int DEFAULT_ANNOTATION_COUNT = 32;
+    private static final boolean DEFAULT_HAS_LOCATION = true;
 
     private static final String TAG = PooledVideo.class.getSimpleName();
 
@@ -31,7 +31,7 @@ public class PooledVideo {
      * Create a new pooled Video instance with a default annotation capacity.
      */
     public PooledVideo() {
-        this(defaultAnnotationCount, defaultHasLocation);
+        this(DEFAULT_ANNOTATION_COUNT, DEFAULT_HAS_LOCATION);
     }
 
     /**
