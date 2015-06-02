@@ -119,8 +119,8 @@ public class OptimizedVideo {
 
         // Annotation text data is stored in one giant buffer and is referenced with indices
         // The indices are stored in { Start0, End0, Start1, End1, ...} interleaved array
-        int start = annotationTextStartEnd[i * 2];
-        int end = annotationTextStartEnd[i * 2 + 1];
+        int start = annotationTextStartEnd[annotationIndex * 2];
+        int end = annotationTextStartEnd[annotationIndex * 2 + 1];
 
         if (start < 0 || end < 0) {
 
