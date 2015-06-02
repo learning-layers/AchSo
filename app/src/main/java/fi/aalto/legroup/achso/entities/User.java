@@ -59,7 +59,7 @@ public class User implements JsonSerializable, Parcelable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(name.hashCode(), uri.hashCode());
+        return Objects.hashCode(name, uri);
     }
 
     @Override
