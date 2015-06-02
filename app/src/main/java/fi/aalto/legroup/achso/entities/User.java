@@ -53,9 +53,8 @@ public class User implements JsonSerializable, Parcelable {
             return true;
         }
 
-        User user = (User) obj;
-        return name.equals(user.name)
-                && uri.equals(user.uri);
+        User other = (User) obj;
+        return Objects.equal(name, other.name) && Objects.equal(uri, other.uri);
     }
 
     @Override
