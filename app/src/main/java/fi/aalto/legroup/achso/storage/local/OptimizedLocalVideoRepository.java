@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import fi.aalto.legroup.achso.entities.OptimizedVideo;
+import fi.aalto.legroup.achso.entities.PooledVideo;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
 import fi.aalto.legroup.achso.storage.AbstractVideoRepository;
@@ -23,7 +24,7 @@ public class OptimizedLocalVideoRepository extends AbstractVideoRepository {
 
     private HashMap<UUID, OptimizedVideo> videos;
     private ArrayList<FindResult> allResults;
-    private static final OptimizedVideo.PooledVideo savePool = new OptimizedVideo.PooledVideo();
+    private static final PooledVideo savePool = new PooledVideo();
 
     protected JsonSerializer serializer;
     protected File storageDirectory;

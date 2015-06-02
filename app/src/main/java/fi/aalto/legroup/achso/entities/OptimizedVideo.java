@@ -3,10 +3,8 @@ package fi.aalto.legroup.achso.entities;
 import android.graphics.PointF;
 import android.location.Location;
 import android.net.Uri;
-import android.util.Log;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -55,43 +53,6 @@ public class OptimizedVideo {
     private float[] annotationXY;
     private int[] annotationTextStartEnd;
     private int[] annotationAuthorUserIndex;
-
-    protected static ArrayList<User> userPool = new ArrayList<>();
-
-    /**
-     * Make the user object unique.
-     * @param user User object to make unique.
-     * @return Index to the user in the pool.
-     */
-    public static int internUser(User user) {
-
-        // Map null to -1
-        if (user == null) {
-            return -1;
-        }
-
-        int maxUsers = userPool.size();
-        for (int i = 0; i < maxUsers; i++) {
-            if (userPool.get(i).equals(user))
-                return i;
-        }
-        userPool.add(user);
-        return maxUsers;
-    }
-
-    /**
-     * Retrieve the unique User object.
-     * @param index User object to make unique.
-     * @return The user object for the index
-     */
-    public static User getInternedUser(int index) {
-
-        // Map null to -1
-        if (index == -1)
-            return null;
-
-        return userPool.get(index);
-    }
 
     public UUID getId() {
         return id;
@@ -148,15 +109,23 @@ public class OptimizedVideo {
     public String getAnnotationText(int i) {
 
         // Annotation text data is stored in one giant buffer and is referenced with indices
+        // The indices are stored in { Start0, End0, Start1, End1, ...} interleaved array
         int start = annotationTextStartEnd[i * 2];
         int end = annotationTextStartEnd[i * 2 + 1];
 
-        // Mark null with negative
         if (start < 0 || end < 0) {
+
+            // Mark null with negative indices
             return null;
         } else if (start == end) {
+
+            // If the range is empty it's better not to refer to the buffer unnecessarily so
+            // return an empty string
             return "";
         } else {
+
+            // This shouldn't create a copy of the buffer, and it doesn't at the moment. If it
+            // does somehow in some newer system need to tell Java to create a reference instead.
             return annotationTextBuffer.substring(start, end);
         }
     }
@@ -186,128 +155,6 @@ public class OptimizedVideo {
     }
 
     /**
-     * Holds a Video object and a persistent list of Annotations.
-     *
-     * You can request Video objects with specified amount of annotations from this and it will set
-     * the annotations to be a sub-list of the persistent annotation list, so there is no need to
-     * allocate annotations if it has enough storage for them. Otherwise it will allocate more
-     * storage.
-     */
-    public static class PooledVideo {
-        private Video video;
-        private ArrayList<Annotation> annotations;
-        private Location location;
-        private boolean inUse;
-
-        private static final int defaultAnnotationCount = 32;
-        private static final boolean defaultHasLocation = true;
-
-        private static final String TAG = PooledVideo.class.getSimpleName();
-
-        /**
-         * Create a new pooled Video instance with a default annotation capacity.
-         */
-        public PooledVideo() {
-            this(defaultAnnotationCount, defaultHasLocation);
-        }
-
-        /**
-         * Create a new pooled Video instance.
-         *
-         * @param annotationCountHint The number of annotations to reserve storage for in advance.
-         *                            This is only a hint and if a video requires more annotations
-         *                            it will allocate when inflated.
-         * @param hasLocationHint Should the pooled video create a Location instance in advance.
-         *                        This is only a hint and if a video requires a location it will
-         *                        allocate when inflated.
-         */
-        public PooledVideo(int annotationCountHint, boolean hasLocationHint) {
-            video = new Video();
-            reserveAnnotations(annotationCountHint);
-            if (hasLocationHint) {
-                location = new Location("pooled");
-            }
-        }
-
-        private void reserveAnnotations(int count) {
-
-            if (annotations != null) {
-                annotations.ensureCapacity(count);
-            } else {
-                annotations = new ArrayList<>(count);
-            }
-
-            while (annotations.size() < count) {
-                Annotation annotation = new Annotation();
-
-                // Annotations are expected to have a position ready so we don't need to create
-                // new position objects all the time
-                annotation.setPosition(new PointF());
-
-                annotations.add(annotation);
-            }
-        }
-
-        /**
-         * How many annotations can be stored without having to allocate.
-         */
-        public int getAnnotationCapacity() {
-            return annotations.size();
-        }
-
-        /**
-         * Is the Video object of this pooled instance still in use.
-         */
-        public boolean isInUse() {
-            return inUse;
-        }
-
-        /**
-         * Create the real Video object with the specified annotation count.
-         * Note: You should call free() after you are done with the video object.
-         *
-         * @param annotationCount How many annotations should the video contains. Does not allocate
-         *                        if `annotationCount` is less or equal than
-         *                        `getAnnotationCapacity()`.
-         *                        Otherwise expands the annotation capacity to fit.
-         * @param hasLocation Should the returned Video have it's location field initialized, if
-         *                    set to true the location is initialized into the persistent location
-         *                    of this pool.
-         */
-        public Video create(int annotationCount, boolean hasLocation) {
-
-            if (inUse) {
-                // Fallback, this shouldn't happen often
-                Log.w(TAG, "Created a new Video object from pool (old wasn't released)");
-                return new PooledVideo(annotationCount, hasLocation).create(annotationCount,
-                        hasLocation);
-            }
-
-            reserveAnnotations(annotationCount);
-            List<Annotation> subAnn = annotations.subList(0, annotationCount);
-            video.setAnnotations(subAnn);
-            if (hasLocation) {
-                if (location == null) {
-                    location = new Location("dynamic pooled");
-                }
-                video.setLocation(location);
-            } else {
-                video.setLocation(null);
-            }
-            return video;
-        }
-
-        /**
-         * Mark that the Video can be re-used from this pool safely again.
-         */
-        public void free() {
-
-            // Can be re-used safely again.
-            inUse = false;
-        }
-    };
-
-    /**
      * Store the data of the video in a more GC friendly way.
      */
     public OptimizedVideo(Video video) {
@@ -315,30 +162,34 @@ public class OptimizedVideo {
         List<Annotation> annotations = video.getAnnotations();
         int annotationCount = annotations.size();
 
+        // Store Uri objects as string (They internally are just wrapped string)
         manifestUri = video.getManifestUri().toString();
-        repository = video.getRepository();
-
         videoUri = video.getVideoUri().toString();
         thumbUri = video.getThumbUri().toString();
+
+        repository = video.getRepository();
+
         id = video.getId();
         title = video.getTitle();
-
         genre = video.getGenre();
+        tag = video.getTag();
         if (genre != null) {
             // Intern genres because there are only a few options for the field
             genre = genre.intern();
         }
 
-        tag = video.getTag();
+        // Store Date objects as long (They internally are just wrapped long)
         dateInMs = video.getDate().getTime();
         if (video.getLastModified() != null) {
             hasLastModified = true;
             lastModifiedInMs = video.getLastModified().getTime();
         }
-        authorUserIndex = internUser(video.getAuthor());
 
+        // Intern the user and store as index so we don't have so much object references
+        authorUserIndex = UserPool.internUser(video.getAuthor());
+
+        // Store location's internal representation (or more specifically the fields we care about)
         Location location = video.getLocation();
-
         if (location != null) {
             hasLocation = true;
             locationLatitude = location.getLatitude();
@@ -346,11 +197,14 @@ public class OptimizedVideo {
             locationAccuracy = location.getAccuracy();
         }
 
+        // Allocate space for the annotations
         annotationTime = new long[annotationCount];
         annotationXY = new float[annotationCount * 2];
         annotationTextStartEnd = new int[annotationCount * 2];
         annotationAuthorUserIndex = new int[annotationCount];
 
+        // This buffer will contain all the annotation text data
+        // The single annotation texts are just substrings of this
         StringBuilder annotationBufferBuilder = new StringBuilder();
 
         for (int i = 0; i < annotationCount; i++) {
@@ -358,12 +212,14 @@ public class OptimizedVideo {
 
             annotationTime[i] = annotation.getTime();
 
+            // The position is stored in interleaved { X0, Y0, X1, Y1, ...} array
             PointF position = annotation.getPosition();
             annotationXY[i * 2] = position.x;
             annotationXY[i * 2 + 1] = position.y;
 
+            // The text is stored as interleaved { Start0, End0, Start1, End1, ...} index array
+            // Those indices define substrings inside the annotation buffer string
             String text = annotation.getText();
-
             int start, end;
 
             if (text == null) {
@@ -375,6 +231,7 @@ public class OptimizedVideo {
                 start = 0;
                 end = 0;
             } else {
+                // Append the string to the buffer but save the index before and after it
                 start = annotationBufferBuilder.length();
                 annotationBufferBuilder.append(text);
                 end = annotationBufferBuilder.length();
@@ -382,7 +239,9 @@ public class OptimizedVideo {
 
             annotationTextStartEnd[i * 2] = start;
             annotationTextStartEnd[i * 2 + 1] = end;
-            annotationAuthorUserIndex[i] = internUser(annotation.getAuthor());
+
+            // Intern the user and store as index so we don't have so much object references
+            annotationAuthorUserIndex[i] = UserPool.internUser(annotation.getAuthor());
         }
 
         annotationTextBuffer = annotationBufferBuilder.toString();
@@ -403,25 +262,36 @@ public class OptimizedVideo {
     public Video inflate(PooledVideo pooled) {
 
         int annotationCount = annotationTime.length;
+
+        // Create the video object from the PooledVideo class, creates the list of the
+        // annotations and the location object if needed.
         Video video = pooled.create(annotationCount, hasLocation);
 
+        // Parse the Uri objects back from strings
         video.setManifestUri(Uri.parse(manifestUri));
-        video.setRepository(repository);
-
         video.setVideoUri(Uri.parse(videoUri));
         video.setThumbUri(Uri.parse(thumbUri));
+
+        video.setRepository(repository);
         video.setId(id);
         video.setTitle(title);
         video.setGenre(genre);
         video.setTag(tag);
+
+        // Create the Date objects from the longs
         video.setDate(new Date(dateInMs));
         if (hasLastModified) {
             video.setLastModified(new Date(lastModifiedInMs));
         } else {
             video.setLastModified(null);
         }
-        video.setAuthor(getInternedUser(authorUserIndex));
 
+        // Retrieve the author with the index from the user pool
+        video.setAuthor(UserPool.getInternedUser(authorUserIndex));
+
+        // Recreate the location from the location fields.
+        // Note: If we are creating the video in place there might be a Location object already,
+        // so we can just fill the data in there instead of creating a new Location object.
         if (hasLocation) {
             Location location = video.getLocation();
             if (location == null) {
@@ -437,10 +307,14 @@ public class OptimizedVideo {
 
         List<Annotation> annotations = video.getAnnotations();
         for (int i = 0; i < annotationCount; i++) {
+
+            // The video comes from PooledVideo it has already allocated the list of the
+            // annotations, see beginning of this function
             Annotation annotation = annotations.get(i);
 
             annotation.setTime(annotationTime[i]);
 
+            // The location object should exist for the annotation already.
             PointF position = annotation.getPosition();
             if (position == null) {
                 position = new PointF();
@@ -448,8 +322,11 @@ public class OptimizedVideo {
             }
             position.set(annotationXY[i * 2], annotationXY[i * 2 + 1]);
 
+            // Retrieve the substring from the annotation text buffer.
             annotation.setText(getAnnotationText(i));
-            annotation.setAuthor(getInternedUser(annotationAuthorUserIndex[i]));
+
+            // Retrieve the interned user with the index.
+            annotation.setAuthor(UserPool.getInternedUser(annotationAuthorUserIndex[i]));
         }
 
         return video;
@@ -464,6 +341,11 @@ public class OptimizedVideo {
         return inflate(new PooledVideo(annotationTime.length, hasLocation));
     }
 
+    /**
+     * Save this video to the repository.
+     *
+     * @return true if success, false otherwise
+     */
     public boolean save() {
         try {
             this.repository.save(this);
