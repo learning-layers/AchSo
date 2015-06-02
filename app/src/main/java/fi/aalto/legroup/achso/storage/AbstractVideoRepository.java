@@ -6,10 +6,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.UUID;
 
+import fi.aalto.legroup.achso.entities.OptimizedVideo;
 import fi.aalto.legroup.achso.entities.Video;
-import fi.aalto.legroup.achso.entities.VideoInfo;
 
-public abstract class AbstractVideoRepository implements VideoInfoRepository, VideoRepository {
+public abstract class AbstractVideoRepository implements VideoRepository {
 
     protected Bus bus;
 
@@ -22,24 +22,11 @@ public abstract class AbstractVideoRepository implements VideoInfoRepository, Vi
      */
     @Override
     public abstract FindResults getAll() throws IOException;
-
-    /**
-     * Get the time when a video with given ID has been last modified.
-     */
-    @Override
-    public abstract long getLastModifiedTime(UUID id) throws IOException;
-
-    /**
-     * Returns the video info for a given ID.
-     */
-    @Override
-    public abstract VideoInfo getVideoInfo(UUID id) throws IOException;
-
     /**
      * Returns the video for a given ID.
      */
     @Override
-    public abstract Video getVideo(UUID id) throws IOException;
+    public abstract OptimizedVideo getVideo(UUID id) throws IOException;
 
     /**
      * Saves a video to the repository.
@@ -82,11 +69,8 @@ public abstract class AbstractVideoRepository implements VideoInfoRepository, Vi
 
         for (FindResult result : results) {
 
-            // This is potentially slow -- override this method if your repository allows for a
-            // faster way to filter genres, for example by being structured
-            VideoInfo videoInfo = getVideoInfo(result.getId());
-
-            if (videoInfo.getGenre().matches(genre)) {
+            OptimizedVideo video = getVideo(result.getId());
+            if (video.getGenre().matches(genre)) {
                 matching.add(result);
             }
         }
@@ -94,5 +78,6 @@ public abstract class AbstractVideoRepository implements VideoInfoRepository, Vi
 
         return new FindResults(matching);
     }
+
 }
 

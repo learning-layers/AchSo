@@ -4,6 +4,8 @@ import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.common.base.Objects;
+
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
 
 public class User implements JsonSerializable, Parcelable {
@@ -40,6 +42,24 @@ public class User implements JsonSerializable, Parcelable {
 
     public void setUri(Uri uri) {
         this.uri = uri;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof User)) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+
+        User other = (User) obj;
+        return Objects.equal(name, other.name) && Objects.equal(uri, other.uri);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(name, uri);
     }
 
     @Override

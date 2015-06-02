@@ -8,7 +8,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
-import fi.aalto.legroup.achso.entities.VideoInfo;
+import fi.aalto.legroup.achso.entities.OptimizedVideo;
 
 /**
  * Provides cached read-only access to video information objects.
@@ -147,14 +147,9 @@ public interface VideoInfoRepository {
     public FindResults getByGenreString(String genre) throws IOException;
 
     /**
-     * Get the time when a video with given ID has been last modified.
-     */
-    public abstract long getLastModifiedTime(UUID id) throws IOException;
-
-    /**
      * Returns an information object describing an entity with the given ID.
      */
-    public VideoInfo getVideoInfo(UUID id) throws IOException;
+    public OptimizedVideo getVideo(UUID id) throws IOException;
 
     /**
      * Invalidates the cached information object with the given ID.

@@ -19,9 +19,7 @@ import javax.annotation.Nonnull;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
-import fi.aalto.legroup.achso.entities.Annotation;
-import fi.aalto.legroup.achso.entities.Video;
-import fi.aalto.legroup.achso.entities.VideoInfo;
+import fi.aalto.legroup.achso.entities.OptimizedVideo;
 import fi.aalto.legroup.achso.storage.VideoInfoRepository.FindResult;
 import fi.aalto.legroup.achso.storage.VideoInfoRepository.FindResults;
 
@@ -146,20 +144,18 @@ public final class SearchActivity extends ActionBarActivity {
      * annotations.
      */
     private boolean isMatch(UUID id, String query) throws IOException {
-        VideoInfo videoInfo = App.videoInfoRepository.getVideoInfo(id);
+        OptimizedVideo video = App.videoInfoRepository.getVideo(id);
 
-        if (query.equals(videoInfo.getTag())) {
+        if (query.equals(video.getTag())) {
             return true;
         }
 
-        if (videoInfo.getTitle().toLowerCase().contains(query)) {
+        if (video.getTitle().toLowerCase().contains(query)) {
             return true;
         }
 
-        Video video = App.videoRepository.getVideo(id);
-
-        for (Annotation annotation : video.getAnnotations()) {
-            if (annotation.getText().toLowerCase().contains(query)) {
+        for (int i = 0; i < video.getAnnotationCount(); i++) {
+            if (video.getAnnotationText(i).toLowerCase().contains(query)) {
                 return true;
             }
         }

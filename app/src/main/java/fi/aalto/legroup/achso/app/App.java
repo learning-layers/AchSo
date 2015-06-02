@@ -15,6 +15,7 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.otto.Bus;
 
 import java.io.File;
+import java.io.IOException;
 
 import fi.aalto.legroup.achso.BuildConfig;
 import fi.aalto.legroup.achso.R;
@@ -24,10 +25,9 @@ import fi.aalto.legroup.achso.authentication.LoginRequestEvent;
 import fi.aalto.legroup.achso.authoring.LocationManager;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
 import fi.aalto.legroup.achso.storage.AbstractVideoRepository;
-import fi.aalto.legroup.achso.storage.CachedVideoRepository;
 import fi.aalto.legroup.achso.storage.VideoInfoRepository;
 import fi.aalto.legroup.achso.storage.VideoRepository;
-import fi.aalto.legroup.achso.storage.local.LocalVideoRepository;
+import fi.aalto.legroup.achso.storage.local.OptimizedLocalVideoRepository;
 import fi.aalto.legroup.achso.storage.remote.strategies.ClViTra2Strategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.SssStrategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.Strategy;
@@ -95,9 +95,16 @@ public final class App extends MultiDexApplication
 
         jsonSerializer = new JsonSerializer();
 
-        localVideoRepository = new CachedVideoRepository(bus, new LocalVideoRepository(bus, jsonSerializer, localStorageDirectory));
+        localVideoRepository =
+                new OptimizedLocalVideoRepository(bus, jsonSerializer, localStorageDirectory);
         videoRepository = localVideoRepository;
         videoInfoRepository = localVideoRepository;
+
+        try {
+            localVideoRepository.refresh();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         bus.post(new LoginRequestEvent(LoginRequestEvent.Type.LOGIN));
 
@@ -126,7 +133,6 @@ public final class App extends MultiDexApplication
      *
      * @param uri     Relative or absolute URI.
      * @param rootUri Absolute URI to use as the root in case the given URI is relative.
-     *
      * @return An absolute URI.
      */
     private static Uri resolveRelativeUri(Uri uri, Uri rootUri) {
