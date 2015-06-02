@@ -21,8 +21,8 @@ import fi.aalto.legroup.achso.storage.VideoRepository;
  */
 public class OptimizedVideo {
 
-    private transient String manifestUri;
-    private transient VideoRepository repository;
+    private String manifestUri;
+    private VideoRepository repository;
 
     private String videoUri;
     private String thumbUri;
