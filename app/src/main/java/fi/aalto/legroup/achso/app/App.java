@@ -29,6 +29,7 @@ import fi.aalto.legroup.achso.storage.VideoInfoRepository;
 import fi.aalto.legroup.achso.storage.VideoRepository;
 import fi.aalto.legroup.achso.storage.local.OptimizedLocalVideoRepository;
 import fi.aalto.legroup.achso.storage.remote.strategies.ClViTra2Strategy;
+import fi.aalto.legroup.achso.storage.remote.strategies.OwnCloudStrategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.SssStrategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.Strategy;
 
@@ -56,6 +57,7 @@ public final class App extends MultiDexApplication
 
     public static Strategy videoStrategy;
     public static Strategy metadataStrategy;
+    public static Strategy ownCloudStrategy;
 
     private static Uri layersBoxUrl;
 
@@ -80,6 +82,8 @@ public final class App extends MultiDexApplication
 
         locationManager = new LocationManager(this);
 
+        jsonSerializer = new JsonSerializer();
+
         setupUploaders();
 
         // TODO: The instantiation of repositories should be abstracted further.
@@ -92,8 +96,6 @@ public final class App extends MultiDexApplication
         if (!(localStorageDirectory.isDirectory() || localStorageDirectory.mkdirs())) {
             Toast.makeText(this, R.string.storage_error, Toast.LENGTH_LONG).show();
         }
-
-        jsonSerializer = new JsonSerializer();
 
         localVideoRepository =
                 new OptimizedLocalVideoRepository(bus, jsonSerializer, localStorageDirectory);
@@ -177,9 +179,11 @@ public final class App extends MultiDexApplication
     private void setupUploaders() {
         Uri clViTra2Url = Uri.parse(getString(R.string.clvitra2Url));
         Uri sssUrl = Uri.parse(getString(R.string.sssUrl));
+        Uri ownCloudUri = Uri.parse(getString(R.string.ownCloudUrl));
 
         videoStrategy = new ClViTra2Strategy(bus, clViTra2Url);
         metadataStrategy = new SssStrategy(bus, sssUrl);
+        ownCloudStrategy = new OwnCloudStrategy(bus, jsonSerializer, ownCloudUri);
     }
 
     private Uri readLayersBoxUrl() {

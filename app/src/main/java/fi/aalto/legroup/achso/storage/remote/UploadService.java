@@ -15,7 +15,6 @@ import java.util.UUID;
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.Video;
-import fi.aalto.legroup.achso.storage.remote.strategies.DummyStrategy;
 import fi.aalto.legroup.achso.storage.remote.upload.ManifestUploader;
 import fi.aalto.legroup.achso.storage.remote.upload.MetadataUploader;
 import fi.aalto.legroup.achso.storage.remote.upload.ThumbnailUploader;
@@ -53,13 +52,12 @@ public final class UploadService extends IntentService {
         manifestUploaders = new ArrayList<>();
         metadataUploaders = new ArrayList<>();
 
-        DummyStrategy dummy = new DummyStrategy();
-
-        videoUploaders.add((VideoUploader) App.videoStrategy);
-        thumbUploaders.add(dummy);
-        manifestUploaders.add(dummy);
+        // I'm sorry...
         // Don't try this at home
-        metadataUploaders.add((MetadataUploader) App.metadataStrategy);
+        videoUploaders.add((VideoUploader) App.ownCloudStrategy);
+        thumbUploaders.add((ThumbnailUploader) App.ownCloudStrategy);
+        manifestUploaders.add((ManifestUploader) App.ownCloudStrategy);
+        //metadataUploaders.add((MetadataUploader) App.metadataStrategy);
 
         // TODO: Inject instead
         this.bus = App.bus;
@@ -166,7 +164,8 @@ public final class UploadService extends IntentService {
         if (manifestUrl == null) {
 
             // Cleanup
-            thumbnailHost.uploadCancelledCleanThumb(video, thumbUrl);
+            if (thumbnailHost != null)
+                thumbnailHost.uploadCancelledCleanThumb(video, thumbUrl);
             videoHost.uploadCancelledCleanVideo(video, videoUrl, videoHostThumbUrl);
 
             return false;
