@@ -5,16 +5,23 @@ import android.net.Uri;
 
 import com.google.common.io.Files;
 import com.squareup.okhttp.Credentials;
+import com.squareup.okhttp.FormEncodingBuilder;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 import com.squareup.otto.Bus;
 
+import org.simpleframework.xml.Element;
+import org.simpleframework.xml.Path;
+import org.simpleframework.xml.Root;
+import org.simpleframework.xml.Serializer;
+import org.simpleframework.xml.core.Persister;
+
 import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
 import java.net.URLConnection;
-import java.util.UUID;
 
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.Video;
@@ -31,39 +38,45 @@ public class OwnCloudStrategy extends Strategy implements ManifestUploader, Thum
 
     protected JsonSerializer serializer;
     protected Uri endpointUrl;
+    protected Uri webdavUrl;
+    protected Uri sharesUrl;
+
+    @Root(strict = false)
+    private static class ShareResponseXML {
+
+        @Path("data")
+        @Element
+        String token;
+    };
 
     public OwnCloudStrategy(Bus bus, JsonSerializer serializer, Uri endpointUrl) {
         super(bus);
 
         this.serializer = serializer;
         this.endpointUrl = endpointUrl;
+        this.webdavUrl = appendPaths(endpointUrl, "remote.php/webdav");
+        this.sharesUrl = appendPaths(endpointUrl, "ocs/v1.php/apps/files_sharing/api/v1");
     }
 
+    private Request.Builder buildWebDavRequest(String path) {
 
-    public Uri getManifestUrlForId(UUID key) {
-        return endpointUrl.buildUpon().appendPath("manifest").appendPath(key.toString() + ".json").build();
+        Request.Builder builder = new Request.Builder()
+            .url(appendPaths(this.webdavUrl, path).toString())
+            .header("Authorization", Credentials.basic("user", "bitnami"));
+
+        return builder;
     }
 
-    public Uri getThumbUrlForId(UUID key) {
-        return endpointUrl.buildUpon().appendPath("thumbnail").appendPath(key.toString()).build();
+    private Request.Builder buildSharesRequest() {
+
+        Request.Builder builder = new Request.Builder()
+            .url(appendPaths(this.sharesUrl, "shares").toString())
+            .header("Authorization", Credentials.basic("user", "bitnami"));
+
+        return builder;
     }
 
-    public Uri getVideoUrlForId(UUID key) {
-        return endpointUrl.buildUpon().appendPath("video").appendPath(key.toString()).build();
-    }
-
-    private Uri uploadFile(Uri baseUrl, File file) throws IOException {
-        String extension = Files.getFileExtension(file.getName());
-        String mimeType = URLConnection.guessContentTypeFromName(file.getPath());
-
-        // This is kinda ugly but I don't see that the builder could append an extension
-        Uri url = Uri.parse(baseUrl.toString() + "." + extension);
-
-        Request request = new Request.Builder()
-                .url(url.toString())
-                .header("Authorization", Credentials.basic("user", "bitnami"))
-                .put(RequestBody.create(MediaType.parse(mimeType), file))
-                .build();
+    private Response executeRequest(Request request) throws IOException {
 
         Response response = App.httpClient.newCall(request).execute();
         if (!response.isSuccessful()) {
@@ -71,30 +84,94 @@ public class OwnCloudStrategy extends Strategy implements ManifestUploader, Thum
             throw new IOException(errorMessage);
         }
 
+        return response;
+    }
+
+    private void uploadFile(String path, File file) throws IOException {
+        String mimeType = URLConnection.guessContentTypeFromName(file.getPath());
+
+        Request request = buildWebDavRequest(path)
+                .put(RequestBody.create(MediaType.parse(mimeType), file))
+                .build();
+
+        executeRequest(request);
+    }
+
+    private <T> T parseXml(Class<T> clazz, Response response) throws IOException {
+
+        try {
+
+            Serializer serializer = new Persister();
+            Reader source = response.body().charStream();
+            return serializer.read(clazz, source);
+
+        } catch (Exception e) {
+            throw new IOException("Invalid response XML: " + e.getMessage(), e);
+        }
+    }
+
+    private Uri shareFile(String path) throws IOException {
+
+        RequestBody formBody = new FormEncodingBuilder()
+            .add("path", path)
+            .add("shareType", "3") // public
+            .add("publicUpload", "true") // yes, it's really public
+            .build();
+
+        Request request = buildSharesRequest()
+                .header("Authorization", Credentials.basic("user", "bitnami"))
+                .post(formBody)
+                .build();
+
+        Response response = executeRequest(request);
+        ShareResponseXML xml = parseXml(ShareResponseXML.class, response);
+
+        Uri url = appendPaths(endpointUrl, "index.php/s/" + xml.token + "/download");
         return url;
     }
 
     @Override
     public Uri uploadManifest(Video video) throws IOException {
+
         String serializedVideo = serializer.write(video);
 
-        Uri url = getManifestUrlForId(video.getId());
-        Request request = new Request.Builder()
-                .url(url.toString())
-                .header("Authorization", Credentials.basic("user", "bitnami"))
+        String path = "achso/manifest/ " + video.getId() + ".json";
+        Request request = buildWebDavRequest(path)
                 .put(RequestBody.create(MediaType.parse("application/json"), serializedVideo))
                 .build();
 
-        Response response = App.httpClient.newCall(request).execute();
-        if (!response.isSuccessful()) {
-            String errorMessage = response.code() + " " + response.message();
-            throw new IOException(errorMessage);
-        }
+        executeRequest(request);
 
         // TODO: Work as a repository too
         // bus.post(new VideoRepositoryUpdatedEvent(this));
 
-        return url;
+        Uri uri = shareFile(path);
+
+        return uri;
+    }
+
+    @Override
+    public Uri uploadThumb(Video video) throws IOException {
+
+        File file = new File(video.getThumbUri().getPath());
+        String path = "achso/thumbnail/" + video.getId() + "." + Files.getFileExtension(file.getName());
+
+        uploadFile(path, file);
+        Uri shareUrl = shareFile(path);
+
+        return shareUrl;
+    }
+
+    @Override
+    public VideoUploadResult uploadVideo(Video video) throws IOException {
+
+        File file = new File(video.getVideoUri().getPath());
+        String path = "achso/video/" + video.getId() + "." + Files.getFileExtension(file.getName());
+        
+        uploadFile(path, file);
+        Uri shareUrl = shareFile(path);
+
+        return new VideoUploadResult(shareUrl);
     }
 
     @Override
@@ -103,26 +180,21 @@ public class OwnCloudStrategy extends Strategy implements ManifestUploader, Thum
         // TODO: Remove file
     }
 
-    public Uri uploadThumb(Video video) throws IOException {
-
-        Uri url = getThumbUrlForId(video.getId());
-        File file = new File(video.getThumbUri().getPath());
-
-        return uploadFile(url, file);
-    }
-
     @Override
     public void uploadCancelledCleanVideo(Video video, Uri videoUrl, Uri thumbUrl) {
 
         // TODO: Remove file
     }
 
-    @Override
-    public VideoUploadResult uploadVideo(Video video) throws IOException {
 
-        Uri url = getVideoUrlForId(video.getId());
-        File file = new File(video.getVideoUri().getPath());
+    private static Uri appendPaths(Uri base, String path) {
+        Uri.Builder builder = base.buildUpon();
 
-        return new VideoUploadResult(uploadFile(url, file));
+        String[] parts = path.split("/");
+        for (String part : parts) {
+            builder = builder.appendPath(part);
+        }
+
+        return builder.build();
     }
 }
