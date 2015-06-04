@@ -47,8 +47,14 @@ public class OptimizedLocalVideoRepository extends AbstractVideoRepository {
         videos = new HashMap<>(manifests.length * 2);
         allResults = new ArrayList<>(manifests.length);
         for (File manifest : manifests) {
-
-            Video video = serializer.load(Video.class, manifest.toURI());
+            
+            Video video = null;
+            try {
+                video = serializer.load(Video.class, manifest.toURI());
+            } catch (IOException e) {
+                e.printStackTrace();
+                continue;
+            }
 
             video.setManifestUri(Uri.fromFile(manifest));
             video.setRepository(this);
