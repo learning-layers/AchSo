@@ -18,13 +18,14 @@ import java.io.IOException;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.Annotation;
 import fi.aalto.legroup.achso.entities.Video;
+import fi.aalto.legroup.achso.storage.remote.upload.MetadataUploader;
 
 /**
  * Uploads metadata from videos to a Social Semantic Server instance.
  *
  * TODO: Extract API stuff into an API wrapper.
  */
-public class SssStrategy extends Strategy {
+public class SssStrategy extends Strategy implements MetadataUploader {
 
     protected final Uri endpointUrl;
 
@@ -46,7 +47,7 @@ public class SssStrategy extends Strategy {
      * @param video the video whose data will be uploaded
      */
     @Override
-    public void handle(Video video) throws Exception {
+    public void uploadMetadata(Video video) throws IOException {
         try {
             String videoId = createVideo(video);
 
@@ -54,16 +55,8 @@ public class SssStrategy extends Strategy {
                 createAnnotation(videoId, annotation);
             }
         } catch (Exception e) {
-            throw new Exception("Couldn't upload to SSS: " + e.getMessage(), e);
+            throw new IOException("Couldn't upload to SSS: " + e.getMessage(), e);
         }
-    }
-
-    /**
-     * Returns true if the chain should be broken when this strategy fails, false otherwise.
-     */
-    @Override
-    protected boolean isCritical() {
-        return true;
     }
 
     /**
