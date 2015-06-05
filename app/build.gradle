@@ -50,7 +50,7 @@ dependencies {
     compile 'com.android.support:recyclerview-v7:22.0.0'
 
     // Material design dialogs
-    compile 'com.afollestad:material-dialogs:0.6.4.5'
+    compile 'com.afollestad:material-dialogs:0.7.4.1'
 
     // Material design tab strip. Note that this is jpardogo's fork, not the original version
     // that's no longer updated. The class name of the view is still same, though.
