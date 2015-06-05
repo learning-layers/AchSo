@@ -223,7 +223,7 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
      * Invoked to make progress when the renderer is in the STATE_UNPREPARED state.
      */
     @Override
-    protected int doPrepare() {
+    protected int doPrepare(long positionUs) {
         // Prepared instantly
         return STATE_PREPARED;
     }

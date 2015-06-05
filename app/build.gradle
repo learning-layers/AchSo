@@ -107,4 +107,7 @@ dependencies {
 
     // Date and time formatting
     compile 'joda-time:joda-time:2.3'
+
+    // Exo player
+    compile 'com.google.android.exoplayer:exoplayer:r1.3.3'
 }

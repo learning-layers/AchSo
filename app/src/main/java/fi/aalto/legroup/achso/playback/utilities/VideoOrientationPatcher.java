@@ -130,6 +130,13 @@ public final class VideoOrientationPatcher implements MediaCodecVideoTrackRender
     }
 
     /**
+     * Invoked when a decoder is successfully created.
+     */
+    @Override
+    public void onDecoderInitialized(String decoderName, long elapsedRealtimeMs, long initializationDurationMs) {
+    }
+
+    /**
      * Rotates the video when the TextureView's layout bounds change.
      * Video dimensions are preserved.
      */

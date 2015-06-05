@@ -393,6 +393,14 @@ public final class PlayerFragment extends Fragment implements ExoPlayer.Listener
     }
 
     /**
+     * Invoked when a decoder is successfully created.
+     */
+    @Override
+    public void onDecoderInitialized(String decoderName, long elapsedRealtimeMs, long initializationDurationMs) {
+
+    }
+
+    /**
      * Invoked when a frame is rendered to a surface for the first time following that surface
      * having been set as the target for the renderer.
      */
