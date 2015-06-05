@@ -153,7 +153,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
                 getFragmentManager().findFragmentById(R.id.videoPlayerFragment);
 
         playerFragment.setListener(this);
-        playerFragment.prepare(video.getVideoUri(), this);
+        playerFragment.prepare(video, this);
     }
 
     @Override
