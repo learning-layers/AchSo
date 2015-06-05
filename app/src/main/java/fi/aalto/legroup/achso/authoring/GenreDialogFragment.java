@@ -97,14 +97,15 @@ public final class GenreDialogFragment extends DialogFragment {
      * Class for listening to dialog events.
      */
     private class DialogCallback extends MaterialDialog.ButtonCallback implements
-            MaterialDialog.ListCallback {
+            MaterialDialog.ListCallbackSingleChoice {
 
         /**
          * Called each time the user selects an item.
          */
         @Override
-        public void onSelection(MaterialDialog dialog, View item, int index, CharSequence label) {
+        public boolean onSelection(MaterialDialog dialog, View item, int index, CharSequence label) {
             selection = index;
+            return true;
         }
 
         /**
