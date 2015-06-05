@@ -35,6 +35,7 @@ import fi.aalto.legroup.achso.app.AppAnalytics;
 import fi.aalto.legroup.achso.entities.Annotation;
 import fi.aalto.legroup.achso.entities.User;
 import fi.aalto.legroup.achso.entities.Video;
+import fi.aalto.legroup.achso.playback.utilities.VideoOrientationPatcher;
 import okio.BufferedSink;
 import okio.Okio;
 import okio.Source;
@@ -143,6 +144,8 @@ public final class VideoCreatorService extends IntentService {
             return;
         }
 
+        int rotation = VideoOrientationPatcher.readOrientation(this, videoFile);
+
         try {
             createThumbnail(videoFile, thumbFile);
         } catch (IOException e) {
@@ -158,7 +161,7 @@ public final class VideoCreatorService extends IntentService {
         Uri thumbUri = Uri.fromFile(thumbFile);
 
         Video video = new Video(App.videoRepository, manifestUri, videoUri, thumbUri, id, title,
-                genre, tag, date, author, location, annotations);
+                genre, tag, rotation, date, author, location, annotations);
 
         video.save();
 

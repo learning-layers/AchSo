@@ -32,6 +32,7 @@ public class OptimizedVideo {
     private String tag;
     private long dateInMs;
     private long lastModifiedInMs;
+    private int rotation;
     private double locationLatitude;
     private double locationLongitude;
     private float locationAccuracy;
@@ -182,6 +183,7 @@ public class OptimizedVideo {
         title = video.getTitle();
         genre = video.getGenre();
         tag = video.getTag();
+        rotation = video.getRotation();
         if (genre != null) {
             // Intern genres because there are only a few options for the field
             genre = genre.intern();
@@ -286,6 +288,7 @@ public class OptimizedVideo {
         video.setTitle(title);
         video.setGenre(genre);
         video.setTag(tag);
+        video.setRotation(rotation);
 
         // Create the Date objects from the longs
         video.setDate(new Date(dateInMs));

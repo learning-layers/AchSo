@@ -90,7 +90,7 @@ public final class VideoOrientationPatcher implements MediaCodecVideoTrackRender
     /**
      * Returns the orientation of the given video, or -1 if it cannot be read.
      */
-    private int readOrientation(Context context, File file) {
+    public static int readOrientation(Context context, File file) {
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN) {
             return FrameworkOrientationReader.readOrientation(context, file);
         } else {
