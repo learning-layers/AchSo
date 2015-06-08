@@ -83,17 +83,13 @@ public final class UploadService extends IntentService {
         ThumbnailUploader thumbnailHost = null;
         ManifestUploader manifestHost = null;
 
-        Uri videoUrl = null;
-        // This stores the original thumb url (or null if VideoUploader didn't support thumbnails)
-        Uri videoHostThumbUrl = null;
+        VideoUploader.VideoUploadResult videoResult = null;
 
         for (VideoUploader uploader : videoUploaders) {
             try {
-                VideoUploader.VideoUploadResult result = uploader.uploadVideo(video);
+                videoResult = uploader.uploadVideo(video);
 
                 videoHost = uploader;
-                videoUrl = result.getVideoUrl();
-                videoHostThumbUrl = result.getThumbUrl();
 
                 // Stop at the first uploader which succeeds.
                 break;
@@ -102,30 +98,33 @@ public final class UploadService extends IntentService {
             }
         }
 
-        if (videoUrl == null) {
+        if (videoResult == null) {
 
             // No cleanup required
 
             return false;
         }
-        video.setVideoUri(videoUrl);
+        video.setVideoUri(videoResult.getVideoUrl());
 
         // If the video uploader didn't support creating a thumbnail, try to upload it somewhere
         // else.
 
+        ThumbnailUploader.ThumbnailUploadResult thumbResult = null;
         Uri thumbUrl = null;
-        if (videoHostThumbUrl != null) {
+
+        if (videoResult.getThumbUrl() != null) {
 
             // Use the thumbnail provided by the video uploader
-            thumbUrl = videoHostThumbUrl;
+            thumbUrl = videoResult.getThumbUrl();
 
         } else {
 
-            // Upload the thumnail somewhere else
+            // Upload the thumbnail somewhere else
             for (ThumbnailUploader uploader : thumbUploaders) {
                 try {
-                    thumbUrl = uploader.uploadThumb(video);
+                    thumbResult = uploader.uploadThumb(video);
                     thumbnailHost = uploader;
+                    thumbUrl = thumbResult.getThumbUrl();
 
                     // Stop at the first uploader which succeeds.
                     break;
@@ -137,8 +136,12 @@ public final class UploadService extends IntentService {
 
         if (thumbUrl == null) {
 
-            // Cleanup
-            videoHost.uploadCancelledCleanVideo(video, videoUrl, videoHostThumbUrl);
+            // Cleanup, it doesn't really matter if it succeeds or not so just ignore the error
+            try {
+                videoHost.uploadCancelledCleanVideo(video, videoResult);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
             return false;
         }
@@ -163,10 +166,18 @@ public final class UploadService extends IntentService {
 
         if (manifestUrl == null) {
 
-            // Cleanup
-            if (thumbnailHost != null)
-                thumbnailHost.uploadCancelledCleanThumb(video, thumbUrl);
-            videoHost.uploadCancelledCleanVideo(video, videoUrl, videoHostThumbUrl);
+            // Cleanup, it doesn't matter if it succeeds _but_ it would be good that we try to cleanup every resource even if an earlier one fails.
+            try {
+                if (thumbnailHost != null)
+                    thumbnailHost.uploadCancelledCleanThumb(video, thumbResult);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                videoHost.uploadCancelledCleanVideo(video, videoResult);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
             return false;
         }

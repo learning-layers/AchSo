@@ -43,9 +43,9 @@ public class DummyStrategy implements VideoUploader, ThumbnailUploader, Manifest
     }
 
     @Override
-    public Uri uploadThumb(Video video) throws IOException {
+    public ThumbnailUploadResult uploadThumb(Video video) throws IOException {
 
-        return getUrl("thumbnails/" + video.getId() + ".jpg");
+        return new ThumbnailUploadResult(getUrl("thumbnails/" + video.getId() + ".jpg"));
     }
 
     @Override
@@ -55,13 +55,13 @@ public class DummyStrategy implements VideoUploader, ThumbnailUploader, Manifest
     }
 
     @Override
-    public void uploadCancelledCleanVideo(Video video, Uri videoUrl, Uri thumbUrl) {
+    public void uploadCancelledCleanVideo(Video video, VideoUploadResult result) {
 
         // Nothing to clean...
     }
 
     @Override
-    public void uploadCancelledCleanThumb(Video video, Uri thumbUrl) {
+    public void uploadCancelledCleanThumb(Video video, ThumbnailUploadResult result) {
 
         // Nothing to clean...
     }

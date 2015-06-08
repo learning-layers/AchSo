@@ -41,12 +41,17 @@ public class OwnCloudStrategy extends Strategy implements ManifestUploader, Thum
     protected Uri webdavUrl;
     protected Uri sharesUrl;
 
+
     @Root(strict = false)
     private static class ShareResponseXML {
 
         @Path("data")
         @Element
-        String token;
+        public String token;
+
+        @Path("data")
+        @Element
+        public long id;
     };
 
     public OwnCloudStrategy(Bus bus, JsonSerializer serializer, Uri endpointUrl) {
@@ -76,6 +81,15 @@ public class OwnCloudStrategy extends Strategy implements ManifestUploader, Thum
         return builder;
     }
 
+    private Request.Builder buildSharesRequest(long id) {
+
+        Request.Builder builder = new Request.Builder()
+                .url(appendPaths(this.sharesUrl, "shares/" + id).toString())
+                .header("Authorization", Credentials.basic("user", "bitnami"));
+
+        return builder;
+    }
+
     private Response executeRequest(Request request) throws IOException {
 
         Response response = App.httpClient.newCall(request).execute();
@@ -97,6 +111,49 @@ public class OwnCloudStrategy extends Strategy implements ManifestUploader, Thum
         executeRequest(request);
     }
 
+    private void deleteFile(String path) throws IOException {
+
+        Request request = buildWebDavRequest(path)
+                .delete()
+                .build();
+
+        executeRequest(request);
+    }
+
+    private void deleteShare(long id) throws IOException {
+
+        Request request = buildSharesRequest(id)
+                .delete()
+                .build();
+
+        executeRequest(request);
+    }
+
+    private void deleteFileAndShare(String path, long id) throws IOException {
+
+        IOException fileException = null;
+        IOException shareException = null;
+
+        try {
+            deleteFile(path);
+        } catch (IOException e) {
+            fileException = e;
+        }
+        try {
+            deleteShare(id);
+        } catch (IOException e) {
+            shareException = e;
+        }
+
+        if (fileException != null && shareException != null) {
+            throw new IOException("Failed to delete file and share: " + fileException.getMessage() + ", " + shareException.getMessage(), fileException);
+        } else if (fileException != null) {
+            throw new IOException("Failed to delete file: " + fileException.getMessage(), fileException);
+        } else if (shareException != null) {
+            throw new IOException("Failed to delete share: " + shareException.getMessage(), shareException);
+        }
+    }
+
     private <T> T parseXml(Class<T> clazz, Response response) throws IOException {
 
         try {
@@ -110,7 +167,8 @@ public class OwnCloudStrategy extends Strategy implements ManifestUploader, Thum
         }
     }
 
-    private Uri shareFile(String path) throws IOException {
+
+    private ShareResult shareFile(String path) throws IOException {
 
         RequestBody formBody = new FormEncodingBuilder()
             .add("path", path)
@@ -127,7 +185,7 @@ public class OwnCloudStrategy extends Strategy implements ManifestUploader, Thum
         ShareResponseXML xml = parseXml(ShareResponseXML.class, response);
 
         Uri url = appendPaths(endpointUrl, "index.php/s/" + xml.token + "/download");
-        return url;
+        return new ShareResult(url, xml.id);
     }
 
     @Override
@@ -145,21 +203,21 @@ public class OwnCloudStrategy extends Strategy implements ManifestUploader, Thum
         // TODO: Work as a repository too
         // bus.post(new VideoRepositoryUpdatedEvent(this));
 
-        Uri uri = shareFile(path);
+        Uri uri = shareFile(path).getUrl();
 
         return uri;
     }
 
     @Override
-    public Uri uploadThumb(Video video) throws IOException {
+    public ThumbnailUploadResult uploadThumb(Video video) throws IOException {
 
         File file = new File(video.getThumbUri().getPath());
         String path = "achso/thumbnail/" + video.getId() + "." + Files.getFileExtension(file.getName());
 
         uploadFile(path, file);
-        Uri shareUrl = shareFile(path);
+        ShareResult result = shareFile(path);
 
-        return shareUrl;
+        return new OwnCloudThumbUploadResult(result.getUrl(), path, result.getId());
     }
 
     @Override
@@ -169,23 +227,32 @@ public class OwnCloudStrategy extends Strategy implements ManifestUploader, Thum
         String path = "achso/video/" + video.getId() + "." + Files.getFileExtension(file.getName());
         
         uploadFile(path, file);
-        Uri shareUrl = shareFile(path);
+        ShareResult result = shareFile(path);
 
-        return new VideoUploadResult(shareUrl);
+        return new OwnCloudVideoUploadResult(result.getUrl(), path, result.getId());
     }
 
     @Override
-    public void uploadCancelledCleanThumb(Video video, Uri thumbUrl) {
+    public void uploadCancelledCleanThumb(Video video, ThumbnailUploadResult result) throws IOException {
 
-        // TODO: Remove file
+        if (!(result instanceof OwnCloudThumbUploadResult)) {
+            throw new IllegalArgumentException("result expected to be OwnCloudThumbUploadResult");
+        }
+        OwnCloudThumbUploadResult ownCloudResult = (OwnCloudThumbUploadResult) result;
+
+        deleteFileAndShare(ownCloudResult.getPath(), ownCloudResult.getShareId());
     }
 
     @Override
-    public void uploadCancelledCleanVideo(Video video, Uri videoUrl, Uri thumbUrl) {
+    public void uploadCancelledCleanVideo(Video video, VideoUploadResult result) throws IOException {
 
-        // TODO: Remove file
+        if (!(result instanceof OwnCloudVideoUploadResult)) {
+            throw new IllegalArgumentException("result expected to be OwnCloudVideoUploadResult");
+        }
+        OwnCloudVideoUploadResult ownCloudResult = (OwnCloudVideoUploadResult) result;
+
+        deleteFileAndShare(ownCloudResult.getPath(), ownCloudResult.getShareId());
     }
-
 
     private static Uri appendPaths(Uri base, String path) {
         Uri.Builder builder = base.buildUpon();
@@ -197,4 +264,61 @@ public class OwnCloudStrategy extends Strategy implements ManifestUploader, Thum
 
         return builder.build();
     }
+
+    protected static class OwnCloudVideoUploadResult extends VideoUploadResult {
+
+        private String path;
+        private long shareId;
+
+        OwnCloudVideoUploadResult(Uri videoUrl, String path, long shareId) {
+            super(videoUrl);
+            this.path = path;
+            this.shareId = shareId;
+        }
+
+        String getPath() {
+            return path;
+        }
+        long getShareId() {
+            return shareId;
+        }
+    };
+
+    protected static class OwnCloudThumbUploadResult extends ThumbnailUploadResult {
+
+        private String path;
+        private long shareId;
+
+        OwnCloudThumbUploadResult(Uri thumbUrl, String path, long shareId) {
+            super(thumbUrl);
+            this.path = path;
+            this.shareId = shareId;
+        }
+
+        String getPath() {
+            return path;
+        }
+        long getShareId() {
+            return shareId;
+        }
+    };
+
+    protected static class ShareResult {
+
+        private Uri url;
+        private long id;
+
+        ShareResult(Uri url, long id) {
+            this.url = url;
+            this.id = id;
+        }
+
+        Uri getUrl() {
+            return url;
+        }
+        long getId() {
+            return id;
+        }
+
+    };
 }
