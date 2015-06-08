@@ -77,7 +77,7 @@ public final class VideoOrientationPatcher implements MediaCodecVideoTrackRender
 
             if (isLocal) {
                 File file = new File(videoUri.getPath());
-                rotationDegrees = readOrientation(context, file);
+                rotationDegrees = VideoOrientationReader.readOrientation(context, file);
             }
         }
 
@@ -94,17 +94,6 @@ public final class VideoOrientationPatcher implements MediaCodecVideoTrackRender
         }
 
         this.view = view;
-    }
-
-    /**
-     * Returns the orientation of the given video, or -1 if it cannot be read.
-     */
-    public static int readOrientation(Context context, File file) {
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN) {
-            return FrameworkOrientationReader.readOrientation(context, file);
-        } else {
-            return Mp4ParserOrientationReader.readOrientation(file);
-        }
     }
 
     @Override
