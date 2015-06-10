@@ -44,8 +44,10 @@ public class OptimizedLocalVideoRepository extends AbstractVideoRepository {
             throw new IOException("Couldn't list files in " + storageDirectory);
         }
 
-        videos = new HashMap<>(manifests.length * 2);
-        allResults = new ArrayList<>(manifests.length);
+        // Collect the results to local variables
+        HashMap<UUID, OptimizedVideo> newVideos = new HashMap<>(manifests.length * 2);
+        ArrayList<FindResult> newAllResults = new ArrayList<>(manifests.length);
+
         for (File manifest : manifests) {
             
             Video video = null;
@@ -61,10 +63,18 @@ public class OptimizedLocalVideoRepository extends AbstractVideoRepository {
             video.setLastModified(new Date(manifest.lastModified()));
 
             OptimizedVideo optimized = new OptimizedVideo(video);
-            videos.put(optimized.getId(), optimized);
 
-            allResults.add(new FindResult(getIdFromManifest(manifest), manifest.lastModified()));
+            newVideos.put(optimized.getId(), optimized);
+            newAllResults.add(new FindResult(getIdFromManifest(manifest), manifest.lastModified()));
         }
+
+        synchronized (this) {
+            // Swap the new results in
+            videos = newVideos;
+            allResults = newAllResults;
+        }
+
+        bus.post(new VideoRepositoryUpdatedEvent(this));
     }
 
     protected File getManifestFromId(UUID id) {
@@ -77,18 +87,20 @@ public class OptimizedLocalVideoRepository extends AbstractVideoRepository {
     }
 
     @Override
-    public FindResults getAll() throws IOException {
+    public synchronized FindResults getAll() throws IOException {
         return new FindResults(allResults);
     }
 
     @Override
-    public OptimizedVideo getVideo(UUID id) {
+    public synchronized OptimizedVideo getVideo(UUID id) {
         return videos.get(id);
     }
 
     @Override
     public void save(Video video) throws IOException {
-        videos.put(video.getId(), new OptimizedVideo(video));
+        synchronized (this) {
+            videos.put(video.getId(), new OptimizedVideo(video));
+        }
 
         serializer.save(video, getManifestFromId(video.getId()).toURI());
 
