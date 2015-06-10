@@ -28,6 +28,7 @@ import fi.aalto.legroup.achso.storage.AbstractVideoRepository;
 import fi.aalto.legroup.achso.storage.VideoInfoRepository;
 import fi.aalto.legroup.achso.storage.VideoRepository;
 import fi.aalto.legroup.achso.storage.local.OptimizedLocalVideoRepository;
+import fi.aalto.legroup.achso.storage.remote.DownloadService;
 import fi.aalto.legroup.achso.storage.remote.strategies.ClViTra2Strategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.OwnCloudStrategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.SssStrategy;
@@ -107,6 +108,8 @@ public final class App extends MultiDexApplication
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        DownloadService.download(this);
 
         bus.post(new LoginRequestEvent(LoginRequestEvent.Type.LOGIN));
 

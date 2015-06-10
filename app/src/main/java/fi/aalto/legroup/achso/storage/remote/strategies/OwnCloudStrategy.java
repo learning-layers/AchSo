@@ -13,19 +13,33 @@ import com.squareup.okhttp.Response;
 import com.squareup.otto.Bus;
 
 import org.simpleframework.xml.Element;
+import org.simpleframework.xml.ElementList;
+import org.simpleframework.xml.Namespace;
 import org.simpleframework.xml.Path;
 import org.simpleframework.xml.Root;
 import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.net.URLConnection;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
 
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
+import fi.aalto.legroup.achso.storage.VideoInfoRepository;
+import fi.aalto.legroup.achso.storage.VideoInfoRepository.FindResults;
 import fi.aalto.legroup.achso.storage.remote.upload.ManifestUploader;
 import fi.aalto.legroup.achso.storage.remote.upload.ThumbnailUploader;
 import fi.aalto.legroup.achso.storage.remote.upload.VideoUploader;
@@ -41,6 +55,8 @@ public class OwnCloudStrategy extends Strategy implements ManifestUploader, Thum
     protected Uri webdavUrl;
     protected Uri sharesUrl;
 
+    protected static final SimpleDateFormat davDateFormat
+            = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
 
     @Root(strict = false)
     private static class ShareResponseXML {
@@ -53,6 +69,37 @@ public class OwnCloudStrategy extends Strategy implements ManifestUploader, Thum
         @Element
         public long id;
     };
+
+    @Root(strict=false)
+    @Namespace(reference="DAV:", prefix="d")
+    static class DAVPropfindXML {
+
+        @ElementList(inline=true)
+        @Namespace(reference="DAV:", prefix="d")
+        private List<DAVPropfindResponseXML> responses;
+
+        List<DAVPropfindResponseXML> getResponses() {
+            return responses;
+        }
+    };
+
+    @Root(name="response", strict=false)
+    @Namespace(reference="DAV:", prefix="d")
+    static class DAVPropfindResponseXML {
+
+        @Element
+        @Namespace(reference="DAV:", prefix="d")
+        private String href;
+
+        @Element
+        @Path("d:propstat/d:prop")
+        @Namespace(reference="DAV:", prefix="d")
+        private String getlastmodified;
+
+        String getHref() { return href; }
+
+        String getLastModified() { return getlastmodified; }
+    }
 
     public OwnCloudStrategy(Bus bus, JsonSerializer serializer, Uri endpointUrl) {
         super(bus);
@@ -193,7 +240,7 @@ public class OwnCloudStrategy extends Strategy implements ManifestUploader, Thum
 
         String serializedVideo = serializer.write(video);
 
-        String path = "achso/manifest/ " + video.getId() + ".json";
+        String path = "achso/manifest/" + video.getId() + ".json";
         Request request = buildWebDavRequest(path)
                 .put(RequestBody.create(MediaType.parse("application/json"), serializedVideo))
                 .build();
@@ -252,6 +299,73 @@ public class OwnCloudStrategy extends Strategy implements ManifestUploader, Thum
         OwnCloudVideoUploadResult ownCloudResult = (OwnCloudVideoUploadResult) result;
 
         deleteFileAndShare(ownCloudResult.getPath(), ownCloudResult.getShareId());
+    }
+
+    public FindResults getIndex() throws IOException {
+        Request request = buildWebDavRequest("achso/manifest")
+            .header("Depth", "1")
+            .method("PROPFIND", null)
+            .build();
+
+        Response response = executeRequest(request);
+        DAVPropfindXML xml = parseXml(DAVPropfindXML.class, response);
+
+        List<DAVPropfindResponseXML> propResponses = xml.getResponses();
+        ArrayList<VideoInfoRepository.FindResult> results = new ArrayList<>(propResponses.size());
+
+        for (DAVPropfindResponseXML propResponse : propResponses) {
+
+            Uri href = Uri.parse(propResponse.getHref());
+            String name = href.getLastPathSegment();
+
+            String[] parts = name.trim().split("\\.");
+
+            if (parts.length != 2)
+                continue;
+            if (!parts[1].equals("json"))
+                continue;
+
+            UUID id;
+            try {
+                id = UUID.fromString(parts[0]);
+            } catch (IllegalArgumentException e) {
+                continue;
+            }
+
+            Date date;
+            try {
+                date = davDateFormat.parse(propResponse.getLastModified());
+            } catch (ParseException e) {
+                throw new IOException("Invalid response XML: " + e.getMessage(), e);
+            }
+            long timestamp = date.getTime();
+
+            results.add(new VideoInfoRepository.FindResult(id, timestamp));
+        }
+
+        results.trimToSize();
+        return new FindResults(results);
+    }
+
+    public void downloadManifest(File path, UUID id) throws IOException {
+
+        Request request = buildWebDavRequest("achso/manifest/" + id + ".json")
+            .get()
+            .build();
+
+        Response response = executeRequest(request);
+
+        InputStream in = response.body().byteStream();
+        OutputStream out = new FileOutputStream(path);
+
+        int nRead;
+        byte[] data = new byte[1024];
+        while ((nRead = in.read(data, 0, data.length)) != -1) {
+              out.write(data, 0, nRead);
+        }
+
+        in.close();
+        out.close();
     }
 
     private static Uri appendPaths(Uri base, String path) {
