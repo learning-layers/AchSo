@@ -81,7 +81,8 @@ public class Video implements JsonSerializable {
      * Merge two video manifests.
      * @param a The first video to merge.
      * @param b The second video to merge.
-     * @param old An shared ancestor for the two videos to merge. May be null but results in a worse merge result.
+     * @param old An shared ancestor for the two videos to merge. May be null but results in a
+     *            worse merge result.
      */
     public static Video merge(Video a, Video b, Video old) throws MergeException {
         boolean preferA = a.getLastModified().getTime() > b.getLastModified().getTime();
@@ -120,7 +121,9 @@ public class Video implements JsonSerializable {
             // Here the annotation is missing from one of the videos to merge.
 
             if (ao.contains(an)) {
-                // If the common ancestor contains the annotation it means it wasn't touched in the other one and deleted in the other one, so we can delete it since it wasn't touched in the other video.
+                // If the common ancestor contains the annotation it means it wasn't touched in
+                // the other one and deleted in the other one, so we can delete it since it
+                // wasn't touched in the other video.
                 continue;
             }
 
