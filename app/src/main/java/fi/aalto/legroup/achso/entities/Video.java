@@ -63,7 +63,7 @@ public class Video implements JsonSerializable {
     }
 
     protected static <T> T mergeValue(T a, T b, T old, boolean preferA) {
-        if (com.google.common.base.Objects.equal(a, b)) {
+        if (Objects.equal(a, b)) {
             return a;
         }
 
