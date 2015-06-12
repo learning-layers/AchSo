@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.UUID;
 
 import fi.aalto.legroup.achso.app.App;
+import fi.aalto.legroup.achso.app.AppCache;
 import fi.aalto.legroup.achso.storage.VideoInfoRepository;
 import fi.aalto.legroup.achso.storage.remote.strategies.OwnCloudStrategy;
 
@@ -49,17 +50,7 @@ public final class DownloadService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         try {
 
-            VideoInfoRepository.FindResults results = ((OwnCloudStrategy) App.ownCloudStrategy).getIndex();
-
-            for (VideoInfoRepository.FindResult result : results) {
-
-                UUID id = result.getId();
-                File file = new File(App.localStorageDirectory, id + ".json");
-
-                ((OwnCloudStrategy) App.ownCloudStrategy).downloadManifest(file, id);
-            }
-
-            App.localVideoRepository.refresh();
+            App.videoCollection.updateCollectionBlocking();
 
         } catch (IOException e) {
             e.printStackTrace();

@@ -5,14 +5,13 @@ import android.net.Uri;
 import java.io.IOException;
 
 import fi.aalto.legroup.achso.entities.Video;
-import fi.aalto.legroup.achso.storage.remote.upload.ManifestUploader;
 import fi.aalto.legroup.achso.storage.remote.upload.ThumbnailUploader;
 import fi.aalto.legroup.achso.storage.remote.upload.VideoUploader;
 
 /**
  * Always succeeds to "upload".
  */
-public class DummyStrategy implements VideoUploader, ThumbnailUploader, ManifestUploader {
+public class DummyStrategy implements VideoUploader, ThumbnailUploader {
 
     private boolean uploadsThumbWithVideo;
     private Uri baseUrl;
@@ -48,11 +47,6 @@ public class DummyStrategy implements VideoUploader, ThumbnailUploader, Manifest
         return new ThumbnailUploadResult(getUrl("thumbnails/" + video.getId() + ".jpg"));
     }
 
-    @Override
-    public Uri uploadManifest(Video video) throws IOException {
-
-        return getUrl("manifests/" + video.getId() + ".json");
-    }
 
     @Override
     public void uploadCancelledCleanVideo(Video video, VideoUploadResult result) {

@@ -21,10 +21,7 @@ import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.Reader;
 import java.net.URLConnection;
 import java.text.ParseException;
@@ -38,17 +35,16 @@ import java.util.UUID;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
+import fi.aalto.legroup.achso.storage.VideoHost;
 import fi.aalto.legroup.achso.storage.VideoInfoRepository;
-import fi.aalto.legroup.achso.storage.VideoInfoRepository.FindResults;
-import fi.aalto.legroup.achso.storage.remote.upload.ManifestUploader;
 import fi.aalto.legroup.achso.storage.remote.upload.ThumbnailUploader;
 import fi.aalto.legroup.achso.storage.remote.upload.VideoUploader;
 
 /**
  * Supports uploading manifest and thumbnail and video data to an ownCloud instance.
  */
-public class OwnCloudStrategy extends Strategy implements ManifestUploader, ThumbnailUploader,
-        VideoUploader {
+public class OwnCloudStrategy extends Strategy implements ThumbnailUploader,
+        VideoUploader, VideoHost {
 
     protected JsonSerializer serializer;
     protected Uri endpointUrl;
@@ -236,7 +232,7 @@ public class OwnCloudStrategy extends Strategy implements ManifestUploader, Thum
     }
 
     @Override
-    public Uri uploadManifest(Video video) throws IOException {
+    public Uri uploadVideoManifest(Video video) throws IOException {
 
         String serializedVideo = serializer.write(video);
 
@@ -253,6 +249,11 @@ public class OwnCloudStrategy extends Strategy implements ManifestUploader, Thum
         Uri uri = shareFile(path).getUrl();
 
         return uri;
+    }
+
+    @Override
+    public void deleteVideoManifest(UUID id) throws IOException {
+        // TODO
     }
 
     @Override
@@ -301,7 +302,7 @@ public class OwnCloudStrategy extends Strategy implements ManifestUploader, Thum
         deleteFileAndShare(ownCloudResult.getPath(), ownCloudResult.getShareId());
     }
 
-    public FindResults getIndex() throws IOException {
+    public List<VideoInfoRepository.FindResult> getIndex() throws IOException {
         Request request = buildWebDavRequest("achso/manifest")
             .header("Depth", "1")
             .method("PROPFIND", null)
@@ -344,28 +345,20 @@ public class OwnCloudStrategy extends Strategy implements ManifestUploader, Thum
         }
 
         results.trimToSize();
-        return new FindResults(results);
+        return results;
     }
 
-    public void downloadManifest(File path, UUID id) throws IOException {
-
+    @Override
+    public Video downloadVideoManifest(UUID id) throws IOException {
         Request request = buildWebDavRequest("achso/manifest/" + id + ".json")
-            .get()
-            .build();
+                .get()
+                .build();
 
         Response response = executeRequest(request);
 
-        InputStream in = response.body().byteStream();
-        OutputStream out = new FileOutputStream(path);
-
-        int nRead;
-        byte[] data = new byte[1024];
-        while ((nRead = in.read(data, 0, data.length)) != -1) {
-              out.write(data, 0, nRead);
-        }
-
-        in.close();
-        out.close();
+        Video video = serializer.read(Video.class, response.body().byteStream());
+        video.setManifestUri(Uri.parse("WATWATachso/manifest/" + id + ".json"));
+        return video;
     }
 
     private static Uri appendPaths(Uri base, String path) {

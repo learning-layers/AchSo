@@ -54,6 +54,7 @@ public class OptimizedVideo {
     private float[] annotationXY;
     private int[] annotationTextStartEnd;
     private int[] annotationAuthorUserIndex;
+    private long lastModified;
 
     public UUID getId() {
         return id;
@@ -103,6 +104,9 @@ public class OptimizedVideo {
         this.tag = tag;
     }
 
+    public long getLastModified() {
+        return lastModified;
+    }
     /**
      * Returns number of annotations the video has, query annotation details with functions
      * taking index as a parameter
@@ -367,5 +371,6 @@ public class OptimizedVideo {
             return false;
         }
     }
+
 }
 

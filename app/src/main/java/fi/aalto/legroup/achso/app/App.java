@@ -24,10 +24,11 @@ import fi.aalto.legroup.achso.authentication.LoginManager;
 import fi.aalto.legroup.achso.authentication.LoginRequestEvent;
 import fi.aalto.legroup.achso.authoring.LocationManager;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
-import fi.aalto.legroup.achso.storage.AbstractVideoRepository;
+import fi.aalto.legroup.achso.storage.VideoCollection;
+import fi.aalto.legroup.achso.storage.VideoHost;
 import fi.aalto.legroup.achso.storage.VideoInfoRepository;
 import fi.aalto.legroup.achso.storage.VideoRepository;
-import fi.aalto.legroup.achso.storage.local.OptimizedLocalVideoRepository;
+import fi.aalto.legroup.achso.storage.local.FileCacheVideoSource;
 import fi.aalto.legroup.achso.storage.remote.DownloadService;
 import fi.aalto.legroup.achso.storage.remote.strategies.ClViTra2Strategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.OwnCloudStrategy;
@@ -50,9 +51,9 @@ public final class App extends MultiDexApplication
 
     public static JsonSerializer jsonSerializer;
 
-    public static AbstractVideoRepository localVideoRepository;
     public static VideoRepository videoRepository;
     public static VideoInfoRepository videoInfoRepository;
+    public static VideoCollection videoCollection;
 
     public static File localStorageDirectory;
 
@@ -98,16 +99,22 @@ public final class App extends MultiDexApplication
             Toast.makeText(this, R.string.storage_error, Toast.LENGTH_LONG).show();
         }
 
-        localVideoRepository =
-                new OptimizedLocalVideoRepository(bus, jsonSerializer, localStorageDirectory);
-        videoRepository = localVideoRepository;
-        videoInfoRepository = localVideoRepository;
+        videoCollection = new VideoCollection();
+        File cacheDir = new File(mediaDirectory, "cache");
+        cacheDir.mkdirs();
+        videoCollection.addSource(new FileCacheVideoSource(jsonSerializer, (VideoHost)ownCloudStrategy, cacheDir));
+
+        //localVideoRepository = videoCollection;
+                //new OptimizedLocalVideoRepository(bus, jsonSerializer, localStorageDirectory);
+        videoRepository = videoCollection;
+        videoInfoRepository = videoCollection;
 
         try {
-            localVideoRepository.refresh();
+            videoCollection.updateCollectionNonBlocking();
         } catch (IOException e) {
             e.printStackTrace();
         }
+
 
         DownloadService.download(this);
 
