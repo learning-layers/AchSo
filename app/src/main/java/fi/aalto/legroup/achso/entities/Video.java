@@ -13,8 +13,6 @@ import fi.aalto.legroup.achso.storage.VideoRepository;
 
 /**
  * A video entity that represents a video and is an aggregate root for annotations.
- *
- * TODO: Extending VideoInfo is semantically wrong and may result in some problems later on.
  */
 public class Video implements JsonSerializable {
 
@@ -30,6 +28,7 @@ public class Video implements JsonSerializable {
     protected String tag;
     protected int rotation;
     protected Date date;
+    protected String versionTag;
 
     protected User author;
     protected Location location;
@@ -132,6 +131,10 @@ public class Video implements JsonSerializable {
         return this.date;
     }
 
+    public String getVersionTag() {
+        return this.versionTag;
+    }
+
 
     public void setRepository(VideoRepository repository) {
         this.repository = repository;
@@ -170,6 +173,11 @@ public class Video implements JsonSerializable {
     public void setDate(Date date) {
         this.date = date;
     }
+
+    public void setVersionTag(String versionTag) {
+        this.versionTag = versionTag;
+    }
+
 
     public User getAuthor() {
         return this.author;

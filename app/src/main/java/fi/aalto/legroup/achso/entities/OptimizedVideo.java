@@ -31,6 +31,7 @@ public class OptimizedVideo {
     private String genre;
     private String tag;
     private long dateInMs;
+    private String versionTag;
     private long lastModifiedInMs;
     private int rotation;
     private double locationLatitude;
@@ -200,6 +201,8 @@ public class OptimizedVideo {
             lastModifiedInMs = video.getLastModified().getTime();
         }
 
+        versionTag = video.getVersionTag();
+
         // Intern the user and store as index so we don't have so much object references
         authorUserIndex = UserPool.internUser(video.getAuthor());
 
@@ -301,6 +304,8 @@ public class OptimizedVideo {
         } else {
             video.setLastModified(null);
         }
+
+        video.setVersionTag(versionTag);
 
         // Retrieve the author with the index from the user pool
         video.setAuthor(UserPool.getInternedUser(authorUserIndex));
