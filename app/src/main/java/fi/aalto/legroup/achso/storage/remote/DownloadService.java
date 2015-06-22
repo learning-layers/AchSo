@@ -6,14 +6,8 @@ import android.content.Intent;
 
 import com.squareup.otto.Bus;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.UUID;
-
 import fi.aalto.legroup.achso.app.App;
-import fi.aalto.legroup.achso.app.AppCache;
-import fi.aalto.legroup.achso.storage.VideoInfoRepository;
-import fi.aalto.legroup.achso.storage.remote.strategies.OwnCloudStrategy;
+import fi.aalto.legroup.achso.storage.CombinedVideoRepository;
 
 public final class DownloadService extends IntentService {
 
@@ -48,12 +42,6 @@ public final class DownloadService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        try {
-
-            App.videoCollection.updateCollectionBlocking();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        ((CombinedVideoRepository)App.videoRepository).refreshOnline();
     }
 }

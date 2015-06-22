@@ -24,14 +24,13 @@ import fi.aalto.legroup.achso.authentication.LoginManager;
 import fi.aalto.legroup.achso.authentication.LoginRequestEvent;
 import fi.aalto.legroup.achso.authoring.LocationManager;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
-import fi.aalto.legroup.achso.storage.VideoCollection;
-import fi.aalto.legroup.achso.storage.VideoHost;
+import fi.aalto.legroup.achso.storage.CombinedVideoRepository;
 import fi.aalto.legroup.achso.storage.VideoInfoRepository;
 import fi.aalto.legroup.achso.storage.VideoRepository;
-import fi.aalto.legroup.achso.storage.local.FileCacheVideoSource;
 import fi.aalto.legroup.achso.storage.remote.DownloadService;
 import fi.aalto.legroup.achso.storage.remote.strategies.ClViTra2Strategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.OwnCloudStrategy;
+import fi.aalto.legroup.achso.storage.remote.strategies.ShareServerStrategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.SssStrategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.Strategy;
 
@@ -53,13 +52,12 @@ public final class App extends MultiDexApplication
 
     public static VideoRepository videoRepository;
     public static VideoInfoRepository videoInfoRepository;
-    public static VideoCollection videoCollection;
 
     public static File localStorageDirectory;
 
     public static Strategy videoStrategy;
     public static Strategy metadataStrategy;
-    public static Strategy ownCloudStrategy;
+    public static OwnCloudStrategy ownCloudStrategy;
 
     private static Uri layersBoxUrl;
 
@@ -99,18 +97,27 @@ public final class App extends MultiDexApplication
             Toast.makeText(this, R.string.storage_error, Toast.LENGTH_LONG).show();
         }
 
-        videoCollection = new VideoCollection();
         File cacheDir = new File(mediaDirectory, "cache");
         cacheDir.mkdirs();
-        videoCollection.addSource(new FileCacheVideoSource(jsonSerializer, (VideoHost)ownCloudStrategy, cacheDir));
 
-        //localVideoRepository = videoCollection;
-                //new OptimizedLocalVideoRepository(bus, jsonSerializer, localStorageDirectory);
-        videoRepository = videoCollection;
-        videoInfoRepository = videoCollection;
+        File localVideoDirectory = new File(localStorageDirectory, "localvideo");
+        File cacheVideoDirectory = new File(localStorageDirectory, "cache");
+
+        localVideoDirectory.mkdirs();
+        cacheVideoDirectory.mkdirs();
+
+        //OptimizedLocalVideoRepository localVideoRepository =
+         //       new OptimizedLocalVideoRepository(bus, jsonSerializer, localStorageDirectory);
+        CombinedVideoRepository combinedRepository = new CombinedVideoRepository(bus, jsonSerializer,
+                localVideoDirectory, cacheVideoDirectory);
+        combinedRepository.addHost(ownCloudStrategy);
+
+        videoRepository = combinedRepository;
+        videoInfoRepository = combinedRepository;
 
         try {
-            videoCollection.updateCollectionNonBlocking();
+            videoRepository.refresh();
+            //videoCollection.updateCollectionNonBlocking();
         } catch (IOException e) {
             e.printStackTrace();
         }

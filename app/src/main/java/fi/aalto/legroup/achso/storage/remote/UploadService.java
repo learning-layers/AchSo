@@ -15,7 +15,7 @@ import java.util.UUID;
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.Video;
-import fi.aalto.legroup.achso.storage.VideoRepository;
+import fi.aalto.legroup.achso.storage.CombinedVideoRepository;
 import fi.aalto.legroup.achso.storage.remote.upload.MetadataUploader;
 import fi.aalto.legroup.achso.storage.remote.upload.ThumbnailUploader;
 import fi.aalto.legroup.achso.storage.remote.upload.VideoUploader;
@@ -27,7 +27,6 @@ public final class UploadService extends IntentService {
     private Bus bus;
     private List<VideoUploader> videoUploaders;
     private List<ThumbnailUploader> thumbUploaders;
-    private List<VideoRepository> onlineRepositories;
     private List<MetadataUploader> metadataUploaders;
 
     /**
@@ -55,6 +54,9 @@ public final class UploadService extends IntentService {
         // Don't try this at home
         videoUploaders.add((VideoUploader) App.ownCloudStrategy);
         thumbUploaders.add((ThumbnailUploader) App.ownCloudStrategy);
+        thumbUploaders.add(App.shareServerStrategy);
+        videoUploaders.add(App.shareServerStrategy);
+        //manifestSources.add(App.shareServerSource);
         //metadataUploaders.add((MetadataUploader) App.metadataStrategy);
 
         // TODO: Inject instead
@@ -147,21 +149,16 @@ public final class UploadService extends IntentService {
         // Now we have the video and thumbnail urls and they are stored in the Video object, we
         // can serialize it to json with the new data and upload that.
 
-        /*Uri manifestUrl = null;
-        for (ManifestUploader uploader : manifestUploaders) {
+        // FIXME: Don't do this
+        boolean didUpload = false;
+        try {
+            ((CombinedVideoRepository)App.videoRepository).uploadVideo(video);
+            didUpload = true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-            try {
-                manifestUrl = uploader.uploadManifest(video);
-                manifestHost = uploader;
-
-                // Stop at the first uploader which succeeds.
-                break;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }*/
-
-        /*if (manifestUrl == null) {
+        if (didUpload) {
 
             // Cleanup, it doesn't matter if it succeeds _but_ it would be good that we try to cleanup every resource even if an earlier one fails.
             try {
@@ -178,7 +175,6 @@ public final class UploadService extends IntentService {
 
             return false;
         }
-        video.setManifestUri(manifestUrl);*/
 
         // In the end just run through some other uploaders that just receive metadata instead of
         // hosting the video data.

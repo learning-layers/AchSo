@@ -35,8 +35,8 @@ import java.util.UUID;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
-import fi.aalto.legroup.achso.storage.VideoHost;
 import fi.aalto.legroup.achso.storage.VideoInfoRepository;
+import fi.aalto.legroup.achso.storage.remote.VideoHost;
 import fi.aalto.legroup.achso.storage.remote.upload.ThumbnailUploader;
 import fi.aalto.legroup.achso.storage.remote.upload.VideoUploader;
 
@@ -232,26 +232,6 @@ public class OwnCloudStrategy extends Strategy implements ThumbnailUploader,
     }
 
     @Override
-    public Uri uploadVideoManifest(Video video) throws IOException {
-
-        String serializedVideo = serializer.write(video);
-
-        String path = "achso/manifest/" + video.getId() + ".json";
-        Request request = buildWebDavRequest(path)
-                .put(RequestBody.create(MediaType.parse("application/json"), serializedVideo))
-                .build();
-
-        executeRequest(request);
-
-        // TODO: Work as a repository too
-        // bus.post(new VideoRepositoryUpdatedEvent(this));
-
-        Uri uri = shareFile(path).getUrl();
-
-        return uri;
-    }
-
-    @Override
     public void deleteVideoManifest(UUID id) throws IOException {
         // TODO
     }
@@ -357,8 +337,34 @@ public class OwnCloudStrategy extends Strategy implements ThumbnailUploader,
         Response response = executeRequest(request);
 
         Video video = serializer.read(Video.class, response.body().byteStream());
-        video.setManifestUri(Uri.parse("WATWATachso/manifest/" + id + ".json"));
+        video.setManifestUri(Uri.parse("achso/manifest/" + id + ".json"));
+        video.setVersionTag(response.header("ETag"));
         return video;
+    }
+
+    @Override
+    public ManifestUploadResult uploadVideoManifest(Video video,
+            String expectedVersionTag) throws IOException {
+
+        String path = "achso/manifest/" + video.getId() + ".json";
+        Request.Builder requestBuilder = buildWebDavRequest(path);
+
+        if (expectedVersionTag != null) {
+            requestBuilder = requestBuilder.addHeader("If-Match", expectedVersionTag);
+        }
+
+        String serializedVideo = serializer.write(video);
+
+        Request request = requestBuilder
+                .put(RequestBody.create(MediaType.parse("application/json"), serializedVideo))
+            .build();
+
+        Response response = executeRequest(request);
+        String versionTag = response.header("ETag");
+
+        Uri uri = shareFile(path).getUrl();
+
+        return new ManifestUploadResult(uri, versionTag);
     }
 
     private static Uri appendPaths(Uri base, String path) {
