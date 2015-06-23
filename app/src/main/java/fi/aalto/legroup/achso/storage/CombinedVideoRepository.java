@@ -8,9 +8,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -84,6 +87,7 @@ public class CombinedVideoRepository implements VideoRepository {
     protected Video readVideoFromFile(File file) throws IOException {
         Video video = serializer.load(Video.class, file.toURI());
         video.setManifestUri(Uri.fromFile(file));
+        video.setRepository(this);
         return video;
     }
 
@@ -174,6 +178,8 @@ public class CombinedVideoRepository implements VideoRepository {
             }
         }
 
+        Set<UUID> addedVideoIds = new HashSet<>();
+
         for (VideoHost host : cloudHosts) {
 
             List<VideoInfoRepository.FindResult> results = null;
@@ -217,6 +223,7 @@ public class CombinedVideoRepository implements VideoRepository {
 
                         try {
                             cloudVideo = host.downloadVideoManifest(id);
+                            cloudVideo.setRepository(this);
                         } catch (IOException e) {
                             // These tries refer to only merge tries, if the downloading fails
                             // just quit instead of trying again
@@ -300,10 +307,38 @@ public class CombinedVideoRepository implements VideoRepository {
                 }
 
                 if (video != null) {
+                    addedVideoIds.add(video.getId());
                     videos.add(new OptimizedVideo(video));
                 }
             }
         }
+
+        // Add the cached remote videos
+        List<UUID> cacheIds = getCacheIds();
+        for (UUID id : cacheIds) {
+            if (addedVideoIds.contains(id)) {
+                continue;
+            }
+
+            File original = getOriginalCacheFile(id);
+            File modified = getModifiedCacheFile(id);
+
+            File newest;
+            if (modified.exists()) {
+                newest = modified;
+            } else {
+                newest = original;
+            }
+
+            try {
+                Video video = readVideoFromFile(newest);
+                videos.add(new OptimizedVideo(video));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // TODO: Add also offline cached unavailable videos
 
         updateVideos(videos);
     }
@@ -314,7 +349,7 @@ public class CombinedVideoRepository implements VideoRepository {
         File localFile = getLocalVideoFile(id);
         File cacheFile = getOriginalCacheFile(id);
 
-        File targetFile = null;
+        File targetFile;
 
         if (localFile.exists()) {
             // The video is local, we can just overwrite it
@@ -328,6 +363,14 @@ public class CombinedVideoRepository implements VideoRepository {
         }
 
         serializer.save(video, targetFile.toURI());
+
+        // Do partial update
+        if (!allVideos.containsKey(video.getId())) {
+            allResults.add(new FindResult(video.getId(), new Date().getTime()));
+        }
+
+        allVideos.put(video.getId(), new OptimizedVideo(video));
+        bus.post(new VideoRepositoryUpdatedEvent(this));
     }
 
     /**
@@ -386,11 +429,13 @@ public class CombinedVideoRepository implements VideoRepository {
     @Override
     public void save(Video video) throws IOException {
         saveVideo(video);
+        video.setRepository(this);
     }
 
     @Override
     public void save(OptimizedVideo video) throws IOException {
         saveVideo(video.inflate());
+        video.setRepository(this);
     }
 
     @Override

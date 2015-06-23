@@ -105,6 +105,13 @@ public class OptimizedVideo {
         this.tag = tag;
     }
 
+    public VideoRepository getRepository() {
+        return this.repository;
+    }
+    public void setRepository(VideoRepository repository) {
+        this.repository = repository;
+    }
+
     public long getLastModified() {
         return lastModified;
     }
@@ -376,6 +383,7 @@ public class OptimizedVideo {
             return false;
         }
     }
+
 
 }
 
