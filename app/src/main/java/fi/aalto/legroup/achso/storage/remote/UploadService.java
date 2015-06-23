@@ -158,7 +158,7 @@ public final class UploadService extends IntentService {
             e.printStackTrace();
         }
 
-        if (didUpload) {
+        if (!didUpload) {
 
             // Cleanup, it doesn't matter if it succeeds _but_ it would be good that we try to cleanup every resource even if an earlier one fails.
             try {
