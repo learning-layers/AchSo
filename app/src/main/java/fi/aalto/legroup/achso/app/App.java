@@ -58,6 +58,7 @@ public final class App extends MultiDexApplication
     public static Strategy videoStrategy;
     public static Strategy metadataStrategy;
     public static OwnCloudStrategy ownCloudStrategy;
+    public static ShareServerStrategy shareServerStrategy;
 
     private static Uri layersBoxUrl;
 
@@ -110,7 +111,9 @@ public final class App extends MultiDexApplication
          //       new OptimizedLocalVideoRepository(bus, jsonSerializer, localStorageDirectory);
         CombinedVideoRepository combinedRepository = new CombinedVideoRepository(bus, jsonSerializer,
                 localVideoDirectory, cacheVideoDirectory);
-        combinedRepository.addHost(ownCloudStrategy);
+
+        shareServerStrategy = new ShareServerStrategy(bus, jsonSerializer, Uri.parse(getString(R.string.shareServerUrl)));
+        combinedRepository.addHost(shareServerStrategy);
 
         videoRepository = combinedRepository;
         videoInfoRepository = combinedRepository;
