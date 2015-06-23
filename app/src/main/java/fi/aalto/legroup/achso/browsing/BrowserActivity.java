@@ -63,6 +63,8 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
     private VideoTabAdapter tabAdapter;
     private MenuItem searchItem;
 
+    private PendingRepositoryUpdateListener pendingListener = new PendingRepositoryUpdateListener();
+
     // Video that is "under construction". Sent to VideoCreatorService for processing after it has
     // been recorded.
     private VideoCreatorService.VideoBuilder videoBuilder;
@@ -84,6 +86,10 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
 
         tabAdapter.setScrollDirectionListener(this);
 
+        // Start listening for updated events even before resuming the activity (and resuming
+        // expects pendingListener to be registered)
+        bus.register(pendingListener);
+
         ViewPager pager = (ViewPager) findViewById(R.id.pager);
         PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) findViewById(R.id.toolbar_tabs);
 
@@ -99,14 +105,39 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
     }
 
     @Override
+    protected void onDestroy() {
+
+        // Activities are paused before destroyed, so onPause because registers pendingListener
+        // it has to be removed so we don't leak memory (and listeners)
+        bus.unregister(pendingListener);
+
+        super.onDestroy();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
+
+        // Switch to the active listener (Note: register before unregister so someone always gets
+        // notified. Double notification is alright in this case, since the action is idempotent)
         bus.register(this);
+        bus.unregister(pendingListener);
+
+        // If we received a VideoRepositoryUpdatedEvent while paused handle it here
+        if (pendingListener.hasRepositoryUpdated()) {
+            this.tabAdapter.notifyDataSetChanged();
+            pendingListener.clearRepositoryUpdated();
+        }
     }
 
     @Override
     protected void onPause() {
+
+        // Switch to the deferred listener (Note: register before unregister so someone always gets
+        // notified. Double notification is alright in this case, since the action is idempotent)
+        bus.register(pendingListener);
         bus.unregister(this);
+
         super.onPause();
     }
 
@@ -360,4 +391,23 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
         }
     }
 
+    /**
+     * This class listens for the VideoRepositoryUpdatedEvent and tells if one has been received.
+     */
+    public static class PendingRepositoryUpdateListener {
+        private boolean repositoryUpdated;
+
+        public boolean hasRepositoryUpdated() {
+            return repositoryUpdated;
+        }
+
+        public void clearRepositoryUpdated() {
+            repositoryUpdated = false;
+        }
+
+        @Subscribe
+        public void onVideoRepositoryUpdated(VideoRepositoryUpdatedEvent event) {
+            this.repositoryUpdated = true;
+        }
+    }
 }
