@@ -40,6 +40,7 @@ import fi.aalto.legroup.achso.authoring.QRHelper;
 import fi.aalto.legroup.achso.authoring.VideoCreatorService;
 import fi.aalto.legroup.achso.settings.SettingsActivity;
 import fi.aalto.legroup.achso.storage.VideoRepositoryUpdatedEvent;
+import fi.aalto.legroup.achso.storage.remote.DownloadService;
 import fi.aalto.legroup.achso.utilities.BaseActivity;
 import fi.aalto.legroup.achso.utilities.ProgressDialogFragment;
 import fi.aalto.legroup.achso.views.adapters.VideoTabAdapter;
@@ -102,6 +103,8 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
     protected void onResume() {
         super.onResume();
         bus.register(this);
+
+        DownloadService.download(this);
     }
 
     @Override

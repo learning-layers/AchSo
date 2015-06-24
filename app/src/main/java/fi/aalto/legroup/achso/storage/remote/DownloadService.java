@@ -42,6 +42,7 @@ public final class DownloadService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
+        // TODO: Don't do this
         ((CombinedVideoRepository)App.videoRepository).refreshOnline();
     }
 }

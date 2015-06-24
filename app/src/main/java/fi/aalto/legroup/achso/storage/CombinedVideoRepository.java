@@ -350,8 +350,6 @@ public class CombinedVideoRepository implements VideoRepository {
             }
         }
 
-        // TODO: Add also offline cached unavailable videos
-
         updateVideos(videos);
     }
 
@@ -463,9 +461,16 @@ public class CombinedVideoRepository implements VideoRepository {
     @Override
     public FindResults getByGenreString(String genre) throws IOException {
 
-        // TODO: Filter by genre
+        List<FindResult> results = new ArrayList<>();
 
-        return new FindResults(allResults);
+        for (FindResult result : allResults) {
+            OptimizedVideo video = allVideos.get(result.getId());
+            if (video != null && video.getGenre().matches(genre)) {
+                results.add(result);
+            }
+        }
+
+        return new FindResults(results);
     }
 
     @Override
