@@ -164,6 +164,33 @@ public class CombinedVideoRepository implements VideoRepository {
     }
 
     /**
+     * Load a video from a file, or use one that has been already loaded.
+     * Note: This should be only used when you know that the file you would load has the same
+     * version of the video as is currently loaded.
+     * @return Video if could succesfully load, null if failed.
+     */
+    public OptimizedVideo tryLoadOrReUseVideo(File file, UUID id) {
+
+        try {
+            OptimizedVideo video = allVideos.get(getIdFromFile(file));
+            if (video != null) {
+                return video;
+            }
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            Video video = readVideoFromFile(file);
+            return new OptimizedVideo(video);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    /**
      * Syncs the videos with the cloud and populate the video list with remote data.
      * - Download new and remotely modified videos
      * - Upload locally modified videos
@@ -180,23 +207,9 @@ public class CombinedVideoRepository implements VideoRepository {
         for (File file : localFiles) {
 
             // Optimization: We already have the most up-to-date version of the local files
-            try {
-                OptimizedVideo video = allVideos.get(getIdFromFile(file));
-                if (video != null) {
-                    videos.add(video);
-
-                    // Found the video, skip loading
-                    continue;
-                }
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-            }
-
-            try {
-                Video video = readVideoFromFile(file);
-                videos.add(new OptimizedVideo(video));
-            } catch (IOException e) {
-                e.printStackTrace();
+            OptimizedVideo localVideo = tryLoadOrReUseVideo(file, getIdFromFile(file));
+            if (localVideo != null) {
+                videos.add(localVideo);
             }
         }
 
@@ -331,25 +344,9 @@ public class CombinedVideoRepository implements VideoRepository {
                 } else {
 
                     // Optimization: We already have the most up-to-date version of the
-                    // unmodified cached files, sine modifying the file creates the modified
+                    // unmodified cached files, since modifying the file creates the modified
                     // cached file
-                    try {
-                        OptimizedVideo memoryVideo = allVideos.get(id);
-                        if (memoryVideo != null) {
-                            video = memoryVideo;
-                            // Found the video, skip loading
-                            continue;
-                        }
-                    } catch (IllegalArgumentException e) {
-                        e.printStackTrace();
-                    }
-
-                    try {
-                        Video cachedVideo = readVideoFromFile(localFileOriginal);
-                        video = new OptimizedVideo(cachedVideo);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    video = tryLoadOrReUseVideo(localFileOriginal, id);
                 }
 
                 if (video != null) {
@@ -376,25 +373,11 @@ public class CombinedVideoRepository implements VideoRepository {
                 newest = original;
             }
 
-            // Optimization: We already have the most up-to-date version of the
-            // unmodified cached files, sine modifying the file creates the modified
-            // cached file
-            try {
-                OptimizedVideo memoryVideo = allVideos.get(id);
-                if (memoryVideo != null) {
-                    videos.add(memoryVideo);
-                    // Found the video, skip loading
-                    continue;
-                }
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-            }
-
-            try {
-                Video video = readVideoFromFile(newest);
-                videos.add(new OptimizedVideo(video));
-            } catch (IOException e) {
-                e.printStackTrace();
+            // Optimization: We already have the most up-to-date version of the videos when there
+            // is no connection to the server, because only we can modify them
+            OptimizedVideo video = tryLoadOrReUseVideo(newest, id);
+            if (video != null) {
+                videos.add(video);
             }
         }
 
