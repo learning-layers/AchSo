@@ -39,7 +39,8 @@ public class CombinedVideoRepository implements VideoRepository {
 
     protected List<VideoHost> cloudHosts = new ArrayList<>();
 
-    public CombinedVideoRepository(Bus bus, JsonSerializer serializer, File localRoot, File cacheRoot) {
+    public CombinedVideoRepository(Bus bus, JsonSerializer serializer, File localRoot,
+            File cacheRoot) {
         this.bus = bus;
         this.serializer = serializer;
         this.localRoot = localRoot;
@@ -76,6 +77,11 @@ public class CombinedVideoRepository implements VideoRepository {
 
     private File getCacheFile(UUID id, String suffix) {
         return new File(cacheRoot, id + "_" + suffix + ".json");
+    }
+
+    private UUID getIdFromFile(File file) {
+        final int uuidLength = 36;
+        return UUID.fromString(file.getName().substring(0, uuidLength));
     }
 
     private File getOriginalCacheFile(UUID id) {
@@ -173,6 +179,19 @@ public class CombinedVideoRepository implements VideoRepository {
         File[] localFiles = localRoot.listFiles();
         for (File file : localFiles) {
 
+            // Optimization: We already have the most up-to-date version of the local files
+            try {
+                OptimizedVideo video = allVideos.get(getIdFromFile(file));
+                if (video != null) {
+                    videos.add(video);
+
+                    // Found the video, skip loading
+                    continue;
+                }
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+            }
+
             try {
                 Video video = readVideoFromFile(file);
                 videos.add(new OptimizedVideo(video));
@@ -200,7 +219,7 @@ public class CombinedVideoRepository implements VideoRepository {
                 File localFileOriginal = getOriginalCacheFile(id);
                 File localFileModified = getModifiedCacheFile(id);
 
-                Video video = null;
+                OptimizedVideo video = null;
 
                 if (localFileModified.exists()) {
 
@@ -246,7 +265,7 @@ public class CombinedVideoRepository implements VideoRepository {
                             // we need to merge the changes.
                             try {
                                 videoToUpload = Video.merge(cloudVideo, modifiedVideo,
-                                            originalVideo);
+                                        originalVideo);
                                 videoToUpload.setRepository(this);
                             } catch (MergeException e) {
 
@@ -286,9 +305,9 @@ public class CombinedVideoRepository implements VideoRepository {
                                 throw new IOException("Failed to delete modified video");
                             }
 
-                            video = resultVideo;
+                            video = new OptimizedVideo(resultVideo);
                         } else {
-                            video = modifiedVideo;
+                            video = new OptimizedVideo(modifiedVideo);
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -303,16 +322,31 @@ public class CombinedVideoRepository implements VideoRepository {
                         cloudVideo.setRepository(this);
                         writeVideoToFile(cloudVideo, localFileOriginal);
 
-                        video = cloudVideo;
+                        video = new OptimizedVideo(cloudVideo);
                     } catch (IOException e) {
                         // If it fails we can just skip this video and continue downloading the
                         // rest.
                         e.printStackTrace();
                     }
                 } else {
+
+                    // Optimization: We already have the most up-to-date version of the
+                    // unmodified cached files, sine modifying the file creates the modified
+                    // cached file
                     try {
-                        // Just read the cached video file
-                        video = readVideoFromFile(localFileOriginal);
+                        OptimizedVideo memoryVideo = allVideos.get(id);
+                        if (memoryVideo != null) {
+                            video = memoryVideo;
+                            // Found the video, skip loading
+                            continue;
+                        }
+                    } catch (IllegalArgumentException e) {
+                        e.printStackTrace();
+                    }
+
+                    try {
+                        Video cachedVideo = readVideoFromFile(localFileOriginal);
+                        video = new OptimizedVideo(cachedVideo);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -320,7 +354,7 @@ public class CombinedVideoRepository implements VideoRepository {
 
                 if (video != null) {
                     addedVideoIds.add(video.getId());
-                    videos.add(new OptimizedVideo(video));
+                    videos.add(video);
                 }
             }
         }
@@ -340,6 +374,20 @@ public class CombinedVideoRepository implements VideoRepository {
                 newest = modified;
             } else {
                 newest = original;
+            }
+
+            // Optimization: We already have the most up-to-date version of the
+            // unmodified cached files, sine modifying the file creates the modified
+            // cached file
+            try {
+                OptimizedVideo memoryVideo = allVideos.get(id);
+                if (memoryVideo != null) {
+                    videos.add(memoryVideo);
+                    // Found the video, skip loading
+                    continue;
+                }
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
             }
 
             try {
@@ -399,7 +447,7 @@ public class CombinedVideoRepository implements VideoRepository {
                 // Stop at the first uploader which succeeds.
                 break;
             } catch (IOException e) {
-                if (firstException == null){
+                if (firstException == null) {
                     firstException = e;
                 }
                 e.printStackTrace();
