@@ -113,6 +113,7 @@ public class Video implements JsonSerializable {
 
         boolean preferA = true;
 
+        // Prefer newer values if possible
         if (a.getLastModified() != null && b.getLastModified() != null) {
             preferA = a.getLastModified().getTime() > b.getLastModified().getTime();
         }
