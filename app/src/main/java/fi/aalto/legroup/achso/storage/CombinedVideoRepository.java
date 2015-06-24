@@ -300,6 +300,7 @@ public class CombinedVideoRepository implements VideoRepository {
                     try {
                         // Update the cached original video
                         Video cloudVideo = host.downloadVideoManifest(id);
+                        cloudVideo.setRepository(this);
                         writeVideoToFile(cloudVideo, localFileOriginal);
 
                         video = cloudVideo;
