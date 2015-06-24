@@ -26,6 +26,12 @@ public interface VideoHost {
 
     public List<VideoInfoRepository.FindResult> getIndex() throws IOException;
 
+    /**
+     * Download video manifest data with a given ID.
+     * @return A Video object describing the video. Note: Should have `manifestUri` set and also
+     * `versionTag` if one is available.
+     * @throws IOException
+     */
     public Video downloadVideoManifest(UUID id) throws IOException;
 
     /**

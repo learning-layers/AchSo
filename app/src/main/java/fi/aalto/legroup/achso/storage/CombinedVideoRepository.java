@@ -2,6 +2,7 @@ package fi.aalto.legroup.achso.storage;
 
 import android.net.Uri;
 
+import com.google.common.base.Objects;
 import com.squareup.otto.Bus;
 
 import java.io.File;
@@ -18,6 +19,7 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import fi.aalto.legroup.achso.entities.MergeException;
 import fi.aalto.legroup.achso.entities.OptimizedVideo;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
@@ -87,6 +89,7 @@ public class CombinedVideoRepository implements VideoRepository {
     protected Video readVideoFromFile(File file) throws IOException {
         Video video = serializer.load(Video.class, file.toURI());
         video.setManifestUri(Uri.fromFile(file));
+        video.setLastModified(new Date(file.lastModified()));
         video.setRepository(this);
         return video;
     }
@@ -233,7 +236,7 @@ public class CombinedVideoRepository implements VideoRepository {
                         String cloudTag = cloudVideo.getVersionTag();
 
                         Video videoToUpload;
-                        if (cloudTag.equals(originalVideo.getVersionTag())) {
+                        if (Objects.equal(cloudTag, originalVideo.getVersionTag())) {
                             // The online video is still the one we started editing from, so we
                             // can safely upload the new one
                             videoToUpload = modifiedVideo;
@@ -241,8 +244,16 @@ public class CombinedVideoRepository implements VideoRepository {
                         } else {
                             // The online video has been updated since we started modifying it so
                             // we need to merge the changes.
-                            // TODO: videoToUpload = Video.merge(cloudVideo, modifiedVideo, originalVideo);
-                            videoToUpload = modifiedVideo;
+                            try {
+                                videoToUpload = Video.merge(cloudVideo, modifiedVideo,
+                                            originalVideo);
+                                videoToUpload.setRepository(this);
+                            } catch (MergeException e) {
+
+                                // This should really never happen...
+                                e.printStackTrace();
+                                videoToUpload = modifiedVideo;
+                            }
                         }
 
                         // Actually try to replace the online video with the new one
@@ -450,6 +461,9 @@ public class CombinedVideoRepository implements VideoRepository {
 
     @Override
     public FindResults getByGenreString(String genre) throws IOException {
+
+        // TODO: Filter by genre
+
         return new FindResults(allResults);
     }
 

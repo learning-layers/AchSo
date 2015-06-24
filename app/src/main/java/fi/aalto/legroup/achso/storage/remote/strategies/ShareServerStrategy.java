@@ -125,6 +125,7 @@ public class ShareServerStrategy implements ThumbnailUploader, VideoUploader,
         Response response = executeRequest(request);
         Video video = serializer.read(Video.class, response.body().byteStream());
         video.setManifestUri(Uri.parse(request.uri().toString()));
+        video.setVersionTag(response.header("ETag"));
         return video;
     }
 

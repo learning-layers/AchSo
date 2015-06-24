@@ -110,8 +110,12 @@ public class Video implements JsonSerializable {
         Video video = new Video();
         video.setId(a.getId());
 
-        // Prefer newer values if no other option
-        boolean preferA = a.getLastModified().getTime() > b.getLastModified().getTime();
+
+        boolean preferA = true;
+
+        if (a.getLastModified() != null && b.getLastModified() != null) {
+            preferA = a.getLastModified().getTime() > b.getLastModified().getTime();
+        }
 
         // Simply choose one of the values for the simple fields (merging title additions changes
         // be too complicated in scope for this for example)
