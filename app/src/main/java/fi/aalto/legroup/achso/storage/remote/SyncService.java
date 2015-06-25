@@ -9,7 +9,7 @@ import com.squareup.otto.Bus;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.storage.CombinedVideoRepository;
 
-public final class DownloadService extends IntentService {
+public final class SyncService extends IntentService {
 
     private Bus bus;
 
@@ -17,12 +17,12 @@ public final class DownloadService extends IntentService {
      * Convenience method for using this service.
      */
     public static void download(Context context) {
-        Intent intent = new Intent(context, DownloadService.class);
+        Intent intent = new Intent(context, SyncService.class);
         context.startService(intent);
     }
 
-    public DownloadService() {
-        super("DownloadService");
+    public SyncService() {
+        super("SyncService");
 
         // TODO: Inject instead
         this.bus = App.bus;
