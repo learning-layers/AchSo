@@ -136,11 +136,9 @@ public class CombinedVideoRepository implements VideoRepository {
         File[] localFiles = localRoot.listFiles();
         for (File file : localFiles) {
 
-            try {
-                Video video = readVideoFromFile(file);
-                videos.add(new OptimizedVideo(video));
-            } catch (IOException e) {
-                e.printStackTrace();
+            OptimizedVideo video = tryLoadOrReUseVideo(file, getIdFromFile(file));
+            if (video != null) {
+                videos.add(video);
             }
         }
 
@@ -157,11 +155,9 @@ public class CombinedVideoRepository implements VideoRepository {
                 newest = original;
             }
 
-            try {
-                Video video = readVideoFromFile(newest);
-                videos.add(new OptimizedVideo(video));
-            } catch (IOException e) {
-                e.printStackTrace();
+            OptimizedVideo video = tryLoadOrReUseVideo(newest, id);
+            if (video != null) {
+                videos.add(video);
             }
         }
 
@@ -212,7 +208,6 @@ public class CombinedVideoRepository implements VideoRepository {
         File[] localFiles = localRoot.listFiles();
         for (File file : localFiles) {
 
-            // Optimization: We already have the most up-to-date version of the local files
             OptimizedVideo localVideo = tryLoadOrReUseVideo(file, getIdFromFile(file));
             if (localVideo != null) {
                 videos.add(localVideo);
@@ -348,10 +343,6 @@ public class CombinedVideoRepository implements VideoRepository {
                         e.printStackTrace();
                     }
                 } else {
-
-                    // Optimization: We already have the most up-to-date version of the
-                    // unmodified cached files, since modifying the file creates the modified
-                    // cached file
                     video = tryLoadOrReUseVideo(localFileOriginal, id);
                 }
 
@@ -379,8 +370,6 @@ public class CombinedVideoRepository implements VideoRepository {
                 newest = original;
             }
 
-            // Optimization: We already have the most up-to-date version of the videos when there
-            // is no connection to the server, because only we can modify them
             OptimizedVideo video = tryLoadOrReUseVideo(newest, id);
             if (video != null) {
                 videos.add(video);
@@ -487,14 +476,6 @@ public class CombinedVideoRepository implements VideoRepository {
     @Override
     public OptimizedVideo getVideo(UUID id) throws IOException {
         return allVideos.get(id);
-    }
-
-    @Override
-    public void invalidate(UUID id) {
-    }
-
-    @Override
-    public void invalidateAll() {
     }
 }
 

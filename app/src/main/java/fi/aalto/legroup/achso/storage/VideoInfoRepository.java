@@ -144,14 +144,4 @@ public interface VideoInfoRepository {
      * Returns an information object describing an entity with the given ID.
      */
     public OptimizedVideo getVideo(UUID id) throws IOException;
-
-    /**
-     * Invalidates the cached information object with the given ID.
-     */
-    public void invalidate(UUID id);
-
-    /**
-     * Invalidates the entire cache.
-     */
-    public void invalidateAll();
 }

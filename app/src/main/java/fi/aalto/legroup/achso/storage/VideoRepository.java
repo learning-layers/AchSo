@@ -13,13 +13,13 @@ public interface VideoRepository extends VideoInfoRepository {
     /**
      * Update the video repository with new data, but without doing any networking.
      */
-    public void refreshOffline() throws IOException;
+    public void refreshOffline();
 
     /**
      * Update the video repository with new data from the internet. Should also upload modified
      * video manifests at this point.
      */
-    public void refreshOnline() throws IOException;
+    public void refreshOnline();
 
     /**
      * Persists an entity, overwriting an existing one with the same ID if set.

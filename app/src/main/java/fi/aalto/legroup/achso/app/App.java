@@ -15,7 +15,6 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.otto.Bus;
 
 import java.io.File;
-import java.io.IOException;
 
 import fi.aalto.legroup.achso.BuildConfig;
 import fi.aalto.legroup.achso.R;
@@ -113,12 +112,7 @@ public final class App extends MultiDexApplication
         videoRepository = combinedRepository;
         videoInfoRepository = combinedRepository;
 
-        try {
-            videoRepository.refreshOffline();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
+        videoRepository.refreshOffline();
 
         SyncService.syncWithCloudStorage(this);
 

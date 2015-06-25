@@ -6,8 +6,6 @@ import android.content.Intent;
 
 import com.squareup.otto.Bus;
 
-import java.io.IOException;
-
 import fi.aalto.legroup.achso.app.App;
 
 /**
@@ -47,10 +45,6 @@ public final class SyncService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        try {
-            App.videoRepository.refreshOnline();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        App.videoRepository.refreshOnline();
     }
 }
