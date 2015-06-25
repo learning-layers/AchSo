@@ -133,15 +133,21 @@ public class OwnCloudStrategy extends Strategy implements ThumbnailUploader,
         return builder;
     }
 
-    private Response executeRequest(Request request) throws IOException {
+    private Response executeRequestNoFail(Request request) throws IOException {
+        return App.httpClient.newCall(request).execute();
+    }
 
-        Response response = App.httpClient.newCall(request).execute();
+    private Response validateResponse(Response response) throws IOException {
         if (!response.isSuccessful()) {
             String errorMessage = response.code() + " " + response.message();
             throw new IOException(errorMessage);
         }
-
         return response;
+    }
+
+    private Response executeRequest(Request request) throws IOException {
+
+        return validateResponse(executeRequestNoFail(request));
     }
 
     private void uploadFile(String path, File file) throws IOException {
@@ -253,7 +259,7 @@ public class OwnCloudStrategy extends Strategy implements ThumbnailUploader,
 
         File file = new File(video.getVideoUri().getPath());
         String path = "achso/video/" + video.getId() + "." + Files.getFileExtension(file.getName());
-        
+
         uploadFile(path, file);
         ShareResult result = shareFile(path);
 
@@ -350,6 +356,10 @@ public class OwnCloudStrategy extends Strategy implements ThumbnailUploader,
         Request.Builder requestBuilder = buildWebDavRequest(path);
 
         if (expectedVersionTag != null) {
+            // This is a little suspicious, but ownCloud gives ETags with "-gzip" suffix, but
+            // doesn't match them in If-Match to the same resource. If the suffix is stripped
+            // away then it matches just fine...
+            expectedVersionTag = expectedVersionTag.replace("-gzip", "");
             requestBuilder = requestBuilder.addHeader("If-Match", expectedVersionTag);
         }
 
@@ -359,9 +369,15 @@ public class OwnCloudStrategy extends Strategy implements ThumbnailUploader,
                 .put(RequestBody.create(MediaType.parse("application/json"), serializedVideo))
             .build();
 
-        Response response = executeRequest(request);
-        String versionTag = response.header("ETag");
+        Response response = executeRequestNoFail(request);
 
+        if (response.code() == 412) {
+            // Precondition failed (ETag didn't match, return null instead of failing)
+            return null;
+        }
+        validateResponse(response);
+
+        String versionTag = response.header("ETag");
         Uri uri = shareFile(path).getUrl();
 
         return new ManifestUploadResult(uri, versionTag);

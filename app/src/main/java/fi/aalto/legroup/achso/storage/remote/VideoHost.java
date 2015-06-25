@@ -36,7 +36,9 @@ public interface VideoHost {
 
     /**
      * Persists an entity, overwriting an existing one with the same ID if set.
-     * @param expectedVersionTag Version tag that the cloud video should have, uploading fails and this returns null if the version in the cloud doesn't match the tag. If null upload always.
+     * @param expectedVersionTag Version tag that the cloud video should have, uploading fails
+     *                           and this returns null if the version in the cloud doesn't match
+     *                           the tag. If null upload always.
      */
     public ManifestUploadResult uploadVideoManifest(Video video, String expectedVersionTag) throws IOException;
 
