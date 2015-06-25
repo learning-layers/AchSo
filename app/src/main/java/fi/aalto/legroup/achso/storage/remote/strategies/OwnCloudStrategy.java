@@ -1,15 +1,14 @@
 package fi.aalto.legroup.achso.storage.remote.strategies;
-                // Stop at the first uploader which succeeds.
 
 import android.net.Uri;
 
-import com.google.common.io.Files;
 import com.squareup.okhttp.Credentials;
 import com.squareup.okhttp.FormEncodingBuilder;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
+import com.squareup.okhttp.internal.http.HttpDate;
 import com.squareup.otto.Bus;
 
 import org.simpleframework.xml.Element;
@@ -24,13 +23,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URLConnection;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.Video;
@@ -46,13 +44,13 @@ import fi.aalto.legroup.achso.storage.remote.upload.VideoUploader;
 public class OwnCloudStrategy extends Strategy implements ThumbnailUploader,
         VideoUploader, VideoHost {
 
+    private static final Pattern MANIFEST_NAME_PATTERN = Pattern.compile(
+            "([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\\.json");
+
     protected JsonSerializer serializer;
     protected Uri endpointUrl;
     protected Uri webdavUrl;
     protected Uri sharesUrl;
-
-    protected static final SimpleDateFormat davDateFormat
-            = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
 
     @Root(strict = false)
     private static class ShareResponseXML {
@@ -169,40 +167,6 @@ public class OwnCloudStrategy extends Strategy implements ThumbnailUploader,
         executeRequest(request);
     }
 
-    private void deleteShare(long id) throws IOException {
-
-        Request request = buildSharesRequest(id)
-                .delete()
-                .build();
-
-        executeRequest(request);
-    }
-
-    private void deleteFileAndShare(String path, long id) throws IOException {
-
-        IOException fileException = null;
-        IOException shareException = null;
-
-        try {
-            deleteFile(path);
-        } catch (IOException e) {
-            fileException = e;
-        }
-        try {
-            deleteShare(id);
-        } catch (IOException e) {
-            shareException = e;
-        }
-
-        if (fileException != null && shareException != null) {
-            throw new IOException("Failed to delete file and share: " + fileException.getMessage() + ", " + shareException.getMessage(), fileException);
-        } else if (fileException != null) {
-            throw new IOException("Failed to delete file: " + fileException.getMessage(), fileException);
-        } else if (shareException != null) {
-            throw new IOException("Failed to delete share: " + shareException.getMessage(), shareException);
-        }
-    }
-
     private <T> T parseXml(Class<T> clazz, Response response) throws IOException {
 
         try {
@@ -216,8 +180,7 @@ public class OwnCloudStrategy extends Strategy implements ThumbnailUploader,
         }
     }
 
-
-    private ShareResult shareFile(String path) throws IOException {
+    private Uri shareFile(String path) throws IOException {
 
         RequestBody formBody = new FormEncodingBuilder()
             .add("path", path)
@@ -233,8 +196,12 @@ public class OwnCloudStrategy extends Strategy implements ThumbnailUploader,
         Response response = executeRequest(request);
         ShareResponseXML xml = parseXml(ShareResponseXML.class, response);
 
-        Uri url = appendPaths(endpointUrl, "index.php/s/" + xml.token + "/download");
-        return new ShareResult(url, xml.id);
+        return appendPaths(endpointUrl, "index.php/s/" + xml.token + "/download");
+    }
+
+    private Uri uploadAndShare(String path, File file) throws IOException {
+        uploadFile(path, file);
+        return shareFile(path);
     }
 
     @Override
@@ -243,49 +210,35 @@ public class OwnCloudStrategy extends Strategy implements ThumbnailUploader,
     }
 
     @Override
-    public ThumbnailUploadResult uploadThumb(Video video) throws IOException {
+    public Uri uploadThumb(Video video) throws IOException {
 
         File file = new File(video.getThumbUri().getPath());
-        String path = "achso/thumbnail/" + video.getId() + "." + Files.getFileExtension(file.getName());
+        String path = "achso/thumbnail/" + video.getId() + ".jpg";
 
-        uploadFile(path, file);
-        ShareResult result = shareFile(path);
-
-        return new OwnCloudThumbUploadResult(result.getUrl(), path, result.getId());
+        return uploadAndShare(path, file);
     }
 
     @Override
     public VideoUploadResult uploadVideo(Video video) throws IOException {
 
         File file = new File(video.getVideoUri().getPath());
-        String path = "achso/video/" + video.getId() + "." + Files.getFileExtension(file.getName());
+        String path = "achso/video/" + video.getId() + ".mp4";
 
-        uploadFile(path, file);
-        ShareResult result = shareFile(path);
-
-        return new OwnCloudVideoUploadResult(result.getUrl(), path, result.getId());
+        return new VideoUploadResult(uploadAndShare(path, file));
     }
 
     @Override
-    public void uploadCancelledCleanThumb(Video video, ThumbnailUploadResult result) throws IOException {
+    public void deleteThumb(Video video) throws IOException {
 
-        if (!(result instanceof OwnCloudThumbUploadResult)) {
-            throw new IllegalArgumentException("result expected to be OwnCloudThumbUploadResult");
-        }
-        OwnCloudThumbUploadResult ownCloudResult = (OwnCloudThumbUploadResult) result;
-
-        deleteFileAndShare(ownCloudResult.getPath(), ownCloudResult.getShareId());
+        String path = "achso/thumbnail/" + video.getId() + ".jpg";
+        deleteFile(path);
     }
 
     @Override
-    public void uploadCancelledCleanVideo(Video video, VideoUploadResult result) throws IOException {
+    public void deleteVideo(Video video) throws IOException {
 
-        if (!(result instanceof OwnCloudVideoUploadResult)) {
-            throw new IllegalArgumentException("result expected to be OwnCloudVideoUploadResult");
-        }
-        OwnCloudVideoUploadResult ownCloudResult = (OwnCloudVideoUploadResult) result;
-
-        deleteFileAndShare(ownCloudResult.getPath(), ownCloudResult.getShareId());
+        String path = "achso/video/" + video.getId() + ".mp4";
+        deleteFile(path);
     }
 
     public List<VideoInfoRepository.FindResult> getIndex() throws IOException {
@@ -305,29 +258,22 @@ public class OwnCloudStrategy extends Strategy implements ThumbnailUploader,
             Uri href = Uri.parse(propResponse.getHref());
             String name = href.getLastPathSegment();
 
-            String[] parts = name.trim().split("\\.");
-
-            if (parts.length != 2)
-                continue;
-            if (!parts[1].equals("json"))
+            Matcher matcher = MANIFEST_NAME_PATTERN.matcher(name.trim().toLowerCase());
+            if (!matcher.matches())
                 continue;
 
             UUID id;
             try {
-                id = UUID.fromString(parts[0]);
+                id = UUID.fromString(matcher.group(1));
             } catch (IllegalArgumentException e) {
                 continue;
             }
 
-            Date date;
-            try {
-                date = davDateFormat.parse(propResponse.getLastModified());
-            } catch (ParseException e) {
-                throw new IOException("Invalid response XML: " + e.getMessage(), e);
+            Date date = HttpDate.parse(propResponse.getLastModified());
+            if (date == null) {
+                continue;
             }
-            long timestamp = date.getTime();
-
-            results.add(new VideoInfoRepository.FindResult(id, timestamp));
+            results.add(new VideoInfoRepository.FindResult(id, date.getTime()));
         }
 
         results.trimToSize();
@@ -378,7 +324,7 @@ public class OwnCloudStrategy extends Strategy implements ThumbnailUploader,
         validateResponse(response);
 
         String versionTag = response.header("ETag");
-        Uri uri = shareFile(path).getUrl();
+        Uri uri = shareFile(path);
 
         return new ManifestUploadResult(uri, versionTag);
     }
@@ -393,61 +339,4 @@ public class OwnCloudStrategy extends Strategy implements ThumbnailUploader,
 
         return builder.build();
     }
-
-    protected static class OwnCloudVideoUploadResult extends VideoUploadResult {
-
-        private String path;
-        private long shareId;
-
-        OwnCloudVideoUploadResult(Uri videoUrl, String path, long shareId) {
-            super(videoUrl);
-            this.path = path;
-            this.shareId = shareId;
-        }
-
-        String getPath() {
-            return path;
-        }
-        long getShareId() {
-            return shareId;
-        }
-    };
-
-    protected static class OwnCloudThumbUploadResult extends ThumbnailUploadResult {
-
-        private String path;
-        private long shareId;
-
-        OwnCloudThumbUploadResult(Uri thumbUrl, String path, long shareId) {
-            super(thumbUrl);
-            this.path = path;
-            this.shareId = shareId;
-        }
-
-        String getPath() {
-            return path;
-        }
-        long getShareId() {
-            return shareId;
-        }
-    };
-
-    protected static class ShareResult {
-
-        private Uri url;
-        private long id;
-
-        ShareResult(Uri url, long id) {
-            this.url = url;
-            this.id = id;
-        }
-
-        Uri getUrl() {
-            return url;
-        }
-        long getId() {
-            return id;
-        }
-
-    };
 }

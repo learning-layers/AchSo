@@ -146,7 +146,7 @@ public class ClViTra2Strategy extends Strategy implements VideoUploader {
     }
 
     @Override
-    public void uploadCancelledCleanVideo(Video video, VideoUploadResult result) {
+    public void deleteVideo(Video video) {
 
         // TODO?
     }

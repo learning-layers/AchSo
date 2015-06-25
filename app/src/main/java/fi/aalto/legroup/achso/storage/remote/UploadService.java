@@ -103,27 +103,25 @@ public final class UploadService extends IntentService {
 
             return false;
         }
-        video.setVideoUri(videoResult.getVideoUrl());
+        video.setVideoUri(videoResult.videoUrl);
 
         // If the video uploader didn't support creating a thumbnail, try to upload it somewhere
         // else.
 
-        ThumbnailUploader.ThumbnailUploadResult thumbResult = null;
         Uri thumbUrl = null;
 
-        if (videoResult.getThumbUrl() != null) {
+        if (videoResult.thumbUrl != null) {
 
             // Use the thumbnail provided by the video uploader
-            thumbUrl = videoResult.getThumbUrl();
+            thumbUrl = videoResult.thumbUrl;
 
         } else {
 
             // Upload the thumbnail somewhere else
             for (ThumbnailUploader uploader : thumbUploaders) {
                 try {
-                    thumbResult = uploader.uploadThumb(video);
+                    thumbUrl = uploader.uploadThumb(video);
                     thumbnailHost = uploader;
-                    thumbUrl = thumbResult.getThumbUrl();
 
                     // Stop at the first uploader which succeeds.
                     break;
@@ -137,7 +135,7 @@ public final class UploadService extends IntentService {
 
             // Cleanup, it doesn't really matter if it succeeds or not so just ignore the error
             try {
-                videoHost.uploadCancelledCleanVideo(video, videoResult);
+                videoHost.deleteVideo(video);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -163,12 +161,12 @@ public final class UploadService extends IntentService {
             // Cleanup, it doesn't matter if it succeeds _but_ it would be good that we try to cleanup every resource even if an earlier one fails.
             try {
                 if (thumbnailHost != null)
-                    thumbnailHost.uploadCancelledCleanThumb(video, thumbResult);
+                    thumbnailHost.deleteThumb(video);
             } catch (IOException e) {
                 e.printStackTrace();
             }
             try {
-                videoHost.uploadCancelledCleanVideo(video, videoResult);
+                videoHost.deleteVideo(video);
             } catch (IOException e) {
                 e.printStackTrace();
             }

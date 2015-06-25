@@ -89,16 +89,15 @@ public class ShareServerStrategy implements ThumbnailUploader, VideoUploader,
 
 
     @Override
-    public void uploadCancelledCleanThumb(Video video,
-            ThumbnailUploadResult result) throws IOException {
+    public void deleteThumb(Video video) throws IOException {
 
     }
 
     @Override
-    public ThumbnailUploadResult uploadThumb(Video video) throws IOException {
+    public Uri uploadThumb(Video video) throws IOException {
         File file = new File(video.getThumbUri().getPath());
         String path = "thumb/" + video.getId() + "." + Files.getFileExtension(file.getName());
-        return new ThumbnailUploadResult(uploadFile(path, file));
+        return uploadFile(path, file);
     }
 
     @Override
@@ -174,9 +173,7 @@ public class ShareServerStrategy implements ThumbnailUploader, VideoUploader,
     }
 
     @Override
-    public void uploadCancelledCleanVideo(Video video, VideoUploadResult result)
-            throws IOException {
-
+    public void deleteVideo(Video video) throws IOException {
     }
 
     @Override
