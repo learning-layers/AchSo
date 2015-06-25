@@ -38,7 +38,8 @@ public class OptimizedLocalVideoRepository extends AbstractVideoRepository {
         this.storageDirectory = storageDirectory;
     }
 
-    public void refresh() throws IOException {
+    @Override
+    public void refreshOffline() throws IOException {
 
         File[] manifests = storageDirectory.listFiles(new ManifestFileFilter());
 
@@ -110,14 +111,8 @@ public class OptimizedLocalVideoRepository extends AbstractVideoRepository {
         serializer.save(video, getManifestFromId(video.getId()).toURI());
 
         // FIXME: This is stupid
-        refresh();
+        refreshOffline();
         bus.post(new VideoRepositoryUpdatedEvent(this));
-    }
-
-    @Override
-    public void save(OptimizedVideo video) throws IOException {
-        save(video.inflate(savePool));
-        savePool.release();
     }
 
     @Override
@@ -127,7 +122,7 @@ public class OptimizedLocalVideoRepository extends AbstractVideoRepository {
         if (manifest.delete()) {
 
             // FIXME: This is stupid
-            refresh();
+            refreshOffline();
 
             bus.post(new VideoRepositoryUpdatedEvent(this));
         } else {

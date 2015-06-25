@@ -6,7 +6,6 @@ import android.net.Uri;
 
 import com.google.common.primitives.Longs;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -369,21 +368,6 @@ public class OptimizedVideo {
      */
     public Video inflate() {
         return inflate(new PooledVideo(annotationTime.length, hasLocation));
-    }
-
-    /**
-     * Save this video to the repository.
-     *
-     * @return true if success, false otherwise
-     */
-    public boolean save() {
-        try {
-            this.repository.save(this);
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
     }
 
     public static class CreateTimeComparator implements java.util.Comparator<OptimizedVideo> {

@@ -3,7 +3,6 @@ package fi.aalto.legroup.achso.storage;
 import java.io.IOException;
 import java.util.UUID;
 
-import fi.aalto.legroup.achso.entities.OptimizedVideo;
 import fi.aalto.legroup.achso.entities.Video;
 
 /**
@@ -12,19 +11,20 @@ import fi.aalto.legroup.achso.entities.Video;
 public interface VideoRepository extends VideoInfoRepository {
 
     /**
-     * Update the video repository with new data.
+     * Update the video repository with new data, but without doing any networking.
      */
-    public void refresh() throws IOException;
+    public void refreshOffline() throws IOException;
+
+    /**
+     * Update the video repository with new data from the internet. Should also upload modified
+     * video manifests at this point.
+     */
+    public void refreshOnline() throws IOException;
 
     /**
      * Persists an entity, overwriting an existing one with the same ID if set.
      */
     public void save(Video video) throws IOException;
-
-    /**
-     * Persists an entity, overwriting an existing one with the same ID if set.
-     */
-    public void save(OptimizedVideo video) throws IOException;
 
     /**
      * Deletes an entity with the given ID.

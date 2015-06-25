@@ -6,11 +6,13 @@ import android.content.Intent;
 
 import com.squareup.otto.Bus;
 
+import java.io.IOException;
+
 import fi.aalto.legroup.achso.app.App;
-import fi.aalto.legroup.achso.storage.CombinedVideoRepository;
 
 /**
  * Download and upload possibly merging video manifests with the cloud servers.
+ * In practice just calls App.videoRepository.refreshOnline() in a background thread.
  */
 public final class SyncService extends IntentService {
 
@@ -45,7 +47,10 @@ public final class SyncService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        // TODO: Don't do this
-        ((CombinedVideoRepository)App.videoRepository).refreshOnline();
+        try {
+            App.videoRepository.refreshOnline();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

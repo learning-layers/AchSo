@@ -41,6 +41,14 @@ public abstract class AbstractVideoRepository implements VideoRepository {
     public abstract void delete(UUID id) throws IOException;
 
     /**
+     * Update the video repository with new data from the internet. Should also upload modified
+     * video manifests at this point.
+     */
+    public void refreshOnline() throws IOException {
+        // Do nothing for general case, only useful for online repositories
+    }
+
+    /**
      * Invalidates the cached information object with the given ID.
      */
     @Override

@@ -127,6 +127,7 @@ public class CombinedVideoRepository implements VideoRepository {
      * Populate the video list with local data.
      * Note: This is a fast operation and should be done on statup.
      */
+    @Override
     public void refreshOffline() {
 
         List<OptimizedVideo> videos = new ArrayList<>();
@@ -201,6 +202,7 @@ public class CombinedVideoRepository implements VideoRepository {
      * - Resolve conflicts (merge)
      * Note: This operation is slow and should be only called from a background thread.
      */
+    @Override
     public void refreshOnline() {
 
         List<OptimizedVideo> videos = new ArrayList<>();
@@ -467,19 +469,8 @@ public class CombinedVideoRepository implements VideoRepository {
     // Video repository API
 
     @Override
-    public void refresh() throws IOException {
-        refreshOffline();
-    }
-
-    @Override
     public void save(Video video) throws IOException {
         saveVideo(video);
-        video.setRepository(this);
-    }
-
-    @Override
-    public void save(OptimizedVideo video) throws IOException {
-        saveVideo(video.inflate());
         video.setRepository(this);
     }
 
