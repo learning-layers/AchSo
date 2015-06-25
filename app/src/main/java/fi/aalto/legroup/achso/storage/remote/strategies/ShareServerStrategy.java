@@ -56,15 +56,21 @@ public class ShareServerStrategy implements ThumbnailUploader, VideoUploader,
             .header("Authorization", Credentials.basic("user", "pass"));
     }
 
-    private Response executeRequest(Request request) throws IOException {
+    private Response executeRequestNoFail(Request request) throws IOException {
+        return App.httpClient.newCall(request).execute();
+    }
 
-        Response response = App.httpClient.newCall(request).execute();
+    private Response validateResponse(Response response) throws IOException {
         if (!response.isSuccessful()) {
             String errorMessage = response.code() + " " + response.message();
             throw new IOException(errorMessage);
         }
-
         return response;
+    }
+
+    private Response executeRequest(Request request) throws IOException {
+
+        return validateResponse(executeRequestNoFail(request));
     }
 
     private Uri uploadFile(String path, File file) throws IOException {
@@ -103,7 +109,8 @@ public class ShareServerStrategy implements ThumbnailUploader, VideoUploader,
             .build();
 
         Response response = executeRequest(request);
-        FileResponse fileResponse = serializer.read(FileResponse.class, response.body().byteStream());
+        FileResponse fileResponse = serializer.read(FileResponse.class,
+                response.body().byteStream());
 
         List<VideoInfoRepository.FindResult> results = new ArrayList<>(fileResponse.children.size());
         for (FileResponse child : fileResponse.children) {
@@ -139,7 +146,15 @@ public class ShareServerStrategy implements ThumbnailUploader, VideoUploader,
             .header("If-Match", expectedVersionTag != null ? expectedVersionTag : "*")
             .build();
 
-        Response response = executeRequest(request);
+        Response response = executeRequestNoFail(request);
+
+        if (response.code() == 412) {
+            // Precondition failed (ETag didn't match, return null instead of failing)
+            return null;
+        }
+
+        validateResponse(response);
+
         FileResponse fileResponse = serializer.read(FileResponse.class,
                 response.body().byteStream());
 
