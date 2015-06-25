@@ -136,15 +136,9 @@ public interface VideoInfoRepository {
     }
 
     /**
-     * Returns a list of all entity IDs with times.
+     * Returns all the videos in the repository.
      */
-    public FindResults getAll() throws IOException;
-
-    /**
-     * Returns a list of all available video IDs that match the genre string
-     * and their modification dates.
-     */
-    public FindResults getByGenreString(String genre) throws IOException;
+    public List<OptimizedVideo> getAll() throws IOException;
 
     /**
      * Returns an information object describing an entity with the given ID.

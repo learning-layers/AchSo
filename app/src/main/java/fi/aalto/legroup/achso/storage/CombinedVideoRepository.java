@@ -30,6 +30,7 @@ public class CombinedVideoRepository implements VideoRepository {
     private static final Pattern cacheNamePattern = Pattern.compile("(.*)_original\\.json");
 
     protected Map<UUID, OptimizedVideo> allVideos = Collections.emptyMap();
+    protected List<OptimizedVideo> allVideosList = Collections.emptyList();
     protected List<FindResult> allResults = Collections.emptyList();
 
     protected Bus bus;
@@ -106,14 +107,17 @@ public class CombinedVideoRepository implements VideoRepository {
 
     protected void updateVideos(List<OptimizedVideo> videos) {
         Map<UUID, OptimizedVideo> newAllVideos = new HashMap<>();
+        List<OptimizedVideo> newAllVideosList = new ArrayList<>();
         List<FindResult> newAllResults = new ArrayList<>();
 
         for (OptimizedVideo video : videos) {
             newAllVideos.put(video.getId(), video);
+            newAllVideosList.add(video);
             newAllResults.add(new FindResult(video.getId(), video.getLastModified()));
         }
 
         allVideos = newAllVideos;
+        allVideosList = newAllVideosList;
         allResults = newAllResults;
 
         bus.post(new VideoRepositoryUpdatedEvent(this));
@@ -485,23 +489,8 @@ public class CombinedVideoRepository implements VideoRepository {
     }
 
     @Override
-    public FindResults getAll() throws IOException {
-        return new FindResults(allResults);
-    }
-
-    @Override
-    public FindResults getByGenreString(String genre) throws IOException {
-
-        List<FindResult> results = new ArrayList<>();
-
-        for (FindResult result : allResults) {
-            OptimizedVideo video = allVideos.get(result.getId());
-            if (video != null && video.getGenre().matches(genre)) {
-                results.add(result);
-            }
-        }
-
-        return new FindResults(results);
+    public List<OptimizedVideo> getAll() throws IOException {
+        return allVideosList;
     }
 
     @Override

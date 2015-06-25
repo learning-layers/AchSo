@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
 import fi.aalto.legroup.achso.entities.OptimizedVideo;
@@ -24,6 +25,7 @@ public class OptimizedLocalVideoRepository extends AbstractVideoRepository {
 
     private HashMap<UUID, OptimizedVideo> videos;
     private ArrayList<FindResult> allResults;
+    private List<OptimizedVideo> videosList;
     private static final PooledVideo savePool = new PooledVideo();
 
     protected JsonSerializer serializer;
@@ -47,6 +49,7 @@ public class OptimizedLocalVideoRepository extends AbstractVideoRepository {
         // Collect the results to local variables
         HashMap<UUID, OptimizedVideo> newVideos = new HashMap<>(manifests.length * 2);
         ArrayList<FindResult> newAllResults = new ArrayList<>(manifests.length);
+        ArrayList<OptimizedVideo> newVideosList = new ArrayList<>(manifests.length);
 
         for (File manifest : manifests) {
             
@@ -66,12 +69,14 @@ public class OptimizedLocalVideoRepository extends AbstractVideoRepository {
 
             newVideos.put(optimized.getId(), optimized);
             newAllResults.add(new FindResult(getIdFromManifest(manifest), manifest.lastModified()));
+            newVideosList.add(optimized);
         }
 
         synchronized (this) {
             // Swap the new results in
             videos = newVideos;
             allResults = newAllResults;
+            videosList = newVideosList;
         }
 
         bus.post(new VideoRepositoryUpdatedEvent(this));
@@ -87,8 +92,8 @@ public class OptimizedLocalVideoRepository extends AbstractVideoRepository {
     }
 
     @Override
-    public synchronized FindResults getAll() throws IOException {
-        return new FindResults(allResults);
+    public synchronized List<OptimizedVideo> getAll() throws IOException {
+        return videosList;
     }
 
     @Override

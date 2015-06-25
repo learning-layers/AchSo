@@ -4,6 +4,8 @@ import android.graphics.PointF;
 import android.location.Location;
 import android.net.Uri;
 
+import com.google.common.primitives.Longs;
+
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
@@ -384,6 +386,14 @@ public class OptimizedVideo {
         }
     }
 
+    public static class CreateTimeComparator implements java.util.Comparator<OptimizedVideo> {
 
+        @Override
+        public int compare(OptimizedVideo lhs, OptimizedVideo rhs) {
+            long lhsDateInMs = lhs.dateInMs;
+            long rhsDateInMs = rhs.dateInMs;
+            return Longs.compare(lhsDateInMs, rhsDateInMs);
+        }
+    }
 }
 

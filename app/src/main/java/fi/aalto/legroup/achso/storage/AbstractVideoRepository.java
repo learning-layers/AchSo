@@ -3,7 +3,7 @@ package fi.aalto.legroup.achso.storage;
 import com.squareup.otto.Bus;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import fi.aalto.legroup.achso.entities.OptimizedVideo;
@@ -21,7 +21,7 @@ public abstract class AbstractVideoRepository implements VideoRepository {
      * Returns a list of all available video IDs and their modification dates.
      */
     @Override
-    public abstract FindResults getAll() throws IOException;
+    public abstract List<OptimizedVideo> getAll() throws IOException;
     /**
      * Returns the video for a given ID.
      */
@@ -56,28 +56,6 @@ public abstract class AbstractVideoRepository implements VideoRepository {
         // Do nothing for general case, only useful for caching repositories
     }
 
-
-    /**
-     * Returns a list of all available video IDs that match the genre string
-     * and their modification dates.
-     */
-    @Override
-    public FindResults getByGenreString(String genre) throws IOException {
-
-        FindResults results = getAll();
-        ArrayList<FindResult> matching = new ArrayList<>(results.size());
-
-        for (FindResult result : results) {
-
-            OptimizedVideo video = getVideo(result.getId());
-            if (video.getGenre().matches(genre)) {
-                matching.add(result);
-            }
-        }
-        matching.trimToSize();
-
-        return new FindResults(matching);
-    }
 
 }
 

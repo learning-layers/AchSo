@@ -7,9 +7,13 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.view.ViewGroup;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import com.melnykov.fab.ScrollDirectionListener;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -20,6 +24,7 @@ import java.util.UUID;
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.browsing.BrowserFragment;
+import fi.aalto.legroup.achso.entities.OptimizedVideo;
 import fi.aalto.legroup.achso.views.utilities.ScrollDirectionListenable;
 
 public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
@@ -27,6 +32,7 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
 
     private Map<Integer, Object> activeItems = new HashMap<>();
     private List<String> tabNames = new LinkedList<>();
+    private List<List<UUID>> tabVideoIds;
 
     @Nullable
     private ScrollDirectionListener scrollListener;
@@ -102,9 +108,46 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
         return tabNames.size();
     }
 
+    private static List<UUID> toIds(Collection<OptimizedVideo> videos) {
+        List<UUID> list = new ArrayList<>(videos.size());
+        for (OptimizedVideo video : videos) {
+            list.add(video.getId());
+        }
+        return list;
+    }
+
     @Override
     public void notifyDataSetChanged() {
         super.notifyDataSetChanged();
+
+        // Fetch the videos here
+        List<OptimizedVideo> allVideos;
+        try {
+            allVideos = App.videoInfoRepository.getAll();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        Collections.sort(allVideos, Collections.reverseOrder(
+                new OptimizedVideo.CreateTimeComparator()));
+
+        // Sort the videos by genre
+        Multimap<String, OptimizedVideo> videosForGenre = HashMultimap.create();
+        for (OptimizedVideo video : allVideos) {
+
+            videosForGenre.put(video.getGenre(), video);
+        }
+
+        List<List<UUID>> newTabVideoIds = new ArrayList<>(tabNames.size() + 1);
+        newTabVideoIds.add(toIds(allVideos));
+
+        // TODO: This is what causes ACH-104, should have some locale independent genre names...
+        for (String tabName : tabNames) {
+            // Get returns an empty collection when no values for key, not null.
+            newTabVideoIds.add(toIds(videosForGenre.get(tabName)));
+        }
+        tabVideoIds = newTabVideoIds;
 
         for (Map.Entry<Integer, Object> entry : activeItems.entrySet()) {
             Object item = entry.getValue();
@@ -119,27 +162,12 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
     }
 
     private List<UUID> getVideosForPosition(int position) {
-        switch (position) {
-            case 0:
-                try {
-                    return App.videoInfoRepository.getAll().sortDescending().getIDs();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    break;
-                }
-
-            default:
-                try {
-                    String genre = tabNames.get(position);
-                    return App.videoInfoRepository.getByGenreString(genre).sortDescending().getIDs();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    break;
-                }
+        if (tabVideoIds == null) {
+            return Collections.emptyList();
         }
-
-        return Collections.emptyList();
+        return tabVideoIds.get(position);
     }
+
 
     /**
      * Sets the scroll direction listener.
