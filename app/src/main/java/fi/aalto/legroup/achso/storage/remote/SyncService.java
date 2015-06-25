@@ -9,6 +9,9 @@ import com.squareup.otto.Bus;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.storage.CombinedVideoRepository;
 
+/**
+ * Download and upload possibly merging video manifests with the cloud servers.
+ */
 public final class SyncService extends IntentService {
 
     private Bus bus;
@@ -16,7 +19,7 @@ public final class SyncService extends IntentService {
     /**
      * Convenience method for using this service.
      */
-    public static void download(Context context) {
+    public static void syncWithCloudStorage(Context context) {
         Intent intent = new Intent(context, SyncService.class);
         context.startService(intent);
     }

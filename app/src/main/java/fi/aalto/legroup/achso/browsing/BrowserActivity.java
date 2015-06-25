@@ -104,7 +104,7 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
         super.onResume();
         bus.register(this);
 
-        SyncService.download(this);
+        SyncService.syncWithCloudStorage(this);
     }
 
     @Override

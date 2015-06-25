@@ -27,7 +27,7 @@ import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
 import fi.aalto.legroup.achso.storage.CombinedVideoRepository;
 import fi.aalto.legroup.achso.storage.VideoInfoRepository;
 import fi.aalto.legroup.achso.storage.VideoRepository;
-import fi.aalto.legroup.achso.storage.remote.DownloadService;
+import fi.aalto.legroup.achso.storage.remote.SyncService;
 import fi.aalto.legroup.achso.storage.remote.strategies.ClViTra2Strategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.OwnCloudStrategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.ShareServerStrategy;
@@ -126,7 +126,7 @@ public final class App extends MultiDexApplication
         }
 
 
-        DownloadService.download(this);
+        SyncService.syncWithCloudStorage(this);
 
         bus.post(new LoginRequestEvent(LoginRequestEvent.Type.LOGIN));
 
