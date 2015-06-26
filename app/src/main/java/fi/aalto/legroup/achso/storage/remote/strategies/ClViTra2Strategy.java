@@ -13,7 +13,6 @@ import com.squareup.okhttp.MultipartBuilder;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
-import com.squareup.otto.Bus;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,12 +25,11 @@ import fi.aalto.legroup.achso.storage.remote.upload.VideoUploader;
 /**
  * Uploads raw videos to the Cloud Video Transcoder.
  */
-public class ClViTra2Strategy extends Strategy implements VideoUploader {
+public class ClViTra2Strategy implements VideoUploader {
 
     private Uri endpointUrl;
 
-    public ClViTra2Strategy(Bus bus, Uri endpointUrl) {
-        super(bus);
+    public ClViTra2Strategy(Uri endpointUrl) {
         this.endpointUrl = App.getLayersServiceUrl(endpointUrl);
     }
 

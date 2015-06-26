@@ -11,7 +11,6 @@ import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
-import com.squareup.otto.Bus;
 
 import java.io.IOException;
 
@@ -25,7 +24,7 @@ import fi.aalto.legroup.achso.storage.remote.upload.MetadataUploader;
  *
  * TODO: Extract API stuff into an API wrapper.
  */
-public class SssStrategy extends Strategy implements MetadataUploader {
+public class SssStrategy implements MetadataUploader {
 
     protected final Uri endpointUrl;
 
@@ -34,8 +33,7 @@ public class SssStrategy extends Strategy implements MetadataUploader {
      *
      * @param endpointUrl the endpoint for the metadata post request
      */
-    public SssStrategy(Bus bus, Uri endpointUrl) {
-        super(bus);
+    public SssStrategy(Uri endpointUrl) {
         this.endpointUrl = App.getLayersServiceUrl(endpointUrl);
     }
 

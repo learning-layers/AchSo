@@ -9,7 +9,6 @@ import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 import com.squareup.okhttp.internal.http.HttpDate;
-import com.squareup.otto.Bus;
 
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.ElementList;
@@ -41,7 +40,7 @@ import fi.aalto.legroup.achso.storage.remote.upload.VideoUploader;
 /**
  * Supports uploading manifest and thumbnail and video data to an ownCloud instance.
  */
-public class OwnCloudStrategy extends Strategy implements ThumbnailUploader,
+public class OwnCloudStrategy implements ThumbnailUploader,
         VideoUploader, VideoHost {
 
     private static final Pattern MANIFEST_NAME_PATTERN = Pattern.compile(
@@ -95,9 +94,7 @@ public class OwnCloudStrategy extends Strategy implements ThumbnailUploader,
         String getLastModified() { return getlastmodified; }
     }
 
-    public OwnCloudStrategy(Bus bus, JsonSerializer serializer, Uri endpointUrl) {
-        super(bus);
-
+    public OwnCloudStrategy(JsonSerializer serializer, Uri endpointUrl) {
         this.serializer = serializer;
         this.endpointUrl = endpointUrl;
         this.webdavUrl = appendPaths(endpointUrl, "remote.php/webdav");
