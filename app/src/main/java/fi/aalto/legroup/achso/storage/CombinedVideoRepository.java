@@ -48,10 +48,6 @@ public class CombinedVideoRepository implements VideoRepository {
         this.cacheRoot = cacheRoot;
     }
 
-    public void addHost(VideoHost host) {
-        cloudHosts.add(host);
-    }
-
     private List<UUID> getCacheIds() {
         String[] entries = cacheRoot.list();
         ArrayList<UUID> results = new ArrayList<>(entries.length);
@@ -124,6 +120,13 @@ public class CombinedVideoRepository implements VideoRepository {
     }
 
     /**
+     * Add a host to the repository to sync to.
+     */
+    public void addHost(VideoHost host) {
+        cloudHosts.add(host);
+    }
+
+    /**
      * Populate the video list with local data.
      * Note: This is a fast operation and should be done on statup.
      */
@@ -168,12 +171,12 @@ public class CombinedVideoRepository implements VideoRepository {
      * Load a video from a file, or use one that has been already loaded.
      * Note: This should be only used when you know that the file you would load has the same
      * version of the video as is currently loaded.
-     * @return Video if could succesfully load, null if failed.
+     * @return Video if could successfully load, null if failed.
      */
-    public OptimizedVideo tryLoadOrReUseVideo(File file, UUID id) {
+    protected OptimizedVideo tryLoadOrReUseVideo(File file, UUID id) {
 
         try {
-            OptimizedVideo video = allVideos.get(getIdFromFile(file));
+            OptimizedVideo video = allVideos.get(id);
             if (video != null) {
                 return video;
             }
