@@ -6,6 +6,7 @@ import android.net.Uri;
 
 import com.google.common.primitives.Longs;
 
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -370,7 +371,7 @@ public class OptimizedVideo {
         return inflate(new PooledVideo(annotationTime.length, hasLocation));
     }
 
-    public static class CreateTimeComparator implements java.util.Comparator<OptimizedVideo> {
+    public static class CreateTimeComparator implements Comparator<OptimizedVideo> {
 
         @Override
         public int compare(OptimizedVideo lhs, OptimizedVideo rhs) {
