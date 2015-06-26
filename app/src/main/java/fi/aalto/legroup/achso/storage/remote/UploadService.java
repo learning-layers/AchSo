@@ -226,7 +226,7 @@ public final class UploadService extends IntentService {
     }
 
     private void postError(UUID id, String errorMessage) {
-        this.bus.post(new UploadErrorEvent(null, id, errorMessage));
+        this.bus.post(new UploadErrorEvent(id, errorMessage));
     }
 
 }
