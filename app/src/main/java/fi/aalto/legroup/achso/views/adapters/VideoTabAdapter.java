@@ -139,13 +139,15 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
             videosForGenre.put(video.getGenre(), video);
         }
 
-        List<List<UUID>> newTabVideoIds = new ArrayList<>(tabNames.size() + 1);
+        List<List<UUID>> newTabVideoIds = new ArrayList<>(tabNames.size());
+
+        // First tab has all the videos
         newTabVideoIds.add(toIds(allVideos));
 
         // TODO: This is what causes ACH-104, should have some locale independent genre names...
-        for (String tabName : tabNames) {
+        for (int i = 1; i < tabNames.size(); i++) {
             // Get returns an empty collection when no values for key, not null.
-            newTabVideoIds.add(toIds(videosForGenre.get(tabName)));
+            newTabVideoIds.add(toIds(videosForGenre.get(tabNames.get(i))));
         }
         tabVideoIds = newTabVideoIds;
 
