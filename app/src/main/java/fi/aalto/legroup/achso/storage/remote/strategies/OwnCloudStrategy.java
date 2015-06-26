@@ -104,34 +104,25 @@ public class OwnCloudStrategy extends Strategy implements ThumbnailUploader,
         this.sharesUrl = appendPaths(endpointUrl, "ocs/v1.php/apps/files_sharing/api/v1");
     }
 
+    private Request.Builder authorize(Request.Builder builder) {
+        // TODO: This is not needed with OIDC
+        return builder.header("Authorization", Credentials.basic("user", "bitnami"));
+    }
+
     private Request.Builder buildWebDavRequest(String path) {
-
         Request.Builder builder = new Request.Builder()
-            .url(appendPaths(this.webdavUrl, path).toString())
-            .header("Authorization", Credentials.basic("user", "bitnami"));
-
-        return builder;
+            .url(appendPaths(this.webdavUrl, path).toString());
+        return authorize(builder);
     }
 
     private Request.Builder buildSharesRequest() {
-
         Request.Builder builder = new Request.Builder()
-            .url(appendPaths(this.sharesUrl, "shares").toString())
-            .header("Authorization", Credentials.basic("user", "bitnami"));
-
-        return builder;
-    }
-
-    private Request.Builder buildSharesRequest(long id) {
-
-        Request.Builder builder = new Request.Builder()
-                .url(appendPaths(this.sharesUrl, "shares/" + id).toString())
-                .header("Authorization", Credentials.basic("user", "bitnami"));
-
-        return builder;
+            .url(appendPaths(this.sharesUrl, "shares").toString());
+        return authorize(builder);
     }
 
     private Response executeRequestNoFail(Request request) throws IOException {
+        // TODO: Switch to authenticatedHttpClient for OIDC
         return App.httpClient.newCall(request).execute();
     }
 
@@ -159,7 +150,6 @@ public class OwnCloudStrategy extends Strategy implements ThumbnailUploader,
     }
 
     private void deleteFile(String path) throws IOException {
-
         Request request = buildWebDavRequest(path)
                 .delete()
                 .build();
@@ -168,18 +158,20 @@ public class OwnCloudStrategy extends Strategy implements ThumbnailUploader,
     }
 
     private <T> T parseXml(Class<T> clazz, Response response) throws IOException {
-
         try {
-
             Serializer serializer = new Persister();
             Reader source = response.body().charStream();
             return serializer.read(clazz, source);
-
         } catch (Exception e) {
             throw new IOException("Invalid response XML: " + e.getMessage(), e);
         }
     }
 
+    /**
+     * Share a file to public using the ownCloud shares api.
+     * @param path Path inside ownCloud, not local.
+     * @return A public url to the file
+     */
     private Uri shareFile(String path) throws IOException {
 
         RequestBody formBody = new FormEncodingBuilder()
@@ -189,9 +181,8 @@ public class OwnCloudStrategy extends Strategy implements ThumbnailUploader,
             .build();
 
         Request request = buildSharesRequest()
-                .header("Authorization", Credentials.basic("user", "bitnami"))
-                .post(formBody)
-                .build();
+            .post(formBody)
+            .build();
 
         Response response = executeRequest(request);
         ShareResponseXML xml = parseXml(ShareResponseXML.class, response);
@@ -199,48 +190,69 @@ public class OwnCloudStrategy extends Strategy implements ThumbnailUploader,
         return appendPaths(endpointUrl, "index.php/s/" + xml.token + "/download");
     }
 
+    private static Uri appendPaths(Uri base, String path) {
+        Uri.Builder builder = base.buildUpon();
+
+        String[] parts = path.split("/");
+        for (String part : parts) {
+            builder = builder.appendPath(part);
+        }
+
+        return builder.build();
+    }
+
     private Uri uploadAndShare(String path, File file) throws IOException {
         uploadFile(path, file);
         return shareFile(path);
     }
 
-    @Override
-    public void deleteVideoManifest(UUID id) throws IOException {
-        // TODO
+    private String getManifestPath(UUID id) {
+        return "achso/manifest/" + id + ".json";
     }
 
-    @Override
-    public Uri uploadThumb(Video video) throws IOException {
-
-        File file = new File(video.getThumbUri().getPath());
-        String path = "achso/thumbnail/" + video.getId() + ".jpg";
-
-        return uploadAndShare(path, file);
+    private String getVideoPath(UUID id) {
+        return "achso/video/" + id + ".mp4";
     }
+
+    private String getThumbPath(UUID id) {
+        return "achso/thumbnail/" + id + ".jpg";
+    }
+
+
+    // VideoUploader
 
     @Override
     public VideoUploadResult uploadVideo(Video video) throws IOException {
-
         File file = new File(video.getVideoUri().getPath());
-        String path = "achso/video/" + video.getId() + ".mp4";
+        String path = getVideoPath(video.getId());
 
         return new VideoUploadResult(uploadAndShare(path, file));
     }
 
     @Override
-    public void deleteThumb(Video video) throws IOException {
+    public void deleteVideo(Video video) throws IOException {
+        deleteFile(getVideoPath(video.getId()));
 
-        String path = "achso/thumbnail/" + video.getId() + ".jpg";
-        deleteFile(path);
+    }
+
+    // ThumbnailUploader
+
+    @Override
+    public Uri uploadThumb(Video video) throws IOException {
+        File file = new File(video.getThumbUri().getPath());
+        String path = getThumbPath(video.getId());
+
+        return uploadAndShare(path, file);
     }
 
     @Override
-    public void deleteVideo(Video video) throws IOException {
-
-        String path = "achso/video/" + video.getId() + ".mp4";
-        deleteFile(path);
+    public void deleteThumb(Video video) throws IOException {
+        deleteFile(getThumbPath(video.getId()));
     }
 
+    // VideoHost
+
+    @Override
     public List<VideoInfoRepository.FindResult> getIndex() throws IOException {
         Request request = buildWebDavRequest("achso/manifest")
             .header("Depth", "1")
@@ -282,15 +294,18 @@ public class OwnCloudStrategy extends Strategy implements ThumbnailUploader,
 
     @Override
     public Video downloadVideoManifest(UUID id) throws IOException {
-        Request request = buildWebDavRequest("achso/manifest/" + id + ".json")
+        Request request = buildWebDavRequest(getManifestPath(id))
                 .get()
                 .build();
 
         Response response = executeRequest(request);
 
         Video video = serializer.read(Video.class, response.body().byteStream());
-        video.setManifestUri(Uri.parse("achso/manifest/" + id + ".json"));
+
+        // This is technically wrong but I don't think getting the share url is worth the trouble.
+        video.setManifestUri(Uri.parse(getManifestPath(id)));
         video.setVersionTag(response.header("ETag"));
+        video.setLastModified(response.headers().getDate("Last-Modified"));
         return video;
     }
 
@@ -298,7 +313,7 @@ public class OwnCloudStrategy extends Strategy implements ThumbnailUploader,
     public ManifestUploadResult uploadVideoManifest(Video video,
             String expectedVersionTag) throws IOException {
 
-        String path = "achso/manifest/" + video.getId() + ".json";
+        String path = getManifestPath(video.getId());
         Request.Builder requestBuilder = buildWebDavRequest(path);
 
         if (expectedVersionTag != null) {
@@ -310,7 +325,6 @@ public class OwnCloudStrategy extends Strategy implements ThumbnailUploader,
         }
 
         String serializedVideo = serializer.write(video);
-
         Request request = requestBuilder
                 .put(RequestBody.create(MediaType.parse("application/json"), serializedVideo))
             .build();
@@ -329,14 +343,10 @@ public class OwnCloudStrategy extends Strategy implements ThumbnailUploader,
         return new ManifestUploadResult(uri, versionTag);
     }
 
-    private static Uri appendPaths(Uri base, String path) {
-        Uri.Builder builder = base.buildUpon();
-
-        String[] parts = path.split("/");
-        for (String part : parts) {
-            builder = builder.appendPath(part);
-        }
-
-        return builder.build();
+    @Override
+    public void deleteVideoManifest(UUID id) throws IOException {
+        deleteFile(getManifestPath(id));
     }
+
+
 }
