@@ -13,6 +13,7 @@ import android.view.MenuItem;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -114,7 +115,7 @@ public final class SearchActivity extends ActionBarActivity {
      * Searches all videos for a match against the given query.
      */
     private void queryVideos(String query) {
-        List<OptimizedVideo> allVideos;
+        Collection<OptimizedVideo> allVideos;
 
         try {
             allVideos = App.videoInfoRepository.getAll();

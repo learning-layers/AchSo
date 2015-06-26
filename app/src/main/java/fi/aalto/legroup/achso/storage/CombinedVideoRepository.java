@@ -8,6 +8,7 @@ import com.squareup.otto.Bus;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -30,8 +31,6 @@ public class CombinedVideoRepository implements VideoRepository {
     private static final Pattern cacheNamePattern = Pattern.compile("(.*)_original\\.json");
 
     protected Map<UUID, OptimizedVideo> allVideos = Collections.emptyMap();
-    protected List<OptimizedVideo> allVideosList = Collections.emptyList();
-    protected List<FindResult> allResults = Collections.emptyList();
 
     protected Bus bus;
     protected JsonSerializer serializer;
@@ -103,18 +102,12 @@ public class CombinedVideoRepository implements VideoRepository {
 
     protected void updateVideos(List<OptimizedVideo> videos) {
         Map<UUID, OptimizedVideo> newAllVideos = new HashMap<>();
-        List<OptimizedVideo> newAllVideosList = new ArrayList<>();
-        List<FindResult> newAllResults = new ArrayList<>();
 
         for (OptimizedVideo video : videos) {
             newAllVideos.put(video.getId(), video);
-            newAllVideosList.add(video);
-            newAllResults.add(new FindResult(video.getId(), video.getLastModified()));
         }
 
         allVideos = newAllVideos;
-        allVideosList = newAllVideosList;
-        allResults = newAllResults;
 
         bus.post(new VideoRepositoryUpdatedEvent(this));
     }
@@ -221,7 +214,7 @@ public class CombinedVideoRepository implements VideoRepository {
 
         for (VideoHost host : cloudHosts) {
 
-            List<VideoInfoRepository.FindResult> results = null;
+            List<VideoInfoRepository.FindResult> results;
 
             try {
                 results = host.getIndex();
@@ -404,10 +397,6 @@ public class CombinedVideoRepository implements VideoRepository {
         serializer.save(video, targetFile.toURI());
 
         // Do partial update
-        if (!allVideos.containsKey(video.getId())) {
-            allResults.add(new FindResult(video.getId(), new Date().getTime()));
-        }
-
         allVideos.put(video.getId(), new OptimizedVideo(video));
         bus.post(new VideoRepositoryUpdatedEvent(this));
     }
@@ -470,33 +459,22 @@ public class CombinedVideoRepository implements VideoRepository {
             File thumbFile = new File(video.getThumbUri().getPath());
             File videoFile = new File(video.getVideoUri().getPath());
 
-            if (!thumbFile.delete()) {
-                // Doesn't matter, not necessary operation
-            }
-            if (!videoFile.delete()) {
-                // Doesn't matter, not necessary operation
-            }
-
+            // Doesn't matter if these fail, not necessary operation
+            thumbFile.delete();
+            videoFile.delete();
         } else {
             // TODO: Delete shared file
             throw new IOException("Can't delete remote file");
         }
 
         // Remove the video from memory, if deleting has failed we have thrown before this
-        for (FindResult result : allResults) {
-            if (result.getId() == id) {
-                allResults.remove(result);
-                break;
-            }
-        }
-        allVideosList.remove(video);
         allVideos.remove(id);
         bus.post(new VideoRepositoryUpdatedEvent(this));
     }
 
     @Override
-    public List<OptimizedVideo> getAll() throws IOException {
-        return allVideosList;
+    public Collection<OptimizedVideo> getAll() throws IOException {
+        return allVideos.values();
     }
 
     @Override

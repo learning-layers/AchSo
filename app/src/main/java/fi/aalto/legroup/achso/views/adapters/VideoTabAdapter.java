@@ -123,7 +123,7 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
         // Fetch the videos here
         List<OptimizedVideo> allVideos;
         try {
-            allVideos = App.videoInfoRepository.getAll();
+            allVideos = new ArrayList<>(App.videoInfoRepository.getAll());
         } catch (IOException e) {
             e.printStackTrace();
             return;
