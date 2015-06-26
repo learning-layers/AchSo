@@ -93,13 +93,11 @@ public final class UploadService extends IntentService {
 
         VideoUploader videoHost = null;
         ThumbnailUploader thumbnailHost = null;
-
         VideoUploader.VideoUploadResult videoResult = null;
 
         for (VideoUploader uploader : videoUploaders) {
             try {
                 videoResult = uploader.uploadVideo(video);
-
                 videoHost = uploader;
 
                 // Stop at the first uploader which succeeds.
@@ -110,23 +108,16 @@ public final class UploadService extends IntentService {
         }
 
         if (videoResult == null) {
-
             // No cleanup required
-
             return false;
         }
         video.setVideoUri(videoResult.videoUrl);
 
-        // If the video uploader didn't support creating a thumbnail, try to upload it somewhere
-        // else.
-
         Uri thumbUrl = null;
-
         if (videoResult.thumbUrl != null) {
 
             // Use the thumbnail provided by the video uploader
             thumbUrl = videoResult.thumbUrl;
-
         } else {
 
             // Upload the thumbnail somewhere else
@@ -144,14 +135,12 @@ public final class UploadService extends IntentService {
         }
 
         if (thumbUrl == null) {
-
             // Cleanup, it doesn't really matter if it succeeds or not so just ignore the error
             try {
                 videoHost.deleteVideo(video);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
             return false;
         }
         video.setThumbUri(thumbUrl);
@@ -159,17 +148,15 @@ public final class UploadService extends IntentService {
         // Now we have the video and thumbnail urls and they are stored in the Video object, we
         // can serialize it to json with the new data and upload that.
 
-        boolean didUpload = false;
         try {
+            // Upload the video manifest.
             App.videoRepository.uploadVideo(video);
-            didUpload = true;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
-        if (!didUpload) {
+        } catch (IOException ee) {
+            ee.printStackTrace();
 
-            // Cleanup, it doesn't matter if it succeeds _but_ it would be good that we try to cleanup every resource even if an earlier one fails.
+            // Cleanup, it doesn't matter if it succeeds _but_ it would be good that we try to
+            // cleanup every resource even if an earlier one fails.
             try {
                 if (thumbnailHost != null)
                     thumbnailHost.deleteThumb(video);
@@ -181,15 +168,12 @@ public final class UploadService extends IntentService {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
             return false;
         }
 
         // In the end just run through some other uploaders that just receive metadata instead of
         // hosting the video data.
-
         for (MetadataUploader uploader : metadataUploaders) {
-
             try {
                 uploader.uploadMetadata(video);
             } catch (IOException e) {
