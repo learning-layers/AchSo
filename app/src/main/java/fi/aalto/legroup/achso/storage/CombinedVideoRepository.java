@@ -382,7 +382,7 @@ public class CombinedVideoRepository implements VideoRepository {
         updateVideos(videos);
     }
 
-    public void saveVideo(Video video) throws IOException {
+    public void save(Video video) throws IOException {
 
         UUID id = video.getId();
         File localFile = getLocalVideoFile(id);
@@ -458,17 +458,40 @@ public class CombinedVideoRepository implements VideoRepository {
         }
     }
 
-    // Video repository API
-
-    @Override
-    public void save(Video video) throws IOException {
-        saveVideo(video);
-        video.setRepository(this);
-    }
-
     @Override
     public void delete(UUID id) throws IOException {
-        // TODO
+        OptimizedVideo video = getVideo(id);
+
+        if (video.isLocal()) {
+            if (!getLocalVideoFile(id).delete()) {
+                throw new IOException("Failed to delete file");
+            }
+
+            File thumbFile = new File(video.getThumbUri().getPath());
+            File videoFile = new File(video.getVideoUri().getPath());
+
+            if (!thumbFile.delete()) {
+                // Doesn't matter, not necessary operation
+            }
+            if (!videoFile.delete()) {
+                // Doesn't matter, not necessary operation
+            }
+
+        } else {
+            // TODO: Delete shared file
+            throw new IOException("Can't delete remote file");
+        }
+
+        // Remove the video from memory, if deleting has failed we have thrown before this
+        for (FindResult result : allResults) {
+            if (result.getId() == id) {
+                allResults.remove(result);
+                break;
+            }
+        }
+        allVideosList.remove(video);
+        allVideos.remove(id);
+        bus.post(new VideoRepositoryUpdatedEvent(this));
     }
 
     @Override
