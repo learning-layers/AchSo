@@ -11,33 +11,7 @@ import fi.aalto.legroup.achso.entities.OptimizedVideo;
  */
 public interface VideoInfoRepository {
 
-    /**
-     * Result type of doing queries for videos. In most cases the last modify date is easily
-     * obtained when iterating all the videos and it almost always used immediately afterwards so
-     * keep them stored together with the ids.
-     */
-    class FindResult {
 
-        /**
-         * @param id           ID of the video manifest.
-         * @param lastModified UNIX timestamp of when the video manifest has been modified.
-         */
-        public FindResult(UUID id, long lastModified) {
-            this.id = id;
-            this.lastModified = lastModified;
-        }
-
-        private UUID id;
-        private long lastModified;
-
-        public UUID getId() {
-            return id;
-        }
-
-        public long getLastModified() {
-            return lastModified;
-        }
-    }
 
     /**
      * Returns all the videos in the repository.

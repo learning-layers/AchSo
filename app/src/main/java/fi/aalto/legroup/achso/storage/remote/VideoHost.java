@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.UUID;
 
 import fi.aalto.legroup.achso.entities.Video;
+import fi.aalto.legroup.achso.entities.VideoReference;
 import fi.aalto.legroup.achso.storage.VideoInfoRepository;
 
 /**
@@ -24,7 +25,7 @@ public interface VideoHost {
         }
     }
 
-    public List<VideoInfoRepository.FindResult> getIndex() throws IOException;
+    public List<VideoReference> getIndex() throws IOException;
 
     /**
      * Download video manifest data with a given ID.

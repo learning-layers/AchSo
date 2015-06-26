@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 import fi.aalto.legroup.achso.entities.MergeException;
 import fi.aalto.legroup.achso.entities.OptimizedVideo;
 import fi.aalto.legroup.achso.entities.Video;
+import fi.aalto.legroup.achso.entities.VideoReference;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
 import fi.aalto.legroup.achso.storage.remote.VideoHost;
 
@@ -214,7 +215,7 @@ public class CombinedVideoRepository implements VideoRepository {
 
         for (VideoHost host : cloudHosts) {
 
-            List<VideoInfoRepository.FindResult> results;
+            List<VideoReference> results;
 
             try {
                 results = host.getIndex();
@@ -222,7 +223,7 @@ public class CombinedVideoRepository implements VideoRepository {
                 continue;
             }
 
-            for (VideoInfoRepository.FindResult result : results) {
+            for (VideoReference result : results) {
 
                 UUID id = result.getId();
 

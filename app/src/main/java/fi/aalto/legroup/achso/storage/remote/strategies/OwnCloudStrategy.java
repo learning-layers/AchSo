@@ -31,8 +31,8 @@ import java.util.regex.Pattern;
 
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.Video;
+import fi.aalto.legroup.achso.entities.VideoReference;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
-import fi.aalto.legroup.achso.storage.VideoInfoRepository;
 import fi.aalto.legroup.achso.storage.remote.VideoHost;
 import fi.aalto.legroup.achso.storage.remote.upload.ThumbnailUploader;
 import fi.aalto.legroup.achso.storage.remote.upload.VideoUploader;
@@ -250,7 +250,7 @@ public class OwnCloudStrategy implements ThumbnailUploader,
     // VideoHost
 
     @Override
-    public List<VideoInfoRepository.FindResult> getIndex() throws IOException {
+    public List<VideoReference> getIndex() throws IOException {
         Request request = buildWebDavRequest("achso/manifest")
             .header("Depth", "1")
             .method("PROPFIND", null)
@@ -260,7 +260,7 @@ public class OwnCloudStrategy implements ThumbnailUploader,
         DAVPropfindXML xml = parseXml(DAVPropfindXML.class, response);
 
         List<DAVPropfindResponseXML> propResponses = xml.getResponses();
-        ArrayList<VideoInfoRepository.FindResult> results = new ArrayList<>(propResponses.size());
+        ArrayList<VideoReference> results = new ArrayList<>(propResponses.size());
 
         for (DAVPropfindResponseXML propResponse : propResponses) {
 
@@ -282,7 +282,7 @@ public class OwnCloudStrategy implements ThumbnailUploader,
             if (date == null) {
                 continue;
             }
-            results.add(new VideoInfoRepository.FindResult(id, date.getTime()));
+            results.add(new VideoReference(id, date.getTime()));
         }
 
         results.trimToSize();
