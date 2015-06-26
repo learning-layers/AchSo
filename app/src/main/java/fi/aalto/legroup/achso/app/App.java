@@ -30,7 +30,6 @@ import fi.aalto.legroup.achso.storage.remote.SyncService;
 import fi.aalto.legroup.achso.storage.remote.strategies.ClViTra2Strategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.OwnCloudStrategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.SssStrategy;
-import fi.aalto.legroup.achso.storage.remote.strategies.Strategy;
 
 public final class App extends MultiDexApplication
         implements SharedPreferences.OnSharedPreferenceChangeListener {
@@ -53,8 +52,6 @@ public final class App extends MultiDexApplication
 
     public static File localStorageDirectory;
 
-    public static Strategy videoStrategy;
-    public static Strategy metadataStrategy;
     public static OwnCloudStrategy ownCloudStrategy;
 
     private static Uri layersBoxUrl;
@@ -189,9 +186,9 @@ public final class App extends MultiDexApplication
         Uri sssUrl = Uri.parse(getString(R.string.sssUrl));
         Uri ownCloudUri = Uri.parse(getString(R.string.ownCloudUrl));
 
-        videoStrategy = new ClViTra2Strategy(bus, clViTra2Url);
-        metadataStrategy = new SssStrategy(bus, sssUrl);
-        ownCloudStrategy = new OwnCloudStrategy(bus, jsonSerializer, ownCloudUri);
+        ClViTra2Strategy videoStrategy = new ClViTra2Strategy(clViTra2Url);
+        SssStrategy metadataStrategy = new SssStrategy(sssUrl);
+        ownCloudStrategy = new OwnCloudStrategy(jsonSerializer, ownCloudUri);
     }
 
     private Uri readLayersBoxUrl() {
