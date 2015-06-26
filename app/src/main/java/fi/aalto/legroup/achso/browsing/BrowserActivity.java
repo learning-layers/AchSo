@@ -104,6 +104,9 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
         super.onResume();
         bus.register(this);
 
+        // Download and upload modified videos every time the user goes to the browsing activity.
+        // This includes returning from detail and playback activities, so it should be enough.
+        // TODO: Pull to refresh?
         SyncService.syncWithCloudStorage(this);
     }
 
