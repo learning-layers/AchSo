@@ -54,9 +54,8 @@ public final class UploadService extends IntentService {
         // Don't try this at home
         videoUploaders.add((VideoUploader) App.ownCloudStrategy);
         thumbUploaders.add((ThumbnailUploader) App.ownCloudStrategy);
-        thumbUploaders.add(App.shareServerStrategy);
-        videoUploaders.add(App.shareServerStrategy);
-        //manifestSources.add(App.shareServerSource);
+        thumbUploaders.add(App.ownCloudStrategy);
+        videoUploaders.add(App.ownCloudStrategy);
         //metadataUploaders.add((MetadataUploader) App.metadataStrategy);
 
         // TODO: Inject instead
