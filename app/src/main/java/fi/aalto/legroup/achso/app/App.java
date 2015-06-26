@@ -27,6 +27,7 @@ import fi.aalto.legroup.achso.storage.CombinedVideoRepository;
 import fi.aalto.legroup.achso.storage.VideoInfoRepository;
 import fi.aalto.legroup.achso.storage.VideoRepository;
 import fi.aalto.legroup.achso.storage.remote.SyncService;
+import fi.aalto.legroup.achso.storage.remote.UploadService;
 import fi.aalto.legroup.achso.storage.remote.strategies.ClViTra2Strategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.OwnCloudStrategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.SssStrategy;
@@ -189,6 +190,10 @@ public final class App extends MultiDexApplication
         ClViTra2Strategy videoStrategy = new ClViTra2Strategy(clViTra2Url);
         SssStrategy metadataStrategy = new SssStrategy(sssUrl);
         ownCloudStrategy = new OwnCloudStrategy(jsonSerializer, ownCloudUri);
+
+        UploadService.addUploader(videoStrategy);
+        UploadService.addUploader(metadataStrategy);
+        UploadService.addUploader(ownCloudStrategy);
     }
 
     private Uri readLayersBoxUrl() {

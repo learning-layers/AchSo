@@ -30,4 +30,9 @@ public interface VideoRepository extends VideoInfoRepository {
      * Deletes an entity with the given ID.
      */
     public void delete(UUID id) throws IOException;
+
+    /**
+     * Upload a video. May throw if the repository doesn't support uploading.
+     */
+    public void uploadVideo(Video video) throws IOException;
 }

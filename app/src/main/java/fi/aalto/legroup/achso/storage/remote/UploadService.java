@@ -15,7 +15,6 @@ import java.util.UUID;
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.Video;
-import fi.aalto.legroup.achso.storage.CombinedVideoRepository;
 import fi.aalto.legroup.achso.storage.remote.upload.MetadataUploader;
 import fi.aalto.legroup.achso.storage.remote.upload.ThumbnailUploader;
 import fi.aalto.legroup.achso.storage.remote.upload.VideoUploader;
@@ -25,9 +24,36 @@ public final class UploadService extends IntentService {
     public static final String ARG_VIDEO_ID = "ARG_VIDEO_ID";
 
     private Bus bus;
-    private List<VideoUploader> videoUploaders;
-    private List<ThumbnailUploader> thumbUploaders;
-    private List<MetadataUploader> metadataUploaders;
+    private static List<VideoUploader> videoUploaders = new ArrayList<>();
+    private static List<ThumbnailUploader> thumbUploaders = new ArrayList<>();
+    private static List<MetadataUploader> metadataUploaders = new ArrayList<>();
+
+    /**
+     * Add an uploader to as many things as possible.
+     * @param uploader Should implement one or more of the following:
+     *                 VideoUploader, ThumbnailUploader, MetadataUploader
+     */
+    public static void addUploader(Object uploader) {
+        if (uploader instanceof VideoUploader) {
+            addVideoUploader((VideoUploader)uploader);
+        }
+        if (uploader instanceof ThumbnailUploader) {
+            addThumbnailUploader((ThumbnailUploader)uploader);
+        }
+        if (uploader instanceof MetadataUploader) {
+            addMetadataUploader((MetadataUploader)uploader);
+        }
+    }
+
+    public static void addVideoUploader(VideoUploader uploader) {
+        videoUploaders.add(uploader);
+    }
+    public static void addThumbnailUploader(ThumbnailUploader uploader) {
+        thumbUploaders.add(uploader);
+    }
+    public static void addMetadataUploader(MetadataUploader uploader) {
+        metadataUploaders.add(uploader);
+    }
 
     /**
      * Convenience method for using this service.
@@ -44,19 +70,6 @@ public final class UploadService extends IntentService {
 
     public UploadService() {
         super("UploadService");
-
-        // TODO: Initialize these in somewhere which makes sense.
-        videoUploaders = new ArrayList<>();
-        thumbUploaders = new ArrayList<>();
-        metadataUploaders = new ArrayList<>();
-
-        // I'm sorry...
-        // Don't try this at home
-        videoUploaders.add((VideoUploader) App.ownCloudStrategy);
-        thumbUploaders.add((ThumbnailUploader) App.ownCloudStrategy);
-        thumbUploaders.add(App.ownCloudStrategy);
-        videoUploaders.add(App.ownCloudStrategy);
-        //metadataUploaders.add((MetadataUploader) App.metadataStrategy);
 
         // TODO: Inject instead
         this.bus = App.bus;
@@ -146,10 +159,9 @@ public final class UploadService extends IntentService {
         // Now we have the video and thumbnail urls and they are stored in the Video object, we
         // can serialize it to json with the new data and upload that.
 
-        // FIXME: Don't do this
         boolean didUpload = false;
         try {
-            ((CombinedVideoRepository)App.videoRepository).uploadVideo(video);
+            App.videoRepository.uploadVideo(video);
             didUpload = true;
         } catch (IOException e) {
             e.printStackTrace();
