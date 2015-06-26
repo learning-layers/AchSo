@@ -3,9 +3,11 @@ package fi.aalto.legroup.achso.storage;
 import android.net.Uri;
 
 import com.google.common.base.Objects;
+import com.google.common.io.Files;
 import com.squareup.otto.Bus;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -130,7 +132,7 @@ public class CombinedVideoRepository implements VideoRepository {
         List<OptimizedVideo> videos = new ArrayList<>();
 
         // Add the local videos
-        File[] localFiles = localRoot.listFiles();
+        File[] localFiles = localRoot.listFiles(new ManifestFileFilter());
         for (File file : localFiles) {
 
             OptimizedVideo video = tryLoadOrReUseVideo(file, getIdFromFile(file));
@@ -202,7 +204,7 @@ public class CombinedVideoRepository implements VideoRepository {
 
         // Add the local videos
         // TODO: These can be cached
-        File[] localFiles = localRoot.listFiles();
+        File[] localFiles = localRoot.listFiles(new ManifestFileFilter());
         for (File file : localFiles) {
 
             OptimizedVideo localVideo = tryLoadOrReUseVideo(file, getIdFromFile(file));
@@ -481,6 +483,13 @@ public class CombinedVideoRepository implements VideoRepository {
     @Override
     public OptimizedVideo getVideo(UUID id) throws IOException {
         return allVideos.get(id);
+    }
+
+    protected final static class ManifestFileFilter implements FilenameFilter {
+        @Override
+        public boolean accept(File directory, String fileName) {
+            return Files.getFileExtension(fileName).equals("json");
+        }
     }
 }
 

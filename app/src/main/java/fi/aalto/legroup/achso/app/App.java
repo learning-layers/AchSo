@@ -96,14 +96,12 @@ public final class App extends MultiDexApplication
         File cacheDir = new File(mediaDirectory, "cache");
         cacheDir.mkdirs();
 
-        File localVideoDirectory = new File(localStorageDirectory, "localvideo");
         File cacheVideoDirectory = new File(localStorageDirectory, "cache");
 
-        localVideoDirectory.mkdirs();
         cacheVideoDirectory.mkdirs();
 
         CombinedVideoRepository combinedRepository = new CombinedVideoRepository(bus, jsonSerializer,
-                localVideoDirectory, cacheVideoDirectory);
+                localStorageDirectory, cacheVideoDirectory);
 
         combinedRepository.addHost(ownCloudStrategy);
 
