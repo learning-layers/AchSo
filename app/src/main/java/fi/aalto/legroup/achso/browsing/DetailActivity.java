@@ -45,7 +45,7 @@ public final class DetailActivity extends FragmentActivity
         UUID videoId = (UUID) getIntent().getSerializableExtra(ARG_VIDEO_ID);
 
         try {
-            video = App.videoRepository.get(videoId);
+            video = App.videoRepository.getVideo(videoId).inflate();
         } catch (IOException e) {
             e.printStackTrace();
             SnackbarManager.show(Snackbar.with(this).text(R.string.storage_error));

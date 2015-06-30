@@ -122,7 +122,7 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
         switch (position) {
             case 0:
                 try {
-                    return App.videoInfoRepository.getAll();
+                    return App.videoInfoRepository.getAll().sortDescending().getIDs();
                 } catch (IOException e) {
                     e.printStackTrace();
                     break;
@@ -131,7 +131,7 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
             default:
                 try {
                     String genre = tabNames.get(position);
-                    return App.videoInfoRepository.getByGenreString(genre);
+                    return App.videoInfoRepository.getByGenreString(genre).sortDescending().getIDs();
                 } catch (IOException e) {
                     e.printStackTrace();
                     break;

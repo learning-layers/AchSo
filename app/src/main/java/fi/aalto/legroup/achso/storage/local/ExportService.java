@@ -36,7 +36,7 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.app.AppCache;
 import fi.aalto.legroup.achso.browsing.BrowserActivity;
-import fi.aalto.legroup.achso.entities.VideoInfo;
+import fi.aalto.legroup.achso.entities.OptimizedVideo;
 import fi.aalto.legroup.achso.storage.VideoInfoRepository;
 import okio.BufferedSource;
 import okio.Okio;
@@ -209,7 +209,7 @@ public final class ExportService extends IntentService {
      */
     private File exportVideo(File directory, UUID videoId) throws IOException {
         // TODO: We should not rely on the repository
-        VideoInfo video = videoInfoRepository.get(videoId);
+        OptimizedVideo video = videoInfoRepository.getVideo(videoId);
 
         String fileName = sanitizeFilename(video.getTitle()) + ".achso";
         File outputFile = new File(directory, fileName);

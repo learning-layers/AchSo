@@ -36,6 +36,13 @@ public abstract class Serializer<S extends Serializable> {
     public abstract void write(S object, OutputStream output) throws IOException;
 
     /**
+     * Serialises an object into a string.
+     *
+     * @param object Object to serialise.
+     */
+    public abstract String write(S object);
+
+    /**
      * De-serialises a new object of the given type from the given URI.
      *
      * @param type  Type of the de-serialised object.

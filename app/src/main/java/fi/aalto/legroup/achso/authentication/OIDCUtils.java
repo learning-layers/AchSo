@@ -19,6 +19,7 @@ import com.squareup.okhttp.Response;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import fi.aalto.legroup.achso.app.App;
@@ -151,7 +152,11 @@ public final class OIDCUtils {
      * TODO: Look into verifying the token issuer as well?
      */
     public static boolean isValidIdToken(String clientId, String tokenString) throws IOException {
-        List<String> audiences = Arrays.asList(clientId);
+        if (clientId == null || tokenString == null) {
+            return false;
+        }
+
+        List<String> audiences = Collections.singletonList(clientId);
         IdTokenVerifier verifier = new IdTokenVerifier.Builder().setAudience(audiences).build();
 
         IdToken idToken = IdToken.parse(new GsonFactory(), tokenString);

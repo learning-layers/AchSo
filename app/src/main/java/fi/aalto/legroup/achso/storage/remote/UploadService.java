@@ -59,7 +59,7 @@ public final class UploadService extends IntentService {
         Video video;
 
         try {
-            video = App.videoRepository.get(id);
+            video = App.videoRepository.getVideo(id).inflate();
         } catch (IOException e) {
             e.printStackTrace();
             postError(id, "Could not load video.");
