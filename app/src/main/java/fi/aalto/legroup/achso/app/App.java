@@ -28,6 +28,7 @@ import fi.aalto.legroup.achso.storage.VideoInfoRepository;
 import fi.aalto.legroup.achso.storage.VideoRepository;
 import fi.aalto.legroup.achso.storage.remote.SyncService;
 import fi.aalto.legroup.achso.storage.remote.UploadService;
+import fi.aalto.legroup.achso.storage.remote.strategies.AchRailsStrategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.ClViTra2Strategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.OwnCloudStrategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.SssStrategy;
@@ -103,7 +104,8 @@ public final class App extends MultiDexApplication
         CombinedVideoRepository combinedRepository = new CombinedVideoRepository(bus, jsonSerializer,
                 localStorageDirectory, cacheVideoDirectory);
 
-        combinedRepository.addHost(ownCloudStrategy);
+        //combinedRepository.addHost(ownCloudStrategy);
+        combinedRepository.addHost(new AchRailsStrategy(jsonSerializer, Uri.parse(getString(R.string.achRailsUrl))));
 
         videoRepository = combinedRepository;
         videoInfoRepository = combinedRepository;
