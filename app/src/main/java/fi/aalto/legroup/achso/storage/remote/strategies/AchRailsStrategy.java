@@ -30,9 +30,6 @@ public class AchRailsStrategy implements VideoHost {
     class JsonVideoReferences implements JsonSerializable {
         public JsonVideoReference[] videos;
     }
-    class JsonVideoUploadResult implements JsonSerializable {
-        public String url;
-    }
 
     private JsonSerializer serializer;
     private Uri endpointUrl;
@@ -105,11 +102,11 @@ public class AchRailsStrategy implements VideoHost {
             String expectedVersionTag) throws IOException {
 
         // TODO: If-Match support
-        Request.Builder requestBuilder = buildRequest();
+        Request.Builder requestBuilder = buildRequest(video.getId());
 
         String serializedVideo = serializer.write(video);
         Request request = requestBuilder
-                .post(RequestBody.create(MediaType.parse("application/json"), serializedVideo))
+                .put(RequestBody.create(MediaType.parse("application/json"), serializedVideo))
                 .build();
 
         Response response = executeRequestNoFail(request);
@@ -119,10 +116,9 @@ public class AchRailsStrategy implements VideoHost {
             return null;
         }
         validateResponse(response);
-        JsonVideoUploadResult result = serializer.read(JsonVideoUploadResult.class, response.body().byteStream());
 
         String versionTag = response.header("ETag");
-        return new ManifestUploadResult(Uri.parse(result.url), versionTag);
+        return new ManifestUploadResult(Uri.parse(request.uri().toString()), versionTag);
     }
 
     @Override
