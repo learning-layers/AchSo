@@ -77,12 +77,22 @@ public class AchRailsStrategy implements VideoHost {
             references.add(new VideoReference(UUID.fromString(video.uuid),
                     Date.parse(video.last_modified)));
         }
-            return references;
+        return references;
     }
 
     @Override
     public Video downloadVideoManifest(UUID id) throws IOException {
-        return null;
+
+        Request request = buildRequest(id).get().build();
+        Response response = executeRequest(request);
+
+        Video video = serializer.read(Video.class, response.body().byteStream());
+
+        // This is technically wrong but I don't think getting the share url is worth the trouble.
+        video.setManifestUri(Uri.parse(request.uri().toString()));
+        video.setVersionTag(response.header("ETag"));
+        video.setLastModified(response.headers().getDate("Last-Modified"));
+        return video;
     }
 
     @Override
