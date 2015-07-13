@@ -313,7 +313,7 @@ public class CombinedVideoRepository implements VideoRepository {
                     try {
                         if (didUpload) {
                             writeVideoToFile(resultVideo, localFileOriginal);
-                            if (localFileModified.delete()) {
+                            if (!localFileModified.delete()) {
                                 // For logging purposes thrown and caught
                                 throw new IOException("Failed to delete modified video");
                             }
