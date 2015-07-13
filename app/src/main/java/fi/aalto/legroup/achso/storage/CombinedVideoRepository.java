@@ -249,7 +249,7 @@ public class CombinedVideoRepository implements VideoRepository {
                         modifiedVideo = readVideoFromFile(localFileModified);
                     } catch (IOException e) {
                         e.printStackTrace();
-                        break;
+                        continue;
                     }
 
                     for (int tries = 0; tries < 10; tries++) {
