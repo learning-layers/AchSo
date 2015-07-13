@@ -3,7 +3,9 @@ package fi.aalto.legroup.achso.storage.remote.strategies;
 import android.net.Uri;
 
 import com.squareup.okhttp.Credentials;
+import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.Request;
+import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 
 import java.io.IOException;
@@ -26,7 +28,10 @@ public class AchRailsStrategy implements VideoHost {
         public String last_modified;
     }
     class JsonVideoReferences implements JsonSerializable {
-        JsonVideoReference[] videos;
+        public JsonVideoReference[] videos;
+    }
+    class JsonVideoUploadResult implements JsonSerializable {
+        public String url;
     }
 
     private JsonSerializer serializer;
@@ -98,7 +103,26 @@ public class AchRailsStrategy implements VideoHost {
     @Override
     public ManifestUploadResult uploadVideoManifest(Video video,
             String expectedVersionTag) throws IOException {
-        return null;
+
+        // TODO: If-Match support
+        Request.Builder requestBuilder = buildRequest();
+
+        String serializedVideo = serializer.write(video);
+        Request request = requestBuilder
+                .post(RequestBody.create(MediaType.parse("application/json"), serializedVideo))
+                .build();
+
+        Response response = executeRequestNoFail(request);
+
+        if (response.code() == 412) {
+            // Precondition failed (ETag didn't match, return null instead of failing)
+            return null;
+        }
+        validateResponse(response);
+        JsonVideoUploadResult result = serializer.read(JsonVideoUploadResult.class, response.body().byteStream());
+
+        String versionTag = response.header("ETag");
+        return new ManifestUploadResult(Uri.parse(result.url), versionTag);
     }
 
     @Override
