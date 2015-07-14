@@ -114,6 +114,11 @@
             android:parentActivityName=".browsing.BrowserActivity" />
 
         <activity
+            android:name=".sharing.SharingActivity"
+            android:label="@string/app_name"
+            android:parentActivityName=".browsing.BrowserActivity" />
+
+        <activity
             android:name=".authentication.LoginActivity"
             android:label="@string/choose_account"
             android:parentActivityName=".browsing.BrowserActivity" />

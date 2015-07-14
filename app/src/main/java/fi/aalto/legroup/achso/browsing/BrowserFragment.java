@@ -22,6 +22,7 @@ import com.nispok.snackbar.SnackbarManager;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,7 +32,9 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.authoring.QRHelper;
 import fi.aalto.legroup.achso.authoring.VideoDeletionFragment;
+import fi.aalto.legroup.achso.entities.OptimizedVideo;
 import fi.aalto.legroup.achso.playback.PlayerActivity;
+import fi.aalto.legroup.achso.sharing.SharingActivity;
 import fi.aalto.legroup.achso.storage.local.ExportService;
 import fi.aalto.legroup.achso.storage.remote.UploadErrorEvent;
 import fi.aalto.legroup.achso.storage.remote.UploadService;
@@ -152,6 +155,26 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
                 return true;
 
             case R.id.action_upload:
+                // HACK:
+                {
+                    List<UUID> selection = getSelection();
+                    if (selection.size() == 1) {
+                        OptimizedVideo video = null;
+                        try {
+                            video = App.videoRepository.getVideo(selection.get(0));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        if (video != null && video.isRemote()) {
+                            Intent intent = new Intent(getActivity(), SharingActivity.class);
+                            intent.putExtra(SharingActivity.ARG_VIDEO_ID, video.getId());
+                            startActivity(intent);
+                            mode.finish();
+                            return true;
+                        }
+                    }
+                }
                 UploadService.upload(getActivity(), getSelection());
                 mode.finish();
                 return true;
@@ -213,6 +236,11 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
 
             case FINISHED:
                 this.adapter.hideProgress(videoId);
+
+                // HACK:
+                Intent intent = new Intent(getActivity(), SharingActivity.class);
+                intent.putExtra(SharingActivity.ARG_VIDEO_ID, videoId);
+                startActivity(intent);
                 break;
         }
     }
