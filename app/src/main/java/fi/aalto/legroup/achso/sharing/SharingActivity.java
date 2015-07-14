@@ -8,13 +8,16 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.google.common.base.Joiner;
+
+import java.util.List;
 import java.util.UUID;
 
 import fi.aalto.legroup.achso.R;
 
 public class SharingActivity extends Activity {
 
-    public static final String ARG_VIDEO_ID = "ARG_VIDEO_ID";
+    public static final String ARG_VIDEO_IDS = "ARG_VIDEO_IDS";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,12 +29,12 @@ public class SharingActivity extends Activity {
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
 
-        UUID videoId = (UUID)getIntent().getSerializableExtra(ARG_VIDEO_ID);
+        List<UUID> videoIds = (List<UUID>)getIntent().getSerializableExtra(ARG_VIDEO_IDS);
 
         Uri uri = Uri.parse(getString(R.string.achRailsUrl))
             .buildUpon()
             .appendPath("videos")
-            .appendPath(videoId.toString())
+            .appendPath(Joiner.on(',').join(videoIds))
             .appendPath("shares")
             .build();
 

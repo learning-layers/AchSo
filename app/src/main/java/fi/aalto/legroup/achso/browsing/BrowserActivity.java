@@ -26,6 +26,9 @@ import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
 import java.io.File;
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -332,9 +335,10 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
         if (event.getType() == UploadStateEvent.Type.FINISHED) {
             // TODO: There could be many of these, should direct to some multi-share page.
             UUID videoId = event.getVideoId();
+            List<UUID> videoIds = Collections.singletonList(videoId);
 
             Intent intent = new Intent(this, SharingActivity.class);
-            intent.putExtra(SharingActivity.ARG_VIDEO_ID, videoId);
+            intent.putExtra(SharingActivity.ARG_VIDEO_IDS, (Serializable)videoIds);
             startActivity(intent);
         }
     }
