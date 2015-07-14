@@ -26,6 +26,7 @@ import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
 import java.io.File;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
@@ -39,8 +40,10 @@ import fi.aalto.legroup.achso.authoring.GenreDialogFragment;
 import fi.aalto.legroup.achso.authoring.QRHelper;
 import fi.aalto.legroup.achso.authoring.VideoCreatorService;
 import fi.aalto.legroup.achso.settings.SettingsActivity;
+import fi.aalto.legroup.achso.sharing.SharingActivity;
 import fi.aalto.legroup.achso.storage.VideoRepositoryUpdatedEvent;
 import fi.aalto.legroup.achso.storage.remote.SyncService;
+import fi.aalto.legroup.achso.storage.remote.UploadStateEvent;
 import fi.aalto.legroup.achso.utilities.BaseActivity;
 import fi.aalto.legroup.achso.utilities.ProgressDialogFragment;
 import fi.aalto.legroup.achso.views.adapters.VideoTabAdapter;
@@ -321,6 +324,19 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
         }
 
         invalidateOptionsMenu();
+    }
+
+    @Subscribe
+    public void onUploadState(UploadStateEvent event) {
+
+        if (event.getType() == UploadStateEvent.Type.FINISHED) {
+            // TODO: There could be many of these, should direct to some multi-share page.
+            UUID videoId = event.getVideoId();
+
+            Intent intent = new Intent(this, SharingActivity.class);
+            intent.putExtra(SharingActivity.ARG_VIDEO_ID, videoId);
+            startActivity(intent);
+        }
     }
 
     @Subscribe

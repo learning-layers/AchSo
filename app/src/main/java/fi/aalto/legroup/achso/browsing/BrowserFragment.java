@@ -236,11 +236,6 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
 
             case FINISHED:
                 this.adapter.hideProgress(videoId);
-
-                // HACK:
-                Intent intent = new Intent(getActivity(), SharingActivity.class);
-                intent.putExtra(SharingActivity.ARG_VIDEO_ID, videoId);
-                startActivity(intent);
                 break;
         }
     }
