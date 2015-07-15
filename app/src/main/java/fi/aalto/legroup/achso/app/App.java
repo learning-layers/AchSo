@@ -94,11 +94,7 @@ public final class App extends MultiDexApplication
             Toast.makeText(this, R.string.storage_error, Toast.LENGTH_LONG).show();
         }
 
-        File cacheDir = new File(mediaDirectory, "cache");
-        cacheDir.mkdirs();
-
         File cacheVideoDirectory = new File(localStorageDirectory, "cache");
-
         cacheVideoDirectory.mkdirs();
 
         CombinedVideoRepository combinedRepository = new CombinedVideoRepository(bus, jsonSerializer,
