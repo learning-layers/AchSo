@@ -1,8 +1,8 @@
 package fi.aalto.legroup.achso.storage.remote.strategies;
 
+import android.accounts.Account;
 import android.net.Uri;
 
-import com.squareup.okhttp.Credentials;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
@@ -41,18 +41,17 @@ public class AchRailsStrategy implements VideoHost {
 
     Request.Builder buildRequest() {
         return new Request.Builder()
-            .url(endpointUrl.buildUpon().appendPath("videos.json").toString())
-            .header("Authorization", Credentials.basic("test.user@example.com", "testuser"));
+            .url(endpointUrl.buildUpon().appendPath("videos.json").toString());
     }
     Request.Builder buildRequest(UUID id) {
         return new Request.Builder()
-            .url(endpointUrl.buildUpon().appendPath("videos").appendPath(id.toString() + ".json").toString())
-            .header("Authorization", Credentials.basic("test.user@example.com", "testuser"));
+            .url(endpointUrl.buildUpon().appendPath("videos").appendPath(id.toString() + ".json").toString());
     }
 
     private Response executeRequestNoFail(Request request) throws IOException {
         // TODO: Switch to authenticatedHttpClient for OIDC
-        return App.httpClient.newCall(request).execute();
+        Account account = App.loginManager.getAccount();
+        return App.authenticatedHttpClient.execute(request, account);
     }
 
     private Response validateResponse(Response response) throws IOException {
