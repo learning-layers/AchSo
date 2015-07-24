@@ -1,5 +1,6 @@
 package fi.aalto.legroup.achso.sharing;
 
+import android.accounts.Account;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -10,10 +11,13 @@ import android.webkit.WebViewClient;
 
 import com.google.common.base.Joiner;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import fi.aalto.legroup.achso.R;
+import fi.aalto.legroup.achso.app.App;
 
 public class SharingActivity extends Activity {
 
@@ -44,6 +48,16 @@ public class SharingActivity extends Activity {
                 super.onPageStarted(view, url, favicon);
             }
         });
-        webView.loadUrl(uri.toString());
+
+        Account account = App.loginManager.getAccount();
+        String token = App.authenticatedHttpClient.getBearerToken(account);
+
+        Map<String, String> headers = new HashMap<>();
+        
+        // Make sure we don't send the token over clear text
+        if (uri.getScheme().equals("https")) {
+            headers.put("Authorization", "Bearer " + token);
+        }
+        webView.loadUrl(uri.toString(), headers);
     }
 }

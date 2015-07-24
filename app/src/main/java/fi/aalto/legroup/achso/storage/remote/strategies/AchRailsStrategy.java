@@ -49,7 +49,6 @@ public class AchRailsStrategy implements VideoHost {
     }
 
     private Response executeRequestNoFail(Request request) throws IOException {
-        // TODO: Switch to authenticatedHttpClient for OIDC
         Account account = App.loginManager.getAccount();
         return App.authenticatedHttpClient.execute(request, account);
     }

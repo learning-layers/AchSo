@@ -31,11 +31,7 @@ public class AuthenticatedHttpClient {
         this.httpClient = httpClient;
     }
 
-    public Response execute(Request request, Account account) throws IOException {
-        return execute(request, account, true);
-    }
-
-    public Response execute(Request request, Account account, boolean doRetry) throws IOException {
+    public String getBearerToken(Account account) {
         AccountManager accountManager = AccountManager.get(context);
         String token = null;
 
@@ -46,6 +42,17 @@ public class AuthenticatedHttpClient {
             Log.e(TAG, "Could not get ID token from account: " + e.getMessage());
             e.printStackTrace();
         }
+        return token;
+    }
+
+    public Response execute(Request request, Account account) throws IOException {
+        return execute(request, account, true);
+    }
+
+    public Response execute(Request request, Account account, boolean doRetry) throws IOException {
+        AccountManager accountManager = AccountManager.get(context);
+
+        String token = getBearerToken(account);
 
         request = request.newBuilder().header("Authorization", "Bearer " + token).build();
 
