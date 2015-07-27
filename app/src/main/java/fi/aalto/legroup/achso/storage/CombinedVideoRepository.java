@@ -1,6 +1,7 @@
 package fi.aalto.legroup.achso.storage;
 
 import android.net.Uri;
+import android.support.annotation.NonNull;
 
 import com.google.common.base.Objects;
 import com.google.common.io.Files;
@@ -480,9 +481,12 @@ public class CombinedVideoRepository implements VideoRepository {
         return allVideos.values();
     }
 
-    @Override
+    @Override @NonNull
     public OptimizedVideo getVideo(UUID id) throws IOException {
-        return allVideos.get(id);
+        OptimizedVideo video = allVideos.get(id);
+        if (video == null)
+            throw new IOException("Video not found");
+        return video;
     }
 
     protected final static class ManifestFileFilter implements FilenameFilter {
