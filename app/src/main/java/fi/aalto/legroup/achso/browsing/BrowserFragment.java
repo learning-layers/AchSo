@@ -23,7 +23,6 @@ import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -172,11 +171,9 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
                     }
 
                     if (!hasLocal) {
-                        Intent intent = new Intent(getActivity(), SharingActivity.class);
-                        intent.putExtra(SharingActivity.ARG_VIDEO_IDS, (Serializable) selection);
-                        startActivity(intent);
+                        SharingActivity.openShareActivity(getActivity(), selection);
                     } else {
-                        UploadService.upload(getActivity(), getSelection());
+                        UploadService.upload(getActivity(), selection);
                     }
                     mode.finish();
                     return true;

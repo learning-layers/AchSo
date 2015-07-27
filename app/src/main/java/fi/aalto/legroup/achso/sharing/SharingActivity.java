@@ -7,6 +7,8 @@ import android.accounts.AccountManagerFuture;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
@@ -18,6 +20,8 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import com.google.common.base.Joiner;
+import com.nispok.snackbar.Snackbar;
+import com.nispok.snackbar.SnackbarManager;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -31,7 +35,57 @@ import fi.aalto.legroup.achso.authentication.Authenticator;
 
 public class SharingActivity extends Activity {
 
-    public static final String ARG_VIDEO_IDS = "ARG_VIDEO_IDS";
+    public static final String ARG_TOKEN = "ARG_TOKEN";
+
+    public static boolean openShareActivity(final Context context, List<UUID> videoIds) {
+        if (App.loginManager.isLoggedOut()) {
+            SnackbarManager.show(Snackbar.with(context).text(R.string.not_loggedin_share_nag));
+            return false;
+        }
+
+        Account account = App.loginManager.getAccount();
+        if (account == null) {
+            SnackbarManager.show(Snackbar.with(context).text(R.string.not_loggedin_share_nag));
+            return false;
+        }
+
+        final Uri uri = Uri.parse(context.getString(R.string.achRailsUrl))
+            .buildUpon()
+            .appendPath("videos")
+            .appendPath(Joiner.on(',').join(videoIds))
+            .appendPath("shares")
+            .build();
+
+        AccountManager accountManager = AccountManager.get(context);
+        AccountManagerCallback<Bundle> callback = new AccountManagerCallback<Bundle>() {
+            @Override
+            public void run(AccountManagerFuture<Bundle> future) {
+                Bundle bundle = null;
+                try {
+                    bundle = future.getResult();
+                } catch (OperationCanceledException | IOException | AuthenticatorException e) {
+                    e.printStackTrace();
+                }
+                if (bundle != null) {
+                    String token = bundle.getString(AccountManager.KEY_AUTHTOKEN);
+                    Intent intent = new Intent(context, SharingActivity.class);
+                    intent.setData(uri);
+                    intent.putExtra(SharingActivity.ARG_TOKEN, token);
+                    context.startActivity(intent);
+                }
+            }
+        };
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+            accountManager.getAuthToken(account, Authenticator.TOKEN_TYPE_ID, null, true,
+                    callback, null);
+        } else {
+            accountManager.getAuthToken(account, Authenticator.TOKEN_TYPE_ID, true,
+                    callback, null);
+        }
+
+        return true;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,14 +97,8 @@ public class SharingActivity extends Activity {
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
 
-        List<UUID> videoIds = (List<UUID>)getIntent().getSerializableExtra(ARG_VIDEO_IDS);
-
-        final Uri uri = Uri.parse(getString(R.string.achRailsUrl))
-            .buildUpon()
-            .appendPath("videos")
-            .appendPath(Joiner.on(',').join(videoIds))
-            .appendPath("shares")
-            .build();
+        final Uri uri = getIntent().getData();
+        final String token = getIntent().getStringExtra(ARG_TOKEN);
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -67,59 +115,14 @@ public class SharingActivity extends Activity {
             cookieManager.removeAllCookies(new ValueCallback<Boolean>() {
                 @Override
                 public void onReceiveValue(Boolean value) {
-                    loadUrlAuthenticated(uri);
+                    loadUrlWithToken(uri, token);
                 }
             });
         } else {
             cookieManager.removeAllCookie();
-            loadUrlAuthenticated(uri);
-        }
-
-    }
-
-
-    void loadUrlAuthenticated(final Uri uri) {
-
-        if (App.loginManager.isLoggedOut()) {
-            // TODO: Show error
-            return;
-        }
-
-        Account account = App.loginManager.getAccount();
-
-        if (account == null) {
-            // TODO: Show error
-            return;
-        }
-
-        AccountManager accountManager = AccountManager.get(this);
-        String token = null;
-
-        AccountManagerCallback<Bundle> callback = new AccountManagerCallback<Bundle>() {
-            @Override
-            public void run(AccountManagerFuture<Bundle> future) {
-                Bundle bundle = null;
-                try {
-                    bundle = future.getResult();
-                } catch (OperationCanceledException | IOException | AuthenticatorException e) {
-                    e.printStackTrace();
-                }
-                if (bundle != null) {
-                    String token = bundle.getString(AccountManager.KEY_AUTHTOKEN);
-                    loadUrlWithToken(uri, token);
-                }
-            }
-        };
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            accountManager.getAuthToken(account, Authenticator.TOKEN_TYPE_ID, null, true,
-                    callback, null);
-        } else {
-            accountManager.getAuthToken(account, Authenticator.TOKEN_TYPE_ID, true,
-                    callback, null);
+            loadUrlWithToken(uri, token);
         }
     }
-
 
     void loadUrlWithToken(Uri uri, String token) {
         WebView webView = (WebView) findViewById(R.id.WebView);

@@ -26,7 +26,6 @@ import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -337,9 +336,7 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
             UUID videoId = event.getVideoId();
             List<UUID> videoIds = Collections.singletonList(videoId);
 
-            Intent intent = new Intent(this, SharingActivity.class);
-            intent.putExtra(SharingActivity.ARG_VIDEO_IDS, (Serializable)videoIds);
-            startActivity(intent);
+            SharingActivity.openShareActivity(this, videoIds);
         }
     }
 
