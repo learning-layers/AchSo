@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -24,6 +23,7 @@ import java.util.UUID;
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.browsing.BrowserFragment;
+import fi.aalto.legroup.achso.entities.Group;
 import fi.aalto.legroup.achso.entities.OptimizedVideo;
 import fi.aalto.legroup.achso.views.utilities.ScrollDirectionListenable;
 
@@ -31,7 +31,8 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
         ScrollDirectionListenable {
 
     private Map<Integer, Object> activeItems = new HashMap<>();
-    private List<String> tabNames = new LinkedList<>();
+    private List<String> genreTabNames = new ArrayList<>();
+    private List<String> tabNames = new ArrayList<>();
     private List<List<UUID>> tabVideoIds;
 
     @Nullable
@@ -46,9 +47,11 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
         String allVideos = context.getString(R.string.my_videos);
         String[] genres = context.getResources().getStringArray(R.array.genres);
 
-        tabNames.add(allVideos);
+        genreTabNames.add(allVideos);
 
-        Collections.addAll(tabNames, genres);
+        Collections.addAll(genreTabNames, genres);
+
+        tabNames = new ArrayList<>(genreTabNames);
     }
 
     @Override
@@ -118,12 +121,14 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
 
     @Override
     public void notifyDataSetChanged() {
-        super.notifyDataSetChanged();
 
         // Fetch the videos here
         List<OptimizedVideo> allVideos;
+        List<Group> allGroups;
+
         try {
             allVideos = new ArrayList<>(App.videoInfoRepository.getAll());
+            allGroups = new ArrayList<>(App.videoInfoRepository.getGroups());
         } catch (IOException e) {
             e.printStackTrace();
             return;
@@ -139,16 +144,27 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
             videosForGenre.put(video.getGenre(), video);
         }
 
-        List<List<UUID>> newTabVideoIds = new ArrayList<>(tabNames.size());
+        List<String> newTabNames = new ArrayList<String>(genreTabNames);
+        for (Group group : allGroups) {
+            // TODO: Truncate.
+            newTabNames.add(group.getName());
+        }
+
+        List<List<UUID>> newTabVideoIds = new ArrayList<>(newTabNames.size());
 
         // First tab has all the videos
         newTabVideoIds.add(toIds(allVideos));
 
         // TODO: This is what causes ACH-104, should have some locale independent genre names...
-        for (int i = 1; i < tabNames.size(); i++) {
+        for (int i = 1; i < genreTabNames.size(); i++) {
             // Get returns an empty collection when no values for key, not null.
-            newTabVideoIds.add(toIds(videosForGenre.get(tabNames.get(i))));
+            newTabVideoIds.add(toIds(videosForGenre.get(genreTabNames.get(i))));
         }
+        for (int i = 0; i < allGroups.size(); i++) {
+            newTabVideoIds.add(allGroups.get(i).getVideos());
+        }
+        
+        tabNames = newTabNames;
         tabVideoIds = newTabVideoIds;
 
         for (Map.Entry<Integer, Object> entry : activeItems.entrySet()) {
@@ -161,6 +177,8 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
                 ((BrowserFragment) item).setVideos(videos);
             }
         }
+
+        super.notifyDataSetChanged();
     }
 
     private List<UUID> getVideosForPosition(int position) {

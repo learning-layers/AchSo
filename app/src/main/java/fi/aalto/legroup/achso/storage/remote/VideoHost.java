@@ -6,9 +6,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+import fi.aalto.legroup.achso.entities.Group;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.entities.VideoReference;
-import fi.aalto.legroup.achso.storage.VideoInfoRepository;
 
 /**
  * Online video storage.
@@ -26,6 +26,8 @@ public interface VideoHost {
     }
 
     public List<VideoReference> getIndex() throws IOException;
+
+    public List<Group> getGroups() throws IOException;
 
     /**
      * Download video manifest data with a given ID.

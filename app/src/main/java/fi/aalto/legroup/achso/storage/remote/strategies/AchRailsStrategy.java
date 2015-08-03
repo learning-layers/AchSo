@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 import fi.aalto.legroup.achso.app.App;
+import fi.aalto.legroup.achso.entities.Group;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.entities.VideoReference;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
@@ -26,6 +27,9 @@ public class AchRailsStrategy implements VideoHost {
     class JsonVideoReference implements JsonSerializable {
         public String uuid;
         public String last_modified;
+    }
+    class JsonGroupList implements JsonSerializable {
+        public List<Group> groups;
     }
     class JsonVideoReferences implements JsonSerializable {
         public JsonVideoReference[] videos;
@@ -39,13 +43,20 @@ public class AchRailsStrategy implements VideoHost {
         this.endpointUrl = endpointUrl;
     }
 
-    Request.Builder buildRequest() {
+    Request.Builder buildVideosRequest() {
         return new Request.Builder()
             .url(endpointUrl.buildUpon().appendPath("videos.json").toString());
     }
-    Request.Builder buildRequest(UUID id) {
+    Request.Builder buildVideosRequest(UUID id) {
         return new Request.Builder()
-            .url(endpointUrl.buildUpon().appendPath("videos").appendPath(id.toString() + ".json").toString());
+            .url(endpointUrl.buildUpon()
+                    .appendPath("videos")
+                    .appendPath(id.toString() + ".json")
+                    .toString());
+    }
+    Request.Builder buildGroupsRequest() {
+        return new Request.Builder()
+                .url(endpointUrl.buildUpon().appendPath("groups.json").toString());
     }
 
     private Response executeRequestNoFail(Request request) throws IOException {
@@ -68,7 +79,7 @@ public class AchRailsStrategy implements VideoHost {
 
     @Override
     public List<VideoReference> getIndex() throws IOException {
-        Request request = buildRequest().get().build();
+        Request request = buildVideosRequest().get().build();
         Response response = executeRequest(request);
         JsonVideoReferences videos = serializer.read(JsonVideoReferences.class,
                 response.body().byteStream());
@@ -81,9 +92,17 @@ public class AchRailsStrategy implements VideoHost {
     }
 
     @Override
+    public List<Group> getGroups() throws IOException {
+        Request request = buildGroupsRequest().get().build();
+        Response response = executeRequest(request);
+        JsonGroupList groups = serializer.read(JsonGroupList.class, response.body().byteStream());
+        return groups.groups;
+    }
+
+    @Override
     public Video downloadVideoManifest(UUID id) throws IOException {
 
-        Request request = buildRequest(id).get().build();
+        Request request = buildVideosRequest(id).get().build();
         Response response = executeRequest(request);
 
         Video video = serializer.read(Video.class, response.body().byteStream());
@@ -100,7 +119,7 @@ public class AchRailsStrategy implements VideoHost {
             String expectedVersionTag) throws IOException {
 
         // TODO: If-Match support
-        Request.Builder requestBuilder = buildRequest(video.getId());
+        Request.Builder requestBuilder = buildVideosRequest(video.getId());
 
         String serializedVideo = serializer.write(video);
         Request request = requestBuilder

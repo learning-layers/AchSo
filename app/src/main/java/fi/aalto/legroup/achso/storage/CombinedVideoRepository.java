@@ -23,6 +23,7 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import fi.aalto.legroup.achso.entities.Group;
 import fi.aalto.legroup.achso.entities.MergeException;
 import fi.aalto.legroup.achso.entities.OptimizedVideo;
 import fi.aalto.legroup.achso.entities.Video;
@@ -35,6 +36,7 @@ public class CombinedVideoRepository implements VideoRepository {
     private static final Pattern cacheNamePattern = Pattern.compile("(.*)_original\\.json");
 
     protected Map<UUID, OptimizedVideo> allVideos = Collections.emptyMap();
+    protected List<Group> allGroups = Collections.emptyList();
 
     protected Bus bus;
     protected JsonSerializer serializer;
@@ -104,7 +106,7 @@ public class CombinedVideoRepository implements VideoRepository {
         serializer.save(video, file.toURI());
     }
 
-    protected void updateVideos(List<OptimizedVideo> videos) {
+    protected void updateVideos(List<OptimizedVideo> videos, List<Group> groups) {
         Map<UUID, OptimizedVideo> newAllVideos = new HashMap<>();
 
         for (OptimizedVideo video : videos) {
@@ -112,6 +114,7 @@ public class CombinedVideoRepository implements VideoRepository {
         }
 
         allVideos = newAllVideos;
+        allGroups = groups;
 
         bus.post(new VideoRepositoryUpdatedEvent(this));
     }
@@ -161,7 +164,7 @@ public class CombinedVideoRepository implements VideoRepository {
             }
         }
 
-        updateVideos(videos);
+        updateVideos(videos, Collections.<Group>emptyList());
     }
 
     /**
@@ -215,10 +218,17 @@ public class CombinedVideoRepository implements VideoRepository {
         }
 
         Set<UUID> addedVideoIds = new HashSet<>();
+        List<Group> groups = new ArrayList<>();
 
         for (VideoHost host : cloudHosts) {
 
             List<VideoReference> results;
+
+            try {
+                groups.addAll(host.getGroups());
+            } catch (IOException e) {
+                // Pass
+            }
 
             try {
                 results = host.getIndex();
@@ -376,7 +386,7 @@ public class CombinedVideoRepository implements VideoRepository {
             }
         }
 
-        updateVideos(videos);
+        updateVideos(videos, groups);
     }
 
     public void save(Video video) throws IOException {
@@ -479,6 +489,11 @@ public class CombinedVideoRepository implements VideoRepository {
     @Override
     public Collection<OptimizedVideo> getAll() throws IOException {
         return allVideos.values();
+    }
+
+    @Override
+    public Collection<Group> getGroups() throws IOException {
+        return allGroups;
     }
 
     @Override @NonNull

@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -30,6 +31,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import fi.aalto.legroup.achso.app.App;
+import fi.aalto.legroup.achso.entities.Group;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.entities.VideoReference;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
@@ -287,6 +289,11 @@ public class OwnCloudStrategy implements ThumbnailUploader,
 
         results.trimToSize();
         return results;
+    }
+
+    @Override
+    public List<Group> getGroups() throws IOException {
+        return Collections.emptyList();
     }
 
     @Override
