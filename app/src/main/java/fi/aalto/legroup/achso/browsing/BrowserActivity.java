@@ -331,7 +331,7 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
     @Subscribe
     public void onUploadState(UploadStateEvent event) {
 
-        if (event.getType() == UploadStateEvent.Type.FINISHED) {
+        if (event.getType() == UploadStateEvent.Type.SUCCEEDED) {
             // TODO: There could be many of these, should direct to some multi-share page.
             UUID videoId = event.getVideoId();
             List<UUID> videoIds = Collections.singletonList(videoId);

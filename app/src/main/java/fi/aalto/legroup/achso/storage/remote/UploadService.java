@@ -218,7 +218,11 @@ public final class UploadService extends IntentService {
             postError(video.getId(), "Failed to upload video.");
         }
 
-        bus.post(new UploadStateEvent(video.getId(), UploadStateEvent.Type.FINISHED));
+        UploadStateEvent.Type type = success
+            ? UploadStateEvent.Type.SUCCEEDED
+            : UploadStateEvent.Type.FAILED;
+
+        bus.post(new UploadStateEvent(video.getId(), type));
     }
 
     private void postError(UUID id, String errorMessage) {

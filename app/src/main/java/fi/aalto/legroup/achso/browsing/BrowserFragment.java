@@ -234,7 +234,8 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
                 this.adapter.showProgress(videoId);
                 break;
 
-            case FINISHED:
+            case SUCCEEDED:
+            case FAILED:
                 this.adapter.hideProgress(videoId);
                 break;
         }
