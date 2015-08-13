@@ -4,6 +4,8 @@ import android.graphics.PointF;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.common.base.Objects;
+
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
 
 /**
@@ -103,4 +105,21 @@ public class Annotation implements JsonSerializable, Parcelable {
 
     };
 
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof Annotation)) {
+            return false;
+        }
+
+        Annotation that = (Annotation) other;
+        return this.time == that.time
+                && Objects.equal(this.position, that.position)
+                && Objects.equal(this.text, that.text)
+                && Objects.equal(this.author, that.author);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(this.time, this.position, this.text, this.author);
+    }
 }

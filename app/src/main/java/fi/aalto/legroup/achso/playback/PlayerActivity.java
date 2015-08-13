@@ -134,7 +134,9 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
             String filename = new File(this.intentFile.getPath()).getName();
             VideoHelper.moveFile(this.intentFile, App.localStorageDirectory.getPath() + "/");
             videoId = VideoHelper.unpackAchsoFile(filename);
-            App.videoInfoRepository.invalidateAll();
+
+            // We have created a new file in the local storage directory, so try to reload.
+            App.videoRepository.refreshOffline();
         } else {
             videoId = (UUID) getIntent().getSerializableExtra(ARG_VIDEO_ID);
         }
@@ -153,7 +155,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
                 getFragmentManager().findFragmentById(R.id.videoPlayerFragment);
 
         playerFragment.setListener(this);
-        playerFragment.prepare(video.getVideoUri(), this);
+        playerFragment.prepare(video, this);
     }
 
     @Override

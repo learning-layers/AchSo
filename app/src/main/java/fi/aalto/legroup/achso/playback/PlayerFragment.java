@@ -37,6 +37,7 @@ import javax.annotation.Nullable;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.entities.Annotation;
+import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.playback.annotations.AnnotationRenderer;
 import fi.aalto.legroup.achso.playback.annotations.MarkerStrategy;
 import fi.aalto.legroup.achso.playback.annotations.SubtitleStrategy;
@@ -157,8 +158,10 @@ public final class PlayerFragment extends Fragment implements ExoPlayer.Listener
     /**
      * Prepare the fragment for video playback.
      */
-    public void prepare(Uri videoUri, AnnotationEditor annotationEditor) {
-        orientationPatcher.setVideoUri(videoUri);
+    public void prepare(Video video, AnnotationEditor annotationEditor) {
+
+        Uri videoUri = video.getVideoUri();
+        orientationPatcher.updateOrientation(video);
         orientationPatcher.setView(videoSurface);
 
         SampleSource source = new FrameworkSampleSource(

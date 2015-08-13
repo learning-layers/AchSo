@@ -16,7 +16,6 @@ import com.nispok.snackbar.Snackbar;
 import com.nispok.snackbar.SnackbarManager;
 
 import fi.aalto.legroup.achso.R;
-import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.authoring.GenreDialogFragment;
 import fi.aalto.legroup.achso.entities.Video;
 
@@ -126,8 +125,6 @@ public final class DetailFragment extends Fragment {
 
                         video.setTitle(title);
 
-                        App.videoInfoRepository.invalidate(video.getId());
-
                         if (!video.save()) {
                             SnackbarManager.show(
                                     Snackbar.with(getActivity()).text(R.string.storage_error));
@@ -146,8 +143,6 @@ public final class DetailFragment extends Fragment {
             @Override
             public void onGenreSelected(String genre) {
                 video.setGenre(genre);
-
-                App.videoInfoRepository.invalidate(video.getId());
 
                 if (!video.save()) {
                     SnackbarManager.show(Snackbar.with(getActivity()).text(R.string.storage_error));

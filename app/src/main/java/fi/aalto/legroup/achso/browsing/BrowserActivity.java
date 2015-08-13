@@ -26,6 +26,9 @@ import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
@@ -39,7 +42,10 @@ import fi.aalto.legroup.achso.authoring.GenreDialogFragment;
 import fi.aalto.legroup.achso.authoring.QRHelper;
 import fi.aalto.legroup.achso.authoring.VideoCreatorService;
 import fi.aalto.legroup.achso.settings.SettingsActivity;
+import fi.aalto.legroup.achso.sharing.SharingActivity;
 import fi.aalto.legroup.achso.storage.VideoRepositoryUpdatedEvent;
+import fi.aalto.legroup.achso.storage.remote.SyncService;
+import fi.aalto.legroup.achso.storage.remote.UploadStateEvent;
 import fi.aalto.legroup.achso.utilities.BaseActivity;
 import fi.aalto.legroup.achso.utilities.ProgressDialogFragment;
 import fi.aalto.legroup.achso.views.adapters.VideoTabAdapter;
@@ -128,6 +134,11 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
             this.tabAdapter.notifyDataSetChanged();
             pendingListener.clearRepositoryUpdated();
         }
+
+        // Download and upload modified videos every time the user goes to the browsing activity.
+        // This includes returning from detail and playback activities, so it should be enough.
+        // TODO: Pull to refresh?
+        SyncService.syncWithCloudStorage(this);
     }
 
     @Override
@@ -346,6 +357,18 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
         }
 
         invalidateOptionsMenu();
+    }
+
+    @Subscribe
+    public void onUploadState(UploadStateEvent event) {
+
+        if (event.getType() == UploadStateEvent.Type.SUCCEEDED) {
+            // TODO: There could be many of these, should direct to some multi-share page.
+            UUID videoId = event.getVideoId();
+            List<UUID> videoIds = Collections.singletonList(videoId);
+
+            SharingActivity.openShareActivity(this, videoIds);
+        }
     }
 
     @Subscribe

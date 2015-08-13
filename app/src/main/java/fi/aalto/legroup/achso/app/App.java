@@ -15,7 +15,6 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.otto.Bus;
 
 import java.io.File;
-import java.io.IOException;
 
 import fi.aalto.legroup.achso.BuildConfig;
 import fi.aalto.legroup.achso.R;
@@ -24,13 +23,13 @@ import fi.aalto.legroup.achso.authentication.LoginManager;
 import fi.aalto.legroup.achso.authentication.LoginRequestEvent;
 import fi.aalto.legroup.achso.authoring.LocationManager;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
-import fi.aalto.legroup.achso.storage.AbstractVideoRepository;
+import fi.aalto.legroup.achso.storage.CombinedVideoRepository;
 import fi.aalto.legroup.achso.storage.VideoInfoRepository;
 import fi.aalto.legroup.achso.storage.VideoRepository;
-import fi.aalto.legroup.achso.storage.local.OptimizedLocalVideoRepository;
+import fi.aalto.legroup.achso.storage.remote.SyncService;
+import fi.aalto.legroup.achso.storage.remote.UploadService;
+import fi.aalto.legroup.achso.storage.remote.strategies.AchRailsStrategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.ClViTra2Strategy;
-import fi.aalto.legroup.achso.storage.remote.strategies.SssStrategy;
-import fi.aalto.legroup.achso.storage.remote.strategies.Strategy;
 
 public final class App extends MultiDexApplication
         implements SharedPreferences.OnSharedPreferenceChangeListener {
@@ -48,14 +47,10 @@ public final class App extends MultiDexApplication
 
     public static JsonSerializer jsonSerializer;
 
-    public static AbstractVideoRepository localVideoRepository;
     public static VideoRepository videoRepository;
     public static VideoInfoRepository videoInfoRepository;
 
     public static File localStorageDirectory;
-
-    public static Strategy videoStrategy;
-    public static Strategy metadataStrategy;
 
     private static Uri layersBoxUrl;
 
@@ -80,6 +75,8 @@ public final class App extends MultiDexApplication
 
         locationManager = new LocationManager(this);
 
+        jsonSerializer = new JsonSerializer();
+
         setupUploaders();
 
         // TODO: The instantiation of repositories should be abstracted further.
@@ -93,18 +90,21 @@ public final class App extends MultiDexApplication
             Toast.makeText(this, R.string.storage_error, Toast.LENGTH_LONG).show();
         }
 
-        jsonSerializer = new JsonSerializer();
+        File cacheVideoDirectory = new File(localStorageDirectory, "cache");
+        cacheVideoDirectory.mkdirs();
 
-        localVideoRepository =
-                new OptimizedLocalVideoRepository(bus, jsonSerializer, localStorageDirectory);
-        videoRepository = localVideoRepository;
-        videoInfoRepository = localVideoRepository;
+        CombinedVideoRepository combinedRepository = new CombinedVideoRepository(bus, jsonSerializer,
+                localStorageDirectory, cacheVideoDirectory);
 
-        try {
-            localVideoRepository.refresh();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        //combinedRepository.addHost(ownCloudStrategy);
+        combinedRepository.addHost(new AchRailsStrategy(jsonSerializer, Uri.parse(getString(R.string.achRailsUrl))));
+
+        videoRepository = combinedRepository;
+        videoInfoRepository = combinedRepository;
+
+        videoRepository.refreshOffline();
+
+        SyncService.syncWithCloudStorage(this);
 
         bus.post(new LoginRequestEvent(LoginRequestEvent.Type.LOGIN));
 
@@ -178,8 +178,9 @@ public final class App extends MultiDexApplication
         Uri clViTra2Url = Uri.parse(getString(R.string.clvitra2Url));
         Uri sssUrl = Uri.parse(getString(R.string.sssUrl));
 
-        videoStrategy = new ClViTra2Strategy(bus, clViTra2Url);
-        metadataStrategy = new SssStrategy(bus, sssUrl);
+        ClViTra2Strategy videoStrategy = new ClViTra2Strategy(clViTra2Url);
+
+        UploadService.addUploader(videoStrategy);
     }
 
     private Uri readLayersBoxUrl() {

@@ -1,0 +1,514 @@
+package fi.aalto.legroup.achso.storage;
+
+import android.net.Uri;
+import android.support.annotation.NonNull;
+
+import com.google.common.base.Objects;
+import com.google.common.io.Files;
+import com.squareup.otto.Bus;
+
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import fi.aalto.legroup.achso.entities.Group;
+import fi.aalto.legroup.achso.entities.MergeException;
+import fi.aalto.legroup.achso.entities.OptimizedVideo;
+import fi.aalto.legroup.achso.entities.Video;
+import fi.aalto.legroup.achso.entities.VideoReference;
+import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
+import fi.aalto.legroup.achso.storage.remote.VideoHost;
+
+public class CombinedVideoRepository implements VideoRepository {
+
+    private static final Pattern cacheNamePattern = Pattern.compile("(.*)_original\\.json");
+
+    protected Map<UUID, OptimizedVideo> allVideos = Collections.emptyMap();
+    protected List<Group> allGroups = Collections.emptyList();
+
+    protected Bus bus;
+    protected JsonSerializer serializer;
+    protected File localRoot;
+    protected File cacheRoot;
+
+    protected List<VideoHost> cloudHosts = new ArrayList<>();
+
+    public CombinedVideoRepository(Bus bus, JsonSerializer serializer, File localRoot,
+            File cacheRoot) {
+        this.bus = bus;
+        this.serializer = serializer;
+        this.localRoot = localRoot;
+        this.cacheRoot = cacheRoot;
+    }
+
+    private List<UUID> getCacheIds() {
+        String[] entries = cacheRoot.list();
+        ArrayList<UUID> results = new ArrayList<>(entries.length);
+
+        for (String entry : entries) {
+            Matcher matcher = cacheNamePattern.matcher(entry);
+            if (matcher.matches()) {
+                try {
+                    UUID id = UUID.fromString(matcher.group(1));
+                    results.add(id);
+                } catch (IllegalArgumentException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        results.trimToSize();
+        return results;
+    }
+
+    private File getLocalVideoFile(UUID id) {
+        return new File(localRoot, id + ".json");
+    }
+
+    private File getCacheFile(UUID id, String suffix) {
+        return new File(cacheRoot, id + "_" + suffix + ".json");
+    }
+
+    private UUID getIdFromFile(File file) {
+        final int uuidLength = 36;
+        return UUID.fromString(file.getName().substring(0, uuidLength));
+    }
+
+    private File getOriginalCacheFile(UUID id) {
+        return getCacheFile(id, "original");
+    }
+
+    private File getModifiedCacheFile(UUID id) {
+        return getCacheFile(id, "modified");
+    }
+
+    protected Video readVideoFromFile(File file) throws IOException {
+        Video video = serializer.load(Video.class, file.toURI());
+        video.setManifestUri(Uri.fromFile(file));
+        video.setLastModified(new Date(file.lastModified()));
+        video.setRepository(this);
+        return video;
+    }
+
+    protected void writeVideoToFile(Video video, File file) throws IOException {
+        serializer.save(video, file.toURI());
+    }
+
+    protected void updateVideos(List<OptimizedVideo> videos, List<Group> groups) {
+        Map<UUID, OptimizedVideo> newAllVideos = new HashMap<>();
+
+        for (OptimizedVideo video : videos) {
+            newAllVideos.put(video.getId(), video);
+        }
+
+        allVideos = newAllVideos;
+        allGroups = groups;
+
+        bus.post(new VideoRepositoryUpdatedEvent(this));
+    }
+
+    /**
+     * Add a host to the repository to sync to.
+     */
+    public void addHost(VideoHost host) {
+        cloudHosts.add(host);
+    }
+
+    /**
+     * Populate the video list with local data.
+     * Note: This is a fast operation and should be done on statup.
+     */
+    @Override
+    public void refreshOffline() {
+
+        List<OptimizedVideo> videos = new ArrayList<>();
+
+        // Add the local videos
+        File[] localFiles = localRoot.listFiles(new ManifestFileFilter());
+        for (File file : localFiles) {
+
+            OptimizedVideo video = tryLoadOrReUseVideo(file, getIdFromFile(file));
+            if (video != null) {
+                videos.add(video);
+            }
+        }
+
+        // Add the cached remote videos
+        List<UUID> cacheIds = getCacheIds();
+        for (UUID id : cacheIds) {
+            File original = getOriginalCacheFile(id);
+            File modified = getModifiedCacheFile(id);
+
+            File newest;
+            if (modified.exists()) {
+                newest = modified;
+            } else {
+                newest = original;
+            }
+
+            OptimizedVideo video = tryLoadOrReUseVideo(newest, id);
+            if (video != null) {
+                videos.add(video);
+            }
+        }
+
+        updateVideos(videos, Collections.<Group>emptyList());
+    }
+
+    /**
+     * Load a video from a file, or use one that has been already loaded.
+     * Note: This should be only used when you know that the file you would load has the same
+     * version of the video as is currently loaded.
+     * @return Video if could successfully load, null if failed.
+     */
+    protected OptimizedVideo tryLoadOrReUseVideo(File file, UUID id) {
+
+        try {
+            OptimizedVideo video = allVideos.get(id);
+            if (video != null) {
+                return video;
+            }
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            Video video = readVideoFromFile(file);
+            return new OptimizedVideo(video);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    /**
+     * Syncs the videos with the cloud and populate the video list with remote data.
+     * - Download new and remotely modified videos
+     * - Upload locally modified videos
+     * - Resolve conflicts (merge)
+     * Note: This operation is slow and should be only called from a background thread.
+     */
+    @Override
+    public void refreshOnline() {
+
+        List<OptimizedVideo> videos = new ArrayList<>();
+
+        // Add the local videos
+        // TODO: These can be cached
+        File[] localFiles = localRoot.listFiles(new ManifestFileFilter());
+        for (File file : localFiles) {
+
+            OptimizedVideo localVideo = tryLoadOrReUseVideo(file, getIdFromFile(file));
+            if (localVideo != null) {
+                videos.add(localVideo);
+            }
+        }
+
+        Set<UUID> addedVideoIds = new HashSet<>();
+        List<Group> groups = new ArrayList<>();
+
+        for (VideoHost host : cloudHosts) {
+
+            List<VideoReference> results;
+
+            try {
+                groups.addAll(host.getGroups());
+            } catch (IOException e) {
+                // Pass
+            }
+
+            try {
+                results = host.getIndex();
+            } catch (IOException e) {
+                continue;
+            }
+
+            for (VideoReference result : results) {
+
+                UUID id = result.getId();
+
+                File localFileOriginal = getOriginalCacheFile(id);
+                File localFileModified = getModifiedCacheFile(id);
+
+                OptimizedVideo video = null;
+
+                if (localFileModified.exists()) {
+
+                    // We have local modifications to the video, let's sync them online
+
+                    boolean didUpload = false;
+                    Video resultVideo = null;
+
+                    Video originalVideo;
+                    Video modifiedVideo;
+
+                    try {
+                        originalVideo = readVideoFromFile(localFileOriginal);
+                        modifiedVideo = readVideoFromFile(localFileModified);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        continue;
+                    }
+
+                    for (int tries = 0; tries < 10; tries++) {
+
+                        Video cloudVideo;
+
+                        try {
+                            cloudVideo = host.downloadVideoManifest(id);
+                            cloudVideo.setRepository(this);
+                        } catch (IOException e) {
+                            // These tries refer to only merge tries, if the downloading fails
+                            // just quit instead of trying again
+                            break;
+                        }
+
+                        String cloudTag = cloudVideo.getVersionTag();
+
+                        Video videoToUpload;
+                        if (Objects.equal(cloudTag, originalVideo.getVersionTag())) {
+                            // The online video is still the one we started editing from, so we
+                            // can safely upload the new one
+                            videoToUpload = modifiedVideo;
+
+                        } else {
+                            // The online video has been updated since we started modifying it so
+                            // we need to merge the changes.
+                            try {
+                                videoToUpload = Video.merge(cloudVideo, modifiedVideo,
+                                        originalVideo);
+                                videoToUpload.setRepository(this);
+                            } catch (MergeException e) {
+
+                                // This should really never happen...
+                                e.printStackTrace();
+                                videoToUpload = modifiedVideo;
+                            }
+                        }
+
+                        // Actually try to replace the online video with the new one
+                        VideoHost.ManifestUploadResult uploadResult;
+                        try {
+                            uploadResult = host.uploadVideoManifest(videoToUpload, cloudTag);
+                        } catch (IOException e) {
+                            // If the uploading fails we don't retry. The method should return null
+                            // instead of throwing in the case of tag mismatch.
+                            break;
+                        }
+
+                        // We are uploading and checking a tag so the video online can actually
+                        // change between downloading it and uploading a new version. So the
+                        // video is conditionally uploaded if the video online matches the one we
+                        // downloaded. If it doesn't we download the new video and try again.
+                        if (uploadResult != null) {
+                            didUpload = true;
+                            resultVideo = videoToUpload;
+                            resultVideo.setVersionTag(uploadResult.versionTag);
+                            break;
+                        }
+                    }
+
+                    try {
+                        if (didUpload) {
+                            writeVideoToFile(resultVideo, localFileOriginal);
+                            if (!localFileModified.delete()) {
+                                // For logging purposes thrown and caught
+                                throw new IOException("Failed to delete modified video");
+                            }
+
+                            video = new OptimizedVideo(resultVideo);
+                        } else {
+                            video = new OptimizedVideo(modifiedVideo);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                } else if (!localFileOriginal.exists() ||
+                        localFileOriginal.lastModified() < result.getLastModified()) {
+
+                    try {
+                        // Update the cached original video
+                        Video cloudVideo = host.downloadVideoManifest(id);
+                        cloudVideo.setRepository(this);
+                        writeVideoToFile(cloudVideo, localFileOriginal);
+
+                        video = new OptimizedVideo(cloudVideo);
+                    } catch (IOException e) {
+                        // If it fails we can just skip this video and continue downloading the
+                        // rest.
+                        e.printStackTrace();
+                    }
+                } else {
+                    video = tryLoadOrReUseVideo(localFileOriginal, id);
+                }
+
+                if (video != null) {
+                    addedVideoIds.add(video.getId());
+                    videos.add(video);
+                }
+            }
+        }
+
+        // Add the cached remote videos
+        List<UUID> cacheIds = getCacheIds();
+        for (UUID id : cacheIds) {
+            if (addedVideoIds.contains(id)) {
+                continue;
+            }
+
+            File original = getOriginalCacheFile(id);
+            File modified = getModifiedCacheFile(id);
+
+            File newest;
+            if (modified.exists()) {
+                newest = modified;
+            } else {
+                newest = original;
+            }
+
+            OptimizedVideo video = tryLoadOrReUseVideo(newest, id);
+            if (video != null) {
+                videos.add(video);
+            }
+        }
+
+        updateVideos(videos, groups);
+    }
+
+    public void save(Video video) throws IOException {
+
+        UUID id = video.getId();
+        File localFile = getLocalVideoFile(id);
+        File cacheFile = getOriginalCacheFile(id);
+
+        File targetFile;
+
+        if (localFile.exists()) {
+            // The video is local, we can just overwrite it
+            targetFile = localFile;
+        } else if (cacheFile.exists()) {
+            // The video is from the cloud, save it as the modified one
+            targetFile = getModifiedCacheFile(id);
+        } else {
+            // The video doesn't exist in any repository, add it to local one.
+            targetFile = localFile;
+        }
+
+        serializer.save(video, targetFile.toURI());
+
+        // Do partial update
+        allVideos.put(video.getId(), new OptimizedVideo(video));
+        bus.post(new VideoRepositoryUpdatedEvent(this));
+    }
+
+    /**
+     * Uploads the video manifest to some cloud host.
+     * Note: The video data itself (and thumbnail) should be uploaded somewhere before this, since
+     * their urls will be written in the manifest.
+     */
+    public void uploadVideo(Video video) throws IOException {
+
+        VideoHost.ManifestUploadResult result = null;
+        IOException firstException = null;
+        for (VideoHost host : cloudHosts) {
+
+            try {
+                result = host.uploadVideoManifest(video, null);
+                // Stop at the first uploader which succeeds.
+                break;
+            } catch (IOException e) {
+                if (firstException == null) {
+                    firstException = e;
+                }
+                e.printStackTrace();
+            }
+        }
+
+        if (result == null) {
+            if (firstException != null) {
+                throw new IOException("Failed to upload video", firstException);
+            } else {
+                throw new IOException("No host found to upload video to");
+            }
+        }
+
+        video.setVersionTag(result.versionTag);
+        video.setManifestUri(result.url);
+
+        UUID id = video.getId();
+
+        File cacheFile = getOriginalCacheFile(id);
+        writeVideoToFile(video, cacheFile);
+
+        File localFile = getLocalVideoFile(id);
+        if (!localFile.delete()) {
+            // For logging purposes
+            throw new IOException("Failed to delete local file");
+        }
+    }
+
+    @Override
+    public void delete(UUID id) throws IOException {
+        OptimizedVideo video = getVideo(id);
+
+        if (video.isLocal()) {
+            if (!getLocalVideoFile(id).delete()) {
+                throw new IOException("Failed to delete file");
+            }
+
+            File thumbFile = new File(video.getThumbUri().getPath());
+            File videoFile = new File(video.getVideoUri().getPath());
+
+            // Doesn't matter if these fail, not necessary operation
+            thumbFile.delete();
+            videoFile.delete();
+        } else {
+            // TODO: Delete shared file
+            throw new IOException("Can't delete remote file");
+        }
+
+        // Remove the video from memory, if deleting has failed we have thrown before this
+        allVideos.remove(id);
+        bus.post(new VideoRepositoryUpdatedEvent(this));
+    }
+
+    @Override
+    public Collection<OptimizedVideo> getAll() throws IOException {
+        return allVideos.values();
+    }
+
+    @Override
+    public Collection<Group> getGroups() throws IOException {
+        return allGroups;
+    }
+
+    @Override @NonNull
+    public OptimizedVideo getVideo(UUID id) throws IOException {
+        OptimizedVideo video = allVideos.get(id);
+        if (video == null)
+            throw new IOException("Video not found");
+        return video;
+    }
+
+    protected final static class ManifestFileFilter implements FilenameFilter {
+        @Override
+        public boolean accept(File directory, String fileName) {
+            return Files.getFileExtension(fileName).equals("json");
+        }
+    }
+}
+

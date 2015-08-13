@@ -22,6 +22,7 @@ import com.nispok.snackbar.SnackbarManager;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,7 +32,9 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.authoring.QRHelper;
 import fi.aalto.legroup.achso.authoring.VideoDeletionFragment;
+import fi.aalto.legroup.achso.entities.OptimizedVideo;
 import fi.aalto.legroup.achso.playback.PlayerActivity;
+import fi.aalto.legroup.achso.sharing.SharingActivity;
 import fi.aalto.legroup.achso.storage.local.ExportService;
 import fi.aalto.legroup.achso.storage.remote.UploadErrorEvent;
 import fi.aalto.legroup.achso.storage.remote.UploadService;
@@ -152,9 +155,29 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
                 return true;
 
             case R.id.action_upload:
-                UploadService.upload(getActivity(), getSelection());
-                mode.finish();
-                return true;
+                {
+                    boolean hasLocal = false;
+                    List<UUID> selection = getSelection();
+                    for (UUID id : selection) {
+                        try {
+                            OptimizedVideo video = App.videoRepository.getVideo(selection.get(0));
+                            if (video.isLocal()) {
+                                hasLocal = true;
+                                break;
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    if (!hasLocal) {
+                        SharingActivity.openShareActivity(getActivity(), selection);
+                    } else {
+                        UploadService.upload(getActivity(), selection);
+                    }
+                    mode.finish();
+                    return true;
+                }
 
             case R.id.action_view_video_info:
                 Intent informationIntent = new Intent(getActivity(), DetailActivity.class);
@@ -211,7 +234,8 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
                 this.adapter.showProgress(videoId);
                 break;
 
-            case FINISHED:
+            case SUCCEEDED:
+            case FAILED:
                 this.adapter.hideProgress(videoId);
                 break;
         }
