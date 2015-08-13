@@ -89,6 +89,7 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
         }
 
         this.tabAdapter = new VideoTabAdapter(this, getSupportFragmentManager());
+        this.tabAdapter.notifyDataSetChanged();
 
         tabAdapter.setScrollDirectionListener(this);
 
