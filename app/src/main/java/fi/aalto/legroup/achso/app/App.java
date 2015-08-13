@@ -30,7 +30,6 @@ import fi.aalto.legroup.achso.storage.remote.SyncService;
 import fi.aalto.legroup.achso.storage.remote.UploadService;
 import fi.aalto.legroup.achso.storage.remote.strategies.AchRailsStrategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.ClViTra2Strategy;
-import fi.aalto.legroup.achso.storage.remote.strategies.OwnCloudStrategy;
 
 public final class App extends MultiDexApplication
         implements SharedPreferences.OnSharedPreferenceChangeListener {
@@ -52,8 +51,6 @@ public final class App extends MultiDexApplication
     public static VideoInfoRepository videoInfoRepository;
 
     public static File localStorageDirectory;
-
-    public static OwnCloudStrategy ownCloudStrategy;
 
     private static Uri layersBoxUrl;
 
