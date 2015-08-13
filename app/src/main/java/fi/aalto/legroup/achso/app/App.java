@@ -180,13 +180,10 @@ public final class App extends MultiDexApplication
     private void setupUploaders() {
         Uri clViTra2Url = Uri.parse(getString(R.string.clvitra2Url));
         Uri sssUrl = Uri.parse(getString(R.string.sssUrl));
-        Uri ownCloudUri = Uri.parse(getString(R.string.ownCloudUrl));
 
         ClViTra2Strategy videoStrategy = new ClViTra2Strategy(clViTra2Url);
-        ownCloudStrategy = new OwnCloudStrategy(jsonSerializer, ownCloudUri);
 
         UploadService.addUploader(videoStrategy);
-        UploadService.addUploader(ownCloudStrategy);
     }
 
     private Uri readLayersBoxUrl() {
