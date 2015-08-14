@@ -43,6 +43,10 @@ public class CombinedVideoRepository implements VideoRepository {
     protected File localRoot;
     protected File cacheRoot;
 
+    protected boolean isFirstSync = true;
+    protected boolean hasVideoToUpload = false;
+    protected boolean forceImportant = false;
+
     protected List<VideoHost> cloudHosts = new ArrayList<>();
 
     public CombinedVideoRepository(Bus bus, JsonSerializer serializer, File localRoot,
@@ -205,6 +209,8 @@ public class CombinedVideoRepository implements VideoRepository {
     public void refreshOnline() {
 
         List<OptimizedVideo> videos = new ArrayList<>();
+
+        hasVideoToUpload = false;
 
         // Add the local videos
         // TODO: These can be cached
@@ -386,6 +392,8 @@ public class CombinedVideoRepository implements VideoRepository {
             }
         }
 
+        isFirstSync = false;
+        forceImportant = false;
         updateVideos(videos, groups);
     }
 
@@ -406,6 +414,10 @@ public class CombinedVideoRepository implements VideoRepository {
         } else {
             // The video doesn't exist in any repository, add it to local one.
             targetFile = localFile;
+        }
+
+        if (video.isRemote()) {
+            hasVideoToUpload = true;
         }
 
         serializer.save(video, targetFile.toURI());
@@ -502,6 +514,16 @@ public class CombinedVideoRepository implements VideoRepository {
         if (video == null)
             throw new IOException("Video not found");
         return video;
+    }
+
+    @Override
+    public void forceNextSyncImportant() {
+        forceImportant = true;
+    }
+
+    @Override
+    public boolean hasImportantSyncPending() {
+        return isFirstSync || hasVideoToUpload || forceImportant;
     }
 
     protected final static class ManifestFileFilter implements FilenameFilter {

@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.SearchView;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -56,7 +57,7 @@ import fi.aalto.legroup.achso.views.adapters.VideoTabAdapter;
  * TODO: Extract video creation stuff into its own activity.
  */
 public final class BrowserActivity extends BaseActivity implements View.OnClickListener,
-        ScrollDirectionListener {
+        ScrollDirectionListener, SwipeRefreshLayout.OnRefreshListener {
 
     private static final int REQUEST_RECORD_VIDEO = 1;
     private static final int REQUEST_CHOOSE_VIDEO = 2;
@@ -68,6 +69,7 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
     private FloatingActionButton fab;
     private VideoTabAdapter tabAdapter;
     private MenuItem searchItem;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     private PendingRepositoryUpdateListener pendingListener = new PendingRepositoryUpdateListener();
 
@@ -102,6 +104,9 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
 
         pager.setAdapter(this.tabAdapter);
         tabs.setViewPager(pager);
+
+        swipeRefreshLayout = (SwipeRefreshLayout)findViewById(R.id.swipe_refresh);
+        swipeRefreshLayout.setOnRefreshListener(this);
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
 
@@ -138,7 +143,14 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
 
         // Download and upload modified videos every time the user goes to the browsing activity.
         // This includes returning from detail and playback activities, so it should be enough.
-        // TODO: Pull to refresh?
+        if (App.videoRepository.hasImportantSyncPending()) {
+            swipeRefreshLayout.post(new Runnable() {
+                @Override
+                public void run() {
+                    swipeRefreshLayout.setRefreshing(true);
+                }
+            });
+        }
         SyncService.syncWithCloudStorage(this);
     }
 
@@ -384,6 +396,7 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
     @Subscribe
     public void onVideoRepositoryUpdated(VideoRepositoryUpdatedEvent event) {
         this.tabAdapter.notifyDataSetChanged();
+        swipeRefreshLayout.setRefreshing(false);
     }
 
     @Subscribe
@@ -413,6 +426,14 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
 
                 break;
         }
+    }
+
+    @Override
+    public void onRefresh() {
+        // @Note: This won't be called currently since pull to refresh is disabled (see
+        // VideoRefreshLayout#canChildScrollUp). This is kept here in case pull to refresh is
+        // implemented later.
+        SyncService.syncWithCloudStorage(this);
     }
 
     /**

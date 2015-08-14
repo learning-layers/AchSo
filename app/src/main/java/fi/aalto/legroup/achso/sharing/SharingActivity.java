@@ -128,6 +128,8 @@ public class SharingActivity extends Activity {
         WebView webView = (WebView) findViewById(R.id.WebView);
         Map<String, String> headers = new HashMap<>();
 
+        App.videoRepository.forceNextSyncImportant();
+
         // Make sure we don't send the token over clear text
         if (uri.getScheme().equals("https")) {
             headers.put("Authorization", "Bearer " + token);

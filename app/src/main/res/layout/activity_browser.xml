@@ -23,31 +23,36 @@
             android:paddingRight="@dimen/toolbar_horizontal_padding" />
 
     </LinearLayout>
-
-    <RelativeLayout
+    <fi.aalto.legroup.achso.views.VideoRefreshLayout
+        android:id="@+id/swipe_refresh"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_height="match_parent">
 
-        <android.support.v4.view.ViewPager
-            android:id="@+id/pager"
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="0dp"
+            android:layout_weight="1">
 
-        <com.melnykov.fab.FloatingActionButton
-            android:id="@+id/fab"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
-            android:layout_margin="@dimen/fab_margin"
-            android:contentDescription="@string/record"
-            android:src="@drawable/ic_videocam_white_24dp"
-            app:fab_colorNormal="?attr/colorAccent"
-            app:fab_colorPressed="?attr/colorAccent" />
+            <android.support.v4.view.ViewPager
+                android:id="@+id/pager"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
 
-    </RelativeLayout>
+            <com.melnykov.fab.FloatingActionButton
+                android:id="@+id/fab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_margin="@dimen/fab_margin"
+                android:contentDescription="@string/record"
+                android:src="@drawable/ic_videocam_white_24dp"
+                app:fab_colorNormal="?attr/colorAccent"
+                app:fab_colorPressed="?attr/colorAccent" />
+
+        </RelativeLayout>
+    </fi.aalto.legroup.achso.views.VideoRefreshLayout>
 
 </LinearLayout>
 

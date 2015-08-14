@@ -22,6 +22,18 @@ public interface VideoRepository extends VideoInfoRepository {
     public void refreshOnline();
 
     /**
+     * Flags the next sync to be "important" ie. every call to hasImportantSyncPending() returns
+     * true after calling this before a sync is done.
+     */
+    public void forceNextSyncImportant();
+
+    /**
+     * Returns if the next call to refreshOnline() results in changes that are "important" such
+     * as retrieving content for the first time in a while or uploading user changes.
+     */
+    public boolean hasImportantSyncPending();
+
+    /**
      * Persists an entity, overwriting an existing one with the same ID if set.
      */
     public void save(Video video) throws IOException;
