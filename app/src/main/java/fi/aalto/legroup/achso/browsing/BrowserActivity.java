@@ -204,6 +204,10 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
                 QRHelper.readQRCodeForSearching(this, this.searchItem);
                 return true;
 
+            case R.id.action_create_group:
+                SharingActivity.openCreateGroupActivity(this);
+                return true;
+
             case R.id.action_login:
                 // TODO: This needs some event magic
                 Intent intent = new Intent(this, LoginActivity.class);
