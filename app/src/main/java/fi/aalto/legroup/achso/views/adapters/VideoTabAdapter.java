@@ -182,7 +182,7 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
     }
 
     private List<UUID> getVideosForPosition(int position) {
-        if (tabVideoIds == null) {
+        if (tabVideoIds == null || position >= tabVideoIds.size()) {
             return Collections.emptyList();
         }
         return tabVideoIds.get(position);
