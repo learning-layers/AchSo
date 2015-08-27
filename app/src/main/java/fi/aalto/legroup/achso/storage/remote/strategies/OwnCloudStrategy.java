@@ -52,6 +52,7 @@ public class OwnCloudStrategy implements ThumbnailUploader,
     protected Uri endpointUrl;
     protected Uri webdavUrl;
     protected Uri sharesUrl;
+    protected String authorization;
 
     @Root(strict = false)
     private static class ShareResponseXML {
@@ -96,16 +97,16 @@ public class OwnCloudStrategy implements ThumbnailUploader,
         String getLastModified() { return getlastmodified; }
     }
 
-    public OwnCloudStrategy(JsonSerializer serializer, Uri endpointUrl) {
+    public OwnCloudStrategy(JsonSerializer serializer, Uri endpointUrl, String username, String password) {
         this.serializer = serializer;
         this.endpointUrl = endpointUrl;
         this.webdavUrl = appendPaths(endpointUrl, "remote.php/webdav");
         this.sharesUrl = appendPaths(endpointUrl, "ocs/v1.php/apps/files_sharing/api/v1");
+        this.authorization = Credentials.basic(username, password);
     }
 
     private Request.Builder authorize(Request.Builder builder) {
-        // TODO: This is not needed with OIDC
-        return builder.header("Authorization", Credentials.basic("user", "bitnami"));
+        return builder.header("Authorization", authorization);
     }
 
     private Request.Builder buildWebDavRequest(String path) {
