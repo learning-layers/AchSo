@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.browsing.BrowserFragment;
 import fi.aalto.legroup.achso.entities.Group;
 import fi.aalto.legroup.achso.entities.OptimizedVideo;
+import fi.aalto.legroup.achso.storage.VideoRepository;
 import fi.aalto.legroup.achso.views.utilities.ScrollDirectionListenable;
 
 public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
@@ -134,9 +136,6 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
             return;
         }
 
-        Collections.sort(allVideos, Collections.reverseOrder(
-                new OptimizedVideo.CreateTimeComparator()));
-
         // Sort the videos by genre
         Multimap<String, OptimizedVideo> videosForGenre = HashMultimap.create();
         for (OptimizedVideo video : allVideos) {
@@ -163,7 +162,14 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
         for (int i = 0; i < allGroups.size(); i++) {
             newTabVideoIds.add(allGroups.get(i).getVideos());
         }
-        
+
+        Comparator<OptimizedVideo> videoComparator = Collections.reverseOrder(
+                new OptimizedVideo.CreateTimeComparator());
+        Comparator<UUID> idComparator = new VideoIDComparator(App.videoRepository, videoComparator);
+        for (int i = 0; i < newTabVideoIds.size(); i++) {
+            Collections.sort(newTabVideoIds.get(i), idComparator);
+        }
+
         tabNames = newTabNames;
         tabVideoIds = newTabVideoIds;
 
@@ -199,4 +205,37 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
         this.scrollListener = listener;
     }
 
+    private static class VideoIDComparator implements Comparator<UUID> {
+
+        private final VideoRepository videoRepository;
+        private final Comparator<OptimizedVideo> comparator;
+
+        public VideoIDComparator(VideoRepository videoRepository, Comparator<OptimizedVideo> comparator) {
+            this.videoRepository = videoRepository;
+            this.comparator = comparator;
+        }
+
+        @Override
+        public int compare(UUID lhs, UUID rhs) {
+            OptimizedVideo a = null, b = null;
+            try {
+                a = videoRepository.getVideo(lhs);
+            } catch (IOException ignored) {
+            }
+            try {
+                b = videoRepository.getVideo(rhs);
+            } catch (IOException ignored) {
+            }
+
+            if (a == null && b == null) {
+                return 0;
+            } else if (a == null) {
+                return 1;
+            } else if (b == null) {
+                return -1;
+            }
+
+            return comparator.compare(a, b);
+        }
+    }
 }
