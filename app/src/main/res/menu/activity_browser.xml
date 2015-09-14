@@ -17,16 +17,22 @@
         app:showAsAction="ifRoom" />
 
     <item
+        android:id="@+id/action_manage_groups"
+        android:icon="@drawable/ic_group_white_24dp"
+        android:title="@string/manage_groups"
+        app:showAsAction="ifRoom" />
+
+    <item
         android:id="@+id/action_create_group"
         android:icon="@drawable/ic_group_add_white_24dp"
         android:title="@string/create_group"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="never" />
 
     <item
         android:id="@+id/action_import_video"
         android:icon="@drawable/ic_add_to_photos_white_24dp"
         android:title="@string/import_video"
-        app:showAsAction="never" />
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_logout"
@@ -36,7 +42,7 @@
     <item
         android:id="@+id/action_login"
         android:title="@string/login"
-        app:showAsAction="never" />
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_settings"
