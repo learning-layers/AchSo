@@ -51,12 +51,11 @@ public class SharingActivity extends Activity {
         return openSharingActivity(context, uri);
     }
 
-    public static boolean openCreateGroupActivity(Context context)
+    public static boolean openManageGroupsActivity(Context context)
     {
         Uri uri = Uri.parse(context.getString(R.string.achRailsUrl))
                 .buildUpon()
                 .appendPath("groups")
-                .appendPath("new")
                 .build();
 
         return openSharingActivity(context, uri);

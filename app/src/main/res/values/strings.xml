@@ -129,7 +129,7 @@
     <string name="settings_layers_box_title">Layers box address</string>
     <string name="settings_analytics_summary">Sends anonymous statistics about your usage to the developers in order to improve the app.</string>
     <string name="settings_analytics_title">Send analytics data</string>
-    <string name="create_group">Create group</string>
+    <string name="manage_groups">Your groups</string>
 
     <string-array name="settings_annotation_pause_duration">
         <item name="1000">Fast</item>
