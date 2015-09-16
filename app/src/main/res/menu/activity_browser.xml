@@ -23,12 +23,6 @@
         app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/action_create_group"
-        android:icon="@drawable/ic_group_add_white_24dp"
-        android:title="@string/create_group"
-        app:showAsAction="never" />
-
-    <item
         android:id="@+id/action_import_video"
         android:icon="@drawable/ic_add_to_photos_white_24dp"
         android:title="@string/import_video"

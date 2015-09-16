@@ -59,18 +59,6 @@ public class SharingActivity extends Activity {
         return openSharingActivity(context, uri);
     }
 
-
-    public static boolean openCreateGroupActivity(Context context)
-    {
-        Uri uri = Uri.parse(context.getString(R.string.achRailsUrl))
-                .buildUpon()
-                .appendPath("groups")
-                .appendPath("new")
-                .build();
-
-        return openSharingActivity(context, uri);
-    }
-
     public static boolean openSharingActivity(final Context context, final Uri uri) {
         if (App.loginManager.isLoggedOut()) {
             SnackbarManager.show(Snackbar.with(context).text(R.string.not_loggedin_share_nag));
