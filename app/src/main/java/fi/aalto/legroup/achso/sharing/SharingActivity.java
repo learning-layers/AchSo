@@ -19,6 +19,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.google.common.base.Strings;
 import com.google.common.base.Joiner;
 import com.nispok.snackbar.Snackbar;
 import com.nispok.snackbar.SnackbarManager;
@@ -36,6 +37,7 @@ import fi.aalto.legroup.achso.authentication.Authenticator;
 public class SharingActivity extends Activity {
 
     public static final String ARG_TOKEN = "ARG_TOKEN";
+    public static final String ARG_REFRESH_TOKEN = "ARG_REFRESH_TOKEN";
 
     public static boolean openShareActivity(Context context, List<UUID> videoIds)
     {
@@ -73,32 +75,18 @@ public class SharingActivity extends Activity {
         }
 
         AccountManager accountManager = AccountManager.get(context);
-        AccountManagerCallback<Bundle> callback = new AccountManagerCallback<Bundle>() {
-            @Override
-            public void run(AccountManagerFuture<Bundle> future) {
-                Bundle bundle = null;
-                try {
-                    bundle = future.getResult();
-                } catch (OperationCanceledException | IOException | AuthenticatorException e) {
-                    e.printStackTrace();
-                }
-                if (bundle != null) {
-                    String token = bundle.getString(AccountManager.KEY_AUTHTOKEN);
-                    Intent intent = new Intent(context, SharingActivity.class);
-                    intent.setData(uri);
-                    intent.putExtra(SharingActivity.ARG_TOKEN, token);
-                    context.startActivity(intent);
-                }
-            }
-        };
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            accountManager.getAuthToken(account, Authenticator.TOKEN_TYPE_ID, null, true,
-                    callback, null);
-        } else {
-            accountManager.getAuthToken(account, Authenticator.TOKEN_TYPE_ID, true,
-                    callback, null);
-        }
+        AccountManagerTokenRetriever retriever = new AccountManagerTokenRetriever(accountManager, account);
+        retriever.getTokens(new TokenCallback() {
+            @Override
+            public void run(String token, String refreshToken) {
+                Intent intent = new Intent(context, SharingActivity.class);
+                intent.setData(uri);
+                intent.putExtra(SharingActivity.ARG_TOKEN, token);
+                intent.putExtra(SharingActivity.ARG_REFRESH_TOKEN, refreshToken);
+                context.startActivity(intent);
+            }
+        });
 
         return true;
     }
@@ -115,6 +103,7 @@ public class SharingActivity extends Activity {
 
         final Uri uri = getIntent().getData();
         final String token = getIntent().getStringExtra(ARG_TOKEN);
+        final String refreshToken = getIntent().getStringExtra(ARG_REFRESH_TOKEN);
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -131,16 +120,20 @@ public class SharingActivity extends Activity {
             cookieManager.removeAllCookies(new ValueCallback<Boolean>() {
                 @Override
                 public void onReceiveValue(Boolean value) {
-                    loadUrlWithToken(uri, token);
+                    loadUrlWithToken(uri, token, refreshToken);
                 }
             });
         } else {
             cookieManager.removeAllCookie();
-            loadUrlWithToken(uri, token);
+            loadUrlWithToken(uri, token, refreshToken);
         }
     }
 
     void loadUrlWithToken(Uri uri, String token) {
+        loadUrlWithToken(uri, token, null);
+    }
+
+    void loadUrlWithToken(Uri uri, String token, String refreshToken) {
         WebView webView = (WebView) findViewById(R.id.WebView);
         Map<String, String> headers = new HashMap<>();
 
@@ -148,8 +141,83 @@ public class SharingActivity extends Activity {
 
         // Make sure we don't send the token over clear text
         if (uri.getScheme().equals("https")) {
-            headers.put("Authorization", "Bearer " + token);
+            if (!Strings.isNullOrEmpty(token)) {
+                headers.put("Authorization", "Bearer " + token);
+            }
+            if (!Strings.isNullOrEmpty(refreshToken))
+                headers.put("X-Refresh-Token", refreshToken);
         }
         webView.loadUrl(uri.toString(), headers);
+    }
+
+    private static class AccountManagerTokenRetriever {
+
+        private final AccountManager accountManager;
+        private final Account account;
+        private String token = null;
+        private String refreshToken = null;
+
+        public AccountManagerTokenRetriever(AccountManager accountManager, Account account) {
+            this.accountManager = accountManager;
+            this.account = account;
+        }
+
+        public void getTokens(TokenCallback callback) {
+            getAuthToken(Authenticator.TOKEN_TYPE_ACCESS, new IDTokenCallback(callback));
+        }
+
+        private void getAuthToken(String type, AccountManagerCallback<Bundle> callback) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+                accountManager.getAuthToken(account, type, null, true,
+                        callback, null);
+            } else {
+                accountManager.getAuthToken(account, type, true,
+                        callback, null);
+            }
+        }
+
+        private class IDTokenCallback implements AccountManagerCallback<Bundle> {
+
+            private TokenCallback callback;
+
+            public IDTokenCallback(TokenCallback callback) {
+                this.callback = callback;
+            }
+
+            @Override
+            public void run(AccountManagerFuture<Bundle> future) {
+                try {
+                    Bundle bundle = future.getResult();
+                    token = bundle.getString(AccountManager.KEY_AUTHTOKEN);
+                } catch (OperationCanceledException | IOException | AuthenticatorException e) {
+                    e.printStackTrace();
+                }
+                getAuthToken(Authenticator.TOKEN_TYPE_REFRESH, new RefreshTokenCallback(callback));
+            }
+        }
+        private class RefreshTokenCallback implements AccountManagerCallback<Bundle> {
+
+            private TokenCallback callback;
+
+            public RefreshTokenCallback(TokenCallback callback) {
+                this.callback = callback;
+            }
+
+            @Override
+            public void run(AccountManagerFuture<Bundle> future) {
+                try {
+                    Bundle bundle = future.getResult();
+                    refreshToken = bundle.getString(AccountManager.KEY_AUTHTOKEN);
+                } catch (OperationCanceledException | IOException | AuthenticatorException e) {
+                    e.printStackTrace();
+                }
+
+                callback.run(token, refreshToken);
+            }
+        }
+    }
+
+    public interface TokenCallback {
+        void run(String token, String refreshToken);
     }
 }
