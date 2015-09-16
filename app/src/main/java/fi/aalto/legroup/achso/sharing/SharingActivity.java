@@ -313,7 +313,7 @@ public class SharingActivity extends Activity {
 
                 dialog.show();
             } else {
-                // TODO: Contact has no email error
+                Toast.makeText(SharingActivity.this, R.string.contact_has_no_email, Toast.LENGTH_SHORT).show();
             }
 
         } else {

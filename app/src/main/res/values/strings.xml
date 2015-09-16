@@ -131,6 +131,7 @@
     <string name="settings_analytics_title">Send analytics data</string>
     <string name="manage_groups">Your groups</string>
     <string name="select_invite_email">Select email address to invite</string>
+    <string name="contact_has_no_email">The selected contact has no email saved</string>
 
     <string-array name="settings_annotation_pause_duration">
         <item name="1000">Fast</item>
