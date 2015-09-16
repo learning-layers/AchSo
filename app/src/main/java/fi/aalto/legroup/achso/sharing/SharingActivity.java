@@ -8,23 +8,31 @@ import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.ContactsContract;
+import android.provider.ContactsContract.CommonDataKinds.Email;
+import android.support.v7.app.AlertDialog;
 import android.webkit.CookieManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Toast;
 
-import com.google.common.base.Strings;
 import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 import com.nispok.snackbar.Snackbar;
 import com.nispok.snackbar.SnackbarManager;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +46,9 @@ public class SharingActivity extends Activity {
 
     public static final String ARG_TOKEN = "ARG_TOKEN";
     public static final String ARG_REFRESH_TOKEN = "ARG_REFRESH_TOKEN";
+
+    private static int CONTACT_PICK_CODE = 0xC0874C7;
+    private WebView webView;
 
     public static boolean openShareActivity(Context context, List<UUID> videoIds)
     {
@@ -96,7 +107,7 @@ public class SharingActivity extends Activity {
 
         setContentView(R.layout.activity_authentication);
 
-        WebView webView = (WebView) findViewById(R.id.WebView);
+        webView = (WebView) findViewById(R.id.WebView);
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
 
@@ -110,6 +121,8 @@ public class SharingActivity extends Activity {
                 super.onPageStarted(view, url, favicon);
             }
         });
+
+        webView.addJavascriptInterface(new AchRailsJavascriptInterface(), "Android");
 
         // Remove last session before starting a new one. (Make sure can't get to old login)
         // NOTE: This affects all the cookies in this app globally, if we want to store some other
@@ -213,6 +226,123 @@ public class SharingActivity extends Activity {
 
                 callback.run(token, refreshToken);
             }
+        }
+    }
+
+    private class AchRailsJavascriptInterface {
+
+        @JavascriptInterface
+        public void showToast(String toast) {
+            Toast.makeText(SharingActivity.this, toast, Toast.LENGTH_SHORT).show();
+        }
+
+        @JavascriptInterface
+        public void closeActivity() {
+            finish();
+        }
+
+        @JavascriptInterface
+        public void openContactPicker() {
+            Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
+            startActivityForResult(intent, CONTACT_PICK_CODE);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK && requestCode == CONTACT_PICK_CODE) {
+            Uri contactUri = data.getData();
+
+            String contactId = contactUri.getLastPathSegment();
+            Cursor cursor = getContentResolver().query(
+                    Email.CONTENT_URI, null, Email.CONTACT_ID + "=?",
+                    new String[] { contactId }, null);
+
+            int emailIdx = cursor.getColumnIndex(Email.DATA);
+            int typeIdx = cursor.getColumnIndex(Email.TYPE);
+            int labelIdx = cursor.getColumnIndex(Email.LABEL);
+
+            final List<EmailOption> options = new ArrayList<>();
+
+            if (cursor.moveToFirst()) {
+                do {
+                    String email = cursor.getString(emailIdx);
+                    String type = Email.getTypeLabel(getResources(),
+                            cursor.getInt(typeIdx), cursor.getString(labelIdx)).toString();
+
+                    options.add(new EmailOption(email, type));
+                } while (cursor.moveToNext());
+            }
+            cursor.close();
+
+            if (options.size() == 1) {
+                addInviteEmail(options.get(0).email);
+            } else if (options.size() > 1) {
+                String[] optionTexts = new String[options.size()];
+                for (int i = 0; i < options.size(); i++) {
+                    EmailOption option = options.get(i);
+                    optionTexts[i] = option.email + " (" + option.type + ")";
+                }
+                AlertDialog dialog = new AlertDialog.Builder(this)
+                        .setTitle(R.string.select_invite_email)
+                        .setSingleChoiceItems(optionTexts, 0, null)
+                        .setPositiveButton(android.R.string.ok,
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        int selected = ((AlertDialog) dialog).getListView()
+                                                .getCheckedItemPosition();
+                                        if (selected < 0 || selected >= options.size()) {
+                                            dialog.cancel();
+                                            return;
+                                        }
+                                        EmailOption option = options.get(selected);
+                                        if (option != null) {
+                                            addInviteEmail(option.email);
+                                        }
+                                    }
+                                })
+                        .setNegativeButton(android.R.string.cancel,
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.cancel();
+                                    }
+                                })
+                        .create();
+
+                dialog.show();
+            } else {
+                // TODO: Contact has no email error
+            }
+
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    private void addInviteEmail(String email) {
+        runJavascript("addInviteEmail('" + email + "')");
+    }
+
+    private void runJavascript(String script) {
+        if (webView == null)
+            return;
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+            webView.evaluateJavascript(script + ";", null);
+        } else {
+            webView.loadUrl("javascript:" + script + ";");
+        }
+    }
+
+    private static class EmailOption {
+        public String email;
+        public String type;
+
+        public EmailOption(String email, String type) {
+            this.email = email;
+            this.type = type;
         }
     }
 
