@@ -81,6 +81,7 @@ of Arts, Design and Architecture of Aalto University, Finland.
 - Antti Keränen (@Detegr)
 - Leo Nikkilä (@lnikkila)
 - Lassi Veikkonen (@lassiveikkonen)
+- Samuli Raivio (@bqqbarbhg)
 - Teemu Leinonen
 - Tarmo Toikkanen (@tarmot)
 - Jana Pejoska
