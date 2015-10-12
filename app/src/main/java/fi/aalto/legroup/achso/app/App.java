@@ -10,6 +10,7 @@ import android.support.multidex.MultiDexApplication;
 import android.widget.Toast;
 
 import com.google.android.gms.analytics.GoogleAnalytics;
+import com.google.api.client.repackaged.com.google.common.base.Strings;
 import com.rollbar.android.Rollbar;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.otto.Bus;
@@ -30,6 +31,7 @@ import fi.aalto.legroup.achso.storage.remote.SyncService;
 import fi.aalto.legroup.achso.storage.remote.UploadService;
 import fi.aalto.legroup.achso.storage.remote.strategies.AchRailsStrategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.ClViTra2Strategy;
+import fi.aalto.legroup.achso.storage.remote.strategies.DumbPhpStrategy;
 
 public final class App extends MultiDexApplication
         implements SharedPreferences.OnSharedPreferenceChangeListener {
@@ -175,6 +177,14 @@ public final class App extends MultiDexApplication
     }
 
     private void setupUploaders() {
+
+        // Temporary uploader until ClViTra2 is fixed in the Layers Box
+        // TODO: Remove this
+        String achsoStorageUrlString = getString(R.string.achsoStorageUrl);
+        if (!Strings.isNullOrEmpty(achsoStorageUrlString)) {
+            UploadService.addUploader(new DumbPhpStrategy(Uri.parse(achsoStorageUrlString)));
+        }
+
         Uri clViTra2Url = Uri.parse(getString(R.string.clvitra2Url));
         Uri sssUrl = Uri.parse(getString(R.string.sssUrl));
 
