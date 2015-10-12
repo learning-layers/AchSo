@@ -353,5 +353,9 @@ public class OwnCloudStrategy implements ThumbnailUploader,
         deleteFile(getManifestPath(id));
     }
 
+    @Override
+    public Video findVideoByVideoUri(Uri videoUri) throws IOException {
+        return null;
+    }
 
 }

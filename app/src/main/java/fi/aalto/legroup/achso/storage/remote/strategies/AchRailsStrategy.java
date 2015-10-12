@@ -142,4 +142,29 @@ public class AchRailsStrategy implements VideoHost {
     public void deleteVideoManifest(UUID id) throws IOException {
 
     }
+
+    @Override
+    public Video findVideoByVideoUri(Uri videoUri) throws IOException {
+
+        Uri url = endpointUrl.buildUpon()
+                .appendPath("videos")
+                .appendPath("find.json")
+                .appendQueryParameter("video", videoUri.toString())
+                .build();
+
+        Request request = new Request.Builder()
+               .url(url.toString())
+                .get().build();
+
+        Response response = executeRequest(request);
+
+        if (response.isSuccessful()) {
+            Video video = serializer.read(Video.class, response.body().byteStream());
+            return video;
+        } else if (response.code() == 404) {
+            return null;
+        } else {
+            throw new IOException(response.message());
+        }
+    }
 }

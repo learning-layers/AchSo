@@ -49,4 +49,9 @@ public interface VideoHost {
      * Deletes an entity with the given ID.
      */
     public void deleteVideoManifest(UUID id) throws IOException;
+
+    /**
+     * Finds a video by the video source uri.
+     */
+    public Video findVideoByVideoUri(Uri videoUri) throws IOException;
 }

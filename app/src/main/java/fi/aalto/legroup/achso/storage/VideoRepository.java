@@ -1,5 +1,7 @@
 package fi.aalto.legroup.achso.storage;
 
+import android.net.Uri;
+
 import java.io.IOException;
 import java.util.UUID;
 
@@ -9,6 +11,11 @@ import fi.aalto.legroup.achso.entities.Video;
  * Provides full read/write access to video root entities.
  */
 public interface VideoRepository extends VideoInfoRepository {
+
+    interface VideoCallback {
+        public void found(Video video);
+        public void notFound();
+    }
 
     /**
      * Update the video repository with new data, but without doing any networking.
@@ -47,4 +54,10 @@ public interface VideoRepository extends VideoInfoRepository {
      * Upload a video. May throw if the repository doesn't support uploading.
      */
     public void uploadVideo(Video video) throws IOException;
+
+    /**
+     *
+     * @return A valid Video or null if not found.
+     */
+    public void findVideoByVideoUri(Uri videoUri, String type, VideoCallback callback);
 }

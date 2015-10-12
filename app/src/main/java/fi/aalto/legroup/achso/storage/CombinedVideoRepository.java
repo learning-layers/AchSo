@@ -1,6 +1,7 @@
 package fi.aalto.legroup.achso.storage;
 
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 
 import com.google.common.base.Objects;
@@ -470,6 +471,91 @@ public class CombinedVideoRepository implements VideoRepository {
         if (!localFile.delete()) {
             // For logging purposes
             throw new IOException("Failed to delete local file");
+        }
+    }
+
+    @Override
+    public void findVideoByVideoUri(Uri uri, String type, VideoCallback callback) {
+        if (type != null && type.equals("video/mp4")) {
+            for (OptimizedVideo video : allVideos.values()) {
+                if (video.getVideoUri().equals(uri)) {
+                    callback.found(video.inflate());
+                    return;
+                }
+            }
+
+            new FindVideoTask(callback).execute(uri);
+        } else if (uri.getScheme().equals("achso")) {
+            UUID id = UUID.fromString(uri.getSchemeSpecificPart());
+
+            try {
+                OptimizedVideo video = getVideo(id);
+                callback.found(video.inflate());
+            } catch (IOException ignored) {
+                new FindVideoByIdTask(callback).execute(id);
+            }
+        } else {
+            callback.notFound();
+        }
+    }
+
+    private abstract class BaseVideoFindTask<T> extends AsyncTask<T, Void, Video> {
+        private VideoCallback callback;
+
+        public BaseVideoFindTask(VideoCallback callback) {
+            this.callback = callback;
+        }
+
+        @Override
+        protected void onPostExecute(Video video) {
+            if (video != null) {
+                callback.found(video);
+            } else {
+                callback.notFound();
+            }
+        }
+    }
+
+    private class FindVideoTask extends BaseVideoFindTask<Uri> {
+
+        public FindVideoTask(VideoCallback callback) {
+            super(callback);
+        }
+
+        @Override
+        protected Video doInBackground(Uri... params) {
+            Uri uri = params[0];
+
+            for (VideoHost host : cloudHosts) {
+                try {
+                    Video video = host.findVideoByVideoUri(uri);
+                    if (video != null) {
+                        return video;
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            return null;
+        }
+    }
+
+    private class FindVideoByIdTask extends BaseVideoFindTask<UUID> {
+
+        public FindVideoByIdTask(VideoCallback callback) {
+            super(callback);
+        }
+
+        @Override
+        protected Video doInBackground(UUID... params) {
+            refreshOnline();
+            try {
+                OptimizedVideo video = getVideo(params[0]);
+                return video.inflate();
+            } catch (IOException e) {
+                return null;
+            }
         }
     }
 

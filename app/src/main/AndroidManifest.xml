@@ -62,7 +62,8 @@
         <activity
             android:name=".playback.PlayerActivity"
             android:parentActivityName=".browsing.BrowserActivity"
-            android:theme="@style/Theme.Custom.Immersive">
+            android:theme="@style/Theme.Custom.Immersive"
+            android:exported="true">
 
             <intent-filter
                 android:icon="@drawable/ic_launcher"
@@ -79,6 +80,35 @@
                     android:mimeType="application/achso"
                     android:pathPattern=".*\\.achso" />
 
+            </intent-filter>
+
+            <intent-filter
+                android:icon="@drawable/ic_launcher"
+                android:label="@string/app_name"
+                android:priority="1">
+
+                <action android:name="fi.aalto.legroup.achso.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+
+                <data android:mimeType="video/mp4" />
+            </intent-filter>
+
+            <intent-filter
+                android:icon="@drawable/ic_launcher"
+                android:label="@string/app_name"
+                android:priority="1">
+
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="fi.aalto.legroup.achso.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="achso" />
             </intent-filter>
 
         </activity>
