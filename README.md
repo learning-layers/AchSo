@@ -24,21 +24,25 @@ You can launch Ach so! just to play singular Ach so!-videos. (if e.g. some other
 If you provide generic Intent.VIEW with an uri using the 'achso:'-scheme, Ach so! will
 load the uri and play the video:
 
-   Intent intent = new Intent(Intent.ACTION_VIEW);
-   // we have a video with id "2de064a5-cb38-4c04-9fde-502ab619fc46"
-   // uri will be "achso:2de064a5-cb38-4c04-9fde-502ab619fc46"
-   Uri uri = Uri.fromParts("achso", "2de064a5-cb38-4c04-9fde-502ab619fc46", null);
-   intent.setData(uri);
-   startActivity(intent);
+```java
+Intent intent = new Intent(Intent.ACTION_VIEW);
+// we have a video with id "2de064a5-cb38-4c04-9fde-502ab619fc46"
+// uri will be "achso:2de064a5-cb38-4c04-9fde-502ab619fc46"
+Uri uri = Uri.fromParts("achso", "2de064a5-cb38-4c04-9fde-502ab619fc46", null);
+intent.setData(uri);
+startActivity(intent);
+```
 
 Another way to show a single video is to specifically ask Ach so! to play a .mp4 -video. In this
 case Ach so! looks if there are annotations available for this video file in the default server
 and fetches those.
 
-   Intent intent = new Intent("fi.aalto.legroup.achso.action.VIEW");
-   Uri uri = Uri.parse("http://www.sample-videos.com/video/mp4/720/big_buck_bunny_720p_1mb.mp4");
-   intent.setDataAndType(uri, "video/mp4");
-   startActivity(intent);
+```
+Intent intent = new Intent("fi.aalto.legroup.achso.action.VIEW");
+Uri uri = Uri.parse("http://www.sample-videos.com/video/mp4/720/big_buck_bunny_720p_1mb.mp4");
+intent.setDataAndType(uri, "video/mp4");
+startActivity(intent);
+```
 
 There are libraries to launch intents in PhoneGap/Cordova. If you want to play Ach so! videos in
 non-android environments, use video player in [Achrails](https://github
