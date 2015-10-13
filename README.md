@@ -37,7 +37,7 @@ Another way to show a single video is to specifically ask Ach so! to play a .mp4
 case Ach so! looks if there are annotations available for this video file in the default server
 and fetches those.
 
-```
+```java
 Intent intent = new Intent("fi.aalto.legroup.achso.action.VIEW");
 Uri uri = Uri.parse("http://www.sample-videos.com/video/mp4/720/big_buck_bunny_720p_1mb.mp4");
 intent.setDataAndType(uri, "video/mp4");
@@ -45,8 +45,7 @@ startActivity(intent);
 ```
 
 There are libraries to launch intents in PhoneGap/Cordova. If you want to play Ach so! videos in
-non-android environments, use video player in [Achrails](https://github
-.com/learning-layers/achrails).
+non-android environments, use video player in [Achrails](https://github.com/learning-layers/achrails).
 
 
 Contribution guidelines
