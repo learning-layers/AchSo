@@ -133,6 +133,12 @@
     <string name="manage_groups">Your groups</string>
     <string name="select_invite_email">Select email address to invite</string>
     <string name="contact_has_no_email">The selected contact has no email saved</string>
+    <string name="settings_public_box_title">Public upload</string>
+    <string name="settings_public_box_summary">Connect to a public shared Layers Box (this overrides the Layers Box URL setting)</string>
+    <string name="failed_to_change_setting">Failed to change setting</string>
+    <string name="only_public_layers_box_description">Only the public Layers Box is supported at the moment.</string>
+    <string name="warning">Warning</string>
+    <string name="public_layers_box_chosen_warning">Setting changed but still using public Layers Box, do you want to choose to use the private URL instead?</string>
 
     <string-array name="settings_annotation_pause_duration">
         <item name="1000">Fast</item>
