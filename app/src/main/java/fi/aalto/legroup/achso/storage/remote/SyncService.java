@@ -11,10 +11,18 @@ import fi.aalto.legroup.achso.app.App;
  * In practice just calls App.videoRepository.refreshOnline() in a background thread.
  */
 public final class SyncService extends IntentService {
+
+    private static boolean isSyncPending = false;
+
     /**
      * Convenience method for using this service.
      */
     public static void syncWithCloudStorage(Context context) {
+        if (isSyncPending)
+            return;
+
+        isSyncPending = true;
+
         Intent intent = new Intent(context, SyncService.class);
         context.startService(intent);
     }
@@ -26,5 +34,6 @@ public final class SyncService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         App.videoRepository.refreshOnline();
+        isSyncPending = false;
     }
 }
