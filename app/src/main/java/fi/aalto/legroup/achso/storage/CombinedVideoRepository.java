@@ -48,6 +48,8 @@ public class CombinedVideoRepository implements VideoRepository {
     protected boolean hasVideoToUpload = false;
     protected boolean forceImportant = false;
 
+    protected int stateNumber = 0;
+
     protected List<VideoHost> cloudHosts = new ArrayList<>();
 
     public CombinedVideoRepository(Bus bus, JsonSerializer serializer, File localRoot,
@@ -208,6 +210,8 @@ public class CombinedVideoRepository implements VideoRepository {
      */
     @Override
     public void refreshOnline() {
+
+        int startState = this.stateNumber;
 
         List<OptimizedVideo> videos = new ArrayList<>();
 
@@ -393,9 +397,20 @@ public class CombinedVideoRepository implements VideoRepository {
             }
         }
 
-        isFirstSync = false;
-        forceImportant = false;
-        updateVideos(videos, groups);
+        // TODO: Remove this
+        if (this.stateNumber != startState) {
+            // Temporary fix for handling modified state while refreshing online. Fixes disappearing
+            // video after recording. Should make real cancel support for refreshing.
+            this.refreshOnline();
+        } else {
+            isFirstSync = false;
+            forceImportant = false;
+            updateVideos(videos, groups);
+        }
+    }
+
+    private void stateModified() {
+        this.stateNumber = (this.stateNumber + 1) % 10000;
     }
 
     public void save(Video video) throws IOException {
@@ -421,6 +436,7 @@ public class CombinedVideoRepository implements VideoRepository {
             hasVideoToUpload = true;
         }
 
+        this.stateModified();
         serializer.save(video, targetFile.toURI());
 
         // Do partial update
@@ -562,6 +578,8 @@ public class CombinedVideoRepository implements VideoRepository {
     @Override
     public void delete(UUID id) throws IOException {
         OptimizedVideo video = getVideo(id);
+
+        this.stateModified();
 
         if (video.isLocal()) {
             if (!getLocalVideoFile(id).delete()) {
