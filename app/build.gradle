@@ -109,6 +109,9 @@ dependencies {
     // Date and time formatting
     compile 'joda-time:joda-time:2.3'
 
+    // Decrypting the Layers Box URL
+    compile 'fi.aalto.legroup:cryptohelper:0.1.0'
+
     // XML serialization
     compile('org.simpleframework:simple-xml:2.7.+'){
         exclude module: 'stax'

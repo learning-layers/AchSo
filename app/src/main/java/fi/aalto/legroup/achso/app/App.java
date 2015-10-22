@@ -1,6 +1,8 @@
 package fi.aalto.legroup.achso.app;
 
+import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -16,6 +18,7 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.otto.Bus;
 
 import java.io.File;
+import java.security.GeneralSecurityException;
 
 import fi.aalto.legroup.achso.BuildConfig;
 import fi.aalto.legroup.achso.R;
@@ -32,6 +35,7 @@ import fi.aalto.legroup.achso.storage.remote.UploadService;
 import fi.aalto.legroup.achso.storage.remote.strategies.AchRailsStrategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.ClViTra2Strategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.DumbPhpStrategy;
+import fi.legroup.aalto.cryptohelper.CryptoHelper;
 
 public final class App extends MultiDexApplication
         implements SharedPreferences.OnSharedPreferenceChangeListener {
@@ -194,6 +198,29 @@ public final class App extends MultiDexApplication
     }
 
     private Uri readLayersBoxUrl() {
+
+        String[] searchPackages = {
+                "com.raycom.ltb",
+                "fi.legroup.aalto.achsoexampleconnection",
+        };
+
+        for (String packageName : searchPackages) {
+            try {
+                Context context = createPackageContext(packageName, 0);
+                SharedPreferences ltbPreferences = context.getSharedPreferences(
+                        "eu.learning-layers.LAYERS_BOX", Context.MODE_PRIVATE);
+
+                String encryptedUrlString = ltbPreferences.getString("LAYERS_BOX_URL", null);
+                if (encryptedUrlString != null) {
+                    String secret = getString(R.string.ltbSecret);
+                    String urlString = CryptoHelper.decrypt(encryptedUrlString, secret);
+                    return Uri.parse(urlString);
+                }
+            } catch (PackageManager.NameNotFoundException | GeneralSecurityException e) {
+                e.printStackTrace();
+            }
+        }
+
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         String defaultUrlString = getString(R.string.layersBoxUrl);
