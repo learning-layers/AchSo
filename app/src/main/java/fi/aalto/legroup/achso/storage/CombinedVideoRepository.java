@@ -4,8 +4,8 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 
-import com.google.common.base.Objects;
 import com.google.common.io.Files;
+import com.rollbar.android.Rollbar;
 import com.squareup.otto.Bus;
 
 import java.io.File;
@@ -25,7 +25,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import fi.aalto.legroup.achso.entities.Group;
-import fi.aalto.legroup.achso.entities.MergeException;
 import fi.aalto.legroup.achso.entities.OptimizedVideo;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.entities.VideoReference;
@@ -247,129 +246,49 @@ public class CombinedVideoRepository implements VideoRepository {
                 continue;
             }
 
-            for (VideoReference result : results) {
+            for (VideoReference indexVideo : results) {
 
-                UUID id = result.getId();
+                UUID id = indexVideo.getId();
 
                 File localFileOriginal = getOriginalCacheFile(id);
                 File localFileModified = getModifiedCacheFile(id);
 
-                OptimizedVideo video = null;
+                try {
 
-                if (localFileModified.exists()) {
+                    OptimizedVideo resultVideo = null;
 
-                    // We have local modifications to the video, let's sync them online
+                    if (localFileModified.exists()) {
 
-                    boolean didUpload = false;
-                    Video resultVideo = null;
+                        Video localVideo = readVideoFromFile(localFileModified);
+                        Video uploadedVideo = host.uploadVideoManifest(localVideo);
+                        writeVideoToFile(uploadedVideo, localFileOriginal);
 
-                    Video originalVideo;
-                    Video modifiedVideo;
+                        resultVideo = new OptimizedVideo(uploadedVideo);
+                        localFileModified.delete();
 
-                    try {
-                        originalVideo = readVideoFromFile(localFileOriginal);
-                        modifiedVideo = readVideoFromFile(localFileModified);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        continue;
-                    }
+                    } else if (localFileOriginal.exists()) {
 
-                    for (int tries = 0; tries < 10; tries++) {
-
-                        Video cloudVideo;
-
-                        try {
-                            cloudVideo = host.downloadVideoManifest(id);
-                            cloudVideo.setRepository(this);
-                        } catch (IOException e) {
-                            // These tries refer to only merge tries, if the downloading fails
-                            // just quit instead of trying again
-                            break;
-                        }
-
-                        String cloudTag = cloudVideo.getVersionTag();
-
-                        Video videoToUpload;
-                        if (Objects.equal(cloudTag, originalVideo.getVersionTag())) {
-                            // The online video is still the one we started editing from, so we
-                            // can safely upload the new one
-                            videoToUpload = modifiedVideo;
-
-                        } else {
-                            // The online video has been updated since we started modifying it so
-                            // we need to merge the changes.
-                            try {
-                                videoToUpload = Video.merge(cloudVideo, modifiedVideo,
-                                        originalVideo);
-                                videoToUpload.setRepository(this);
-                            } catch (MergeException e) {
-
-                                // This should really never happen...
-                                e.printStackTrace();
-                                videoToUpload = modifiedVideo;
-                            }
-                        }
-
-                        // Actually try to replace the online video with the new one
-                        VideoHost.ManifestUploadResult uploadResult;
-                        try {
-                            uploadResult = host.uploadVideoManifest(videoToUpload, cloudTag);
-                        } catch (IOException e) {
-                            // If the uploading fails we don't retry. The method should return null
-                            // instead of throwing in the case of tag mismatch.
-                            break;
-                        }
-
-                        // We are uploading and checking a tag so the video online can actually
-                        // change between downloading it and uploading a new version. So the
-                        // video is conditionally uploaded if the video online matches the one we
-                        // downloaded. If it doesn't we download the new video and try again.
-                        if (uploadResult != null) {
-                            didUpload = true;
-                            resultVideo = videoToUpload;
-                            resultVideo.setVersionTag(uploadResult.versionTag);
-                            break;
+                        OptimizedVideo localVideo = tryLoadOrReUseVideo(localFileOriginal, indexVideo.getId());
+                        if (localVideo.getRevision() == indexVideo.getRevision()) {
+                            resultVideo = localVideo;
                         }
                     }
 
-                    try {
-                        if (didUpload) {
-                            writeVideoToFile(resultVideo, localFileOriginal);
-                            if (!localFileModified.delete()) {
-                                // For logging purposes thrown and caught
-                                throw new IOException("Failed to delete modified video");
-                            }
+                    if (resultVideo == null) {
+                        Video downloadedVideo = host.downloadVideoManifest(indexVideo.getId());
+                        writeVideoToFile(downloadedVideo, localFileOriginal);
 
-                            video = new OptimizedVideo(resultVideo);
-                        } else {
-                            video = new OptimizedVideo(modifiedVideo);
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                        resultVideo = new OptimizedVideo(downloadedVideo);
                     }
 
-                } else if (!localFileOriginal.exists() ||
-                        localFileOriginal.lastModified() < result.getLastModified()) {
+                    resultVideo.setRepository(this);
+                    addedVideoIds.add(resultVideo.getId());
+                    videos.add(resultVideo);
 
-                    try {
-                        // Update the cached original video
-                        Video cloudVideo = host.downloadVideoManifest(id);
-                        cloudVideo.setRepository(this);
-                        writeVideoToFile(cloudVideo, localFileOriginal);
-
-                        video = new OptimizedVideo(cloudVideo);
-                    } catch (IOException e) {
-                        // If it fails we can just skip this video and continue downloading the
-                        // rest.
-                        e.printStackTrace();
-                    }
-                } else {
-                    video = tryLoadOrReUseVideo(localFileOriginal, id);
-                }
-
-                if (video != null) {
-                    addedVideoIds.add(video.getId());
-                    videos.add(video);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (Exception error) {
+                    Rollbar.reportException(error);
                 }
             }
         }
@@ -451,12 +370,13 @@ public class CombinedVideoRepository implements VideoRepository {
      */
     public void uploadVideo(Video video) throws IOException {
 
-        VideoHost.ManifestUploadResult result = null;
+        Video result = null;
+
         IOException firstException = null;
         for (VideoHost host : cloudHosts) {
 
             try {
-                result = host.uploadVideoManifest(video, null);
+                result = host.uploadVideoManifest(video);
                 // Stop at the first uploader which succeeds.
                 break;
             } catch (IOException e) {
@@ -475,13 +395,10 @@ public class CombinedVideoRepository implements VideoRepository {
             }
         }
 
-        video.setVersionTag(result.versionTag);
-        video.setManifestUri(result.url);
-
-        UUID id = video.getId();
+        UUID id = result.getId();
 
         File cacheFile = getOriginalCacheFile(id);
-        writeVideoToFile(video, cacheFile);
+        writeVideoToFile(result, cacheFile);
 
         File localFile = getLocalVideoFile(id);
         if (!localFile.delete()) {

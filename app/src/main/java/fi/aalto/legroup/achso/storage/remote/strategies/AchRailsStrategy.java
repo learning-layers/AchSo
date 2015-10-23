@@ -10,7 +10,6 @@ import com.squareup.okhttp.Response;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,7 +25,7 @@ public class AchRailsStrategy implements VideoHost {
 
     class JsonVideoReference implements JsonSerializable {
         public String uuid;
-        public String last_modified;
+        public int revision;
     }
     class JsonGroupList implements JsonSerializable {
         public List<Group> groups;
@@ -85,8 +84,7 @@ public class AchRailsStrategy implements VideoHost {
                 response.body().byteStream());
         List<VideoReference> references = new ArrayList<>(videos.videos.length);
         for (JsonVideoReference video : videos.videos) {
-            references.add(new VideoReference(UUID.fromString(video.uuid),
-                    Date.parse(video.last_modified)));
+            references.add(new VideoReference(UUID.fromString(video.uuid), video.revision));
         }
         return references;
     }
@@ -107,16 +105,13 @@ public class AchRailsStrategy implements VideoHost {
 
         Video video = serializer.read(Video.class, response.body().byteStream());
 
-        // This is technically wrong but I don't think getting the share url is worth the trouble.
         video.setManifestUri(Uri.parse(request.uri().toString()));
-        video.setVersionTag(response.header("ETag"));
         video.setLastModified(response.headers().getDate("Last-Modified"));
         return video;
     }
 
     @Override
-    public ManifestUploadResult uploadVideoManifest(Video video,
-            String expectedVersionTag) throws IOException {
+    public Video uploadVideoManifest(Video video) throws IOException {
 
         // TODO: If-Match support
         Request.Builder requestBuilder = buildVideosRequest(video.getId());
@@ -126,16 +121,13 @@ public class AchRailsStrategy implements VideoHost {
                 .put(RequestBody.create(MediaType.parse("application/json"), serializedVideo))
                 .build();
 
-        Response response = executeRequestNoFail(request);
+        Response response = executeRequest(request);
 
-        if (response.code() == 412) {
-            // Precondition failed (ETag didn't match, return null instead of failing)
-            return null;
-        }
-        validateResponse(response);
+        Video uploadedVideo = serializer.read(Video.class, response.body().byteStream());
 
-        String versionTag = response.header("ETag");
-        return new ManifestUploadResult(Uri.parse(request.uri().toString()), versionTag);
+        uploadedVideo.setManifestUri(Uri.parse(request.uri().toString()));
+        uploadedVideo.setLastModified(response.headers().getDate("Last-Modified"));
+        return uploadedVideo;
     }
 
     @Override

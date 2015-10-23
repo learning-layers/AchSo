@@ -6,11 +6,8 @@ import android.net.Uri;
 import com.google.common.base.Objects;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
@@ -33,7 +30,7 @@ public class Video implements JsonSerializable {
     protected String tag;
     protected int rotation;
     protected Date date;
-    protected String versionTag;
+    protected int revision;
 
     protected User author;
     protected Location location;
@@ -41,6 +38,7 @@ public class Video implements JsonSerializable {
 
     Video() {
         // For serialization and pooling
+        revision = 0;
     }
 
     public Video(VideoRepository repository, Uri manifestUri, Uri videoUri, Uri thumbUri, UUID id,
@@ -91,96 +89,6 @@ public class Video implements JsonSerializable {
         // In this case either both have changed his is a two-way merge, the only option is to
         // use some tiebreaker, for example which file was more recently modified.
         return preferA ? a : b;
-    }
-
-    /**
-     * Merge two video manifests.
-     * @param a The first video to merge.
-     * @param b The second video to merge.
-     * @param old An shared ancestor for the two videos to merge. May be null but results in a
-     *            worse merge result. For example annotations can't be deleted in a two-way merge.
-     */
-    public static Video merge(Video a, Video b, Video old) throws MergeException {
-
-        // The UUID:s _must_ match, otherwise the merge doesn't make any sense.
-        if (!Objects.equal(a.getId(), b.getId())) {
-            throw new MergeException("Trying to merge two unrelated videos");
-        }
-
-        Video video = new Video();
-        video.setId(a.getId());
-
-
-        boolean preferA = true;
-
-        // Prefer newer values if possible
-        if (a.getLastModified() != null && b.getLastModified() != null) {
-            preferA = a.getLastModified().getTime() > b.getLastModified().getTime();
-        }
-
-        // Simply choose one of the values for the simple fields (merging title additions changes
-        // be too complicated in scope for this for example)
-        video.setVideoUri(chooseMergeValue(a.getVideoUri(), b.getVideoUri(),
-                old != null ? old.getVideoUri() : null, preferA));
-        video.setThumbUri(chooseMergeValue(a.getThumbUri(), b.getThumbUri(),
-                old != null ? old.getThumbUri() : null, preferA));
-        video.setTitle(chooseMergeValue(a.getTitle(), b.getTitle(),
-                old != null ? old.getTitle() : null, preferA));
-        video.setGenre(chooseMergeValue(a.getGenre(), b.getGenre(),
-                old != null ? old.getGenre() : null, preferA));
-        video.setTag(chooseMergeValue(a.getTag(), b.getTag(),
-                old != null ? old.getTag() : null, preferA));
-        video.setDate(chooseMergeValue(a.getDate(), b.getDate(),
-                old != null ? old.getDate() : null, preferA));
-        video.setAuthor(chooseMergeValue(a.getAuthor(), b.getAuthor(),
-                old != null ? old.getAuthor() : null, preferA));
-        video.setLocation(chooseMergeValue(a.getLocation(), b.getLocation(),
-                old != null ? old.getLocation() : null, preferA));
-
-        // Put all the annotations in Sets so we can quickly check for identical ones.
-        Set<Annotation> annotationsA = new HashSet<>(a.getAnnotations());
-        Set<Annotation> annotationsB = new HashSet<>(b.getAnnotations());
-        Set<Annotation> annotationsOld = old != null ? new HashSet<>(old.getAnnotations())
-                : Collections.<Annotation>emptySet();
-
-        int reservedAnnotationCount = annotationsA.size() + annotationsB.size();
-
-        List<Annotation> mergedAnnotations = new ArrayList<>(reservedAnnotationCount);
-        Set<Annotation> annotationsAll = new HashSet<>(reservedAnnotationCount);
-
-        // Because `annotationsAll` is a Set we don't have to worry about duplicate Annotations.
-        annotationsAll.addAll(annotationsA);
-        annotationsAll.addAll(annotationsB);
-
-        // Iterate through every annotation in `a` and `b`
-        for (Annotation annotation : annotationsAll) {
-
-            // annotation: An annotation which is in at least one of the videos to merge
-
-            if (annotationsA.contains(annotation) && annotationsB.contains(annotation)) {
-                // Both videos contain the annotation, so keep it for sure.
-                mergedAnnotations.add(annotation);
-            }
-
-            // Here the annotation is missing from one of the videos to merge.
-
-            if (annotationsOld.contains(annotation)) {
-                // If the common ancestor contains the annotation it means it wasn't touched in
-                // the other one and deleted in the other one, so we can delete it since it
-                // wasn't touched in the other video.
-                continue;
-            }
-
-            // The old one doesn't contain it so it is new in one of the videos, keep it. This
-            // can result in double annotations in the case that two people for example move a
-            // single annotation at the same time, but this should be rare and this way it's
-            // impossible to lose work due to merging.
-            mergedAnnotations.add(annotation);
-        }
-
-        video.setAnnotations(mergedAnnotations);
-
-        return video;
     }
 
     /**
@@ -256,8 +164,8 @@ public class Video implements JsonSerializable {
         return this.date;
     }
 
-    public String getVersionTag() {
-        return this.versionTag;
+    public int getRevision() {
+        return this.revision;
     }
 
 
@@ -299,8 +207,8 @@ public class Video implements JsonSerializable {
         this.date = date;
     }
 
-    public void setVersionTag(String versionTag) {
-        this.versionTag = versionTag;
+    public void setRevision(int revision) {
+        this.revision = revision;
     }
 
 

@@ -5,22 +5,22 @@ import java.util.UUID;
 public class VideoReference {
 
     /**
-     * @param id           ID of the video manifest.
-     * @param lastModified UNIX timestamp of when the video manifest has been modified.
+     * @param id       ID of the video manifest.
+     * @param revision Latest revision number for the video.
      */
-    public VideoReference(UUID id, long lastModified) {
+    public VideoReference(UUID id, int revision) {
         this.id = id;
-        this.lastModified = lastModified;
+        this.revision = revision;
     }
 
     private UUID id;
-    private long lastModified;
+    private int revision;
 
     public UUID getId() {
         return id;
     }
 
-    public long getLastModified() {
-        return lastModified;
+    public long getRevision() {
+        return revision;
     }
 }
