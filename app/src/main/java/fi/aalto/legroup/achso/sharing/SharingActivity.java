@@ -33,8 +33,10 @@ import com.nispok.snackbar.SnackbarManager;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -50,10 +52,25 @@ public class SharingActivity extends Activity {
     private static int CONTACT_PICK_CODE = 0xC0874C7;
     private WebView webView;
 
+    private static String getLanguageCode()
+    {
+        String defaultLanguage = "en";
+        List<String> supportedLanguages = Arrays.asList("en", "de", "fi", "et");
+
+        String currentLanguage = Locale.getDefault().getLanguage();
+
+        if (supportedLanguages.contains(currentLanguage)) {
+            return currentLanguage;
+        } else {
+            return defaultLanguage;
+        }
+    }
+
     public static boolean openShareActivity(Context context, List<UUID> videoIds)
     {
          Uri uri = Uri.parse(context.getString(R.string.achRailsUrl))
                 .buildUpon()
+                .appendPath(getLanguageCode())
                 .appendPath("videos")
                 .appendPath(Joiner.on(',').join(videoIds))
                 .appendPath("shares")
@@ -66,6 +83,7 @@ public class SharingActivity extends Activity {
     {
         Uri uri = Uri.parse(context.getString(R.string.achRailsUrl))
                 .buildUpon()
+                .appendPath(getLanguageCode())
                 .appendPath("groups")
                 .build();
 
