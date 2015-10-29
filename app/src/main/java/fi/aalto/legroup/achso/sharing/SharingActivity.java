@@ -15,11 +15,9 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.support.v7.app.AlertDialog;
 import android.webkit.CookieManager;
-import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -49,7 +47,6 @@ public class SharingActivity extends Activity {
     public static final String ARG_TOKEN = "ARG_TOKEN";
     public static final String ARG_REFRESH_TOKEN = "ARG_REFRESH_TOKEN";
 
-    private static int CONTACT_PICK_CODE = 0xC0874C7;
     private WebView webView;
 
     private static String getLanguageCode()
@@ -140,7 +137,7 @@ public class SharingActivity extends Activity {
             }
         });
 
-        webView.addJavascriptInterface(new AchRailsJavascriptInterface(), "Android");
+        webView.addJavascriptInterface(new AchRailsJavascriptInterface(this), "Android");
 
         // Remove last session before starting a new one. (Make sure can't get to old login)
         // NOTE: This affects all the cookies in this app globally, if we want to store some other
@@ -247,28 +244,9 @@ public class SharingActivity extends Activity {
         }
     }
 
-    private class AchRailsJavascriptInterface {
-
-        @JavascriptInterface
-        public void showToast(String toast) {
-            Toast.makeText(SharingActivity.this, toast, Toast.LENGTH_SHORT).show();
-        }
-
-        @JavascriptInterface
-        public void closeActivity() {
-            finish();
-        }
-
-        @JavascriptInterface
-        public void openContactPicker() {
-            Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
-            startActivityForResult(intent, CONTACT_PICK_CODE);
-        }
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == RESULT_OK && requestCode == CONTACT_PICK_CODE) {
+        if (resultCode == RESULT_OK && requestCode == AchRailsJavascriptInterface.CONTACT_PICK_CODE) {
             Uri contactUri = data.getData();
 
             String contactId = contactUri.getLastPathSegment();
