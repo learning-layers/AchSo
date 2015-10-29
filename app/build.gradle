@@ -5,6 +5,8 @@ android {
     compileSdkVersion 23
     buildToolsVersion '22.0.0'
 
+    useLibrary 'org.apache.http.legacy'
+
     defaultConfig {
         applicationId 'fi.aalto.legroup.achso'
         minSdkVersion 16
@@ -73,7 +75,7 @@ dependencies {
     compile 'com.google.android.gms:play-services-analytics:8.1.0'
 
     // OAuth2 library for OpenID Connect
-    compile('com.google.oauth-client:google-oauth-client:1.18.0-rc') {
+    compile('com.google.oauth-client:google-oauth-client:1.19.0') {
         exclude group: 'com.google.android'
         exclude group: 'junit'
         exclude group: 'xpp3'
@@ -111,11 +113,4 @@ dependencies {
 
     // Decrypting the Layers Box URL
     compile 'fi.aalto.legroup:cryptohelper:0.1.0'
-
-    // XML serialization
-    compile('org.simpleframework:simple-xml:2.7.+'){
-        exclude module: 'stax'
-        exclude module: 'stax-api'
-        exclude module: 'xpp3'
-    }
 }

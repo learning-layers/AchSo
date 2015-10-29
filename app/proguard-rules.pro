@@ -88,6 +88,10 @@
     public static final ** CREATOR;
 }
 
+# Apache HTTP client
+-keep class org.apache.http.** { *; }
+-dontwarn org.apache.http.*
+
 # If your project uses WebView with JS, uncomment the following
 # and specify the fully qualified class name to the JavaScript interface
 # class:
