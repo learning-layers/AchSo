@@ -18,6 +18,7 @@ import com.nispok.snackbar.SnackbarManager;
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.authoring.GenreDialogFragment;
 import fi.aalto.legroup.achso.entities.Video;
+import fi.aalto.legroup.achso.utilities.TranslationHelper;
 
 public final class DetailFragment extends Fragment {
 
@@ -100,8 +101,10 @@ public final class DetailFragment extends Fragment {
             uploaded = getString(R.string.no);
         }
 
+        TranslationHelper translationHelper = TranslationHelper.get(getActivity());
+
         titleField.setText(video.getTitle());
-        genreField.setText(video.getGenre());
+        genreField.setText(translationHelper.getGenreText(video.getGenre()));
         creatorField.setText(authorName);
         qrCodeField.setText(qrCode);
         uploadedField.setText(uploaded);

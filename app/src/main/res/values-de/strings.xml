@@ -65,7 +65,7 @@
     <string name="feedback_sent">Vielen Dank für Ihr Feedback.</string>
     <string name="feedback_error">Es gab einen Fehler beim Senden des Feedbacks. Bitte später erneut versuchen.</string>
 
-    <string-array name="genres">
+    <string-array name="genre_texts">
         <item>Gute Arbeit</item>
         <item>Problem</item>
         <item>Standortüberblick</item>

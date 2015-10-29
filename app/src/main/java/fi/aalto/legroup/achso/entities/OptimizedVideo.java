@@ -58,6 +58,7 @@ public class OptimizedVideo {
     private int[] annotationTextStartEnd;
     private int[] annotationAuthorUserIndex;
     private long lastModified;
+    private int formatVersion;
 
     public UUID getId() {
         return id;
@@ -178,6 +179,10 @@ public class OptimizedVideo {
         }
     }
 
+    public int getFormatVersion() {
+        return formatVersion;
+    }
+
     public boolean isRemote() {
         return !isLocal();
     }
@@ -215,6 +220,7 @@ public class OptimizedVideo {
         }
 
         revision = video.getRevision();
+        formatVersion = video.getFormatVersion();
 
         // Intern the user and store as index so we don't have so much object references
         authorUserIndex = UserPool.internUser(video.getAuthor());
@@ -319,6 +325,7 @@ public class OptimizedVideo {
         }
 
         video.setRevision(revision);
+        video.setFormatVersion(formatVersion);
 
         // Retrieve the author with the index from the user pool
         video.setAuthor(UserPool.getInternedUser(authorUserIndex));

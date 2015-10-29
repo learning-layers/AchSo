@@ -77,12 +77,13 @@
     <string name="logged_out">Olet kirjautunut ulos.</string>
     <string name="login_error">Kirjautuminen epäonnistui: %s</string>
 
-    <string-array name="genres">
-    <item>Hyvää työtä</item>
+    <string-array name="genre_texts">
+        <item>Hyvää työtä</item>
         <item>Ongelma</item>
         <item>Yleiskatsaus</item>
         <item>Ammattilaisen niksi</item>
     </string-array>
+
     <string name="about">Tietoja</string>
     <string name="about_maps">Tietoja Mapsista</string>
     <string name="annotation_hint">Anna annotaatiolle kuvaus</string>

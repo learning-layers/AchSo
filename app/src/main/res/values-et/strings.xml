@@ -62,7 +62,7 @@
     <string name="feedback_sent">Täname tagasisde eest.</string>
     <string name="feedback_error">Polnud võimalik sinu tagasisidet saata. Proovi hiljem uuesti.</string>
 
-    <string-array name="genres">
+    <string-array name="genre_texts">
         <item>Tubli töö</item>
         <item>Mure</item>
         <item>Portaali ülevaade</item>

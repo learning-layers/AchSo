@@ -1,5 +1,6 @@
 package fi.aalto.legroup.achso.storage;
 
+import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
@@ -28,6 +29,7 @@ import fi.aalto.legroup.achso.entities.Group;
 import fi.aalto.legroup.achso.entities.OptimizedVideo;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.entities.VideoReference;
+import fi.aalto.legroup.achso.entities.migration.VideoMigration;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
 import fi.aalto.legroup.achso.storage.remote.VideoHost;
 
@@ -130,6 +132,32 @@ public class CombinedVideoRepository implements VideoRepository {
      */
     public void addHost(VideoHost host) {
         cloudHosts.add(host);
+    }
+
+    /**
+     * Migrate all videos to the current format version.
+     */
+    public void migrateVideos(Context context) {
+        Collection<OptimizedVideo> videos = allVideos.values();
+
+        for (OptimizedVideo optimizedVideo : videos) {
+
+            if (optimizedVideo.isRemote())
+                continue;
+
+            List<VideoMigration> migrations = VideoMigration.get(optimizedVideo.getFormatVersion());
+            if (migrations.isEmpty())
+                continue;
+
+            Video video = optimizedVideo.inflate();
+
+            for (VideoMigration migration : migrations) {
+                migration.migrate(context, video);
+            }
+
+            video.setFormatVersion(Video.VIDEO_FORMAT_VERSION);
+            video.save();
+        }
     }
 
     /**

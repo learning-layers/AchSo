@@ -3,8 +3,6 @@ package fi.aalto.legroup.achso.entities;
 import android.location.Location;
 import android.net.Uri;
 
-import com.google.common.base.Objects;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -17,6 +15,13 @@ import fi.aalto.legroup.achso.storage.VideoRepository;
  * A video entity that represents a video and is an aggregate root for annotations.
  */
 public class Video implements JsonSerializable {
+
+    /**
+     * This is the current video format version that is saved by the app.
+     * If you plan to increment this, make sure you add a {@code VideoMigration } to update the old
+     * videos. Remember to add the migration to {@code VideoMigration#allMigrations }
+     */
+    public static int VIDEO_FORMAT_VERSION = 1;
 
     protected transient Uri manifestUri;
     protected transient VideoRepository repository;
@@ -31,6 +36,7 @@ public class Video implements JsonSerializable {
     protected int rotation;
     protected Date date;
     protected int revision;
+    protected int formatVersion;
 
     protected User author;
     protected Location location;
@@ -39,11 +45,12 @@ public class Video implements JsonSerializable {
     Video() {
         // For serialization and pooling
         revision = 0;
+        formatVersion = 0;
     }
 
     public Video(VideoRepository repository, Uri manifestUri, Uri videoUri, Uri thumbUri, UUID id,
                  String title, String genre, String tag, int rotation, Date date, User author,
-                 Location location, List<Annotation> annotations) {
+                 Location location, int formatVersion, List<Annotation> annotations) {
 
         this.manifestUri = manifestUri;
         this.videoUri = videoUri;
@@ -58,9 +65,10 @@ public class Video implements JsonSerializable {
         this.repository = repository;
         this.author = author;
         this.location = location;
+        this.formatVersion = formatVersion;
         this.annotations = annotations;
     }
-    
+
     /**
      * Convenience method for saving a video.
      * @return True if succeeded, false otherwise.
@@ -218,4 +226,11 @@ public class Video implements JsonSerializable {
         this.annotations = annotations;
     }
 
+    public int getFormatVersion() {
+        return formatVersion;
+    }
+
+    public void setFormatVersion(int formatVersion) {
+        this.formatVersion = formatVersion;
+    }
 }

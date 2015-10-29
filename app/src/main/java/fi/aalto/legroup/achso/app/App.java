@@ -110,6 +110,9 @@ public final class App extends MultiDexApplication
 
         videoRepository.refreshOffline();
 
+        // Run migrations to update old videos.
+        videoRepository.migrateVideos(this);
+
         SyncService.syncWithCloudStorage(this);
 
         bus.post(new LoginRequestEvent(LoginRequestEvent.Type.LOGIN));

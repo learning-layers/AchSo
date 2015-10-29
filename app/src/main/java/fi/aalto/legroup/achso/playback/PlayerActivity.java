@@ -45,6 +45,7 @@ import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.storage.VideoRepository;
 import fi.aalto.legroup.achso.storage.local.ExportService;
 import fi.aalto.legroup.achso.utilities.RepeatingTask;
+import fi.aalto.legroup.achso.utilities.TranslationHelper;
 import fi.aalto.legroup.achso.views.MarkedSeekBar;
 
 /**
@@ -239,8 +240,10 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
     }
 
     private void populateVideoInformation() {
+        TranslationHelper translationHelper = TranslationHelper.get(this);
+
         toolbar.setTitle(video.getTitle());
-        toolbar.setSubtitle(video.getGenre());
+        toolbar.setSubtitle(translationHelper.getGenreText(video.getGenre()));
     }
 
     private void refreshAnnotations() {

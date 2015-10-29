@@ -76,7 +76,14 @@
     <string name="feedback_sent">Thank you for your feedback.</string>
     <string name="feedback_error">There was an error while sending your feedback. Please try again later.</string>
 
-    <string-array name="genres">
+    <string-array name="genre_ids" translatable="false">
+        <item>good_work</item>
+        <item>problem</item>
+        <item>site_overview</item>
+        <item>trick_of_trade</item>
+    </string-array>
+
+    <string-array name="genre_texts">
         <item>Good work</item>
         <item>Problem</item>
         <item>Site overview</item>

@@ -18,7 +18,7 @@ public final class GenreDialogFragment extends DialogFragment {
     @Nullable
     private Callback callback;
 
-    private String[] genres;
+    private String[] genreIds, genreTexts;
 
     private int selection = 0;
 
@@ -33,7 +33,9 @@ public final class GenreDialogFragment extends DialogFragment {
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        genres = getResources().getStringArray(R.array.genres);
+
+        genreIds = getResources().getStringArray(R.array.genre_ids);
+        genreTexts = getResources().getStringArray(R.array.genre_texts);
 
         DialogCallback dialogCallback = new DialogCallback();
 
@@ -42,7 +44,7 @@ public final class GenreDialogFragment extends DialogFragment {
         return new MaterialDialog.Builder(getActivity())
                 .title(R.string.genre_selection_title)
                 .positiveText(R.string.select_genre)
-                .items(genres)
+                .items(genreTexts)
                 .itemsCallbackSingleChoice(selection, dialogCallback)
                 .alwaysCallSingleChoiceCallback()
                 .callback(dialogCallback)
@@ -113,7 +115,7 @@ public final class GenreDialogFragment extends DialogFragment {
          */
         @Override
         public void onPositive(MaterialDialog dialog) {
-            String genre = genres[selection];
+            String genre = genreIds[selection];
 
             if (callback != null) {
                 callback.onGenreSelected(genre);

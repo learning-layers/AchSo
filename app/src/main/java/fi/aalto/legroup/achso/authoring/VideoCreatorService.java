@@ -160,8 +160,11 @@ public final class VideoCreatorService extends IntentService {
         Uri videoUri = Uri.fromFile(videoFile);
         Uri thumbUri = Uri.fromFile(thumbFile);
 
+        // Save always with the most recent version.
+        int formatVersion = Video.VIDEO_FORMAT_VERSION;
+
         Video video = new Video(App.videoRepository, manifestUri, videoUri, thumbUri, id, title,
-                genre, tag, rotation, date, author, location, annotations);
+                genre, tag, rotation, date, author, location, formatVersion, annotations);
 
         video.save();
 

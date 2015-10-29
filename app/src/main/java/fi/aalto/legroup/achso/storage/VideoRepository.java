@@ -1,5 +1,6 @@
 package fi.aalto.legroup.achso.storage;
 
+import android.content.Context;
 import android.net.Uri;
 
 import java.io.IOException;
@@ -60,4 +61,9 @@ public interface VideoRepository extends VideoInfoRepository {
      * @return A valid Video or null if not found.
      */
     public void findVideoByVideoUri(Uri videoUri, String type, VideoCallback callback);
+
+    /**
+     * Migrate all videos to the current format version.
+     */
+    public void migrateVideos(Context context);
 }

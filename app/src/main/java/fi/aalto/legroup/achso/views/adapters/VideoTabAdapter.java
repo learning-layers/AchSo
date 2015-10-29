@@ -37,6 +37,9 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
     private List<String> tabNames = new ArrayList<>();
     private List<List<UUID>> tabVideoIds;
 
+    private String[] genreTexts;
+    private String[] genreIds;
+
     @Nullable
     private ScrollDirectionListener scrollListener;
 
@@ -47,11 +50,13 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
         super(manager);
 
         String allVideos = context.getString(R.string.my_videos);
-        String[] genres = context.getResources().getStringArray(R.array.genres);
+
+        genreIds = context.getResources().getStringArray(R.array.genre_ids);
+        genreTexts = context.getResources().getStringArray(R.array.genre_texts);
 
         genreTabNames.add(allVideos);
 
-        Collections.addAll(genreTabNames, genres);
+        Collections.addAll(genreTabNames, genreTexts);
 
         tabNames = new ArrayList<>(genreTabNames);
     }
@@ -154,10 +159,9 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
         // First tab has all the videos
         newTabVideoIds.add(toIds(allVideos));
 
-        // TODO: This is what causes ACH-104, should have some locale independent genre names...
         for (int i = 1; i < genreTabNames.size(); i++) {
             // Get returns an empty collection when no values for key, not null.
-            newTabVideoIds.add(toIds(videosForGenre.get(genreTabNames.get(i))));
+            newTabVideoIds.add(toIds(videosForGenre.get(genreIds[i - 1])));
         }
         for (int i = 0; i < allGroups.size(); i++) {
             newTabVideoIds.add(allGroups.get(i).getVideos());

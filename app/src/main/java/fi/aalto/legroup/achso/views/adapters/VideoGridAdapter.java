@@ -21,6 +21,7 @@ import java.util.UUID;
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.entities.OptimizedVideo;
 import fi.aalto.legroup.achso.storage.VideoInfoRepository;
+import fi.aalto.legroup.achso.utilities.TranslationHelper;
 
 public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapter.ViewHolder> {
 
@@ -72,8 +73,10 @@ public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapte
             return;
         }
 
+        TranslationHelper translationHelper = TranslationHelper.get(context);
+
         holder.getTitleText().setText(video.getTitle());
-        holder.getGenreText().setText(video.getGenre());
+        holder.getGenreText().setText(translationHelper.getGenreText(video.getGenre()));
 
         Uri thumbUri = video.getThumbUri();
         ImageView thumbImage = holder.getThumbImage();
