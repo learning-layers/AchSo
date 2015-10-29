@@ -25,6 +25,7 @@
     <string name="deletion_title">Video deletion</string>
     <string name="deletion_question">Delete the selected videos and their annotations?</string>
     <string name="storage_error">Could not access video storage.</string>
+    <string name="video_find_error">Could not find the video.</string>
 
     <string name="login">Log in</string>
     <string name="logout">Log out</string>
@@ -34,6 +35,7 @@
     <string name="cancel">Cancel</string>
     <string name="edit_text">Edit text</string>
     <string name="video_share">Share</string>
+    <string name="not_loggedin_share_nag">You must log in before sharing videos.</string>
 
     <string name="semanticvideo_title">Title</string>
     <string name="semanticvideo_creator">Creator</string>
@@ -74,7 +76,14 @@
     <string name="feedback_sent">Thank you for your feedback.</string>
     <string name="feedback_error">There was an error while sending your feedback. Please try again later.</string>
 
-    <string-array name="genres">
+    <string-array name="genre_ids" translatable="false">
+        <item>good_work</item>
+        <item>problem</item>
+        <item>site_overview</item>
+        <item>trick_of_trade</item>
+    </string-array>
+
+    <string-array name="genre_texts">
         <item>Good work</item>
         <item>Problem</item>
         <item>Site overview</item>
@@ -128,6 +137,15 @@
     <string name="settings_layers_box_title">Layers box address</string>
     <string name="settings_analytics_summary">Sends anonymous statistics about your usage to the developers in order to improve the app.</string>
     <string name="settings_analytics_title">Send analytics data</string>
+    <string name="manage_groups">Your groups</string>
+    <string name="select_invite_email">Select email address to invite</string>
+    <string name="contact_has_no_email">The selected contact has no email saved</string>
+    <string name="settings_public_box_title">Public upload</string>
+    <string name="settings_public_box_summary">Connect to a public shared Layers Box (this overrides the Layers Box URL setting)</string>
+    <string name="failed_to_change_setting">Failed to change setting</string>
+    <string name="only_public_layers_box_description">Only the public Layers Box is supported at the moment.</string>
+    <string name="warning">Warning</string>
+    <string name="public_layers_box_chosen_warning">Setting changed but still using public Layers Box, do you want to choose to use the private URL instead?</string>
 
     <string-array name="settings_annotation_pause_duration">
         <item name="1000">Fast</item>
@@ -135,7 +153,7 @@
         <item name="4000">Slow</item>
     </string-array>
 
-    <string-array name="settings_annotation_pause_duration_values">
+    <string-array translatable="false" name="settings_annotation_pause_duration_values">
         <item name="1000">1000</item>
         <item name="2000">2000</item>
         <item name="4000">4000</item>

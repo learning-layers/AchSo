@@ -56,7 +56,7 @@ public class QRHelper {
                 try {
                     OptimizedVideo video = App.videoRepository.getVideo(id);
                     video.setTag(code);
-                    video.save();
+                    video.inflate().save();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

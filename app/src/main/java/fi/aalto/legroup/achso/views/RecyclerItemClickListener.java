@@ -40,6 +40,11 @@ public class RecyclerItemClickListener implements RecyclerView.OnItemTouchListen
         // Not needed.
     }
 
+    @Override
+    public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
+        // Not needed?
+    }
+
     /**
      * A click listener for items.
      */

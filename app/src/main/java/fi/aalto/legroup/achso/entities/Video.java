@@ -13,10 +13,15 @@ import fi.aalto.legroup.achso.storage.VideoRepository;
 
 /**
  * A video entity that represents a video and is an aggregate root for annotations.
- *
- * TODO: Extending VideoInfo is semantically wrong and may result in some problems later on.
  */
 public class Video implements JsonSerializable {
+
+    /**
+     * This is the current video format version that is saved by the app.
+     * If you plan to increment this, make sure you add a {@code VideoMigration } to update the old
+     * videos. Remember to add the migration to {@code VideoMigration#allMigrations }
+     */
+    public static int VIDEO_FORMAT_VERSION = 1;
 
     protected transient Uri manifestUri;
     protected transient VideoRepository repository;
@@ -28,7 +33,10 @@ public class Video implements JsonSerializable {
     protected String title;
     protected String genre;
     protected String tag;
+    protected int rotation;
     protected Date date;
+    protected int revision;
+    protected int formatVersion;
 
     protected User author;
     protected Location location;
@@ -36,11 +44,13 @@ public class Video implements JsonSerializable {
 
     Video() {
         // For serialization and pooling
+        revision = 0;
+        formatVersion = 0;
     }
 
     public Video(VideoRepository repository, Uri manifestUri, Uri videoUri, Uri thumbUri, UUID id,
-                 String title, String genre, String tag, Date date, User author, Location location,
-                 List<Annotation> annotations) {
+                 String title, String genre, String tag, int rotation, Date date, User author,
+                 Location location, int formatVersion, List<Annotation> annotations) {
 
         this.manifestUri = manifestUri;
         this.videoUri = videoUri;
@@ -49,11 +59,13 @@ public class Video implements JsonSerializable {
         this.title = title;
         this.genre = genre;
         this.tag = tag;
+        this.rotation = rotation;
         this.date = date;
 
         this.repository = repository;
         this.author = author;
         this.location = location;
+        this.formatVersion = formatVersion;
         this.annotations = annotations;
     }
 
@@ -122,8 +134,16 @@ public class Video implements JsonSerializable {
         return this.tag;
     }
 
+    public int getRotation() {
+        return this.rotation;
+    }
+
     public Date getDate() {
         return this.date;
+    }
+
+    public int getRevision() {
+        return this.revision;
     }
 
 
@@ -157,9 +177,18 @@ public class Video implements JsonSerializable {
         this.tag = tag;
     }
 
+    public void setRotation(int rotation) {
+        this.rotation = rotation;
+    }
+
     public void setDate(Date date) {
         this.date = date;
     }
+
+    public void setRevision(int revision) {
+        this.revision = revision;
+    }
+
 
     public User getAuthor() {
         return this.author;
@@ -197,4 +226,11 @@ public class Video implements JsonSerializable {
         this.annotations = annotations;
     }
 
+    public int getFormatVersion() {
+        return formatVersion;
+    }
+
+    public void setFormatVersion(int formatVersion) {
+        this.formatVersion = formatVersion;
+    }
 }

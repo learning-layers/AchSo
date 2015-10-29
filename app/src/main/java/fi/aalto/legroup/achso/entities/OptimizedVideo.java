@@ -4,7 +4,9 @@ import android.graphics.PointF;
 import android.location.Location;
 import android.net.Uri;
 
-import java.io.IOException;
+import com.google.common.primitives.Longs;
+
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -31,7 +33,9 @@ public class OptimizedVideo {
     private String genre;
     private String tag;
     private long dateInMs;
+    private int revision;
     private long lastModifiedInMs;
+    private int rotation;
     private double locationLatitude;
     private double locationLongitude;
     private float locationAccuracy;
@@ -53,6 +57,8 @@ public class OptimizedVideo {
     private float[] annotationXY;
     private int[] annotationTextStartEnd;
     private int[] annotationAuthorUserIndex;
+    private long lastModified;
+    private int formatVersion;
 
     public UUID getId() {
         return id;
@@ -102,6 +108,20 @@ public class OptimizedVideo {
         this.tag = tag;
     }
 
+    public int getRevision() {
+        return revision;
+    }
+
+    public VideoRepository getRepository() {
+        return this.repository;
+    }
+    public void setRepository(VideoRepository repository) {
+        this.repository = repository;
+    }
+
+    public long getLastModified() {
+        return lastModified;
+    }
     /**
      * Returns number of annotations the video has, query annotation details with functions
      * taking index as a parameter
@@ -159,6 +179,10 @@ public class OptimizedVideo {
         }
     }
 
+    public int getFormatVersion() {
+        return formatVersion;
+    }
+
     public boolean isRemote() {
         return !isLocal();
     }
@@ -182,6 +206,7 @@ public class OptimizedVideo {
         title = video.getTitle();
         genre = video.getGenre();
         tag = video.getTag();
+        rotation = video.getRotation();
         if (genre != null) {
             // Intern genres because there are only a few options for the field
             genre = genre.intern();
@@ -193,6 +218,9 @@ public class OptimizedVideo {
             hasLastModified = true;
             lastModifiedInMs = video.getLastModified().getTime();
         }
+
+        revision = video.getRevision();
+        formatVersion = video.getFormatVersion();
 
         // Intern the user and store as index so we don't have so much object references
         authorUserIndex = UserPool.internUser(video.getAuthor());
@@ -286,6 +314,7 @@ public class OptimizedVideo {
         video.setTitle(title);
         video.setGenre(genre);
         video.setTag(tag);
+        video.setRotation(rotation);
 
         // Create the Date objects from the longs
         video.setDate(new Date(dateInMs));
@@ -294,6 +323,9 @@ public class OptimizedVideo {
         } else {
             video.setLastModified(null);
         }
+
+        video.setRevision(revision);
+        video.setFormatVersion(formatVersion);
 
         // Retrieve the author with the index from the user pool
         video.setAuthor(UserPool.getInternedUser(authorUserIndex));
@@ -350,18 +382,13 @@ public class OptimizedVideo {
         return inflate(new PooledVideo(annotationTime.length, hasLocation));
     }
 
-    /**
-     * Save this video to the repository.
-     *
-     * @return true if success, false otherwise
-     */
-    public boolean save() {
-        try {
-            this.repository.save(this);
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
+    public static class CreateTimeComparator implements Comparator<OptimizedVideo> {
+
+        @Override
+        public int compare(OptimizedVideo lhs, OptimizedVideo rhs) {
+            long lhsDateInMs = lhs.dateInMs;
+            long rhsDateInMs = rhs.dateInMs;
+            return Longs.compare(lhsDateInMs, rhsDateInMs);
         }
     }
 }

@@ -14,6 +14,8 @@ import java.io.File;
 
 import javax.annotation.Nullable;
 
+import fi.aalto.legroup.achso.entities.Video;
+
 import static android.media.MediaCodec.CryptoException;
 import static com.google.android.exoplayer.MediaCodecTrackRenderer.DecoderInitializationException;
 
@@ -56,22 +58,29 @@ public final class VideoOrientationPatcher implements MediaCodecVideoTrackRender
         this.delegate = delegate;
     }
 
-    public void setVideoUri(@Nullable Uri videoUri) {
-        if (videoUri == null) {
-            return;
+    public void updateOrientation(Video video) {
+
+        Uri videoUri = video.getVideoUri();
+
+        int videoRotation = video.getRotation();
+
+        if (videoRotation != -1) {
+
+            // Prefer Video manifest rotation data
+            rotationDegrees = videoRotation;
+
+        } else if (videoUri != null) {
+
+            // Assuming that URIs without a scheme are local.
+            String scheme = videoUri.getScheme();
+            boolean isLocal = (scheme == null || scheme.equalsIgnoreCase("file"));
+
+            if (isLocal) {
+                File file = new File(videoUri.getPath());
+                rotationDegrees = VideoOrientationReader.readOrientation(context, file);
+            }
         }
 
-        // Assuming that URIs without a scheme are local.
-        String scheme = videoUri.getScheme();
-        boolean isLocal = (scheme == null || scheme.equalsIgnoreCase("file"));
-
-        if (!isLocal) {
-            throw new IllegalArgumentException("Only file:// URIs are supported.");
-        }
-
-        File file = new File(videoUri.getPath());
-
-        rotationDegrees = readOrientation(context, file);
         isPortrait = (rotationDegrees == 90 || rotationDegrees == 270);
     }
 
@@ -85,17 +94,6 @@ public final class VideoOrientationPatcher implements MediaCodecVideoTrackRender
         }
 
         this.view = view;
-    }
-
-    /**
-     * Returns the orientation of the given video, or -1 if it cannot be read.
-     */
-    private int readOrientation(Context context, File file) {
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN) {
-            return FrameworkOrientationReader.readOrientation(context, file);
-        } else {
-            return Mp4ParserOrientationReader.readOrientation(file);
-        }
     }
 
     @Override

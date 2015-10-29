@@ -22,7 +22,8 @@ public class UploadStateEvent {
 
     public static enum Type {
         STARTED,
-        FINISHED
+        SUCCEEDED,
+        FAILED,
     }
 
 }

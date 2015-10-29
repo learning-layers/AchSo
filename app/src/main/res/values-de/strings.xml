@@ -65,7 +65,7 @@
     <string name="feedback_sent">Vielen Dank für Ihr Feedback.</string>
     <string name="feedback_error">Es gab einen Fehler beim Senden des Feedbacks. Bitte später erneut versuchen.</string>
 
-    <string-array name="genres">
+    <string-array name="genre_texts">
         <item>Gute Arbeit</item>
         <item>Problem</item>
         <item>Standortüberblick</item>
@@ -91,5 +91,27 @@
     <string name="upload_error">Hochladen gescheitert; bitte erneut versuchen.</string>
     <string name="settings_layers_box_summary">The URL to the Layers box</string>
     <string name="settings_layers_box_title">Layers box address</string>
+
+    <string name="share_failed_subtitle">Tippen für erneuten Versuch</string>
+    <string name="video_find_error">Das Video konnte nicht gefunden werden.</string>
+    <string name="share_ready_subtitle">Tippen um zu teilen</string>
+    <string name="settings_annotation_pause_title">Annotationsgeschwindigkeit</string>
+    <string name="settings_analytics_title">Analytics senden</string>
+    <string name="failed_to_change_setting">Einstellungen konnten nicht geändert werden</string>
+    <string name="settings_annotation_pause_duration">Schnell, Normal, Langsam</string>
+    <string name="share_preparing_toast">Sie werden benachrichtigt sobald die Videos zum Teilen bereit sind.</string>
+    <string name="settings_analytics_summary">Sende anonyme Statistiken über Ihr Benutzerverhalten um die App zu verbessern.</string>
+    <string name="settings_public_box_title">Öffentlicher Upload</string>
+    <string name="help_and_feedback">Hilfe &amp; Feedback</string>
+    <string name="public_layers_box_chosen_warning">Einstellungen geändert aber es wird immer noch eine öffentliche Layers Box benutzt. Möchten Sie stattdessen eine private URL auswählen?</string>
+    <string name="settings_annotation_pause_summary">Die Geschwindigkeit mit der Annotationen angezeigt werden</string>
+    <string name="settings_public_box_summary">Zu einer öffentlichen Layers Box verbinden (dies überschreibt die Layers Box URL Einstellung)</string>
+    <string name="select_invite_email">E-Mail-Adresse für Einladung auswählen</string>
+    <string name="only_public_layers_box_description">Derzeit wird nur die öffentliche Layers Box unterstützt.</string>
+    <string name="settings_playback">Wiedergabe</string>
+    <string name="manage_groups">Ihre Gruppen</string>
+    <string name="contact_has_no_email">Der ausgewählte Kontakt hat keine E-Mail gespeichert</string>
+    <string name="not_loggedin_share_nag">Sie müssen sich anmelden um Videos teilen zu können.</string>
+    <string name="warning">Warnung</string>
 
 </resources>

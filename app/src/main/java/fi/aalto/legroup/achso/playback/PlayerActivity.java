@@ -42,8 +42,10 @@ import fi.aalto.legroup.achso.authoring.VideoHelper;
 import fi.aalto.legroup.achso.browsing.DetailActivity;
 import fi.aalto.legroup.achso.entities.Annotation;
 import fi.aalto.legroup.achso.entities.Video;
+import fi.aalto.legroup.achso.storage.VideoRepository;
 import fi.aalto.legroup.achso.storage.local.ExportService;
 import fi.aalto.legroup.achso.utilities.RepeatingTask;
+import fi.aalto.legroup.achso.utilities.TranslationHelper;
 import fi.aalto.legroup.achso.views.MarkedSeekBar;
 
 /**
@@ -83,6 +85,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
     private Video video;
 
     private Uri intentFile;
+    private String intentType;
 
     private Handler controllerVisibilityHandler = new Handler();
     private SeekBarUpdater seekBarUpdater = new SeekBarUpdater();
@@ -95,6 +98,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
 
         Intent intent = this.getIntent();
         this.intentFile = intent.getData();
+        this.intentType = intent.getType();
 
         this.toolbar = (Toolbar) this.findViewById(R.id.toolbar);
 
@@ -129,19 +133,41 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
     protected void onResumeFragments() {
         super.onResumeFragments();
 
-        UUID videoId = null;
         if (this.intentFile != null) {
-            String filename = new File(this.intentFile.getPath()).getName();
-            VideoHelper.moveFile(this.intentFile, App.localStorageDirectory.getPath() + "/");
-            videoId = VideoHelper.unpackAchsoFile(filename);
-            App.videoInfoRepository.invalidateAll();
+            if (this.intentFile.getScheme().equals("file")) {
+                String filename = new File(this.intentFile.getPath()).getName();
+                VideoHelper.moveFile(this.intentFile, App.localStorageDirectory.getPath() + "/");
+                UUID videoId = VideoHelper.unpackAchsoFile(filename);
+                loadVideo(videoId);
+                // We have created a new file in the local storage directory, so try to reload.
+                App.videoRepository.refreshOffline();
+            } else {
+                App.videoRepository.findVideoByVideoUri(this.intentFile, this.intentType, new FindVideoCallback());
+            }
         } else {
-            videoId = (UUID) getIntent().getSerializableExtra(ARG_VIDEO_ID);
+            loadVideo((UUID) getIntent().getSerializableExtra(ARG_VIDEO_ID));
+        }
+    }
+
+    protected class FindVideoCallback implements VideoRepository.VideoCallback {
+
+        @Override
+        public void found(Video video) {
+            loadVideo(video);
         }
 
+        @Override
+        public void notFound() {
+            SnackbarManager.show(Snackbar.with(PlayerActivity.this).text(R.string.video_find_error));
+            finish();
+        }
+    }
+
+    protected void loadVideo(UUID videoId) {
+        Video video;
         try {
             video = App.videoRepository.getVideo(videoId).inflate();
-            populateVideoInformation();
+
         } catch (IOException e) {
             e.printStackTrace();
             SnackbarManager.show(Snackbar.with(this).text(R.string.storage_error));
@@ -149,11 +175,19 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
             return;
         }
 
+        loadVideo(video);
+    }
+
+    protected void loadVideo(Video video) {
+
+        this.video = video;
+
+        populateVideoInformation();
         playerFragment = (PlayerFragment)
                 getFragmentManager().findFragmentById(R.id.videoPlayerFragment);
 
         playerFragment.setListener(this);
-        playerFragment.prepare(video.getVideoUri(), this);
+        playerFragment.prepare(video, this);
     }
 
     @Override
@@ -206,8 +240,10 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
     }
 
     private void populateVideoInformation() {
+        TranslationHelper translationHelper = TranslationHelper.get(this);
+
         toolbar.setTitle(video.getTitle());
-        toolbar.setSubtitle(video.getGenre());
+        toolbar.setSubtitle(translationHelper.getGenreText(video.getGenre()));
     }
 
     private void refreshAnnotations() {

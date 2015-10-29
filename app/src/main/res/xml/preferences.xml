@@ -14,6 +14,12 @@
             android:summary="@string/settings_annotation_pause_summary"
             android:title="@string/settings_annotation_pause_title" />
 
+        <android.preference.SwitchPreference
+            android:defaultValue="true"
+            android:key="USE_PUBLIC_LAYERS_BOX"
+            android:summary="@string/settings_public_box_summary"
+            android:title="@string/settings_public_box_title" />
+
         <com.afollestad.materialdialogs.prefs.MaterialEditTextPreference
             android:defaultValue="@string/layersBoxUrl"
             android:inputType="textUri"

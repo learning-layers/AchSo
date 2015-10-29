@@ -13,6 +13,9 @@ import android.view.MenuItem;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.Nonnull;
@@ -20,8 +23,6 @@ import javax.annotation.Nonnull;
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.OptimizedVideo;
-import fi.aalto.legroup.achso.storage.VideoInfoRepository.FindResult;
-import fi.aalto.legroup.achso.storage.VideoInfoRepository.FindResults;
 
 public final class SearchActivity extends ActionBarActivity {
 
@@ -114,27 +115,30 @@ public final class SearchActivity extends ActionBarActivity {
      * Searches all videos for a match against the given query.
      */
     private void queryVideos(String query) {
-        FindResults results;
+        Collection<OptimizedVideo> allVideos;
 
         try {
-            results = App.videoInfoRepository.getAll();
+            allVideos = App.videoInfoRepository.getAll();
         } catch (IOException e) {
             e.printStackTrace();
             return;
         }
 
-        FindResults matching = new FindResults(new ArrayList<FindResult>(results.size()));
-        for (FindResult result : results) {
-            try {
-                if (isMatch(result.getId(), query)) {
-                    matching.add(result);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+        List<OptimizedVideo> matching = new ArrayList<>(allVideos.size());
+        for (OptimizedVideo video : allVideos) {
+            if (isMatch(video, query)) {
+                matching.add(video);
             }
         }
 
-        this.matches.addAll(matching.sortDescending().getIDs());
+        // TODO: Better sorting?
+        Collections.sort(matching,
+                Collections.reverseOrder(new OptimizedVideo.CreateTimeComparator()));
+
+        // TODO: General toIds?
+        for (OptimizedVideo match : matching) {
+            this.matches.add(match.getId());
+        }
         this.browserFragment.setVideos(this.matches);
     }
 
@@ -143,8 +147,7 @@ public final class SearchActivity extends ActionBarActivity {
      * checking cached information objects for matches first before loading entire videos and their
      * annotations.
      */
-    private boolean isMatch(UUID id, String query) throws IOException {
-        OptimizedVideo video = App.videoInfoRepository.getVideo(id);
+    private boolean isMatch(OptimizedVideo video, String query) {
 
         if (query.equals(video.getTag())) {
             return true;

@@ -13,7 +13,6 @@ import com.squareup.okhttp.MultipartBuilder;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
-import com.squareup.otto.Bus;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,16 +20,16 @@ import java.net.URLConnection;
 
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.Video;
+import fi.aalto.legroup.achso.storage.remote.upload.VideoUploader;
 
 /**
  * Uploads raw videos to the Cloud Video Transcoder.
  */
-public class ClViTra2Strategy extends Strategy {
+public class ClViTra2Strategy implements VideoUploader {
 
     private Uri endpointUrl;
 
-    public ClViTra2Strategy(Bus bus, Uri endpointUrl) {
-        super(bus);
+    public ClViTra2Strategy(Uri endpointUrl) {
         this.endpointUrl = App.getLayersServiceUrl(endpointUrl);
     }
 
@@ -38,26 +37,18 @@ public class ClViTra2Strategy extends Strategy {
      * Uploads the data of a video in a blocking fashion.
      *
      * @param video Video whose data will be uploaded
-     * @throws Exception On failure, with a user-friendly error message.
+     * @throws IOException On failure, with a user-friendly error message.
      */
     @Override
-    public void handle(final Video video) throws Exception {
+    public VideoUploadResult uploadVideo(Video video) throws IOException {
         try {
-            uploadVideo(video);
+            return doUploadVideo(video);
         } catch (Exception e) {
-            throw new Exception("Couldn't upload to ClViTra: " + e.getMessage(), e);
+            throw new IOException("Couldn't upload to ClViTra: " + e.getMessage(), e);
         }
     }
 
-    /**
-     * Returns true if the chain should be broken when this strategy fails, false otherwise.
-     */
-    @Override
-    protected boolean isCritical() {
-        return true;
-    }
-
-    private void uploadVideo(Video video) throws Exception {
+    private VideoUploadResult doUploadVideo(Video video) throws Exception {
         File videoFile = new File(video.getVideoUri().getPath());
 
         String extension = Files.getFileExtension(videoFile.getName());
@@ -103,12 +94,11 @@ public class ClViTra2Strategy extends Strategy {
             Uri videoUri = Uri.parse(videoDetails.get("Video_URL").getAsString());
             // Uri thumbUri = Uri.parse(videoDetails.get("Thumbnail_URL").getAsString());
 
-            video.setVideoUri(videoUri);
+            // video.setVideoUri(videoUri);
             // video.setThumbUri(thumbUri);
+            
+            return new VideoUploadResult(videoUri);
 
-            if (!video.save()) {
-                throw new IOException("Error saving video.");
-            }
         } else {
             throw new IOException(response.code() + " " + response.message());
         }
@@ -153,4 +143,9 @@ public class ClViTra2Strategy extends Strategy {
         return video;
     }
 
+    @Override
+    public void deleteVideo(Video video) {
+
+        // TODO?
+    }
 }

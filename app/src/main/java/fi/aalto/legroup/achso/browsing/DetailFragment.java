@@ -16,9 +16,9 @@ import com.nispok.snackbar.Snackbar;
 import com.nispok.snackbar.SnackbarManager;
 
 import fi.aalto.legroup.achso.R;
-import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.authoring.GenreDialogFragment;
 import fi.aalto.legroup.achso.entities.Video;
+import fi.aalto.legroup.achso.utilities.TranslationHelper;
 
 public final class DetailFragment extends Fragment {
 
@@ -101,8 +101,10 @@ public final class DetailFragment extends Fragment {
             uploaded = getString(R.string.no);
         }
 
+        TranslationHelper translationHelper = TranslationHelper.get(getActivity());
+
         titleField.setText(video.getTitle());
-        genreField.setText(video.getGenre());
+        genreField.setText(translationHelper.getGenreText(video.getGenre()));
         creatorField.setText(authorName);
         qrCodeField.setText(qrCode);
         uploadedField.setText(uploaded);
@@ -126,8 +128,6 @@ public final class DetailFragment extends Fragment {
 
                         video.setTitle(title);
 
-                        App.videoInfoRepository.invalidate(video.getId());
-
                         if (!video.save()) {
                             SnackbarManager.show(
                                     Snackbar.with(getActivity()).text(R.string.storage_error));
@@ -146,8 +146,6 @@ public final class DetailFragment extends Fragment {
             @Override
             public void onGenreSelected(String genre) {
                 video.setGenre(genre);
-
-                App.videoInfoRepository.invalidate(video.getId());
 
                 if (!video.save()) {
                     SnackbarManager.show(Snackbar.with(getActivity()).text(R.string.storage_error));

@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.nispok.snackbar.Snackbar;
+import com.nispok.snackbar.SnackbarManager;
 
 import java.io.IOException;
 import java.util.List;
@@ -58,6 +60,8 @@ public final class VideoDeletionFragment extends DialogFragment {
             App.videoRepository.delete(videoId);
         } catch (IOException e) {
             e.printStackTrace();
+            SnackbarManager.show(
+                Snackbar.with(getActivity()).text(e.getMessage()));
         }
     }
 

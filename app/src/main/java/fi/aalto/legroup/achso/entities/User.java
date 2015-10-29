@@ -12,20 +12,30 @@ public class User implements JsonSerializable, Parcelable {
 
     protected String name;
     protected Uri uri;
+    protected String id;
 
     @SuppressWarnings("UnusedDeclaration")
     private User() {
         // For serialization
+        this.id = "";
+    }
+
+    public User(String name, Uri uri, String id) {
+        this.name = name;
+        this.uri = uri;
+        this.id = id;
     }
 
     public User(String name, Uri uri) {
         this.name = name;
         this.uri = uri;
+        this.id = "";
     }
 
     protected User(Parcel parcel) {
         this.name = parcel.readString();
         this.uri = (Uri) parcel.readValue(Uri.class.getClassLoader());
+        this.id = parcel.readString();
     }
 
     public String getName() {
@@ -44,6 +54,14 @@ public class User implements JsonSerializable, Parcelable {
         this.uri = uri;
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof User)) {
@@ -54,12 +72,13 @@ public class User implements JsonSerializable, Parcelable {
         }
 
         User other = (User) obj;
-        return Objects.equal(name, other.name) && Objects.equal(uri, other.uri);
+        return Objects.equal(name, other.name) && Objects.equal(uri, other.uri)
+                && Objects.equal(id, other.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(name, uri);
+        return Objects.hashCode(name, uri, id);
     }
 
     @Override
@@ -71,6 +90,7 @@ public class User implements JsonSerializable, Parcelable {
     public void writeToParcel(Parcel parcel, int flags) {
         parcel.writeString(this.name);
         parcel.writeValue(this.uri);
+        parcel.writeValue(this.id);
     }
 
     public static final Creator<User> CREATOR = new Creator<User>() {
