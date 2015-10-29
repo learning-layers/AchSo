@@ -112,8 +112,7 @@ public class AchRailsStrategy implements VideoHost {
 
     @Override
     public Video uploadVideoManifest(Video video) throws IOException {
-
-        // TODO: If-Match support
+        
         Request.Builder requestBuilder = buildVideosRequest(video.getId());
 
         String serializedVideo = serializer.write(video);
