@@ -63,6 +63,10 @@ public class CombinedVideoRepository implements VideoRepository {
 
     private List<UUID> getCacheIds() {
         String[] entries = cacheRoot.list();
+        if (entries == null) {
+            return Collections.emptyList();
+        }
+
         ArrayList<UUID> results = new ArrayList<>(entries.length);
 
         for (String entry : entries) {
@@ -127,6 +131,15 @@ public class CombinedVideoRepository implements VideoRepository {
         bus.post(new VideoRepositoryUpdatedEvent(this));
     }
 
+    private File[] safeListFiles(File root, FilenameFilter filter) {
+        File[] files = root.listFiles(filter);
+        if (files != null) {
+            return files;
+        } else {
+            return new File[0];
+        }
+    }
+
     /**
      * Add a host to the repository to sync to.
      */
@@ -170,7 +183,7 @@ public class CombinedVideoRepository implements VideoRepository {
         List<OptimizedVideo> videos = new ArrayList<>();
 
         // Add the local videos
-        File[] localFiles = localRoot.listFiles(new ManifestFileFilter());
+        File[] localFiles = safeListFiles(localRoot, new ManifestFileFilter());
         for (File file : localFiles) {
 
             OptimizedVideo video = tryLoadOrReUseVideo(file, getIdFromFile(file));
@@ -246,7 +259,7 @@ public class CombinedVideoRepository implements VideoRepository {
 
         // Add the local videos
         // TODO: These can be cached
-        File[] localFiles = localRoot.listFiles(new ManifestFileFilter());
+        File[] localFiles = safeListFiles(localRoot, new ManifestFileFilter());
         for (File file : localFiles) {
 
             OptimizedVideo localVideo = tryLoadOrReUseVideo(file, getIdFromFile(file));
