@@ -99,6 +99,17 @@ public final class App extends MultiDexApplication
         File cacheVideoDirectory = new File(localStorageDirectory, "cache");
         cacheVideoDirectory.mkdirs();
 
+        if (!cacheVideoDirectory.isDirectory()) {
+            // If the cache directory can't be created use internal App storage
+            // There is a slim chance that the user saves some modified videos to the internal
+            // storage and then inserts and SD card causing videos not to be uploaded, but it
+            // doesn't seem worth the trouble.
+
+            File internalDataDirectory = new File(getApplicationInfo().dataDir);
+            cacheVideoDirectory = new File(internalDataDirectory, "manifestcache");
+            cacheVideoDirectory.mkdirs();
+        }
+
         CombinedVideoRepository combinedRepository = new CombinedVideoRepository(bus, jsonSerializer,
                 localStorageDirectory, cacheVideoDirectory);
 
