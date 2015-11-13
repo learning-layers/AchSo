@@ -6,7 +6,7 @@
         android:id="@+id/action_share"
         android:icon="@drawable/ic_share_variant_white_24dp"
         android:title="@string/video_share"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="never" />
 
     <item
         android:id="@+id/action_view_video_info"

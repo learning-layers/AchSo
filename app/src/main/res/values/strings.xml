@@ -15,13 +15,13 @@
 
     <string name="my_videos">All videos</string>
     <string name="record">Record new video</string>
-    <string name="read_qr_code">Search by QR code</string>
+    <string name="read_qr_code">QR search</string>
     <string name="title_activity_information">Video information</string>
     <string name="genre_selection_title">What kind of video is this?</string>
     <string name="delete">Delete</string>
     <string name="upload">Upload</string>
     <string name="qr_to_video">Add QR code</string>
-    <string name="view_video_info">Show details</string>
+    <string name="view_video_info">Details</string>
     <string name="deletion_title">Video deletion</string>
     <string name="deletion_question">Delete the selected videos and their annotations?</string>
     <string name="storage_error">Could not access video storage.</string>
