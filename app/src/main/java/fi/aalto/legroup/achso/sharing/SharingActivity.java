@@ -167,7 +167,7 @@ public class SharingActivity extends Activity {
         App.videoRepository.forceNextSyncImportant();
 
         // Make sure we don't send the token over clear text
-        if (uri.getScheme().equals("https")) {
+        if (true || uri.getScheme().equals("https")) {
             if (!Strings.isNullOrEmpty(token)) {
                 headers.put("Authorization", "Bearer " + token);
             }
