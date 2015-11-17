@@ -3,14 +3,18 @@ package fi.aalto.legroup.achso.browsing;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.SearchManager;
+import android.Manifest;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.SearchView;
@@ -61,6 +65,8 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
 
     private static final int REQUEST_RECORD_VIDEO = 1;
     private static final int REQUEST_CHOOSE_VIDEO = 2;
+
+     private static final int ACHSO_USE_CAMERA = 3;
 
     private static final String STATE_VIDEO_BUILDER = "STATE_VIDEO_BUILDER";
 
@@ -247,7 +253,7 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
 
         switch (id) {
             case R.id.fab:
-                recordVideo();
+                startRecording();
                 break;
         }
     }
@@ -282,6 +288,16 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
                 .start();
     }
 
+    private void startRecording() {
+        int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
+
+        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA}, ACHSO_USE_CAMERA);
+        } else {
+            recordVideo();
+        }
+    }
+
     private void recordVideo() {
         App.locationManager.startLocationUpdates();
 
@@ -295,16 +311,16 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
         // a URI.
         videoBuilder.setVideoUri(videoUri);
 
-        Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+            Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
 
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, videoUri);
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, videoUri);
 
-        try {
-            startActivityForResult(intent, REQUEST_RECORD_VIDEO);
-        } catch (ActivityNotFoundException e) {
-            // TODO: Offer alternatives
-            showSnackbar("No camera app is installed.");
-        }
+            try {
+                startActivityForResult(intent, REQUEST_RECORD_VIDEO);
+            } catch (ActivityNotFoundException e) {
+                // TODO: Offer alternatives
+                showSnackbar("No camera app is installed.");
+            }
     }
 
     private void chooseVideo() {
@@ -438,6 +454,22 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
         // VideoRefreshLayout#canChildScrollUp). This is kept here in case pull to refresh is
         // implemented later.
         SyncService.syncWithCloudStorage(this);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case ACHSO_USE_CAMERA: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                 recordVideo();
+                } else {
+                    return;
+                }
+            }
+        }
+
     }
 
     /**
