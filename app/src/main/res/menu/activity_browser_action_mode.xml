@@ -11,9 +11,16 @@
 
     <item
         android:id="@+id/action_upload"
-        android:icon="@drawable/ic_group_white_24dp"
+        android:icon="@drawable/ic_cloud_upload_white_24dp"
         android:title="@string/upload"
         app:showAsAction="ifRoom|withText" />
+
+    <item
+        android:id="@+id/action_share_to_group"
+        android:icon="@drawable/ic_group_white_24dp"
+        android:title="@string/video_share"
+        app:showAsAction="ifRoom|withText" />
+
 
     <item
         android:id="@+id/action_qr_to_video"

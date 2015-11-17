@@ -132,6 +132,20 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
 
     @Override
     public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+
+        MenuItem upload_menu_item = menu.findItem(R.id.action_upload);
+        MenuItem share_menu_item = menu.findItem(R.id.action_share_to_group);
+        if (App.loginManager.isLoggedIn()) {
+            upload_menu_item.setEnabled(true);
+            share_menu_item.setEnabled(true);
+            upload_menu_item.getIcon().setAlpha(255);
+            share_menu_item.getIcon().setAlpha(255);
+        } else {
+            upload_menu_item.setEnabled(false);
+            share_menu_item.setEnabled(false);
+            upload_menu_item.getIcon().setAlpha(130);
+            share_menu_item.getIcon().setAlpha(130);
+        }
         return true;
     }
 
@@ -156,28 +170,35 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
 
             case R.id.action_upload:
                 {
-                    boolean hasLocal = false;
                     List<UUID> selection = getSelection();
-                    for (UUID id : selection) {
-                        try {
-                            OptimizedVideo video = App.videoRepository.getVideo(selection.get(0));
-                            if (video.isLocal()) {
-                                hasLocal = true;
-                                break;
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    if (!hasLocal) {
-                        SharingActivity.openShareActivity(getActivity(), selection);
-                    } else {
-                        UploadService.upload(getActivity(), selection);
-                    }
+                    UploadService.upload(getActivity(), selection);
                     mode.finish();
                     return true;
                 }
+            case R.id.action_share_to_group:
+            {
+                // do the check again just in case that videos have changed state while the menu
+                // has been visible
+                boolean hasLocal = false;
+                List<UUID> selection = getSelection();
+                for (UUID id : selection) {
+                    try {
+                        OptimizedVideo video = App.videoRepository.getVideo(id);
+                        if (video.isLocal()) {
+                            hasLocal = true;
+                            break;
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (!hasLocal) {
+                    SharingActivity.openShareActivity(getActivity(), selection);
+                }
+                mode.finish();
+                return true;
+            }
+
 
             case R.id.action_view_video_info:
                 Intent informationIntent = new Intent(getActivity(), DetailActivity.class);
@@ -281,6 +302,35 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
         } else {
             String title = getResources().getQuantityString(R.plurals.select_count, count, count);
             this.actionMode.setTitle(title);
+            updateMenuItems();
+        }
+    }
+
+    private void updateMenuItems() {
+        Menu menu = this.actionMode.getMenu();
+        boolean hasLocal = false;
+        List<UUID> selection = getSelection();
+
+        for (UUID id : selection) {
+            try {
+                OptimizedVideo video = App.videoRepository.getVideo(id);
+                if (video.isLocal()) {
+                    hasLocal = true;
+                    break;
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        MenuItem upload_menu_item = menu.findItem(R.id.action_upload);
+        MenuItem share_menu_item = menu.findItem(R.id.action_share_to_group);
+        if (hasLocal) {
+            share_menu_item.setVisible(false);
+            upload_menu_item.setVisible(true);
+        } else {
+            share_menu_item.setVisible(true);
+            upload_menu_item.setVisible(false);
         }
     }
 

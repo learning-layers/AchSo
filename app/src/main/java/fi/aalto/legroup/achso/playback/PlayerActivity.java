@@ -207,10 +207,15 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
             case android.R.id.home:
                 finish();
                 return true;
-
+            /*
             case R.id.action_share:
                 ExportService.export(this, video.getId());
                 return true;
+
+            case R.id.action_upload:
+                return true;
+
+            */
 
             case R.id.action_view_video_info:
                 Intent informationIntent = new Intent(this, DetailActivity.class);
