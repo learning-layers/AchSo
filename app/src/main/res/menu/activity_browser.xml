@@ -11,15 +11,14 @@
         app:showAsAction="collapseActionView|ifRoom|withText" />
 
     <item
-        android:id="@+id/action_read_qrcode"
-        android:icon="@drawable/ic_qrcode_white_24dp"
-        android:title="@string/read_qr_code"
-        app:showAsAction="ifRoom|withText" />
-
-    <item
         android:id="@+id/action_manage_groups"
         android:icon="@drawable/ic_group_white_24dp"
         android:title="@string/manage_groups"
+        app:showAsAction="ifRoom|withText" />
+
+    <item
+        android:id="@+id/action_login"
+        android:title="@string/login"
         app:showAsAction="ifRoom|withText" />
 
     <item
@@ -29,18 +28,19 @@
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/action_logout"
-        android:title="@string/logout"
+        android:id="@+id/action_read_qrcode"
+        android:icon="@drawable/ic_qrcode_white_24dp"
+        android:title="@string/read_qr_code"
         app:showAsAction="never" />
-
-    <item
-        android:id="@+id/action_login"
-        android:title="@string/login"
-        app:showAsAction="ifRoom|withText" />
 
     <item
         android:id="@+id/action_settings"
         android:title="@string/settings"
         app:showAsAction="never|withText" />
+
+    <item
+        android:id="@+id/action_logout"
+        android:title="@string/logout"
+        app:showAsAction="never" />
 
 </menu>

@@ -2,11 +2,12 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item
-        android:id="@+id/action_share"
-        android:icon="@drawable/ic_share_variant_white_24dp"
-        android:title="@string/video_share"
-        app:showAsAction="never" />
+    <!--<item
+        android:id="@+id/action_upload"
+        android:icon="@drawable/ic_group_white_24dp"
+        android:title="@string/upload"
+        app:showAsAction="ifRoom|withText" />
+        -->
 
     <item
         android:id="@+id/action_view_video_info"
