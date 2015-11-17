@@ -69,6 +69,8 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
 
     private static final int ACHSO_USE_CAMERA = 3;
     private static final int ACHSO_ACCESS_LOCATION = 4;
+    private static final int ACHSO_READ_STORAGE = 5;
+    private static final int ACHSO_WRITE_STORAGE = 6;
 
     private static final String STATE_VIDEO_BUILDER = "STATE_VIDEO_BUILDER";
 
@@ -300,32 +302,40 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
         }
     }
 
+
     private void recordVideo() {
-        int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
-        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+
+        int locationCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+        if (locationCheck != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, ACHSO_ACCESS_LOCATION);
         } else {
-            App.locationManager.startLocationUpdates();
+            int fileWriteCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            if (fileWriteCheck != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, ACHSO_WRITE_STORAGE);
+            } else {
 
-            videoBuilder = VideoCreatorService.build();
+                App.locationManager.startLocationUpdates();
 
-            File videoFile = VideoCreatorService.getStorageVideoFile(videoBuilder);
-            Uri videoUri = Uri.fromFile(videoFile);
+                videoBuilder = VideoCreatorService.build();
 
-            // Some camera apps (looking at you, Samsung) don't return any data if the EXTRA_OUTPUT
-            // flag is set. The storage file is a good fallback in case the camera app doesn't give us
-            // a URI.
-            videoBuilder.setVideoUri(videoUri);
+                File videoFile = VideoCreatorService.getStorageVideoFile(videoBuilder);
+                Uri videoUri = Uri.fromFile(videoFile);
 
-            Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+                // Some camera apps (looking at you, Samsung) don't return any data if the EXTRA_OUTPUT
+                // flag is set. The storage file is a good fallback in case the camera app doesn't give us
+                // a URI.
+                videoBuilder.setVideoUri(videoUri);
 
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, videoUri);
+                Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
 
-            try {
-                startActivityForResult(intent, REQUEST_RECORD_VIDEO);
-            } catch (ActivityNotFoundException e) {
-                // TODO: Offer alternatives
-                showSnackbar("No camera app is installed.");
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, videoUri);
+
+                try {
+                    startActivityForResult(intent, REQUEST_RECORD_VIDEO);
+                } catch (ActivityNotFoundException e) {
+                    // TODO: Offer alternatives
+                    showSnackbar("No camera app is installed.");
+                }
             }
 
         }
@@ -466,28 +476,14 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case ACHSO_USE_CAMERA: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                 recordVideo();
-                } else {
-                    return;
-                }
-            }
-            case ACHSO_ACCESS_LOCATION:
-            {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    recordVideo();
-                } else {
-                    return;
-                }
+
+        if (requestCode == ACHSO_USE_CAMERA || requestCode == ACHSO_ACCESS_LOCATION
+                || requestCode == ACHSO_WRITE_STORAGE || requestCode == ACHSO_READ_STORAGE) {
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                recordVideo();
             }
         }
-
     }
 
     /**
