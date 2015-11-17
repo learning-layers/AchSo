@@ -59,6 +59,7 @@ import fi.aalto.legroup.achso.views.adapters.VideoTabAdapter;
  * Activity for browsing available videos.
  *
  * TODO: Extract video creation stuff into its own activity.
+ * TODO: Move fine location permission checking to somewhere where it makes more sense.
  */
 public final class BrowserActivity extends BaseActivity implements View.OnClickListener,
         ScrollDirectionListener, SwipeRefreshLayout.OnRefreshListener {
@@ -66,7 +67,8 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
     private static final int REQUEST_RECORD_VIDEO = 1;
     private static final int REQUEST_CHOOSE_VIDEO = 2;
 
-     private static final int ACHSO_USE_CAMERA = 3;
+    private static final int ACHSO_USE_CAMERA = 3;
+    private static final int ACHSO_ACCESS_LOCATION = 4;
 
     private static final String STATE_VIDEO_BUILDER = "STATE_VIDEO_BUILDER";
 
@@ -292,24 +294,28 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
         int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
 
         if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA}, ACHSO_USE_CAMERA);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, ACHSO_USE_CAMERA);
         } else {
             recordVideo();
         }
     }
 
     private void recordVideo() {
-        App.locationManager.startLocationUpdates();
+        int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, ACHSO_ACCESS_LOCATION);
+        } else {
+            App.locationManager.startLocationUpdates();
 
-        videoBuilder = VideoCreatorService.build();
+            videoBuilder = VideoCreatorService.build();
 
-        File videoFile = VideoCreatorService.getStorageVideoFile(videoBuilder);
-        Uri videoUri = Uri.fromFile(videoFile);
+            File videoFile = VideoCreatorService.getStorageVideoFile(videoBuilder);
+            Uri videoUri = Uri.fromFile(videoFile);
 
-        // Some camera apps (looking at you, Samsung) don't return any data if the EXTRA_OUTPUT
-        // flag is set. The storage file is a good fallback in case the camera app doesn't give us
-        // a URI.
-        videoBuilder.setVideoUri(videoUri);
+            // Some camera apps (looking at you, Samsung) don't return any data if the EXTRA_OUTPUT
+            // flag is set. The storage file is a good fallback in case the camera app doesn't give us
+            // a URI.
+            videoBuilder.setVideoUri(videoUri);
 
             Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
 
@@ -321,6 +327,8 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
                 // TODO: Offer alternatives
                 showSnackbar("No camera app is installed.");
             }
+
+        }
     }
 
     private void chooseVideo() {
@@ -464,6 +472,16 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                  recordVideo();
+                } else {
+                    return;
+                }
+            }
+            case ACHSO_ACCESS_LOCATION:
+            {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    recordVideo();
                 } else {
                     return;
                 }
