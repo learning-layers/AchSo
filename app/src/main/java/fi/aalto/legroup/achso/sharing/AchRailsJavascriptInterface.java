@@ -27,7 +27,23 @@ public class AchRailsJavascriptInterface {
 
     @JavascriptInterface
     public void openContactPicker() {
+        if (activity instanceof SharingActivity) {
+            SharingActivity sharingActivity = (SharingActivity) activity;
+
+            if (!sharingActivity.hasUserGrantedContactAccess()) {
+
+                sharingActivity.askForContactPermission();
+
+            } else {
+                startPickerIntent();
+            }
+        }
+        //startPickerIntent();
+    }
+
+    private void startPickerIntent() {
         Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
         activity.startActivityForResult(intent, CONTACT_PICK_CODE);
+
     }
 }

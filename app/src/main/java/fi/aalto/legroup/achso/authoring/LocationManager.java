@@ -1,8 +1,10 @@
 package fi.aalto.legroup.achso.authoring;
 
+import android.Manifest;
 import android.content.Context;
 import android.location.Location;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -49,6 +51,7 @@ public final class LocationManager implements GoogleApiClient.ConnectionCallback
 
     @Override
     public void onConnected(Bundle connectionHint) {
+
         LocationRequest locationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
