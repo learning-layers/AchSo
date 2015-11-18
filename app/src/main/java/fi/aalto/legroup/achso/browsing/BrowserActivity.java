@@ -293,8 +293,9 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
         int locationCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
         int fileWriteCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
-        if (cameraCheck != PackageManager.PERMISSION_GRANTED || locationCheck != PackageManager.PERMISSION_GRANTED
-                || fileWriteCheck != PackageManager.PERMISSION_GRANTED) {
+        if (cameraCheck != PackageManager.PERMISSION_GRANTED ||
+                locationCheck != PackageManager.PERMISSION_GRANTED ||
+                fileWriteCheck != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{
                     Manifest.permission.CAMERA,
                     Manifest.permission.ACCESS_FINE_LOCATION,
@@ -308,7 +309,9 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
 
     private void recordVideo() {
 
-        App.locationManager.startLocationUpdates();
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            App.locationManager.startLocationUpdates();
+        }
 
         videoBuilder = VideoCreatorService.build();
 
@@ -467,11 +470,17 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-
+        // We need all three permissions (Fine location, using the camera, writing to the filesystem
+        // Otherwise we just show a toast and exit.
         if (requestCode == ACH_SO_TAKE_VIDEO_PERM) {
-            if (grantResults.length > 0
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                recordVideo();
+            if (grantResults.length == 3) {
+                for (int i = 0; i < grantResults.length; i++) {
+                    if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
+                        showSnackbar(R.string.video_no_permissions);
+                        return;
+                    }
+                    recordVideo();
+                }
             } else {
                 showSnackbar(R.string.video_no_permissions);
             }
