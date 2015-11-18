@@ -330,7 +330,7 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
         try {
             startActivityForResult(intent, REQUEST_RECORD_VIDEO);
         } catch (ActivityNotFoundException e) {
-                // TODO: Offer alternatives
+            // TODO: Offer alternatives
             showSnackbar("No camera app is installed.");
         }
     }
