@@ -479,8 +479,8 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
                         showSnackbar(R.string.video_no_permissions);
                         return;
                     }
-                    recordVideo();
                 }
+                recordVideo();
             } else {
                 showSnackbar(R.string.video_no_permissions);
             }
