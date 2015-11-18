@@ -3,14 +3,18 @@ package fi.aalto.legroup.achso.browsing;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.SearchManager;
+import android.Manifest;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.SearchView;
@@ -55,6 +59,7 @@ import fi.aalto.legroup.achso.views.adapters.VideoTabAdapter;
  * Activity for browsing available videos.
  *
  * TODO: Extract video creation stuff into its own activity.
+ * TODO: Move fine location permission checking to somewhere where it makes more sense.
  */
 public final class BrowserActivity extends BaseActivity implements View.OnClickListener,
         ScrollDirectionListener, SwipeRefreshLayout.OnRefreshListener {
@@ -62,6 +67,7 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
     private static final int REQUEST_RECORD_VIDEO = 1;
     private static final int REQUEST_CHOOSE_VIDEO = 2;
 
+    private static final int ACH_SO_TAKE_VIDEO_PERM = 3;
     private static final String STATE_VIDEO_BUILDER = "STATE_VIDEO_BUILDER";
 
     private Bus bus;
@@ -247,7 +253,7 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
 
         switch (id) {
             case R.id.fab:
-                recordVideo();
+                startRecording();
                 break;
         }
     }
@@ -282,8 +288,30 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
                 .start();
     }
 
+    private void startRecording() {
+        int cameraCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
+        int locationCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+        int fileWriteCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+        if (cameraCheck != PackageManager.PERMISSION_GRANTED ||
+                locationCheck != PackageManager.PERMISSION_GRANTED ||
+                fileWriteCheck != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{
+                    Manifest.permission.CAMERA,
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+            }, ACH_SO_TAKE_VIDEO_PERM);
+        } else {
+            recordVideo();
+        }
+    }
+
+
     private void recordVideo() {
-        App.locationManager.startLocationUpdates();
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            App.locationManager.startLocationUpdates();
+        }
 
         videoBuilder = VideoCreatorService.build();
 
@@ -302,7 +330,7 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
         try {
             startActivityForResult(intent, REQUEST_RECORD_VIDEO);
         } catch (ActivityNotFoundException e) {
-            // TODO: Offer alternatives
+                // TODO: Offer alternatives
             showSnackbar("No camera app is installed.");
         }
     }
@@ -438,6 +466,25 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
         // VideoRefreshLayout#canChildScrollUp). This is kept here in case pull to refresh is
         // implemented later.
         SyncService.syncWithCloudStorage(this);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        // We need all three permissions (Fine location, using the camera, writing to the filesystem
+        // Otherwise we just show a toast and exit.
+        if (requestCode == ACH_SO_TAKE_VIDEO_PERM) {
+            if (grantResults.length == 3) {
+                for (int i = 0; i < grantResults.length; i++) {
+                    if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
+                        showSnackbar(R.string.video_no_permissions);
+                        return;
+                    }
+                    recordVideo();
+                }
+            } else {
+                showSnackbar(R.string.video_no_permissions);
+            }
+        }
     }
 
     /**
