@@ -25,6 +25,7 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.authentication.AuthenticatedHttpClient;
 import fi.aalto.legroup.achso.authentication.LoginManager;
 import fi.aalto.legroup.achso.authentication.LoginRequestEvent;
+import fi.aalto.legroup.achso.authentication.OIDCConfig;
 import fi.aalto.legroup.achso.authoring.LocationManager;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
 import fi.aalto.legroup.achso.storage.CombinedVideoRepository;
@@ -124,7 +125,12 @@ public final class App extends MultiDexApplication
         // Run migrations to update old videos.
         videoRepository.migrateVideos(this);
 
-        SyncService.syncWithCloudStorage(this);
+        OIDCConfig.retrieveOIDCTokens(new OIDCConfig.TokenCallback() {
+            @Override
+            public void tokensRetrieved() {
+                SyncService.syncWithCloudStorage(App.this);
+            }
+        });
 
         bus.post(new LoginRequestEvent(LoginRequestEvent.Type.LOGIN));
 

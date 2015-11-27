@@ -125,6 +125,7 @@ public final class AuthorizationActivity extends AccountAuthenticatorActivity {
             IdTokenResponse response;
 
             try {
+                OIDCConfig.retrieveOIDCTokensBlocking();
                 response = OIDCUtils.requestTokens(
                         OIDCConfig.getAuthorizationServerUrl(AuthorizationActivity.this),
                         OIDCConfig.getTokenServerUrl(AuthorizationActivity.this),
@@ -134,6 +135,10 @@ public final class AuthorizationActivity extends AccountAuthenticatorActivity {
                         authToken);
             } catch (IOException e) {
                 Log.e(TAG, "Could not get token response.");
+                e.printStackTrace();
+                return false;
+            } catch (OIDCNotReadyException e) {
+                Log.e(TAG, "OIDC not ready.");
                 e.printStackTrace();
                 return false;
             }

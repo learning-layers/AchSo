@@ -32,8 +32,8 @@ public final class SettingsFragment extends PreferenceFragment
         Preference layersBoxUrlField = findPreference(LAYERS_BOX_URL);
         Preference publicLayersBoxSwitch = findPreference(USE_PUBLIC_LAYERS_BOX);
 
-        // @Hack(public only)
-        ((SwitchPreference)publicLayersBoxSwitch).setChecked(true);
+        // @Hack(public only) DEMO HACK!!!!
+        ((SwitchPreference)publicLayersBoxSwitch).setChecked(false);
 
         aboutButton.setOnPreferenceClickListener(this);
         feedbackButton.setOnPreferenceClickListener(this);
@@ -55,7 +55,8 @@ public final class SettingsFragment extends PreferenceFragment
                 return true;
 
             case USE_PUBLIC_LAYERS_BOX:
-                tempShowPublicOnlyDialog();
+                // @Hack(public only) DEMO HACK!!!
+                // tempShowPublicOnlyDialog();
                 return false;
         }
 
@@ -69,13 +70,13 @@ public final class SettingsFragment extends PreferenceFragment
         switch (key) {
 
             case LAYERS_BOX_URL:
-                // @Hack(public only)
-                tempShowPublicOnlyDialog();
+                // @Hack(public only) DEMO HACK!!!
+                // tempShowPublicOnlyDialog();
                 return true;
 
             case USE_PUBLIC_LAYERS_BOX:
-                // @Hack(public only)
-                tempShowPublicOnlyDialog();
+                // @Hack(public only) DEMO HACK!!!
+                // tempShowPublicOnlyDialog();
                 return false;
         }
         return true;

@@ -55,12 +55,16 @@ public final class Authenticator extends AbstractAccountAuthenticator {
 
         Bundle result = new Bundle();
 
-        Intent intent = createIntentForAuthorization(response);
+        try {
+            Intent intent = createIntentForAuthorization(response);
 
-        // We're creating a new account, not just renewing our authorisation
-        intent.putExtra(AuthorizationActivity.KEY_IS_NEW_ACCOUNT, true);
+            // We're creating a new account, not just renewing our authorisation
+            intent.putExtra(AuthorizationActivity.KEY_IS_NEW_ACCOUNT, true);
 
-        result.putParcelable(AccountManager.KEY_INTENT, intent);
+            result.putParcelable(AccountManager.KEY_INTENT, intent);
+        } catch (OIDCNotReadyException e) {
+            e.printStackTrace();
+        }
 
         return result;
     }
@@ -86,12 +90,16 @@ public final class Authenticator extends AbstractAccountAuthenticator {
                 // to get us a new set of tokens by authorising us again.
 
                 Bundle result = new Bundle();
-                Intent intent = createIntentForAuthorization(response);
+                try {
+                    Intent intent = createIntentForAuthorization(response);
 
-                // Provide the account that we need re-authorised
-                intent.putExtra(AuthorizationActivity.KEY_ACCOUNT_OBJECT, account);
+                    // Provide the account that we need re-authorised
+                    intent.putExtra(AuthorizationActivity.KEY_ACCOUNT_OBJECT, account);
 
-                result.putParcelable(AccountManager.KEY_INTENT, intent);
+                    result.putParcelable(AccountManager.KEY_INTENT, intent);
+                } catch (OIDCNotReadyException e) {
+                    e.printStackTrace();
+                }
                 return result;
             } else {
                 // Got a refresh token, let's use it to get a fresh set of tokens
@@ -109,6 +117,9 @@ public final class Authenticator extends AbstractAccountAuthenticator {
                     accountManager.setAuthToken(account, TOKEN_TYPE_ID, tokenResponse.getIdToken());
                     accountManager.setAuthToken(account, TOKEN_TYPE_ACCESS, tokenResponse.getAccessToken());
                     accountManager.setAuthToken(account, TOKEN_TYPE_REFRESH, tokenResponse.getRefreshToken());
+                } catch (OIDCNotReadyException e) {
+                    Log.e(TAG, "OIDC was not prepared.");
+                    e.printStackTrace();
                 } catch (IOException e) {
                     // There's not much we can do if we get here
                     Log.e(TAG, "Couldn't refresh tokens.");
@@ -153,7 +164,7 @@ public final class Authenticator extends AbstractAccountAuthenticator {
     /**
      * Create an intent for showing the authorisation web page.
      */
-    private Intent createIntentForAuthorization(AccountAuthenticatorResponse response) {
+    private Intent createIntentForAuthorization(AccountAuthenticatorResponse response) throws OIDCNotReadyException {
         Intent intent = new Intent(context, AuthorizationActivity.class);
 
         // Generate a new authorisation URL
