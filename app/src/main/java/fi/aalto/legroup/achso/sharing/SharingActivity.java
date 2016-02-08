@@ -72,7 +72,7 @@ public class SharingActivity extends Activity {
 
     public static boolean openShareActivity(Context context, List<UUID> videoIds)
     {
-         Uri uri = Uri.parse(context.getString(R.string.achRailsUrl))
+         Uri uri = App.getAchRailsUrl(context)
                 .buildUpon()
                 .appendPath(getLanguageCode())
                 .appendPath("videos")
@@ -85,7 +85,7 @@ public class SharingActivity extends Activity {
 
     public static boolean openManageGroupsActivity(Context context)
     {
-        Uri uri = Uri.parse(context.getString(R.string.achRailsUrl))
+        Uri uri = App.getAchRailsUrl(context)
                 .buildUpon()
                 .appendPath(getLanguageCode())
                 .appendPath("groups")

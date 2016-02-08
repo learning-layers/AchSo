@@ -60,6 +60,8 @@ public final class App extends MultiDexApplication
     public static File localStorageDirectory;
 
     private static Uri layersBoxUrl;
+    private static Uri publicLayersBoxUrl;
+    private static boolean usePublicLayersBox;
 
     @Override
     public void onCreate() {
@@ -69,7 +71,10 @@ public final class App extends MultiDexApplication
 
         setupPreferences();
 
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         layersBoxUrl = readLayersBoxUrl();
+        usePublicLayersBox = preferences.getBoolean(AppPreferences.USE_PUBLIC_LAYERS_BOX, false);
+        publicLayersBoxUrl = Uri.parse(getString(R.string.publicLayersBoxUrl));
 
         bus = new AppBus();
 
@@ -115,7 +120,7 @@ public final class App extends MultiDexApplication
                 localStorageDirectory, cacheVideoDirectory);
 
         //combinedRepository.addHost(ownCloudStrategy);
-        combinedRepository.addHost(new AchRailsStrategy(jsonSerializer, Uri.parse(getString(R.string.achRailsUrl))));
+        combinedRepository.addHost(new AchRailsStrategy(jsonSerializer, getAchRailsUrl(this)));
 
         videoRepository = combinedRepository;
         videoInfoRepository = combinedRepository;
@@ -125,12 +130,7 @@ public final class App extends MultiDexApplication
         // Run migrations to update old videos.
         videoRepository.migrateVideos(this);
 
-        OIDCConfig.retrieveOIDCTokens(new OIDCConfig.TokenCallback() {
-            @Override
-            public void tokensRetrieved() {
-                SyncService.syncWithCloudStorage(App.this);
-            }
-        });
+        updateOIDCTokens(this);
 
         bus.post(new LoginRequestEvent(LoginRequestEvent.Type.LOGIN));
 
@@ -141,8 +141,28 @@ public final class App extends MultiDexApplication
         AppAnalytics.setup(this);
     }
 
+    public static void updateOIDCTokens(final Context context) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+
+        if (preferences.getBoolean(AppPreferences.USE_PUBLIC_LAYERS_BOX, false)) {
+            OIDCConfig.setTokens(context.getString(R.string.oidcClientId), context.getString(R.string.oidcClientSecret));
+            SyncService.syncWithCloudStorage(context);
+        } else {
+            OIDCConfig.retrieveOIDCTokens(context, new OIDCConfig.TokenCallback() {
+                @Override
+                public void tokensRetrieved() {
+                    SyncService.syncWithCloudStorage(context);
+                }
+            });
+        }
+    }
+
     public static Uri getLayersBoxUrl() {
-        return layersBoxUrl;
+        if (usePublicLayersBox) {
+            return publicLayersBoxUrl;
+        } else {
+            return layersBoxUrl;
+        }
     }
 
     public static Uri getLayersServiceUrl(String serviceUriString) {
@@ -150,7 +170,23 @@ public final class App extends MultiDexApplication
     }
 
     public static Uri getLayersServiceUrl(Uri serviceUri) {
-        return resolveRelativeUri(serviceUri, layersBoxUrl);
+        return resolveRelativeUri(serviceUri, getLayersBoxUrl());
+    }
+
+    public static Uri getAchRailsUrl(Context context) {
+        if (usePublicLayersBox) {
+            return getLayersServiceUrl(context.getString(R.string.publicAchRailsUrl));
+        } else {
+            return getLayersServiceUrl(context.getString(R.string.achRailsUrl));
+        }
+    }
+
+    public static Uri getAchsoStorageUrl(Context context) {
+        if (usePublicLayersBox) {
+            return getLayersServiceUrl(context.getString(R.string.publicAchsoStorageUrl));
+        } else {
+            return getLayersServiceUrl(context.getString(R.string.achsoStorageUrl));
+        }
     }
 
     /**
@@ -206,7 +242,7 @@ public final class App extends MultiDexApplication
         // TODO: Remove this
         String achsoStorageUrlString = getString(R.string.achsoStorageUrl);
         if (!Strings.isNullOrEmpty(achsoStorageUrlString)) {
-            UploadService.addUploader(new DumbPhpStrategy(Uri.parse(achsoStorageUrlString)));
+            UploadService.addUploader(new DumbPhpStrategy(getAchsoStorageUrl(this)));
         }
 
         Uri clViTra2Url = Uri.parse(getString(R.string.clvitra2Url));
@@ -267,6 +303,10 @@ public final class App extends MultiDexApplication
             case AppPreferences.ANALYTICS_OPT_IN:
                 boolean hasOptedIn = preferences.getBoolean(key, false);
                 GoogleAnalytics.getInstance(this).setAppOptOut(!hasOptedIn);
+                break;
+
+            case AppPreferences.USE_PUBLIC_LAYERS_BOX:
+                usePublicLayersBox = preferences.getBoolean(key, false);
                 break;
         }
     }

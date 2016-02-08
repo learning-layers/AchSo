@@ -106,7 +106,7 @@ public final class LoginManager {
      * automatic (e.g. connectivity lost) and not initiated by the user.
      */
     public void logout() {
-        setState(LoginState.LOGGED_OUT);
+        setState(LoginState.LOGGED_OUT, true);
     }
 
     public LoginState getState() {
@@ -147,16 +147,16 @@ public final class LoginManager {
      * Sets and broadcasts the login state.
      *
      * @param state the new login state
+     * @param notifyUser Whether to notify the user about this event
      */
-    protected void setState(LoginState state) {
+    protected void setState(LoginState state, boolean notifyUser) {
         this.state = state;
-
-        bus.post(produceLoginState());
+        bus.post(new LoginStateEvent(state, notifyUser));
     }
 
     @Produce
     public LoginStateEvent produceLoginState() {
-        return new LoginStateEvent(state);
+        return new LoginStateEvent(state, true);
     }
 
     @Subscribe
@@ -222,14 +222,14 @@ public final class LoginManager {
 
         @Override
         protected void onPreExecute() {
-            setState(LoginState.LOGGING_IN);
+            setState(LoginState.LOGGING_IN, false);
         }
 
         @Override
         protected void onPostExecute(String error) {
             if (error != null) {
                 bus.post(new LoginErrorEvent(error));
-                setState(LoginState.LOGGED_OUT);
+                setState(LoginState.LOGGED_OUT, false);
                 return;
             }
 
@@ -240,7 +240,7 @@ public final class LoginManager {
                     .putString(AppPreferences.AUTO_LOGIN_ACCOUNT, account.name)
                     .apply();
 
-            setState(LoginState.LOGGED_IN);
+            setState(LoginState.LOGGED_IN, true);
         }
 
     }

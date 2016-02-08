@@ -4,6 +4,7 @@ import android.accounts.Account;
 import android.accounts.AccountAuthenticatorActivity;
 import android.accounts.AccountManager;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -20,6 +21,7 @@ import java.io.IOException;
 import java.util.Set;
 
 import fi.aalto.legroup.achso.R;
+import fi.aalto.legroup.achso.app.App;
 
 /**
  * An Activity that is launched by the Authenticator for requesting authorisation from the user and
@@ -67,6 +69,7 @@ public final class AuthorizationActivity extends AccountAuthenticatorActivity {
         // Initialise the WebView
         WebView webView = (WebView) findViewById(R.id.WebView);
 
+        final Context context = this;
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageStarted(WebView view, String urlString, Bitmap favicon) {
@@ -85,7 +88,7 @@ public final class AuthorizationActivity extends AccountAuthenticatorActivity {
                     String authToken = url.getQueryParameter("code");
 
                     // Request the ID token
-                    RequestIdTokenTask task = new RequestIdTokenTask();
+                    RequestIdTokenTask task = new RequestIdTokenTask(context);
                     task.execute(authToken);
                 } else if (parameterNames.contains("error")) {
                     view.stopLoading();
@@ -119,13 +122,17 @@ public final class AuthorizationActivity extends AccountAuthenticatorActivity {
      * Requests the ID Token asynchronously.
      */
     private class RequestIdTokenTask extends AsyncTask<String, Void, Boolean> {
+        public RequestIdTokenTask(Context context) {
+            this.context = context;
+        }
+
         @Override
         protected Boolean doInBackground(String... args) {
             String authToken = args[0];
             IdTokenResponse response;
 
             try {
-                OIDCConfig.retrieveOIDCTokensBlocking();
+                OIDCConfig.retrieveOIDCTokensBlocking(context);
                 response = OIDCUtils.requestTokens(
                         OIDCConfig.getAuthorizationServerUrl(AuthorizationActivity.this),
                         OIDCConfig.getTokenServerUrl(AuthorizationActivity.this),
@@ -169,6 +176,8 @@ public final class AuthorizationActivity extends AccountAuthenticatorActivity {
                 showErrorDialog("Could not get ID Token.");
             }
         }
+
+        private Context context;
     }
 
     private void createAccount(IdTokenResponse response) {
@@ -209,7 +218,7 @@ public final class AuthorizationActivity extends AccountAuthenticatorActivity {
             accountName = userInfo.get("preferred_username").getAsString();
         }
 
-        account = new Account(String.format("%s (%s)", accountName, accountId), Authenticator.ACH_SO_ACCOUNT_TYPE);
+        account = new Account(String.format("%s (%s)", accountName, App.getLayersBoxUrl()), Authenticator.ACH_SO_ACCOUNT_TYPE);
         accountManager.addAccountExplicitly(account, null, null);
 
         // Store the tokens in the account

@@ -33,4 +33,8 @@ public final class AppPreferences {
      */
     public static final String ANALYTICS_OPT_IN = "ANALYTICS_OPT_IN";
 
+    /**
+     * Whether to use the public Layers servers or a private Box.
+     */
+    public static final String USE_PUBLIC_LAYERS_BOX = "USE_PUBLIC_LAYERS_BOX";
 }

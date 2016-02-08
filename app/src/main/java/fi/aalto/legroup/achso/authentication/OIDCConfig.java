@@ -43,6 +43,7 @@ public final class OIDCConfig {
 
     private static String clientId = null;
     private static String clientSecret = null;
+    private static int tokenVersion = 0;
 
     private OIDCConfig() {
         // Static access only
@@ -57,13 +58,14 @@ public final class OIDCConfig {
         public String client_secret;
     }
 
-    private static void setTokens(String newClientId, String newClientSecret) {
+    public static void setTokens(String newClientId, String newClientSecret) {
+        tokenVersion++;
         clientId = newClientId;
         clientSecret = newClientSecret;
     }
 
-    private static Request createRetrieveOIDCTokensRequest() {
-        Uri achrailsUrl = App.getLayersServiceUrl("/achrails");
+    private static Request createRetrieveOIDCTokensRequest(Context context) {
+        Uri achrailsUrl = App.getAchRailsUrl(context);
         Uri endpointUrl = achrailsUrl.buildUpon().appendPath("oidc_tokens").build();
 
         Request request = new Request.Builder()
@@ -78,8 +80,12 @@ public final class OIDCConfig {
         void tokensRetrieved();
     }
 
-    public static void retrieveOIDCTokens(final TokenCallback callback) {
-        Request request = createRetrieveOIDCTokensRequest();
+    public static void retrieveOIDCTokens(final Context context, final TokenCallback callback) {
+
+        tokenVersion++;
+        final int expectVersion = tokenVersion;
+
+        Request request = createRetrieveOIDCTokensRequest(context);
         App.httpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Request request, IOException e) {
@@ -88,6 +94,10 @@ public final class OIDCConfig {
 
             @Override
             public void onResponse(Response response) throws IOException {
+
+                if (tokenVersion != expectVersion)
+                    return;
+
                 OIDCTokenResponse tokens = App.jsonSerializer.read(OIDCTokenResponse.class, response.body().byteStream());
                 setTokens(tokens.client_id, tokens.client_secret);
                 callback.tokensRetrieved();
@@ -95,11 +105,11 @@ public final class OIDCConfig {
         });
     }
 
-    public static void retrieveOIDCTokensBlocking() throws IOException {
+    public static void retrieveOIDCTokensBlocking(final Context context) throws IOException {
         if (isReady())
             return;
 
-        Request request = createRetrieveOIDCTokensRequest();
+        Request request = createRetrieveOIDCTokensRequest(context);
         Response response = App.httpClient.newCall(request).execute();
         if (!response.isSuccessful()) throw new IOException("Failed to get tokens");
         OIDCTokenResponse tokens = App.jsonSerializer.read(OIDCTokenResponse.class, response.body().byteStream());
