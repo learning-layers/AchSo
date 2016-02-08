@@ -43,6 +43,7 @@ import fi.aalto.legroup.achso.authentication.LoginActivity;
 import fi.aalto.legroup.achso.authentication.LoginErrorEvent;
 import fi.aalto.legroup.achso.authentication.LoginRequestEvent;
 import fi.aalto.legroup.achso.authentication.LoginStateEvent;
+import fi.aalto.legroup.achso.authentication.OIDCConfig;
 import fi.aalto.legroup.achso.authoring.GenreDialogFragment;
 import fi.aalto.legroup.achso.authoring.QRHelper;
 import fi.aalto.legroup.achso.authoring.VideoCreatorService;
@@ -140,6 +141,10 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
         // notified. Double notification is alright in this case, since the action is idempotent)
         bus.register(this);
         bus.unregister(pendingListener);
+
+        if (!OIDCConfig.isReady()) {
+            App.updateOIDCTokens(this);
+        }
 
         // If we received a VideoRepositoryUpdatedEvent while paused handle it here
         if (pendingListener.hasRepositoryUpdated()) {
@@ -387,18 +392,21 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
 
     @Subscribe
     public void onLoginState(LoginStateEvent event) {
-        switch (event.getState()) {
-            case LOGGED_IN:
-                // TODO: Include user info in the event
-                String name = App.loginManager.getUserInfo().get("name").getAsString();
-                String welcome = getString(R.string.logged_in_as, name);
 
-                showSnackbar(welcome);
-                break;
+        if (event.shouldNotifyUser()) {
+            switch (event.getState()) {
+                case LOGGED_IN:
+                    // TODO: Include user info in the event
+                    String name = App.loginManager.getUserInfo().get("name").getAsString();
+                    String welcome = getString(R.string.logged_in_as, name);
 
-            case LOGGED_OUT:
-                showSnackbar(R.string.logged_out);
-                break;
+                    showSnackbar(welcome);
+                    break;
+
+                case LOGGED_OUT:
+                    showSnackbar(R.string.logged_out);
+                    break;
+            }
         }
 
         invalidateOptionsMenu();

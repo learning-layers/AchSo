@@ -7,9 +7,12 @@ import android.preference.SwitchPreference;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.google.gson.JsonObject;
+import com.squareup.otto.Bus;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
+import fi.aalto.legroup.achso.authentication.LoginRequestEvent;
+import fi.aalto.legroup.achso.authentication.OIDCConfig;
 import fi.aalto.legroup.achso.support.AboutDialogFragment;
 import fi.aalto.legroup.achso.support.FeedbackDialogFragment;
 
@@ -21,9 +24,13 @@ public final class SettingsFragment extends PreferenceFragment
     private static final String LAYERS_BOX_URL = "LAYERS_BOX_URL";
     private static final String USE_PUBLIC_LAYERS_BOX = "USE_PUBLIC_LAYERS_BOX";
 
+    private Bus bus;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        bus = App.bus;
 
         addPreferencesFromResource(R.xml.preferences);
 
@@ -31,9 +38,6 @@ public final class SettingsFragment extends PreferenceFragment
         Preference feedbackButton = findPreference(BUTTON_FEEDBACK);
         Preference layersBoxUrlField = findPreference(LAYERS_BOX_URL);
         Preference publicLayersBoxSwitch = findPreference(USE_PUBLIC_LAYERS_BOX);
-
-        // @Hack(public only)
-        ((SwitchPreference)publicLayersBoxSwitch).setChecked(true);
 
         aboutButton.setOnPreferenceClickListener(this);
         feedbackButton.setOnPreferenceClickListener(this);
@@ -55,7 +59,6 @@ public final class SettingsFragment extends PreferenceFragment
                 return true;
 
             case USE_PUBLIC_LAYERS_BOX:
-                tempShowPublicOnlyDialog();
                 return false;
         }
 
@@ -69,14 +72,10 @@ public final class SettingsFragment extends PreferenceFragment
         switch (key) {
 
             case LAYERS_BOX_URL:
-                // @Hack(public only)
-                tempShowPublicOnlyDialog();
-                return true;
-
             case USE_PUBLIC_LAYERS_BOX:
-                // @Hack(public only)
-                tempShowPublicOnlyDialog();
-                return false;
+                bus.post(new LoginRequestEvent(LoginRequestEvent.Type.EXPLICIT_LOGOUT));
+                OIDCConfig.setTokens(null, null);
+                return true;
         }
         return true;
     }

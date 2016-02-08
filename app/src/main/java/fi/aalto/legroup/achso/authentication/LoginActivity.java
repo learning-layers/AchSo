@@ -4,12 +4,16 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
+
+import java.io.IOException;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
@@ -30,58 +34,80 @@ public final class LoginActivity extends Activity {
         }
     }
 
+    private void createAccount() {
+        final AccountManager accountManager = AccountManager.get(this);
+        String accountType = Authenticator.ACH_SO_ACCOUNT_TYPE;
+
+        accountManager.addAccount(accountType, Authenticator.TOKEN_TYPE_ID, null, null,
+                this, new AccountManagerCallback<Bundle>() {
+                    @Override
+                    public void run(AccountManagerFuture<Bundle> futureManager) {
+                        // Give up if the account creation was cancelled.
+                        if (futureManager.isCancelled()) {
+                            finish();
+                            return;
+                        }
+
+                        // Try to log in with the account that was returned in the bundle.
+                        try {
+                            Bundle result = futureManager.getResult();
+                            String accountType = Authenticator.ACH_SO_ACCOUNT_TYPE;
+                            String accountName = result.getString(AccountManager.KEY_ACCOUNT_NAME);
+                            if (accountName != null) {
+                                final Account availableAccounts[] = accountManager.getAccountsByType(accountType);
+                                for (Account account : availableAccounts) {
+                                    if (accountName.equals(account.name)) {
+                                        finish();
+                                        App.loginManager.login(account);
+                                        return;
+                                    }
+                                }
+                            }
+                        } catch (OperationCanceledException | IOException | AuthenticatorException e) {
+                            e.printStackTrace();
+                        }
+
+                        // Present the login screen again if it failed.
+                        doLogin();
+                    }
+                }, null);
+    }
+
     private void doLogin() {
         AccountManager accountManager = AccountManager.get(this);
         String accountType = Authenticator.ACH_SO_ACCOUNT_TYPE;
 
         final Account availableAccounts[] = accountManager.getAccountsByType(accountType);
 
-        switch (availableAccounts.length) {
-            // No account has been created, let's create one now
-            case 0:
-                accountManager.addAccount(accountType, Authenticator.TOKEN_TYPE_ID, null, null,
-                        this, new AccountManagerCallback<Bundle>() {
-                            @Override
-                            public void run(AccountManagerFuture<Bundle> futureManager) {
-                                // Unless the account creation was cancelled, try logging in again
-                                // after the account has been created.
-                                if (futureManager.isCancelled()) {
-                                    finish();
-                                    return;
-                                }
+        if (availableAccounts.length > 0) {
 
-                                doLogin();
-                            }
-                        }, null);
-                break;
+            String name[] = new String[availableAccounts.length + 1];
+            for (int i = 0; i < availableAccounts.length; i++) {
+                name[i] = availableAccounts[i].name;
+            }
+            name[availableAccounts.length] = getString(R.string.login_with_another);
 
-            // There's just one account, let's use that
-            case 1:
-                App.loginManager.login(availableAccounts[0]);
-                finish();
-                break;
-
-            // Multiple accounts, let the user pick one
-            default:
-                String name[] = new String[availableAccounts.length];
-
-                for (int i = 0; i < availableAccounts.length; i++) {
-                    name[i] = availableAccounts[i].name;
-                }
-
-                new AlertDialog.Builder(this)
-                        .setTitle(R.string.choose_account)
-                        .setAdapter(new ArrayAdapter<>(this,
-                                        android.R.layout.simple_list_item_1, name),
-                                new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int selectedAccount) {
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.choose_account)
+                    .setAdapter(new ArrayAdapter<>(this,
+                                    android.R.layout.simple_list_item_1, name),
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int selectedAccount) {
+                                    if (selectedAccount < availableAccounts.length) {
                                         App.loginManager.login(availableAccounts[selectedAccount]);
                                         finish();
+                                    } else {
+                                        createAccount();
                                     }
-                                })
-                        .create()
-                        .show();
+
+                                }
+                            })
+                    .create()
+                    .show();
+        } else {
+            // Always present the login screen when there is no account
+            createAccount();
         }
     }
 
