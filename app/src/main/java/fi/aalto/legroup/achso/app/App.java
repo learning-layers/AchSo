@@ -54,6 +54,7 @@ public final class App extends MultiDexApplication
 
     public static JsonSerializer jsonSerializer;
 
+    private static CombinedVideoRepository combinedRepository;
     public static VideoRepository videoRepository;
     public static VideoInfoRepository videoInfoRepository;
 
@@ -89,8 +90,6 @@ public final class App extends MultiDexApplication
 
         jsonSerializer = new JsonSerializer();
 
-        setupUploaders();
-
         // TODO: The instantiation of repositories should be abstracted further.
         // That would allow for multiple repositories.
         File mediaDirectory =
@@ -116,14 +115,13 @@ public final class App extends MultiDexApplication
             cacheVideoDirectory.mkdirs();
         }
 
-        CombinedVideoRepository combinedRepository = new CombinedVideoRepository(bus, jsonSerializer,
+        combinedRepository = new CombinedVideoRepository(bus, jsonSerializer,
                 localStorageDirectory, cacheVideoDirectory);
-
-        //combinedRepository.addHost(ownCloudStrategy);
-        combinedRepository.addHost(new AchRailsStrategy(jsonSerializer, getAchRailsUrl(this)));
 
         videoRepository = combinedRepository;
         videoInfoRepository = combinedRepository;
+
+        setupUploaders(this);
 
         videoRepository.refreshOffline();
 
@@ -236,17 +234,22 @@ public final class App extends MultiDexApplication
         Rollbar.init(this, getString(R.string.rollbarApiKey), releaseStage);
     }
 
-    private void setupUploaders() {
+    public static void setupUploaders(Context context) {
+
+        combinedRepository.clear();
+        UploadService.clearUploaders();
+
+        combinedRepository.addHost(new AchRailsStrategy(jsonSerializer, getAchRailsUrl(context)));
 
         // Temporary uploader until ClViTra2 is fixed in the Layers Box
         // TODO: Remove this
-        String achsoStorageUrlString = getString(R.string.achsoStorageUrl);
+        String achsoStorageUrlString = context.getString(R.string.achsoStorageUrl);
         if (!Strings.isNullOrEmpty(achsoStorageUrlString)) {
-            UploadService.addUploader(new DumbPhpStrategy(getAchsoStorageUrl(this)));
+            UploadService.addUploader(new DumbPhpStrategy(getAchsoStorageUrl(context)));
         }
 
-        Uri clViTra2Url = Uri.parse(getString(R.string.clvitra2Url));
-        Uri sssUrl = Uri.parse(getString(R.string.sssUrl));
+        Uri clViTra2Url = Uri.parse(context.getString(R.string.clvitra2Url));
+        Uri sssUrl = Uri.parse(context.getString(R.string.sssUrl));
 
         ClViTra2Strategy videoStrategy = new ClViTra2Strategy(clViTra2Url);
 

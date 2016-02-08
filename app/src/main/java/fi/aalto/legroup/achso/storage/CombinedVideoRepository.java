@@ -61,6 +61,13 @@ public class CombinedVideoRepository implements VideoRepository {
         this.cacheRoot = cacheRoot;
     }
 
+    public void clear() {
+        allVideos.clear();
+        allGroups.clear();
+        cloudHosts.clear();
+        bus.post(new VideoRepositoryUpdatedEvent(this));
+    }
+
     private List<UUID> getCacheIds() {
         String[] entries = cacheRoot.list();
         if (entries == null) {
@@ -310,7 +317,7 @@ public class CombinedVideoRepository implements VideoRepository {
                     } else if (localFileOriginal.exists()) {
 
                         OptimizedVideo localVideo = tryLoadOrReUseVideo(localFileOriginal, indexVideo.getId());
-                        if (localVideo.getRevision() == indexVideo.getRevision()) {
+                        if (localVideo != null && localVideo.getRevision() == indexVideo.getRevision()) {
                             resultVideo = localVideo;
                         }
                     }
