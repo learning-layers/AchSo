@@ -69,6 +69,8 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
     private static final int REQUEST_CHOOSE_VIDEO = 2;
 
     private static final int ACH_SO_TAKE_VIDEO_PERM = 3;
+    private static final int ACH_SO_LOG_IN_PERM = 4;
+
     private static final String STATE_VIDEO_BUILDER = "STATE_VIDEO_BUILDER";
 
     private Bus bus;
@@ -142,7 +144,9 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
         bus.register(this);
         bus.unregister(pendingListener);
 
+        // HACK: This is bad, but will be called after setting the preferences
         if (!OIDCConfig.isReady()) {
+            App.setupUploaders(this);
             App.updateOIDCTokens(this);
         }
 
@@ -221,8 +225,17 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
 
             case R.id.action_login:
                 // TODO: This needs some event magic
-                Intent intent = new Intent(this, LoginActivity.class);
-                startActivity(intent);
+
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+                        ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(this, new String[]{
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                            Manifest.permission.READ_EXTERNAL_STORAGE,
+                    }, ACH_SO_LOG_IN_PERM);
+                } else {
+                    Intent intent = new Intent(this, LoginActivity.class);
+                    startActivity(intent);
+                }
                 return true;
 
             case R.id.action_logout:
@@ -297,20 +310,22 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
         int cameraCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
         int locationCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
         int fileWriteCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        int fileReadCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
 
         if (cameraCheck != PackageManager.PERMISSION_GRANTED ||
                 locationCheck != PackageManager.PERMISSION_GRANTED ||
-                fileWriteCheck != PackageManager.PERMISSION_GRANTED) {
+                fileWriteCheck != PackageManager.PERMISSION_GRANTED ||
+                fileReadCheck != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{
                     Manifest.permission.CAMERA,
                     Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
             }, ACH_SO_TAKE_VIDEO_PERM);
         } else {
             recordVideo();
         }
     }
-
 
     private void recordVideo() {
 
@@ -481,7 +496,7 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
         // We need all three permissions (Fine location, using the camera, writing to the filesystem
         // Otherwise we just show a toast and exit.
         if (requestCode == ACH_SO_TAKE_VIDEO_PERM) {
-            if (grantResults.length == 3) {
+            if (grantResults.length == 4) {
                 for (int i = 0; i < grantResults.length; i++) {
                     if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
                         showSnackbar(R.string.video_no_permissions);
@@ -492,6 +507,18 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
             } else {
                 showSnackbar(R.string.video_no_permissions);
             }
+        } else if (requestCode == ACH_SO_LOG_IN_PERM) {
+            if (grantResults.length != 2)
+                return;
+            for (int i = 0; i < grantResults.length; i++) {
+                if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
+                    showSnackbar(R.string.video_no_permissions);
+                    return;
+                }
+            }
+
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
         }
     }
 

@@ -29,6 +29,15 @@ public final class UploadService extends IntentService {
     private static List<MetadataUploader> metadataUploaders = new ArrayList<>();
 
     /**
+     * Remove all set uploaders
+     */
+    public static void clearUploaders() {
+        videoUploaders.clear();
+        thumbUploaders.clear();
+        metadataUploaders.clear();
+    }
+
+    /**
      * Add an uploader to as many things as possible.
      * @param uploader Should implement one or more of the following:
      *                 VideoUploader, ThumbnailUploader, MetadataUploader
