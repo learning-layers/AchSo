@@ -61,6 +61,8 @@ public final class App extends MultiDexApplication
     public static File localStorageDirectory;
     public static File cacheVideoDirectoryBase;
 
+    public static AchRailsStrategy achRails;
+
     private static Uri layersBoxUrl;
     private static Uri publicLayersBoxUrl;
     private static boolean usePublicLayersBox;
@@ -248,7 +250,8 @@ public final class App extends MultiDexApplication
         combinedRepository.clear();
         UploadService.clearUploaders();
 
-        combinedRepository.addHost(new AchRailsStrategy(jsonSerializer, getAchRailsUrl(context)));
+        achRails = new AchRailsStrategy(jsonSerializer, getAchRailsUrl(context));
+        combinedRepository.addHost(achRails);
         combinedRepository.setCacheRoot(makeCacheVideoDirectory());
 
         // Temporary uploader until ClViTra2 is fixed in the Layers Box

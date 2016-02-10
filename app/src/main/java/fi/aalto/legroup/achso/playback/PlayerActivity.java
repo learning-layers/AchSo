@@ -4,6 +4,7 @@ import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.graphics.PointF;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
@@ -178,9 +179,28 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         loadVideo(video);
     }
 
+    private static class DownloadUpdatedVideoAsync extends AsyncTask<Video, Void, Video> {
+        @Override
+        protected Video doInBackground(Video... videos) {
+            // Expect only one argument
+            Video video = videos[0];
+
+            // HACK: Just use Achrails directly, this does not use the result at the moment, but is
+            // used only for posting the view statistics.
+            try {
+                return App.achRails.downloadVideoManifestIfNewerThan(video.getId(), video.getRevision(), true);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
     protected void loadVideo(Video video) {
 
         this.video = video;
+
+        new DownloadUpdatedVideoAsync().execute(video);
 
         populateVideoInformation();
         playerFragment = (PlayerFragment)

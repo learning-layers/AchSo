@@ -110,6 +110,25 @@ public class AchRailsStrategy implements VideoHost {
         return video;
     }
 
+    public Video downloadVideoManifestIfNewerThan(UUID id, int revision, boolean isView) throws IOException {
+        Request request = new Request.Builder()
+                .url(endpointUrl.buildUpon()
+                        .appendPath("videos")
+                        .appendPath(id.toString() + ".json")
+                        .appendQueryParameter("newer_than_rev", Integer.toString(revision))
+                        .appendQueryParameter("is_view", isView ? "1" : "0")
+                        .toString())
+                .get().build();
+        
+        Response response = executeRequest(request);
+
+        Video video = serializer.read(Video.class, response.body().byteStream());
+
+        video.setManifestUri(Uri.parse(request.uri().toString()));
+        video.setLastModified(response.headers().getDate("Last-Modified"));
+        return video;
+    }
+
     @Override
     public Video uploadVideoManifest(Video video) throws IOException {
         
