@@ -59,6 +59,7 @@ public final class App extends MultiDexApplication
     public static VideoInfoRepository videoInfoRepository;
 
     public static File localStorageDirectory;
+    public static File cacheVideoDirectoryBase;
 
     private static Uri layersBoxUrl;
     private static Uri publicLayersBoxUrl;
@@ -101,22 +102,22 @@ public final class App extends MultiDexApplication
             Toast.makeText(this, R.string.storage_error, Toast.LENGTH_LONG).show();
         }
 
-        File cacheVideoDirectory = new File(localStorageDirectory, "cache");
-        cacheVideoDirectory.mkdirs();
+        cacheVideoDirectoryBase = new File(localStorageDirectory, "cache");
+        cacheVideoDirectoryBase.mkdirs();
 
-        if (!cacheVideoDirectory.isDirectory()) {
+        if (!cacheVideoDirectoryBase.isDirectory()) {
             // If the cache directory can't be created use internal App storage
             // There is a slim chance that the user saves some modified videos to the internal
             // storage and then inserts and SD card causing videos not to be uploaded, but it
             // doesn't seem worth the trouble.
 
             File internalDataDirectory = new File(getApplicationInfo().dataDir);
-            cacheVideoDirectory = new File(internalDataDirectory, "manifestcache");
-            cacheVideoDirectory.mkdirs();
+            cacheVideoDirectoryBase = new File(internalDataDirectory, "manifestcache");
+            cacheVideoDirectoryBase.mkdirs();
         }
 
         combinedRepository = new CombinedVideoRepository(bus, jsonSerializer,
-                localStorageDirectory, cacheVideoDirectory);
+                localStorageDirectory, makeCacheVideoDirectory());
 
         videoRepository = combinedRepository;
         videoInfoRepository = combinedRepository;
@@ -137,6 +138,14 @@ public final class App extends MultiDexApplication
 
         // Setup Google Analytics
         AppAnalytics.setup(this);
+    }
+
+    public static File makeCacheVideoDirectory() {
+        String host = getLayersBoxUrl().getHost().replace('.', '_');
+        File path = new File(cacheVideoDirectoryBase, host);
+        path.mkdirs();
+
+        return path;
     }
 
     public static void updateOIDCTokens(final Context context) {
@@ -240,6 +249,7 @@ public final class App extends MultiDexApplication
         UploadService.clearUploaders();
 
         combinedRepository.addHost(new AchRailsStrategy(jsonSerializer, getAchRailsUrl(context)));
+        combinedRepository.setCacheRoot(makeCacheVideoDirectory());
 
         // Temporary uploader until ClViTra2 is fixed in the Layers Box
         // TODO: Remove this

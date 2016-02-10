@@ -68,6 +68,10 @@ public class CombinedVideoRepository implements VideoRepository {
         bus.post(new VideoRepositoryUpdatedEvent(this));
     }
 
+    public void setCacheRoot(File path) {
+        cacheRoot = path;
+    }
+
     private List<UUID> getCacheIds() {
         String[] entries = cacheRoot.list();
         if (entries == null) {
