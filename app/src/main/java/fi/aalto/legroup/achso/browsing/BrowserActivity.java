@@ -7,11 +7,13 @@ import android.Manifest;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -39,6 +41,7 @@ import javax.annotation.Nullable;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
+import fi.aalto.legroup.achso.app.AppPreferences;
 import fi.aalto.legroup.achso.authentication.LoginActivity;
 import fi.aalto.legroup.achso.authentication.LoginErrorEvent;
 import fi.aalto.legroup.achso.authentication.LoginRequestEvent;
@@ -72,6 +75,7 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
     private static final int ACH_SO_LOG_IN_PERM = 4;
 
     private static final String STATE_VIDEO_BUILDER = "STATE_VIDEO_BUILDER";
+    private static final String ARG_LAYERS_BOX_URL = "ARG_LAYERS_BOX_URL";
 
     private Bus bus;
 
@@ -97,6 +101,25 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
 
         if (savedInstanceState != null) {
             videoBuilder = savedInstanceState.getParcelable(STATE_VIDEO_BUILDER);
+        }
+
+        // Try to parse the Layers Box URL from the intent
+        Intent intent = getIntent();
+        if (intent != null) {
+            String intentLayersBoxUrlString = intent.getStringExtra(ARG_LAYERS_BOX_URL);
+            if (intentLayersBoxUrlString != null) {
+                Uri intentLayersBoxUrl = Uri.parse(intentLayersBoxUrlString);
+                if (intentLayersBoxUrl != null && !intentLayersBoxUrl.equals(App.getLayersBoxUrl())) {
+                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+                    preferences.edit()
+                            .putString(AppPreferences.LAYERS_BOX_URL, intentLayersBoxUrl.toString())
+                            .putBoolean(AppPreferences.USE_PUBLIC_LAYERS_BOX, false)
+                            .apply();
+
+                    bus.post(new LoginRequestEvent(LoginRequestEvent.Type.EXPLICIT_LOGOUT));
+                    OIDCConfig.setTokens(null, null);
+                }
+            }
         }
 
         this.tabAdapter = new VideoTabAdapter(this, getSupportFragmentManager());
