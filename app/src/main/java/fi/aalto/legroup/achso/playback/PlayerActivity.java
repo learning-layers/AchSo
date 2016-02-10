@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -43,7 +44,6 @@ import fi.aalto.legroup.achso.browsing.DetailActivity;
 import fi.aalto.legroup.achso.entities.Annotation;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.storage.VideoRepository;
-import fi.aalto.legroup.achso.storage.local.ExportService;
 import fi.aalto.legroup.achso.utilities.RepeatingTask;
 import fi.aalto.legroup.achso.utilities.TranslationHelper;
 import fi.aalto.legroup.achso.views.MarkedSeekBar;
@@ -341,7 +341,9 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
 
         long time = playerFragment.getPlaybackPosition();
 
-        Annotation annotation = new Annotation(time, position, "", App.loginManager.getUser());
+
+        Date now = new Date();
+        Annotation annotation = new Annotation(time, position, "", App.loginManager.getUser(), now);
 
         video.getAnnotations().add(annotation);
 
