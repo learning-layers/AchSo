@@ -443,6 +443,10 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
 
                 case LOGGED_OUT:
                     showSnackbar(R.string.logged_out);
+
+                    // Sync removes cached videos
+                    App.videoRepository.forceNextSyncImportant();
+                    SyncService.syncWithCloudStorage(this);
                     break;
             }
         }

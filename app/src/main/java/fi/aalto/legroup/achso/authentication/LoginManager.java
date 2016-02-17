@@ -107,6 +107,8 @@ public final class LoginManager {
      */
     public void logout() {
         setState(LoginState.LOGGED_OUT, true);
+        account = null;
+        user = null;
     }
 
     public LoginState getState() {
