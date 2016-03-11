@@ -121,6 +121,7 @@ public final class UploadService extends IntentService {
             return false;
         }
         video.setVideoUri(videoResult.videoUrl);
+        video.setDeleteUri(videoResult.deleteUrl);
 
         Uri thumbUrl = null;
         if (videoResult.thumbUrl != null) {

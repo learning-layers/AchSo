@@ -20,9 +20,11 @@ import fi.aalto.legroup.achso.storage.remote.upload.VideoUploader;
 public class DumbPhpStrategy implements VideoUploader, ThumbnailUploader {
 
     private final Uri endpointUri;
+    private final boolean doesNormalizeRotation;
 
-    public DumbPhpStrategy(Uri endpointUri) {
+    public DumbPhpStrategy(Uri endpointUri, boolean doesNormalizeRotation) {
         this.endpointUri = endpointUri.buildUpon().appendPath("upload.php").build();
+        this.doesNormalizeRotation = doesNormalizeRotation;
     }
 
     private Uri uploadFile(UUID id, String type, Uri sourceUri) throws IOException {
@@ -54,7 +56,7 @@ public class DumbPhpStrategy implements VideoUploader, ThumbnailUploader {
     @Override
     public VideoUploadResult uploadVideo(Video video) throws IOException {
         Uri uri = uploadFile(video.getId(), "video", video.getVideoUri());
-        return new VideoUploadResult(uri);
+        return new VideoUploadResult(uri, doesNormalizeRotation);
     }
 
     @Override

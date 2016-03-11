@@ -131,7 +131,7 @@ public class AchRailsStrategy implements VideoHost {
 
     @Override
     public Video uploadVideoManifest(Video video) throws IOException {
-        
+
         Request.Builder requestBuilder = buildVideosRequest(video.getId());
 
         String serializedVideo = serializer.write(video);
@@ -150,7 +150,8 @@ public class AchRailsStrategy implements VideoHost {
 
     @Override
     public void deleteVideoManifest(UUID id) throws IOException {
-
+        Request request = buildVideosRequest(id).delete().build();
+        executeRequest(request);
     }
 
     @Override

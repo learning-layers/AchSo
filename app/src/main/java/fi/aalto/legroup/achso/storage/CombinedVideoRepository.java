@@ -31,6 +31,8 @@ import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.entities.VideoReference;
 import fi.aalto.legroup.achso.entities.migration.VideoMigration;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
+import fi.aalto.legroup.achso.storage.remote.SyncRequiredEvent;
+import fi.aalto.legroup.achso.storage.remote.SyncService;
 import fi.aalto.legroup.achso.storage.remote.VideoHost;
 
 public class CombinedVideoRepository implements VideoRepository {
@@ -535,6 +537,31 @@ public class CombinedVideoRepository implements VideoRepository {
         }
     }
 
+    private class DeleteVideoTask extends AsyncTask<UUID, Void, Void> {
+
+        @Override
+        protected Void doInBackground(UUID... params) {
+
+            for (UUID id : params) {
+                for (VideoHost host : cloudHosts) {
+                    try {
+                        host.deleteVideoManifest(id);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            bus.post(new SyncRequiredEvent(CombinedVideoRepository.this));
+        }
+    }
+
     @Override
     public void delete(UUID id) throws IOException {
         OptimizedVideo video = getVideo(id);
@@ -552,14 +579,14 @@ public class CombinedVideoRepository implements VideoRepository {
             // Doesn't matter if these fail, not necessary operation
             thumbFile.delete();
             videoFile.delete();
-        } else {
-            // TODO: Delete shared file
-            throw new IOException("Can't delete remote file");
-        }
 
-        // Remove the video from memory, if deleting has failed we have thrown before this
-        allVideos.remove(id);
-        bus.post(new VideoRepositoryUpdatedEvent(this));
+            // Remove the video from memory, if deleting has failed we have thrown before this
+            allVideos.remove(id);
+            bus.post(new VideoRepositoryUpdatedEvent(this));
+
+        } else {
+            new DeleteVideoTask().execute(id);
+        }
     }
 
     @Override
