@@ -51,6 +51,8 @@
     <string name="search_hint">Search for videos</string>
 
     <string name="video_no_permissions">Could not take video due to permissions</string>
+    <string name="log_in_no_permissions">Could not log in due to permissions</string>
+    <string name="browse_no_permissions">Could not show videos due to permissions</string>
     <string name="empty_results">No matching videos</string>
     <string name="import_video">Import video</string>
     <string name="video_author">Author</string>
@@ -148,6 +150,7 @@
     <string name="only_public_layers_box_description">Only the public Layers Box is supported at the moment.</string>
     <string name="warning">Warning</string>
     <string name="public_layers_box_chosen_warning">Setting changed but still using public Layers Box, do you want to choose to use the private URL instead?</string>
+    <string name="go_to_settings">Go to settings</string>
 
     <string-array name="settings_annotation_pause_duration">
         <item name="1000">Fast</item>

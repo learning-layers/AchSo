@@ -1,9 +1,9 @@
 package fi.aalto.legroup.achso.browsing;
 
+import android.Manifest;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.SearchManager;
-import android.Manifest;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
@@ -25,6 +26,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.astuetz.PagerSlidingTabStrip;
 import com.melnykov.fab.FloatingActionButton;
 import com.melnykov.fab.ScrollDirectionListener;
@@ -73,6 +76,7 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
 
     private static final int ACH_SO_TAKE_VIDEO_PERM = 3;
     private static final int ACH_SO_LOG_IN_PERM = 4;
+    private static final int ACH_SO_BROWSE_PERM = 5;
 
     private static final String STATE_VIDEO_BUILDER = "STATE_VIDEO_BUILDER";
     private static final String ARG_LAYERS_BOX_URL = "ARG_LAYERS_BOX_URL";
@@ -146,6 +150,12 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
 
         // Control the media volume instead of the ringer volume
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+            }, ACH_SO_BROWSE_PERM);
+        }
     }
 
     @Override
@@ -443,13 +453,13 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
 
                 case LOGGED_OUT:
                     showSnackbar(R.string.logged_out);
-
-                    // Sync removes cached videos
-                    App.videoRepository.forceNextSyncImportant();
-                    SyncService.syncWithCloudStorage(this);
                     break;
             }
         }
+
+
+        swipeRefreshLayout.setRefreshing(true);
+        SyncService.syncWithCloudStorage(this);
 
         invalidateOptionsMenu();
     }
@@ -523,30 +533,60 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
         // We need all three permissions (Fine location, using the camera, writing to the filesystem
         // Otherwise we just show a toast and exit.
         if (requestCode == ACH_SO_TAKE_VIDEO_PERM) {
-            if (grantResults.length == 4) {
-                for (int i = 0; i < grantResults.length; i++) {
-                    if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
-                        showSnackbar(R.string.video_no_permissions);
-                        return;
-                    }
-                }
-                recordVideo();
-            } else {
-                showSnackbar(R.string.video_no_permissions);
-            }
-        } else if (requestCode == ACH_SO_LOG_IN_PERM) {
-            if (grantResults.length != 2)
+            if (!checkPermissions(R.string.video_no_permissions, permissions, grantResults))
                 return;
-            for (int i = 0; i < grantResults.length; i++) {
-                if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
-                    showSnackbar(R.string.video_no_permissions);
-                    return;
-                }
-            }
+
+            recordVideo();
+
+        } else if (requestCode == ACH_SO_LOG_IN_PERM) {
+            if (!checkPermissions(R.string.log_in_no_permissions, permissions, grantResults))
+                return;
 
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
+        } else if (requestCode == ACH_SO_BROWSE_PERM) {
+            if (!checkPermissions(R.string.browse_no_permissions, permissions, grantResults))
+                return;
+
+            SyncService.syncWithCloudStorage(this);
         }
+    }
+
+    private boolean checkPermissions(int messageResource, String permissions[], int[] grantResults) {
+        boolean hasPermissions = true;
+
+        if (permissions.length == grantResults.length) {
+            for (int result : grantResults) {
+                if (result != PackageManager.PERMISSION_GRANTED) {
+                    hasPermissions = false;
+                    break;
+                }
+            }
+        } else {
+            hasPermissions = false;
+        }
+
+        if (!hasPermissions) {
+
+            MaterialDialog dialog = new MaterialDialog.Builder(this)
+                    .title(messageResource)
+                    .negativeText(R.string.cancel)
+                    .positiveText(R.string.go_to_settings)
+                    .onPositive(new MaterialDialog.SingleButtonCallback() {
+                        @Override
+                        public void onClick(MaterialDialog dialog, DialogAction which) {
+                            Intent myAppSettings = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + getPackageName()));
+                            myAppSettings.addCategory(Intent.CATEGORY_DEFAULT);
+                            myAppSettings.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(myAppSettings);
+                        }
+                    })
+                    .build();
+            dialog.show();
+
+        }
+
+        return hasPermissions;
     }
 
     /**
