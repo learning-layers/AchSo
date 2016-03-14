@@ -40,6 +40,11 @@ repositories {
     maven {
         url 'https://raw.github.com/embarkmobile/zxing-android-minimal/mvn-repo/maven-repository/'
     }
+
+    // For com.github.afollestad.material-dialogs
+    maven {
+        url "https://jitpack.io"
+    }
 }
 
 dependencies {
@@ -52,7 +57,9 @@ dependencies {
     compile 'com.android.support:recyclerview-v7:23.0.1'
 
     // Material design dialogs
-    compile 'com.afollestad:material-dialogs:0.7.9.1'
+    compile('com.github.afollestad.material-dialogs:commons:0.8.5.4@aar') {
+        transitive = true
+    }
 
     // Material design tab strip. Note that this is jpardogo's fork, not the original version
     // that's no longer updated. The class name of the view is still same, though.

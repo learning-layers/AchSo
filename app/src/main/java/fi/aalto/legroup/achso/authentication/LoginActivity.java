@@ -77,6 +77,9 @@ public final class LoginActivity extends Activity {
         AccountManager accountManager = AccountManager.get(this);
         String accountType = Authenticator.ACH_SO_ACCOUNT_TYPE;
 
+        // Next sync after logging in is important.
+        App.videoRepository.forceNextSyncImportant();
+
         final Account availableAccounts[] = accountManager.getAccountsByType(accountType);
 
         if (availableAccounts.length > 0) {

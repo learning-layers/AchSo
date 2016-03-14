@@ -68,6 +68,10 @@ public class CombinedVideoRepository implements VideoRepository {
         bus.post(new VideoRepositoryUpdatedEvent(this));
     }
 
+    public void setCacheRoot(File path) {
+        cacheRoot = path;
+    }
+
     private List<UUID> getCacheIds() {
         String[] entries = cacheRoot.list();
         if (entries == null) {
@@ -341,7 +345,7 @@ public class CombinedVideoRepository implements VideoRepository {
             }
         }
 
-        // Add the cached remote videos
+        // Remove unexistant cached videos
         List<UUID> cacheIds = getCacheIds();
         for (UUID id : cacheIds) {
             if (addedVideoIds.contains(id)) {
@@ -351,17 +355,8 @@ public class CombinedVideoRepository implements VideoRepository {
             File original = getOriginalCacheFile(id);
             File modified = getModifiedCacheFile(id);
 
-            File newest;
-            if (modified.exists()) {
-                newest = modified;
-            } else {
-                newest = original;
-            }
-
-            OptimizedVideo video = tryLoadOrReUseVideo(newest, id);
-            if (video != null) {
-                videos.add(video);
-            }
+            original.delete();
+            modified.delete();
         }
 
         // TODO: Remove this

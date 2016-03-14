@@ -157,6 +157,10 @@ public final class UploadService extends IntentService {
         // Now we have the video and thumbnail urls and they are stored in the Video object, we
         // can serialize it to json with the new data and upload that.
 
+        // The uploaded video will have normalized rotation after transcoding, so clear the hacky
+        // rotation compensation property.
+        video.setRotation(0);
+
         try {
             // Upload the video manifest.
             App.videoRepository.uploadVideo(video);
