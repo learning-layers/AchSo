@@ -167,11 +167,11 @@ public final class OIDCUtils {
     /**
      * Gets user information from the UserInfo endpoint.
      */
-    public static JsonObject getUserInfo(String userInfoUrl, String idToken) throws IOException {
+    public static JsonObject getUserInfo(String userInfoUrl, String accessToken) throws IOException {
         Request request = new Request.Builder()
                 .url(userInfoUrl)
                 .header("Accept", "application/json")
-                .header("Authorization", "Bearer " + idToken)
+                .header("Authorization", "Bearer " + accessToken)
                 .get()
                 .build();
 
