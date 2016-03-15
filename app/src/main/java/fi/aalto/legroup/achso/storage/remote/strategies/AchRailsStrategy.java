@@ -53,9 +53,9 @@ public class AchRailsStrategy implements VideoHost {
                     .appendPath(id.toString() + ".json")
                     .toString());
     }
-    Request.Builder buildGroupsRequest() {
+    Request.Builder buildOwnGroupsRequest() {
         return new Request.Builder()
-                .url(endpointUrl.buildUpon().appendPath("groups.json").toString());
+                .url(endpointUrl.buildUpon().appendPath("groups").appendPath("own.json").toString());
     }
 
     private Response executeRequestNoFail(Request request) throws IOException {
@@ -91,7 +91,7 @@ public class AchRailsStrategy implements VideoHost {
 
     @Override
     public List<Group> getGroups() throws IOException {
-        Request request = buildGroupsRequest().get().build();
+        Request request = buildOwnGroupsRequest().get().build();
         Response response = executeRequest(request);
         JsonGroupList groups = serializer.read(JsonGroupList.class, response.body().byteStream());
         return groups.groups;
