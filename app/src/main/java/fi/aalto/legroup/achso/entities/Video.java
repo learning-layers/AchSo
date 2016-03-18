@@ -29,6 +29,7 @@ public class Video implements JsonSerializable {
 
     protected Uri videoUri;
     protected Uri thumbUri;
+    protected Uri deleteUri;
     protected UUID id;
     protected String title;
     protected String genre;
@@ -232,5 +233,13 @@ public class Video implements JsonSerializable {
 
     public void setFormatVersion(int formatVersion) {
         this.formatVersion = formatVersion;
+    }
+
+    public void setDeleteUri(Uri deleteUri) {
+        this.deleteUri = deleteUri;
+    }
+
+    public Uri getDeleteUri() {
+        return deleteUri;
     }
 }

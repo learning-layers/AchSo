@@ -38,7 +38,7 @@ public class DummyStrategy implements VideoUploader, ThumbnailUploader {
         if (uploadsThumbWithVideo)
             thumbUrl = getUrl("videos/" + video.getId() + "_thumb.jpg");
 
-        return new VideoUploadResult(videoUrl, thumbUrl);
+        return new VideoUploadResult(videoUrl, thumbUrl, null, false);
     }
 
     @Override

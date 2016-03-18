@@ -97,7 +97,7 @@ public class ClViTra2Strategy implements VideoUploader {
             // video.setVideoUri(videoUri);
             // video.setThumbUri(thumbUri);
             
-            return new VideoUploadResult(videoUri);
+            return new VideoUploadResult(videoUri, true);
 
         } else {
             throw new IOException(response.code() + " " + response.message());

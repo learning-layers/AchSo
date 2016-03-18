@@ -56,6 +56,7 @@ import fi.aalto.legroup.achso.authoring.VideoCreatorService;
 import fi.aalto.legroup.achso.settings.SettingsActivity;
 import fi.aalto.legroup.achso.sharing.SharingActivity;
 import fi.aalto.legroup.achso.storage.VideoRepositoryUpdatedEvent;
+import fi.aalto.legroup.achso.storage.remote.SyncRequiredEvent;
 import fi.aalto.legroup.achso.storage.remote.SyncService;
 import fi.aalto.legroup.achso.storage.remote.UploadStateEvent;
 import fi.aalto.legroup.achso.utilities.BaseActivity;
@@ -518,6 +519,11 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
 
                 break;
         }
+    }
+
+    @Subscribe
+    public void onSyncRequired(SyncRequiredEvent event) {
+        SyncService.syncWithCloudStorage(this);
     }
 
     @Override
