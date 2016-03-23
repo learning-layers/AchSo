@@ -11,7 +11,6 @@ import com.squareup.okhttp.Response;
 import java.io.File;
 import java.io.IOException;
 import java.net.URLConnection;
-import java.util.UUID;
 
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.Video;
@@ -28,6 +27,7 @@ public class GoViTraStrategy implements VideoUploader {
         public Uri video;
         public Uri thumbnail;
         public Uri deleteUrl;
+        public String title;
     }
 
     public GoViTraStrategy(JsonSerializer serializer, Uri endpointUri) {
