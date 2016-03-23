@@ -12,16 +12,20 @@ public interface VideoUploader {
 
         public Uri videoUrl;
         public Uri thumbUrl;
+        public Uri deleteUrl;
+        public boolean didNormalizeRotation;
 
         public VideoUploadResult() {
-            this(null, null);
+            this(null, null, null, false);
         }
-        public VideoUploadResult(Uri videoUrl) {
-            this(videoUrl, null);
+        public VideoUploadResult(Uri videoUrl, boolean didNormalizeRotation) {
+            this(videoUrl, null, null, didNormalizeRotation);
         }
-        public VideoUploadResult(Uri videoUrl, Uri thumbUrl) {
+        public VideoUploadResult(Uri videoUrl, Uri thumbUrl, Uri deleteUrl, boolean didNormalizeRotation) {
             this.videoUrl = videoUrl;
             this.thumbUrl = thumbUrl;
+            this.deleteUrl = deleteUrl;
+            this.didNormalizeRotation = didNormalizeRotation;
         }
     };
 

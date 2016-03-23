@@ -28,6 +28,7 @@ public class OptimizedVideo {
 
     private String videoUri;
     private String thumbUri;
+    private String deleteUri;
     private UUID id;
     private String title;
     private String genre;
@@ -200,6 +201,11 @@ public class OptimizedVideo {
         manifestUri = video.getManifestUri().toString();
         videoUri = video.getVideoUri().toString();
         thumbUri = video.getThumbUri().toString();
+        if (video.getDeleteUri() != null) {
+            deleteUri = video.getDeleteUri().toString();
+        } else {
+            deleteUri = null;
+        }
 
         repository = video.getRepository();
 
@@ -313,6 +319,11 @@ public class OptimizedVideo {
         video.setManifestUri(Uri.parse(manifestUri));
         video.setVideoUri(Uri.parse(videoUri));
         video.setThumbUri(Uri.parse(thumbUri));
+        if (deleteUri != null) {
+            video.setDeleteUri(Uri.parse(deleteUri));
+        } else {
+            video.setDeleteUri(null);
+        }
 
         video.setRepository(repository);
         video.setId(id);

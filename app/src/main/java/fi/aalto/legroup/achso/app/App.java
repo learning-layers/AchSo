@@ -12,7 +12,6 @@ import android.support.multidex.MultiDexApplication;
 import android.widget.Toast;
 
 import com.google.android.gms.analytics.GoogleAnalytics;
-import com.google.api.client.repackaged.com.google.common.base.Strings;
 import com.rollbar.android.Rollbar;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.otto.Bus;
@@ -36,6 +35,7 @@ import fi.aalto.legroup.achso.storage.remote.UploadService;
 import fi.aalto.legroup.achso.storage.remote.strategies.AchRailsStrategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.ClViTra2Strategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.DumbPhpStrategy;
+import fi.aalto.legroup.achso.storage.remote.strategies.GoViTraStrategy;
 import fi.legroup.aalto.cryptohelper.CryptoHelper;
 
 public final class App extends MultiDexApplication
@@ -254,16 +254,14 @@ public final class App extends MultiDexApplication
         combinedRepository.addHost(achRails);
         combinedRepository.setCacheRoot(makeCacheVideoDirectory());
 
-        // Temporary uploader until ClViTra2 is fixed in the Layers Box
-        // TODO: Remove this
-        String achsoStorageUrlString = context.getString(R.string.achsoStorageUrl);
-        if (!Strings.isNullOrEmpty(achsoStorageUrlString)) {
-            UploadService.addUploader(new DumbPhpStrategy(getAchsoStorageUrl(context)));
+        // HACK: Use Achminup for uploading for now
+        if (usePublicLayersBox) {
+            UploadService.addUploader(new DumbPhpStrategy(getAchsoStorageUrl(context), false));
+        } else {
+            UploadService.addUploader(new GoViTraStrategy(jsonSerializer, getAchsoStorageUrl(context)));
         }
 
         Uri clViTra2Url = Uri.parse(context.getString(R.string.clvitra2Url));
-        Uri sssUrl = Uri.parse(context.getString(R.string.sssUrl));
-
         ClViTra2Strategy videoStrategy = new ClViTra2Strategy(clViTra2Url);
 
         UploadService.addUploader(videoStrategy);
