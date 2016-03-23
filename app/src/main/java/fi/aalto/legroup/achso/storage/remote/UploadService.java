@@ -160,7 +160,8 @@ public final class UploadService extends IntentService {
 
         // The uploaded video will have normalized rotation after transcoding, so clear the hacky
         // rotation compensation property.
-        video.setRotation(0);
+        if (videoResult.didNormalizeRotation)
+            video.setRotation(0);
 
         try {
             // Upload the video manifest.
