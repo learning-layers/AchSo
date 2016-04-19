@@ -254,12 +254,7 @@ public final class App extends MultiDexApplication
         combinedRepository.addHost(achRails);
         combinedRepository.setCacheRoot(makeCacheVideoDirectory());
 
-        // HACK: Use Achminup for uploading for now
-        if (usePublicLayersBox) {
-            UploadService.addUploader(new DumbPhpStrategy(getAchsoStorageUrl(context), false));
-        } else {
-            UploadService.addUploader(new GoViTraStrategy(jsonSerializer, getAchsoStorageUrl(context)));
-        }
+        UploadService.addUploader(new GoViTraStrategy(jsonSerializer, getAchsoStorageUrl(context)));
 
         Uri clViTra2Url = Uri.parse(context.getString(R.string.clvitra2Url));
         ClViTra2Strategy videoStrategy = new ClViTra2Strategy(clViTra2Url);
