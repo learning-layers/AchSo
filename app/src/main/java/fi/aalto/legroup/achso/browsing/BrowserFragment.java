@@ -282,7 +282,10 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
 
         for (int position : positions) {
             UUID item = this.adapter.getItem(position);
-            items.add(item);
+
+            if (item != null) {
+                items.add(item);
+            }
         }
 
         return items;

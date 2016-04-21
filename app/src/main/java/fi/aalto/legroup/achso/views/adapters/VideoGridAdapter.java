@@ -98,7 +98,11 @@ public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapte
     }
 
     public UUID getItem(int position) {
-        return this.videoIds.get(position);
+        try {
+            return this.videoIds.get(position);
+        } catch (IndexOutOfBoundsException ex ) {
+            return null;
+        }
     }
 
     public void setItems(List<UUID> videoIds) {
