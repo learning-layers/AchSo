@@ -15,6 +15,7 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.webkit.URLUtil;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -22,9 +23,6 @@ import android.widget.ProgressBar;
 import com.google.android.exoplayer.ExoPlaybackException;
 import com.google.android.exoplayer.ExoPlayer;
 import com.google.android.exoplayer.extractor.Extractor;
-import com.google.android.exoplayer.extractor.ExtractorInput;
-import com.google.android.exoplayer.extractor.ExtractorOutput;
-import com.google.android.exoplayer.extractor.PositionHolder;
 import com.google.android.exoplayer.extractor.mp4.Mp4Extractor;
 import com.google.android.exoplayer.upstream.DataSource;
 import com.google.android.exoplayer.extractor.ExtractorSampleSource;
@@ -32,15 +30,13 @@ import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
 import com.google.android.exoplayer.MediaCodecTrackRenderer;
 import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.google.android.exoplayer.TrackRenderer;
-import com.google.android.exoplayer.upstream.Allocator;
-import com.google.android.exoplayer.upstream.DefaultAllocator;
 import com.google.android.exoplayer.upstream.DefaultUriDataSource;
+import com.google.android.exoplayer.upstream.FileDataSource;
 import com.google.android.exoplayer.util.Util;
 import com.nispok.snackbar.Snackbar;
 import com.nispok.snackbar.SnackbarManager;
 import com.rollbar.android.Rollbar;
 
-import java.io.IOException;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -177,9 +173,16 @@ public final class PlayerFragment extends Fragment implements ExoPlayer.Listener
         orientationPatcher.updateOrientation(video);
         orientationPatcher.setView(videoSurface);
 
-        String userAgent = Util.getUserAgent(getActivity(), "ACHSO");
+        System.out.println(URLUtil.isFileUrl(videoUri.toString()));
 
-        dataSource = new DefaultUriDataSource(getActivity(), userAgent);
+        // Seems as if the DefaultUriDataSource cannot correctly guess a local file URI, so just do it manually
+        if (URLUtil.isFileUrl(videoUri.toString()) == true) {
+            dataSource = new FileDataSource();
+        } else {
+            String userAgent = Util.getUserAgent(getActivity(), "ACHSO");
+            dataSource = new DefaultUriDataSource(getActivity(), userAgent);
+        }
+
         extractor = new Mp4Extractor();
 
         ExtractorSampleSource source = new ExtractorSampleSource(videoUri, dataSource, extractor, DOWNSTREAM_RENDERER_COUNT, 5 * 1024 * 1024);
