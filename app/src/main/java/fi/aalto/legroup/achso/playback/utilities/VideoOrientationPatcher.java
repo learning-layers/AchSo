@@ -127,6 +127,11 @@ public final class VideoOrientationPatcher implements MediaCodecVideoTrackRender
         delegate.onCryptoError(exception);
     }
 
+    @Override
+    public void onDecoderInitialized(String decoderName, long elapsedRealtimeMs, long initializationDurationMs) {
+
+    }
+
     /**
      * Rotates the video when the TextureView's layout bounds change.
      * Video dimensions are preserved.
@@ -134,11 +139,6 @@ public final class VideoOrientationPatcher implements MediaCodecVideoTrackRender
     @Override
     public void onLayoutChange(View changedView, int left, int top, int right, int bottom,
                                int oldLeft, int oldTop, int oldRight, int oldBottom) {
-
-        // Not needed on API 21 and up
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT_WATCH) {
-            return;
-        }
 
         if (rotationDegrees == -1 || view == null || changedView != view) {
             return;

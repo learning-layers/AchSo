@@ -60,6 +60,7 @@ dependencies {
     compile 'com.android.support:support-v4:23.2.1'
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.android.support:recyclerview-v7:23.0.1'
+    compile 'com.google.android.exoplayer:exoplayer:r1.3.3'
 
     // Material design dialogs
     compile('com.github.afollestad.material-dialogs:commons:0.8.5.4@aar') {
