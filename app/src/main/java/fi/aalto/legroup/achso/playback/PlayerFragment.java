@@ -21,21 +21,26 @@ import android.widget.ProgressBar;
 
 import com.google.android.exoplayer.ExoPlaybackException;
 import com.google.android.exoplayer.ExoPlayer;
+import com.google.android.exoplayer.extractor.Extractor;
+import com.google.android.exoplayer.extractor.ExtractorInput;
+import com.google.android.exoplayer.extractor.ExtractorOutput;
+import com.google.android.exoplayer.extractor.PositionHolder;
+import com.google.android.exoplayer.extractor.mp4.Mp4Extractor;
 import com.google.android.exoplayer.upstream.DataSource;
 import com.google.android.exoplayer.extractor.ExtractorSampleSource;
-//import com.google.android.exoplayer.FrameworkSampleSource;
 import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
 import com.google.android.exoplayer.MediaCodecTrackRenderer;
 import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
-import com.google.android.exoplayer.SampleSource;
 import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.upstream.Allocator;
 import com.google.android.exoplayer.upstream.DefaultAllocator;
 import com.google.android.exoplayer.upstream.DefaultUriDataSource;
+import com.google.android.exoplayer.util.Util;
 import com.nispok.snackbar.Snackbar;
 import com.nispok.snackbar.SnackbarManager;
 import com.rollbar.android.Rollbar;
 
+import java.io.IOException;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -79,8 +84,8 @@ public final class PlayerFragment extends Fragment implements ExoPlayer.Listener
 
     private LinearLayout subtitleContainer;
 
-    private Allocator allocator;
     private DataSource dataSource;
+    private Extractor extractor;
 
     private ExoPlayer exoPlayer;
     private TrackRenderer videoRenderer;
@@ -172,17 +177,12 @@ public final class PlayerFragment extends Fragment implements ExoPlayer.Listener
         orientationPatcher.updateOrientation(video);
         orientationPatcher.setView(videoSurface);
 
-        allocator = new DefaultAllocator(1024);
-        dataSource = new DefaultUriDataSource(getActivity(), null);
+        String userAgent = Util.getUserAgent(getActivity(), "ACHSO");
 
-        //SampleSource source = new ExtractorSampleSource(
-        //        getActivity(),
-        //        videoUri,
-        //        null,
-        //        DOWNSTREAM_RENDERER_COUNT
-        //);
+        dataSource = new DefaultUriDataSource(getActivity(), userAgent);
+        extractor = new Mp4Extractor();
 
-        ExtractorSampleSource source = new ExtractorSampleSource(videoUri, dataSource, null, DOWNSTREAM_RENDERER_COUNT, 1024 * 8);
+        ExtractorSampleSource source = new ExtractorSampleSource(videoUri, dataSource, extractor, DOWNSTREAM_RENDERER_COUNT, 5 * 1024 * 1024);
 
         // The video renderer runs on another thread: we need to supply a handler on the main
         // thread in order to receive events.
