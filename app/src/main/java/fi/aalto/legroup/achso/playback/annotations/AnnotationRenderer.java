@@ -222,11 +222,11 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
     /**
      * Invoked to make progress when the renderer is in the STATE_UNPREPARED state.
      */
-    @Override
-    protected int doPrepare() {
-        // Prepared instantly
-        return STATE_PREPARED;
-    }
+    //@Override
+    //protected int doPrepare() {
+    //    // Prepared instantly
+    //    return STATE_PREPARED;
+    //}
 
     /**
      * Invoked to make progress when the renderer is in the STATE_ENABLED or STATE_STARTED states.
@@ -268,6 +268,11 @@ public final class AnnotationRenderer extends TrackRenderer implements Runnable 
         clearAnnotations();
 
         renderAnnotations(position, false);
+    }
+
+    @Override
+    protected int doPrepare(long positionUs) throws ExoPlaybackException {
+        return 0;
     }
 
     /**

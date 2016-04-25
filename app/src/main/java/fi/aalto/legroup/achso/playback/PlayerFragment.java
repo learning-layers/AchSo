@@ -21,12 +21,17 @@ import android.widget.ProgressBar;
 
 import com.google.android.exoplayer.ExoPlaybackException;
 import com.google.android.exoplayer.ExoPlayer;
-import com.google.android.exoplayer.FrameworkSampleSource;
+import com.google.android.exoplayer.upstream.DataSource;
+import com.google.android.exoplayer.extractor.ExtractorSampleSource;
+//import com.google.android.exoplayer.FrameworkSampleSource;
 import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
 import com.google.android.exoplayer.MediaCodecTrackRenderer;
 import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.google.android.exoplayer.SampleSource;
 import com.google.android.exoplayer.TrackRenderer;
+import com.google.android.exoplayer.upstream.Allocator;
+import com.google.android.exoplayer.upstream.DefaultAllocator;
+import com.google.android.exoplayer.upstream.DefaultUriDataSource;
 import com.nispok.snackbar.Snackbar;
 import com.nispok.snackbar.SnackbarManager;
 import com.rollbar.android.Rollbar;
@@ -73,6 +78,9 @@ public final class PlayerFragment extends Fragment implements ExoPlayer.Listener
     private ProgressBar pauseProgress;
 
     private LinearLayout subtitleContainer;
+
+    private Allocator allocator;
+    private DataSource dataSource;
 
     private ExoPlayer exoPlayer;
     private TrackRenderer videoRenderer;
@@ -164,12 +172,17 @@ public final class PlayerFragment extends Fragment implements ExoPlayer.Listener
         orientationPatcher.updateOrientation(video);
         orientationPatcher.setView(videoSurface);
 
-        SampleSource source = new FrameworkSampleSource(
-                getActivity(),
-                videoUri,
-                null,
-                DOWNSTREAM_RENDERER_COUNT
-        );
+        allocator = new DefaultAllocator(1024);
+        dataSource = new DefaultUriDataSource(getActivity(), null);
+
+        //SampleSource source = new ExtractorSampleSource(
+        //        getActivity(),
+        //        videoUri,
+        //        null,
+        //        DOWNSTREAM_RENDERER_COUNT
+        //);
+
+        ExtractorSampleSource source = new ExtractorSampleSource(videoUri, dataSource, null, DOWNSTREAM_RENDERER_COUNT, 1024 * 8);
 
         // The video renderer runs on another thread: we need to supply a handler on the main
         // thread in order to receive events.
@@ -393,6 +406,11 @@ public final class PlayerFragment extends Fragment implements ExoPlayer.Listener
     @Override
     public void onCryptoError(MediaCodec.CryptoException error) {
         Rollbar.reportException(error);
+    }
+
+    @Override
+    public void onDecoderInitialized(String decoderName, long elapsedRealtimeMs, long initializationDurationMs) {
+
     }
 
     /**
