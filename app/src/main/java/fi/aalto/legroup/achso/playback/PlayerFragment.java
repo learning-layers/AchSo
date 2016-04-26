@@ -176,10 +176,8 @@ public final class PlayerFragment extends Fragment implements ExoPlayer.Listener
         orientationPatcher.updateOrientation(video);
         orientationPatcher.setView(videoSurface);
 
-        System.out.println(URLUtil.isFileUrl(videoUri.toString()));
-
         // Seems as if the DefaultUriDataSource cannot correctly guess a local file URI, so just do it manually
-        if (URLUtil.isFileUrl(videoUri.toString()) == true) {
+        if (video.isLocal()) {
             dataSource = new FileDataSource();
         } else {
             String userAgent = Util.getUserAgent(getActivity(), "ACHSO");

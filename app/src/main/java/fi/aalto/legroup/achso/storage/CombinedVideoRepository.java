@@ -126,11 +126,11 @@ public class CombinedVideoRepository implements VideoRepository {
         video.setLastModified(new Date(file.lastModified()));
         video.setRepository(this);
 
-        Uri videoUri = video.getVideoUri();
 
         // Sanity test to check if user deleted video file from gallery
         // Missing thumb nail icon is fine, since you can still watch the local video
-        if (URLUtil.isFileUrl(videoUri.toString())) {
+        if (video.isLocal()) {
+            Uri videoUri = video.getVideoUri();
             File sanityCheckFile = new File(videoUri.getPath());
 
             if (!sanityCheckFile.exists()) {
