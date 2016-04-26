@@ -163,8 +163,6 @@ public class MarkerCanvas extends FrameLayout implements View.OnClickListener {
         @Override
         public boolean onDown(MotionEvent event) {
             canvasTapped(event);
-            // Best practice to always return true here.
-            // http://developer.android.com/training/gestures/detector.html#detect
             return true;
         }
 
