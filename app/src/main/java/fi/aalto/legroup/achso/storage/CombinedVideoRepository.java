@@ -134,6 +134,16 @@ public class CombinedVideoRepository implements VideoRepository {
             File sanityCheckFile = new File(videoUri.getPath());
 
             if (!sanityCheckFile.exists()) {
+
+                // Also remove thumb file;
+                File thumbFile = new File(video.getThumbUri().getPath());
+                File videoFile = getLocalVideoFile(video.getId());
+
+                thumbFile.delete();
+                videoFile.delete();
+                allVideos.remove(video.getId());
+                bus.post(new VideoRepositoryUpdatedEvent(this));
+
                 throw new IOException("Local video file not found at " + videoUri);
             }
         }
