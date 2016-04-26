@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
+import android.webkit.URLUtil;
 
 import com.google.common.io.Files;
 import com.rollbar.android.Rollbar;
@@ -124,6 +125,19 @@ public class CombinedVideoRepository implements VideoRepository {
         video.setManifestUri(Uri.fromFile(file));
         video.setLastModified(new Date(file.lastModified()));
         video.setRepository(this);
+
+        Uri videoUri = video.getVideoUri();
+
+        // Sanity test to check if user deleted video file from gallery
+        // Missing thumb nail icon is fine, since you can still watch the local video
+        if (URLUtil.isFileUrl(videoUri.toString())) {
+            File sanityCheckFile = new File(videoUri.getPath());
+
+            if (!sanityCheckFile.exists()) {
+                throw new IOException("Local video file not found at " + videoUri);
+            }
+        }
+
         return video;
     }
 
