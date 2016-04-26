@@ -69,6 +69,9 @@ public final class PlayerFragment extends Fragment implements ExoPlayer.Listener
     // Number of framework renderers (currently video and audio)
     private static final int DOWNSTREAM_RENDERER_COUNT = 2;
 
+    // The total buffer size for storing video stream data, in bytes
+    private static final int EXO_BUFFER_SIZE = 1024 * 1024 * 8;
+
     private State state = State.UNPREPARED;
 
     private FrameLayout videoContainer;
@@ -185,7 +188,7 @@ public final class PlayerFragment extends Fragment implements ExoPlayer.Listener
 
         extractor = new Mp4Extractor();
 
-        ExtractorSampleSource source = new ExtractorSampleSource(videoUri, dataSource, extractor, DOWNSTREAM_RENDERER_COUNT, 5 * 1024 * 1024);
+        ExtractorSampleSource source = new ExtractorSampleSource(videoUri, dataSource, extractor, DOWNSTREAM_RENDERER_COUNT, EXO_BUFFER_SIZE);
 
         // The video renderer runs on another thread: we need to supply a handler on the main
         // thread in order to receive events.
