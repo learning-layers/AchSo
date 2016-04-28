@@ -161,15 +161,8 @@ public class MarkerCanvas extends FrameLayout implements View.OnClickListener {
          * Called when the canvas is tapped once.
          */
         @Override
-        public boolean onSingleTapUp(MotionEvent event) {
-            canvasTapped(event);
-            return true;
-        }
-
-        @Override
         public boolean onDown(MotionEvent event) {
-            // Best practice to always return true here.
-            // http://developer.android.com/training/gestures/detector.html#detect
+            canvasTapped(event);
             return true;
         }
 
