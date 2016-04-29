@@ -104,7 +104,6 @@ public final class DetailFragment extends Fragment {
         TranslationHelper translationHelper = TranslationHelper.get(getActivity());
 
         titleField.setText(video.getTitle());
-        genreField.setText(translationHelper.getGenreText(video.getGenre()));
         creatorField.setText(authorName);
         qrCodeField.setText(qrCode);
         uploadedField.setText(uploaded);
@@ -139,23 +138,6 @@ public final class DetailFragment extends Fragment {
                 .show();
     }
 
-    private void showGenreEditDialog() {
-        GenreDialogFragment fragment = new GenreDialogFragment();
-
-        fragment.setCallback(new GenreDialogFragment.Callback() {
-            @Override
-            public void onGenreSelected(String genre) {
-                video.setGenre(genre);
-
-                if (!video.save()) {
-                    SnackbarManager.show(Snackbar.with(getActivity()).text(R.string.storage_error));
-                }
-
-                populateInformation();
-            }
-        });
-
-        fragment.show(getFragmentManager(), "GenreDialogFragment");
-    }
+    private void showGenreEditDialog() {}
 
 }

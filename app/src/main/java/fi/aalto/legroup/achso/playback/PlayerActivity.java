@@ -268,7 +268,6 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         TranslationHelper translationHelper = TranslationHelper.get(this);
 
         toolbar.setTitle(video.getTitle());
-        toolbar.setSubtitle(translationHelper.getGenreText(video.getGenre()));
     }
 
     private void refreshAnnotations() {

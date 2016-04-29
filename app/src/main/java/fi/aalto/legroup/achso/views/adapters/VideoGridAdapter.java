@@ -76,7 +76,6 @@ public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapte
         TranslationHelper translationHelper = TranslationHelper.get(context);
 
         holder.getTitleText().setText(video.getTitle());
-        holder.getGenreText().setText(translationHelper.getGenreText(video.getGenre()));
 
         Uri thumbUri = video.getThumbUri();
         ImageView thumbImage = holder.getThumbImage();

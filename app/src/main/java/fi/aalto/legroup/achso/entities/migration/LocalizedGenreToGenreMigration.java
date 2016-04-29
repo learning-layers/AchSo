@@ -16,24 +16,25 @@ public class LocalizedGenreToGenreMigration extends VideoMigration {
 
     @Override
     public void migrate(Context context, Video video) {
-        String [] genreIds = context.getResources().getStringArray(R.array.genre_ids);
-        String[] genreTexts = context.getResources().getStringArray(R.array.genre_texts);
+        // Genres have been removed from AchSo as of April 29, 2016
+    //    String [] genreIds = context.getResources().getStringArray(R.array.genre_ids);
+    //    String[] genreTexts = context.getResources().getStringArray(R.array.genre_texts);
 
-        // In case none is found just use the first genre.
-        String genre = genreIds[0];
+    //    // In case none is found just use the first genre.
+    //    String genre = genreIds[0];
 
-        if (genreIds.length == genreTexts.length) {
-            String videoGenre = video.getGenre();
-            for (int i = 0; i < genreTexts.length; i++) {
-                if (genreIds[i].equals(videoGenre)) {
-                    return;
-                }
-                if (genreTexts[i].equals(videoGenre)) {
-                    genre = genreIds[i];
-                }
-            }
-        }
+   //     if (genreIds.length == genreTexts.length) {
+   //         String videoGenre = video.getGenre();
+   //         for (int i = 0; i < genreTexts.length; i++) {
+   //             if (genreIds[i].equals(videoGenre)) {
+   //                 return;
+   //             }
+   //             if (genreTexts[i].equals(videoGenre)) {
+   //                 genre = genreIds[i];
+   //             }
+   //         }
+   //     }
 
-        video.setGenre(genre);
+   //     video.setGenre(genre);
     }
 }
