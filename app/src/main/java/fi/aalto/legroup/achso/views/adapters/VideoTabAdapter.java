@@ -32,6 +32,7 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
 
     private Map<Integer, Object> activeItems = new HashMap<>();
     private List<String> tabNames = new ArrayList<>();
+    private String allVideosText;
     private List<List<UUID>> tabVideoIds;
 
     @Nullable
@@ -43,10 +44,10 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
     public VideoTabAdapter(Context context, FragmentManager manager) {
         super(manager);
 
-        String allVideos = context.getString(R.string.my_videos);
+        allVideosText = context.getString(R.string.my_videos);
 
         tabNames = new ArrayList<>();
-        tabNames.add(allVideos);
+        tabNames.add(allVideosText);
     }
 
     @Override
@@ -131,7 +132,7 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
 
 
         List<String> newTabNames = new ArrayList<String>();
-        newTabNames.add("All videos");
+        newTabNames.add(allVideosText);
         for (Group group : allGroups) {
             // TODO: Truncate.
             newTabNames.add(group.getName());
