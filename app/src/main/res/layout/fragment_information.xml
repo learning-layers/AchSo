@@ -49,43 +49,6 @@
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_margin="8dp"
-            android:id="@+id/linearLayout">
-
-            <LinearLayout
-                android:orientation="vertical"
-                android:layout_width="0dp"
-                android:layout_height="fill_parent"
-                android:layout_weight="1" >
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/semanticvideo_genre"
-                    android:layout_marginBottom="8dp"
-                    style="@style/InformationLabel" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:id="@+id/genreField" />
-            </LinearLayout>
-
-            <ImageButton
-                style="@android:style/Widget.Holo.Button.Borderless"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:id="@+id/genreEditButton"
-                android:src="@drawable/ic_edit_black_24dp"
-                android:contentDescription="@string/edit_text"
-                android:alpha=".54" />
-        </LinearLayout>
-
-        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_margin="8dp">
 

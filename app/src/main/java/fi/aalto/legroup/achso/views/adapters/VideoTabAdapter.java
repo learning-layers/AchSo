@@ -143,7 +143,7 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
 
         // Sort the videos by genre
         Multimap<String, OptimizedVideo> videosForGenre = HashMultimap.create();
-        
+
         //for (OptimizedVideo video : allVideos) {
 
         //    videosForGenre.put(video.getGenre(), video);

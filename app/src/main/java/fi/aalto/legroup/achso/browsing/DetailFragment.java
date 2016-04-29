@@ -29,7 +29,6 @@ public final class DetailFragment extends Fragment {
     private TextView uploadedField;
 
     private ImageButton titleEditButton;
-    private ImageButton genreEditButton;
 
     private Video video;
 
@@ -50,13 +49,11 @@ public final class DetailFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         titleField = (TextView) view.findViewById(R.id.titleField);
-        genreField = (TextView) view.findViewById(R.id.genreField);
         creatorField = (TextView) view.findViewById(R.id.creatorField);
         qrCodeField = (TextView) view.findViewById(R.id.qrCodeField);
         uploadedField = (TextView) view.findViewById(R.id.uploadedField);
 
         titleEditButton = (ImageButton) view.findViewById(R.id.titleEditButton);
-        genreEditButton = (ImageButton) view.findViewById(R.id.genreEditButton);
     }
 
     @Override
@@ -74,12 +71,6 @@ public final class DetailFragment extends Fragment {
             }
         });
 
-        genreEditButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showGenreEditDialog();
-            }
-        });
     }
 
     private void populateInformation() {
@@ -100,8 +91,6 @@ public final class DetailFragment extends Fragment {
         } else {
             uploaded = getString(R.string.no);
         }
-
-        TranslationHelper translationHelper = TranslationHelper.get(getActivity());
 
         titleField.setText(video.getTitle());
         creatorField.setText(authorName);
