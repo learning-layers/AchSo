@@ -115,6 +115,7 @@ of Arts, Design and Architecture of Aalto University, Finland.
 - Leo Nikkilä (@lnikkila)
 - Lassi Veikkonen (@lassiveikkonen)
 - Samuli Raivio (@bqqbarbhg)
+- Matti Jokitulppo (@melonmanchan)
 - Teemu Leinonen
 - Tarmo Toikkanen (@tarmot)
 - Jana Pejoska
