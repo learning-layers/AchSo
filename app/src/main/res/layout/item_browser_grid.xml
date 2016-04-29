@@ -52,16 +52,6 @@
                 android:textSize="16sp"
                 android:fontFamily="sans-serif-medium" />
 
-            <TextView
-                android:id="@+id/genreText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/unknown_genre"
-                android:singleLine="true"
-                android:ellipsize="end"
-                android:textColor="@color/primary_text_default_material_dark"
-                android:textSize="12sp" />
-
         </LinearLayout>
 
         <ImageButton

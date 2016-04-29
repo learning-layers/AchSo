@@ -21,7 +21,6 @@ import java.util.UUID;
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.entities.OptimizedVideo;
 import fi.aalto.legroup.achso.storage.VideoInfoRepository;
-import fi.aalto.legroup.achso.utilities.TranslationHelper;
 
 public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapter.ViewHolder> {
 
@@ -72,8 +71,6 @@ public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapte
             e.printStackTrace();
             return;
         }
-
-        TranslationHelper translationHelper = TranslationHelper.get(context);
 
         holder.getTitleText().setText(video.getTitle());
 
@@ -163,7 +160,6 @@ public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapte
 
         private View view;
         private TextView titleText;
-        private TextView genreText;
         private ImageView thumbImage;
         private ImageView uploadIndicator;
         private ProgressBar progressBar;
@@ -174,7 +170,6 @@ public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapte
 
             this.view = view;
             this.titleText = (TextView) view.findViewById(R.id.titleText);
-            this.genreText = (TextView) view.findViewById(R.id.genreText);
             this.thumbImage = (ImageView) view.findViewById(R.id.thumbImage);
             this.uploadIndicator = (ImageView) view.findViewById(R.id.uploadButton);
             this.progressBar = (ProgressBar) view.findViewById(R.id.progressBar);
@@ -187,10 +182,6 @@ public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapte
 
         public TextView getTitleText() {
             return this.titleText;
-        }
-
-        public TextView getGenreText() {
-            return this.genreText;
         }
 
         public ImageView getThumbImage() {
