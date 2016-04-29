@@ -50,7 +50,6 @@ import fi.aalto.legroup.achso.authentication.LoginErrorEvent;
 import fi.aalto.legroup.achso.authentication.LoginRequestEvent;
 import fi.aalto.legroup.achso.authentication.LoginStateEvent;
 import fi.aalto.legroup.achso.authentication.OIDCConfig;
-import fi.aalto.legroup.achso.authoring.GenreDialogFragment;
 import fi.aalto.legroup.achso.authoring.QRHelper;
 import fi.aalto.legroup.achso.authoring.VideoCreatorService;
 import fi.aalto.legroup.achso.settings.SettingsActivity;

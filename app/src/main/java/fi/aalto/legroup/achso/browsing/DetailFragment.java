@@ -16,14 +16,11 @@ import com.nispok.snackbar.Snackbar;
 import com.nispok.snackbar.SnackbarManager;
 
 import fi.aalto.legroup.achso.R;
-import fi.aalto.legroup.achso.authoring.GenreDialogFragment;
 import fi.aalto.legroup.achso.entities.Video;
-import fi.aalto.legroup.achso.utilities.TranslationHelper;
 
 public final class DetailFragment extends Fragment {
 
     private TextView titleField;
-    private TextView genreField;
     private TextView creatorField;
     private TextView qrCodeField;
     private TextView uploadedField;
