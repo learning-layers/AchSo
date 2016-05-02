@@ -131,6 +131,8 @@ public class AchRailsStrategy implements VideoHost {
 
     @Override
     public Video uploadVideoManifest(Video video) throws IOException {
+        // Force genre as good_work for backwards compability
+        video.setGenre("good_work");
 
         Request.Builder requestBuilder = buildVideosRequest(video.getId());
 
