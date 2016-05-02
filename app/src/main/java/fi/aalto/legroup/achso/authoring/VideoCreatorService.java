@@ -53,7 +53,6 @@ public final class VideoCreatorService extends IntentService {
     public static final String ARG_VIDEO_URI = "ARG_VIDEO_URI";
     public static final String ARG_VIDEO_ID = "ARG_VIDEO_ID";
     public static final String ARG_VIDEO_TITLE = "ARG_VIDEO_TITLE";
-    public static final String ARG_VIDEO_GENRE = "ARG_VIDEO_GENRE";
     public static final String ARG_VIDEO_TAG = "ARG_VIDEO_TAG";
     public static final String ARG_VIDEO_DATE = "ARG_VIDEO_DATE";
     public static final String ARG_VIDEO_AUTHOR_NAME = "ARG_VIDEO_AUTHOR_NAME";
@@ -359,7 +358,6 @@ public final class VideoCreatorService extends IntentService {
 
         private String title;
         private String tag;
-        private String genre;
         private Date date;
         private String authorName;
         private Uri authorUri;
@@ -384,7 +382,6 @@ public final class VideoCreatorService extends IntentService {
             title = parcel.readString();
             tag = parcel.readString();
             authorName = parcel.readString();
-            genre = parcel.readString();
 
             long dateLong = parcel.readLong();
 
@@ -480,7 +477,6 @@ public final class VideoCreatorService extends IntentService {
 
             parcel.writeString(title);
             parcel.writeString(tag);
-            parcel.writeString(genre);
             parcel.writeString(authorName);
 
             if (date == null) {

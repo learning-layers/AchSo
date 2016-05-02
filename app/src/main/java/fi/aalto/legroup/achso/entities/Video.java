@@ -33,7 +33,6 @@ public class Video implements JsonSerializable {
     protected UUID id;
     protected String title;
     protected String tag;
-    protected String genre;
     protected int rotation;
     protected Date date;
     protected int revision;
@@ -59,7 +58,6 @@ public class Video implements JsonSerializable {
         this.id = id;
         this.title = title;
         this.tag = tag;
-        this.genre = "good_work";
         this.rotation = rotation;
         this.date = date;
 
@@ -164,10 +162,6 @@ public class Video implements JsonSerializable {
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    public void setGenre(String genre) {
-        this.genre = genre;
     }
 
     public void setTag(String tag) {
