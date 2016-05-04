@@ -53,7 +53,6 @@ public final class VideoCreatorService extends IntentService {
     public static final String ARG_VIDEO_URI = "ARG_VIDEO_URI";
     public static final String ARG_VIDEO_ID = "ARG_VIDEO_ID";
     public static final String ARG_VIDEO_TITLE = "ARG_VIDEO_TITLE";
-    public static final String ARG_VIDEO_GENRE = "ARG_VIDEO_GENRE";
     public static final String ARG_VIDEO_TAG = "ARG_VIDEO_TAG";
     public static final String ARG_VIDEO_DATE = "ARG_VIDEO_DATE";
     public static final String ARG_VIDEO_AUTHOR_NAME = "ARG_VIDEO_AUTHOR_NAME";
@@ -64,18 +63,18 @@ public final class VideoCreatorService extends IntentService {
     private Bus bus;
 
     /**
-     * Returns a builder for a video. Video URI and genre must be supplied via the builder's setters
+     * Returns a builder for a video. Video URI must be supplied via the builder's setters
      * before calling VideoBuilder#create().
      */
     public static VideoBuilder build() {
-        return new VideoBuilder(null, null);
+        return new VideoBuilder();
     }
 
     /**
      * Returns a builder for a video.
      */
-    public static VideoBuilder build(Uri videoUri, String videoGenre) {
-        return new VideoBuilder(videoUri, videoGenre);
+    public static VideoBuilder build(Uri videoUri) {
+        return new VideoBuilder(videoUri);
     }
 
     /**
@@ -103,7 +102,6 @@ public final class VideoCreatorService extends IntentService {
         Uri videoContentUri = intent.getParcelableExtra(ARG_VIDEO_URI);
         UUID id = (UUID) intent.getSerializableExtra(ARG_VIDEO_ID);
         String title = intent.getStringExtra(ARG_VIDEO_TITLE);
-        String genre = intent.getStringExtra(ARG_VIDEO_GENRE);
         String tag = intent.getStringExtra(ARG_VIDEO_TAG);
         Date date = (Date) intent.getSerializableExtra(ARG_VIDEO_DATE);
         String authorName = intent.getStringExtra(ARG_VIDEO_AUTHOR_NAME);
@@ -154,7 +152,7 @@ public final class VideoCreatorService extends IntentService {
         }
 
         // Send an analytics hit
-        sendAnalytics(genre, getDuration(videoFile));
+        sendAnalytics(getDuration(videoFile));
 
         Uri manifestUri = Uri.fromFile(manifestFile);
         Uri videoUri = Uri.fromFile(videoFile);
@@ -164,7 +162,7 @@ public final class VideoCreatorService extends IntentService {
         int formatVersion = Video.VIDEO_FORMAT_VERSION;
 
         Video video = new Video(App.videoRepository, manifestUri, videoUri, thumbUri, id, title,
-                genre, tag, rotation, date, author, location, formatVersion, annotations);
+                tag, rotation, date, author, location, formatVersion, annotations);
 
         video.save();
 
@@ -285,14 +283,12 @@ public final class VideoCreatorService extends IntentService {
     /**
      * Sends an analytics hit for creating a video.
      *
-     * @param genre    Genre of the created video.
      * @param duration Duration of the created video (in milliseconds) or -1 to not report it.
      */
-    private void sendAnalytics(String genre, long duration) {
+    private void sendAnalytics(long duration) {
         HitBuilders.EventBuilder event = new HitBuilders.EventBuilder()
                 .setCategory(AppAnalytics.CATEGORY_VIDEOS)
-                .setAction(AppAnalytics.ACTION_CREATE)
-                .setLabel(genre);
+                .setAction(AppAnalytics.ACTION_CREATE);
 
         // Round the duration
         if (duration != -1) {
@@ -359,7 +355,6 @@ public final class VideoCreatorService extends IntentService {
 
         private UUID id = UUID.randomUUID();
         private Uri videoUri;
-        private String genre;
 
         private String title;
         private String tag;
@@ -372,10 +367,11 @@ public final class VideoCreatorService extends IntentService {
         /**
          * If null, missing parameters must be supplied via their setters before calling #create().
          */
-        private VideoBuilder(@Nullable Uri videoUri, @Nullable String genre) {
+        private VideoBuilder(@Nullable Uri videoUri) {
             this.videoUri = videoUri;
-            this.genre = genre;
         }
+
+        private VideoBuilder() {}
 
         protected VideoBuilder(Parcel parcel) {
             id = (UUID) parcel.readValue(UUID.class.getClassLoader());
@@ -384,7 +380,6 @@ public final class VideoCreatorService extends IntentService {
             location = (Location) parcel.readValue(Location.class.getClassLoader());
 
             title = parcel.readString();
-            genre = parcel.readString();
             tag = parcel.readString();
             authorName = parcel.readString();
 
@@ -414,10 +409,6 @@ public final class VideoCreatorService extends IntentService {
             return this;
         }
 
-        public VideoBuilder setGenre(String genre) {
-            this.genre = genre;
-            return this;
-        }
 
         public VideoBuilder setTitle(String title) {
             this.title = title;
@@ -451,15 +442,14 @@ public final class VideoCreatorService extends IntentService {
         }
 
         public void create(Context context) {
-            if (this.videoUri == null || this.genre == null) {
-                throw new IllegalArgumentException("Video URI and genre must be supplied.");
+            if (this.videoUri == null) {
+                throw new IllegalArgumentException("Video URI must be supplied.");
             }
 
             Intent intent = new Intent(context, VideoCreatorService.class);
 
             intent.putExtra(ARG_VIDEO_ID, this.id);
             intent.putExtra(ARG_VIDEO_URI, this.videoUri);
-            intent.putExtra(ARG_VIDEO_GENRE, this.genre);
 
             intent.putExtra(ARG_VIDEO_TITLE, this.title);
             intent.putExtra(ARG_VIDEO_TAG, this.tag);
@@ -486,7 +476,6 @@ public final class VideoCreatorService extends IntentService {
             parcel.writeValue(location);
 
             parcel.writeString(title);
-            parcel.writeString(genre);
             parcel.writeString(tag);
             parcel.writeString(authorName);
 

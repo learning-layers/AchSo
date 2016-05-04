@@ -32,7 +32,6 @@ public class Video implements JsonSerializable {
     protected Uri deleteUri;
     protected UUID id;
     protected String title;
-    protected String genre;
     protected String tag;
     protected int rotation;
     protected Date date;
@@ -50,7 +49,7 @@ public class Video implements JsonSerializable {
     }
 
     public Video(VideoRepository repository, Uri manifestUri, Uri videoUri, Uri thumbUri, UUID id,
-                 String title, String genre, String tag, int rotation, Date date, User author,
+                 String title, String tag, int rotation, Date date, User author,
                  Location location, int formatVersion, List<Annotation> annotations) {
 
         this.manifestUri = manifestUri;
@@ -58,7 +57,6 @@ public class Video implements JsonSerializable {
         this.thumbUri = thumbUri;
         this.id = id;
         this.title = title;
-        this.genre = genre;
         this.tag = tag;
         this.rotation = rotation;
         this.date = date;
@@ -127,10 +125,6 @@ public class Video implements JsonSerializable {
         return this.title;
     }
 
-    public String getGenre() {
-        return this.genre;
-    }
-
     public String getTag() {
         return this.tag;
     }
@@ -168,10 +162,6 @@ public class Video implements JsonSerializable {
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    public void setGenre(String genre) {
-        this.genre = genre;
     }
 
     public void setTag(String tag) {

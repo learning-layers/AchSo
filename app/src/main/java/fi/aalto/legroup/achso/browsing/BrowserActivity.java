@@ -50,7 +50,6 @@ import fi.aalto.legroup.achso.authentication.LoginErrorEvent;
 import fi.aalto.legroup.achso.authentication.LoginRequestEvent;
 import fi.aalto.legroup.achso.authentication.LoginStateEvent;
 import fi.aalto.legroup.achso.authentication.OIDCConfig;
-import fi.aalto.legroup.achso.authoring.GenreDialogFragment;
 import fi.aalto.legroup.achso.authoring.QRHelper;
 import fi.aalto.legroup.achso.authoring.VideoCreatorService;
 import fi.aalto.legroup.achso.settings.SettingsActivity;
@@ -421,17 +420,7 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
             videoBuilder.setVideoUri(resultData.getData());
         }
 
-        GenreDialogFragment fragment = new GenreDialogFragment();
-
-        fragment.setCallback(new GenreDialogFragment.Callback() {
-            @Override
-            public void onGenreSelected(String genre) {
-                videoBuilder.setGenre(genre);
-                videoBuilder.create(BrowserActivity.this);
-            }
-        });
-
-        fragment.show(getFragmentManager(), fragment.getClass().getSimpleName());
+        videoBuilder.create(BrowserActivity.this);
     }
 
     private void showSettings() {

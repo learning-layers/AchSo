@@ -31,7 +31,6 @@ public class OptimizedVideo {
     private String deleteUri;
     private UUID id;
     private String title;
-    private String genre;
     private String tag;
     private long dateInMs;
     private int revision;
@@ -72,10 +71,6 @@ public class OptimizedVideo {
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    public String getGenre() {
-        return genre;
     }
 
     public Uri getVideoUri() {
@@ -211,13 +206,8 @@ public class OptimizedVideo {
 
         id = video.getId();
         title = video.getTitle();
-        genre = video.getGenre();
         tag = video.getTag();
         rotation = video.getRotation();
-        if (genre != null) {
-            // Intern genres because there are only a few options for the field
-            genre = genre.intern();
-        }
 
         // Store Date objects as long (They internally are just wrapped long)
         dateInMs = video.getDate().getTime();
@@ -328,7 +318,6 @@ public class OptimizedVideo {
         video.setRepository(repository);
         video.setId(id);
         video.setTitle(title);
-        video.setGenre(genre);
         video.setTag(tag);
         video.setRotation(rotation);
 
