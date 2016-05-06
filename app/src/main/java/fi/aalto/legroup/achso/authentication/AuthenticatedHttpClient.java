@@ -35,11 +35,11 @@ public class AuthenticatedHttpClient {
         AccountManager accountManager = AccountManager.get(context);
         String token = null;
 
-        // Try retrieving an ID token from the account manager
+        // Try retrieving an access token from the account manager
         try {
-            token = accountManager.blockingGetAuthToken(account, Authenticator.TOKEN_TYPE_ID, true);
+            token = accountManager.blockingGetAuthToken(account, Authenticator.TOKEN_TYPE_ACCESS, true);
         } catch (Exception e) {
-            Log.e(TAG, "Could not get ID token from account: " + e.getMessage());
+            Log.e(TAG, "Could not get access token from account: " + e.getMessage());
             e.printStackTrace();
         }
         return token;

@@ -28,9 +28,9 @@ public class OptimizedVideo {
 
     private String videoUri;
     private String thumbUri;
+    private String deleteUri;
     private UUID id;
     private String title;
-    private String genre;
     private String tag;
     private long dateInMs;
     private int revision;
@@ -57,6 +57,7 @@ public class OptimizedVideo {
     private float[] annotationXY;
     private int[] annotationTextStartEnd;
     private int[] annotationAuthorUserIndex;
+    private long[] annotationCreatedTimestampInMs;
     private long lastModified;
     private int formatVersion;
 
@@ -70,10 +71,6 @@ public class OptimizedVideo {
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    public String getGenre() {
-        return genre;
     }
 
     public Uri getVideoUri() {
@@ -199,18 +196,18 @@ public class OptimizedVideo {
         manifestUri = video.getManifestUri().toString();
         videoUri = video.getVideoUri().toString();
         thumbUri = video.getThumbUri().toString();
+        if (video.getDeleteUri() != null) {
+            deleteUri = video.getDeleteUri().toString();
+        } else {
+            deleteUri = null;
+        }
 
         repository = video.getRepository();
 
         id = video.getId();
         title = video.getTitle();
-        genre = video.getGenre();
         tag = video.getTag();
         rotation = video.getRotation();
-        if (genre != null) {
-            // Intern genres because there are only a few options for the field
-            genre = genre.intern();
-        }
 
         // Store Date objects as long (They internally are just wrapped long)
         dateInMs = video.getDate().getTime();
@@ -239,6 +236,7 @@ public class OptimizedVideo {
         annotationXY = new float[annotationCount * 2];
         annotationTextStartEnd = new int[annotationCount * 2];
         annotationAuthorUserIndex = new int[annotationCount];
+        annotationCreatedTimestampInMs = new long[annotationCount];
 
         // This buffer will contain all the annotation text data
         // The single annotation texts are just substrings of this
@@ -279,6 +277,9 @@ public class OptimizedVideo {
 
             // Intern the user and store as index so we don't have so much object references
             annotationAuthorUserIndex[i] = UserPool.internUser(annotation.getAuthor());
+
+            // Store Date objects as long (They internally are just wrapped long)
+            annotationCreatedTimestampInMs[i] = annotation.getCreatedTimestamp().getTime();
         }
 
         annotationTextBuffer = annotationBufferBuilder.toString();
@@ -308,11 +309,15 @@ public class OptimizedVideo {
         video.setManifestUri(Uri.parse(manifestUri));
         video.setVideoUri(Uri.parse(videoUri));
         video.setThumbUri(Uri.parse(thumbUri));
+        if (deleteUri != null) {
+            video.setDeleteUri(Uri.parse(deleteUri));
+        } else {
+            video.setDeleteUri(null);
+        }
 
         video.setRepository(repository);
         video.setId(id);
         video.setTitle(title);
-        video.setGenre(genre);
         video.setTag(tag);
         video.setRotation(rotation);
 
@@ -368,6 +373,9 @@ public class OptimizedVideo {
 
             // Retrieve the interned user with the index.
             annotation.setAuthor(UserPool.getInternedUser(annotationAuthorUserIndex[i]));
+
+            // Create the Date objects from the longs1
+            annotation.setCreatedTimestamp(new Date(annotationCreatedTimestampInMs[i]));
         }
 
         return video;

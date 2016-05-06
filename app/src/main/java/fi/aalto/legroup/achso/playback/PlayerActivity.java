@@ -4,6 +4,7 @@ import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.graphics.PointF;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
@@ -29,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -43,7 +45,6 @@ import fi.aalto.legroup.achso.browsing.DetailActivity;
 import fi.aalto.legroup.achso.entities.Annotation;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.storage.VideoRepository;
-import fi.aalto.legroup.achso.storage.local.ExportService;
 import fi.aalto.legroup.achso.utilities.RepeatingTask;
 import fi.aalto.legroup.achso.utilities.TranslationHelper;
 import fi.aalto.legroup.achso.views.MarkedSeekBar;
@@ -178,9 +179,28 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         loadVideo(video);
     }
 
+    private static class DownloadUpdatedVideoAsync extends AsyncTask<Video, Void, Video> {
+        @Override
+        protected Video doInBackground(Video... videos) {
+            // Expect only one argument
+            Video video = videos[0];
+
+            // HACK: Just use Achrails directly, this does not use the result at the moment, but is
+            // used only for posting the view statistics.
+            try {
+                return App.achRails.downloadVideoManifestIfNewerThan(video.getId(), video.getRevision(), true);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
     protected void loadVideo(Video video) {
 
         this.video = video;
+
+        new DownloadUpdatedVideoAsync().execute(video);
 
         populateVideoInformation();
         playerFragment = (PlayerFragment)
@@ -207,10 +227,15 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
             case android.R.id.home:
                 finish();
                 return true;
-
+            /*
             case R.id.action_share:
                 ExportService.export(this, video.getId());
                 return true;
+
+            case R.id.action_upload:
+                return true;
+
+            */
 
             case R.id.action_view_video_info:
                 Intent informationIntent = new Intent(this, DetailActivity.class);
@@ -243,7 +268,6 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         TranslationHelper translationHelper = TranslationHelper.get(this);
 
         toolbar.setTitle(video.getTitle());
-        toolbar.setSubtitle(translationHelper.getGenreText(video.getGenre()));
     }
 
     private void refreshAnnotations() {
@@ -336,7 +360,9 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
 
         long time = playerFragment.getPlaybackPosition();
 
-        Annotation annotation = new Annotation(time, position, "", App.loginManager.getUser());
+
+        Date now = new Date();
+        Annotation annotation = new Annotation(time, position, "", App.loginManager.getUser(), now);
 
         video.getAnnotations().add(annotation);
 

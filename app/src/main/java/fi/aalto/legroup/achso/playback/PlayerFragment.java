@@ -15,18 +15,24 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.webkit.URLUtil;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
 import com.google.android.exoplayer.ExoPlaybackException;
 import com.google.android.exoplayer.ExoPlayer;
-import com.google.android.exoplayer.FrameworkSampleSource;
+import com.google.android.exoplayer.extractor.Extractor;
+import com.google.android.exoplayer.extractor.mp4.Mp4Extractor;
+import com.google.android.exoplayer.upstream.DataSource;
+import com.google.android.exoplayer.extractor.ExtractorSampleSource;
 import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
 import com.google.android.exoplayer.MediaCodecTrackRenderer;
 import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
-import com.google.android.exoplayer.SampleSource;
 import com.google.android.exoplayer.TrackRenderer;
+import com.google.android.exoplayer.upstream.DefaultUriDataSource;
+import com.google.android.exoplayer.upstream.FileDataSource;
+import com.google.android.exoplayer.util.Util;
 import com.nispok.snackbar.Snackbar;
 import com.nispok.snackbar.SnackbarManager;
 import com.rollbar.android.Rollbar;
@@ -63,6 +69,9 @@ public final class PlayerFragment extends Fragment implements ExoPlayer.Listener
     // Number of framework renderers (currently video and audio)
     private static final int DOWNSTREAM_RENDERER_COUNT = 2;
 
+    // The total buffer size for storing video stream data, in bytes
+    private static final int EXO_BUFFER_SIZE = 1024 * 1024 * 8;
+
     private State state = State.UNPREPARED;
 
     private FrameLayout videoContainer;
@@ -73,6 +82,9 @@ public final class PlayerFragment extends Fragment implements ExoPlayer.Listener
     private ProgressBar pauseProgress;
 
     private LinearLayout subtitleContainer;
+
+    private DataSource dataSource;
+    private Extractor extractor;
 
     private ExoPlayer exoPlayer;
     private TrackRenderer videoRenderer;
@@ -164,12 +176,17 @@ public final class PlayerFragment extends Fragment implements ExoPlayer.Listener
         orientationPatcher.updateOrientation(video);
         orientationPatcher.setView(videoSurface);
 
-        SampleSource source = new FrameworkSampleSource(
-                getActivity(),
-                videoUri,
-                null,
-                DOWNSTREAM_RENDERER_COUNT
-        );
+        // Seems as if the DefaultUriDataSource cannot correctly guess a local file URI, so just do it manually
+        if (video.isLocal()) {
+            dataSource = new FileDataSource();
+        } else {
+            String userAgent = Util.getUserAgent(getActivity(), "ACHSO");
+            dataSource = new DefaultUriDataSource(getActivity(), userAgent);
+        }
+
+        extractor = new Mp4Extractor();
+
+        ExtractorSampleSource source = new ExtractorSampleSource(videoUri, dataSource, extractor, DOWNSTREAM_RENDERER_COUNT, EXO_BUFFER_SIZE);
 
         // The video renderer runs on another thread: we need to supply a handler on the main
         // thread in order to receive events.
@@ -393,6 +410,11 @@ public final class PlayerFragment extends Fragment implements ExoPlayer.Listener
     @Override
     public void onCryptoError(MediaCodec.CryptoException error) {
         Rollbar.reportException(error);
+    }
+
+    @Override
+    public void onDecoderInitialized(String decoderName, long elapsedRealtimeMs, long initializationDurationMs) {
+
     }
 
     /**

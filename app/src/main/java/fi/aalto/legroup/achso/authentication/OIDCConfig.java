@@ -24,25 +24,106 @@
 package fi.aalto.legroup.achso.authentication;
 
 import android.content.Context;
+import android.net.Uri;
+
+import com.squareup.okhttp.Callback;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
+
+import java.io.IOException;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
+import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
 
 /**
  * TODO: Why not read these directly?
  */
 public final class OIDCConfig {
 
+    private static String clientId = null;
+    private static String clientSecret = null;
+    private static int tokenVersion = 0;
+
     private OIDCConfig() {
         // Static access only
     }
 
-    public static String getClientId(Context context) {
-        return context.getString(R.string.oidcClientId);
+    public static boolean isReady() {
+        return clientId != null && clientSecret != null;
     }
 
-    public static String getClientSecret(Context context) {
-        return context.getString(R.string.oidcClientSecret);
+    private static class OIDCTokenResponse implements JsonSerializable {
+        public String client_id;
+        public String client_secret;
+    }
+
+    public static void setTokens(String newClientId, String newClientSecret) {
+        tokenVersion++;
+        clientId = newClientId;
+        clientSecret = newClientSecret;
+    }
+
+    private static Request createRetrieveOIDCTokensRequest(Context context) {
+        Uri achrailsUrl = App.getAchRailsUrl(context);
+        Uri endpointUrl = achrailsUrl.buildUpon().appendPath("oidc_tokens").build();
+
+        Request request = new Request.Builder()
+                .url(endpointUrl.toString())
+                .get()
+                .build();
+
+        return request;
+    }
+
+    public interface TokenCallback {
+        void tokensRetrieved();
+    }
+
+    public static void retrieveOIDCTokens(final Context context, final TokenCallback callback) {
+
+        tokenVersion++;
+        final int expectVersion = tokenVersion;
+
+        Request request = createRetrieveOIDCTokensRequest(context);
+        App.httpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Request request, IOException e) {
+                // TODO?
+            }
+
+            @Override
+            public void onResponse(Response response) throws IOException {
+
+                if (tokenVersion != expectVersion)
+                    return;
+
+                OIDCTokenResponse tokens = App.jsonSerializer.read(OIDCTokenResponse.class, response.body().byteStream());
+                setTokens(tokens.client_id, tokens.client_secret);
+                callback.tokensRetrieved();
+            }
+        });
+    }
+
+    public static void retrieveOIDCTokensBlocking(final Context context) throws IOException {
+        if (isReady())
+            return;
+
+        Request request = createRetrieveOIDCTokensRequest(context);
+        Response response = App.httpClient.newCall(request).execute();
+        if (!response.isSuccessful()) throw new IOException("Failed to get tokens");
+        OIDCTokenResponse tokens = App.jsonSerializer.read(OIDCTokenResponse.class, response.body().byteStream());
+        setTokens(tokens.client_id, tokens.client_secret);
+    }
+
+    public static String getClientId(Context context) throws OIDCNotReadyException {
+        if (clientId == null) throw new OIDCNotReadyException();
+        return clientId;
+    }
+
+    public static String getClientSecret(Context context) throws OIDCNotReadyException {
+        if (clientSecret == null) throw new OIDCNotReadyException();
+        return clientSecret;
     }
 
     public static String getAuthorizationServerUrl(Context context) {

@@ -7,30 +7,37 @@
         android:id="@+id/action_view_video_info"
         android:icon="@drawable/ic_info_white_24dp"
         android:title="@string/view_video_info"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="ifRoom|withText" />
 
     <item
         android:id="@+id/action_upload"
         android:icon="@drawable/ic_cloud_upload_white_24dp"
         android:title="@string/upload"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="ifRoom|withText" />
 
     <item
-        android:id="@+id/action_share_video"
-        android:icon="@drawable/ic_share_variant_white_24dp"
+        android:id="@+id/action_share_to_group"
+        android:icon="@drawable/ic_group_white_24dp"
         android:title="@string/video_share"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="ifRoom|withText" />
+
 
     <item
         android:id="@+id/action_qr_to_video"
         android:icon="@drawable/ic_qrcode_white_24dp"
         android:title="@string/qr_to_video"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="ifRoom|withText" />
 
     <item
         android:id="@+id/action_delete"
         android:icon="@drawable/ic_delete_white_24dp"
         android:title="@string/delete"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_share_video"
+        android:icon="@drawable/ic_share_variant_white_24dp"
+        android:title="@string/video_share"
+        app:showAsAction="never" />
 
 </menu>

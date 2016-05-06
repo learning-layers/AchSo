@@ -12,7 +12,6 @@ import android.support.multidex.MultiDexApplication;
 import android.widget.Toast;
 
 import com.google.android.gms.analytics.GoogleAnalytics;
-import com.google.api.client.repackaged.com.google.common.base.Strings;
 import com.rollbar.android.Rollbar;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.otto.Bus;
@@ -33,6 +32,7 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.authentication.AuthenticatedHttpClient;
 import fi.aalto.legroup.achso.authentication.LoginManager;
 import fi.aalto.legroup.achso.authentication.LoginRequestEvent;
+import fi.aalto.legroup.achso.authentication.OIDCConfig;
 import fi.aalto.legroup.achso.authoring.LocationManager;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
 import fi.aalto.legroup.achso.storage.CombinedVideoRepository;
@@ -43,6 +43,7 @@ import fi.aalto.legroup.achso.storage.remote.UploadService;
 import fi.aalto.legroup.achso.storage.remote.strategies.AchRailsStrategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.ClViTra2Strategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.DumbPhpStrategy;
+import fi.aalto.legroup.achso.storage.remote.strategies.GoViTraStrategy;
 import fi.legroup.aalto.cryptohelper.CryptoHelper;
 
 public final class App extends MultiDexApplication
@@ -61,12 +62,18 @@ public final class App extends MultiDexApplication
 
     public static JsonSerializer jsonSerializer;
 
+    private static CombinedVideoRepository combinedRepository;
     public static VideoRepository videoRepository;
     public static VideoInfoRepository videoInfoRepository;
 
     public static File localStorageDirectory;
+    public static File cacheVideoDirectoryBase;
+
+    public static AchRailsStrategy achRails;
 
     private static Uri layersBoxUrl;
+    private static Uri publicLayersBoxUrl;
+    private static boolean usePublicLayersBox;
 
     private static OkHttpClient getUnsafeOkHttpClient() {
         try {
@@ -116,7 +123,10 @@ public final class App extends MultiDexApplication
 
         setupPreferences();
 
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         layersBoxUrl = readLayersBoxUrl();
+        usePublicLayersBox = preferences.getBoolean(AppPreferences.USE_PUBLIC_LAYERS_BOX, false);
+        publicLayersBoxUrl = Uri.parse(getString(R.string.publicLayersBoxUrl));
 
         bus = new AppBus();
 
@@ -131,8 +141,6 @@ public final class App extends MultiDexApplication
 
         jsonSerializer = new JsonSerializer();
 
-        setupUploaders();
-
         // TODO: The instantiation of repositories should be abstracted further.
         // That would allow for multiple repositories.
         File mediaDirectory =
@@ -144,35 +152,34 @@ public final class App extends MultiDexApplication
             Toast.makeText(this, R.string.storage_error, Toast.LENGTH_LONG).show();
         }
 
-        File cacheVideoDirectory = new File(localStorageDirectory, "cache");
-        cacheVideoDirectory.mkdirs();
+        cacheVideoDirectoryBase = new File(localStorageDirectory, "cache");
+        cacheVideoDirectoryBase.mkdirs();
 
-        if (!cacheVideoDirectory.isDirectory()) {
+        if (!cacheVideoDirectoryBase.isDirectory()) {
             // If the cache directory can't be created use internal App storage
             // There is a slim chance that the user saves some modified videos to the internal
             // storage and then inserts and SD card causing videos not to be uploaded, but it
             // doesn't seem worth the trouble.
 
             File internalDataDirectory = new File(getApplicationInfo().dataDir);
-            cacheVideoDirectory = new File(internalDataDirectory, "manifestcache");
-            cacheVideoDirectory.mkdirs();
+            cacheVideoDirectoryBase = new File(internalDataDirectory, "manifestcache");
+            cacheVideoDirectoryBase.mkdirs();
         }
 
-        CombinedVideoRepository combinedRepository = new CombinedVideoRepository(bus, jsonSerializer,
-                localStorageDirectory, cacheVideoDirectory);
-
-        //combinedRepository.addHost(ownCloudStrategy);
-        combinedRepository.addHost(new AchRailsStrategy(jsonSerializer, Uri.parse(getString(R.string.achRailsUrl))));
+        combinedRepository = new CombinedVideoRepository(bus, jsonSerializer,
+                localStorageDirectory, makeCacheVideoDirectory());
 
         videoRepository = combinedRepository;
         videoInfoRepository = combinedRepository;
+
+        setupUploaders(this);
 
         videoRepository.refreshOffline();
 
         // Run migrations to update old videos.
         videoRepository.migrateVideos(this);
 
-        SyncService.syncWithCloudStorage(this);
+        updateOIDCTokens(this);
 
         bus.post(new LoginRequestEvent(LoginRequestEvent.Type.LOGIN));
 
@@ -183,8 +190,36 @@ public final class App extends MultiDexApplication
         AppAnalytics.setup(this);
     }
 
+    public static File makeCacheVideoDirectory() {
+        String host = getLayersBoxUrl().getHost().replace('.', '_');
+        File path = new File(cacheVideoDirectoryBase, host);
+        path.mkdirs();
+
+        return path;
+    }
+
+    public static void updateOIDCTokens(final Context context) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+
+        if (preferences.getBoolean(AppPreferences.USE_PUBLIC_LAYERS_BOX, false)) {
+            OIDCConfig.setTokens(context.getString(R.string.oidcClientId), context.getString(R.string.oidcClientSecret));
+            SyncService.syncWithCloudStorage(context);
+        } else {
+            OIDCConfig.retrieveOIDCTokens(context, new OIDCConfig.TokenCallback() {
+                @Override
+                public void tokensRetrieved() {
+                    SyncService.syncWithCloudStorage(context);
+                }
+            });
+        }
+    }
+
     public static Uri getLayersBoxUrl() {
-        return layersBoxUrl;
+        if (usePublicLayersBox) {
+            return publicLayersBoxUrl;
+        } else {
+            return layersBoxUrl;
+        }
     }
 
     public static Uri getLayersServiceUrl(String serviceUriString) {
@@ -192,7 +227,23 @@ public final class App extends MultiDexApplication
     }
 
     public static Uri getLayersServiceUrl(Uri serviceUri) {
-        return resolveRelativeUri(serviceUri, layersBoxUrl);
+        return resolveRelativeUri(serviceUri, getLayersBoxUrl());
+    }
+
+    public static Uri getAchRailsUrl(Context context) {
+        if (usePublicLayersBox) {
+            return getLayersServiceUrl(context.getString(R.string.publicAchRailsUrl));
+        } else {
+            return getLayersServiceUrl(context.getString(R.string.achRailsUrl));
+        }
+    }
+
+    public static Uri getAchsoStorageUrl(Context context) {
+        if (usePublicLayersBox) {
+            return getLayersServiceUrl(context.getString(R.string.publicAchsoStorageUrl));
+        } else {
+            return getLayersServiceUrl(context.getString(R.string.achsoStorageUrl));
+        }
     }
 
     /**
@@ -242,18 +293,18 @@ public final class App extends MultiDexApplication
         Rollbar.init(this, getString(R.string.rollbarApiKey), releaseStage);
     }
 
-    private void setupUploaders() {
+    public static void setupUploaders(Context context) {
 
-        // Temporary uploader until ClViTra2 is fixed in the Layers Box
-        // TODO: Remove this
-        String achsoStorageUrlString = getString(R.string.achsoStorageUrl);
-        if (!Strings.isNullOrEmpty(achsoStorageUrlString)) {
-            UploadService.addUploader(new DumbPhpStrategy(Uri.parse(achsoStorageUrlString)));
-        }
+        combinedRepository.clear();
+        UploadService.clearUploaders();
 
-        Uri clViTra2Url = Uri.parse(getString(R.string.clvitra2Url));
-        Uri sssUrl = Uri.parse(getString(R.string.sssUrl));
+        achRails = new AchRailsStrategy(jsonSerializer, getAchRailsUrl(context));
+        combinedRepository.addHost(achRails);
+        combinedRepository.setCacheRoot(makeCacheVideoDirectory());
 
+        UploadService.addUploader(new GoViTraStrategy(jsonSerializer, getAchsoStorageUrl(context)));
+
+        Uri clViTra2Url = Uri.parse(context.getString(R.string.clvitra2Url));
         ClViTra2Strategy videoStrategy = new ClViTra2Strategy(clViTra2Url);
 
         UploadService.addUploader(videoStrategy);
@@ -309,6 +360,10 @@ public final class App extends MultiDexApplication
             case AppPreferences.ANALYTICS_OPT_IN:
                 boolean hasOptedIn = preferences.getBoolean(key, false);
                 GoogleAnalytics.getInstance(this).setAppOptOut(!hasOptedIn);
+                break;
+
+            case AppPreferences.USE_PUBLIC_LAYERS_BOX:
+                usePublicLayersBox = preferences.getBoolean(key, false);
                 break;
         }
     }

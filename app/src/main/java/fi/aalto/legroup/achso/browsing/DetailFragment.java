@@ -16,20 +16,16 @@ import com.nispok.snackbar.Snackbar;
 import com.nispok.snackbar.SnackbarManager;
 
 import fi.aalto.legroup.achso.R;
-import fi.aalto.legroup.achso.authoring.GenreDialogFragment;
 import fi.aalto.legroup.achso.entities.Video;
-import fi.aalto.legroup.achso.utilities.TranslationHelper;
 
 public final class DetailFragment extends Fragment {
 
     private TextView titleField;
-    private TextView genreField;
     private TextView creatorField;
     private TextView qrCodeField;
     private TextView uploadedField;
 
     private ImageButton titleEditButton;
-    private ImageButton genreEditButton;
 
     private Video video;
 
@@ -50,13 +46,11 @@ public final class DetailFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         titleField = (TextView) view.findViewById(R.id.titleField);
-        genreField = (TextView) view.findViewById(R.id.genreField);
         creatorField = (TextView) view.findViewById(R.id.creatorField);
         qrCodeField = (TextView) view.findViewById(R.id.qrCodeField);
         uploadedField = (TextView) view.findViewById(R.id.uploadedField);
 
         titleEditButton = (ImageButton) view.findViewById(R.id.titleEditButton);
-        genreEditButton = (ImageButton) view.findViewById(R.id.genreEditButton);
     }
 
     @Override
@@ -74,12 +68,6 @@ public final class DetailFragment extends Fragment {
             }
         });
 
-        genreEditButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showGenreEditDialog();
-            }
-        });
     }
 
     private void populateInformation() {
@@ -101,10 +89,7 @@ public final class DetailFragment extends Fragment {
             uploaded = getString(R.string.no);
         }
 
-        TranslationHelper translationHelper = TranslationHelper.get(getActivity());
-
         titleField.setText(video.getTitle());
-        genreField.setText(translationHelper.getGenreText(video.getGenre()));
         creatorField.setText(authorName);
         qrCodeField.setText(qrCode);
         uploadedField.setText(uploaded);
@@ -139,23 +124,6 @@ public final class DetailFragment extends Fragment {
                 .show();
     }
 
-    private void showGenreEditDialog() {
-        GenreDialogFragment fragment = new GenreDialogFragment();
-
-        fragment.setCallback(new GenreDialogFragment.Callback() {
-            @Override
-            public void onGenreSelected(String genre) {
-                video.setGenre(genre);
-
-                if (!video.save()) {
-                    SnackbarManager.show(Snackbar.with(getActivity()).text(R.string.storage_error));
-                }
-
-                populateInformation();
-            }
-        });
-
-        fragment.show(getFragmentManager(), "GenreDialogFragment");
-    }
+    private void showGenreEditDialog() {}
 
 }

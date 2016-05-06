@@ -7,8 +7,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.view.ViewGroup;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 import com.melnykov.fab.ScrollDirectionListener;
 
 import java.io.IOException;
@@ -33,12 +31,9 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
         ScrollDirectionListenable {
 
     private Map<Integer, Object> activeItems = new HashMap<>();
-    private List<String> genreTabNames = new ArrayList<>();
     private List<String> tabNames = new ArrayList<>();
+    private String allVideosText;
     private List<List<UUID>> tabVideoIds;
-
-    private String[] genreTexts;
-    private String[] genreIds;
 
     @Nullable
     private ScrollDirectionListener scrollListener;
@@ -49,16 +44,10 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
     public VideoTabAdapter(Context context, FragmentManager manager) {
         super(manager);
 
-        String allVideos = context.getString(R.string.my_videos);
+        allVideosText = context.getString(R.string.my_videos);
 
-        genreIds = context.getResources().getStringArray(R.array.genre_ids);
-        genreTexts = context.getResources().getStringArray(R.array.genre_texts);
-
-        genreTabNames.add(allVideos);
-
-        Collections.addAll(genreTabNames, genreTexts);
-
-        tabNames = new ArrayList<>(genreTabNames);
+        tabNames = new ArrayList<>();
+        tabNames.add(allVideosText);
     }
 
     @Override
@@ -141,14 +130,9 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
             return;
         }
 
-        // Sort the videos by genre
-        Multimap<String, OptimizedVideo> videosForGenre = HashMultimap.create();
-        for (OptimizedVideo video : allVideos) {
 
-            videosForGenre.put(video.getGenre(), video);
-        }
-
-        List<String> newTabNames = new ArrayList<String>(genreTabNames);
+        List<String> newTabNames = new ArrayList<String>();
+        newTabNames.add(allVideosText);
         for (Group group : allGroups) {
             // TODO: Truncate.
             newTabNames.add(group.getName());
@@ -159,10 +143,6 @@ public final class VideoTabAdapter extends FragmentStatePagerAdapter implements
         // First tab has all the videos
         newTabVideoIds.add(toIds(allVideos));
 
-        for (int i = 1; i < genreTabNames.size(); i++) {
-            // Get returns an empty collection when no values for key, not null.
-            newTabVideoIds.add(toIds(videosForGenre.get(genreIds[i - 1])));
-        }
         for (int i = 0; i < allGroups.size(); i++) {
             newTabVideoIds.add(allGroups.get(i).getVideos());
         }

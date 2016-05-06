@@ -15,13 +15,13 @@
 
     <string name="my_videos">All videos</string>
     <string name="record">Record new video</string>
-    <string name="read_qr_code">Search by QR code</string>
+    <string name="read_qr_code">QR search</string>
     <string name="title_activity_information">Video information</string>
     <string name="genre_selection_title">What kind of video is this?</string>
     <string name="delete">Delete</string>
     <string name="upload">Upload</string>
     <string name="qr_to_video">Add QR code</string>
-    <string name="view_video_info">Show details</string>
+    <string name="view_video_info">Details</string>
     <string name="deletion_title">Video deletion</string>
     <string name="deletion_question">Delete the selected videos and their annotations?</string>
     <string name="storage_error">Could not access video storage.</string>
@@ -36,6 +36,7 @@
     <string name="edit_text">Edit text</string>
     <string name="video_share">Share</string>
     <string name="not_loggedin_share_nag">You must log in before sharing videos.</string>
+    <string name="login_with_another">Log in with another account</string>
 
     <string name="semanticvideo_title">Title</string>
     <string name="semanticvideo_creator">Creator</string>
@@ -49,6 +50,9 @@
     <string name="search">Search</string>
     <string name="search_hint">Search for videos</string>
 
+    <string name="video_no_permissions">Could not take video due to permissions</string>
+    <string name="log_in_no_permissions">Could not log in due to permissions</string>
+    <string name="browse_no_permissions">Could not show videos due to permissions</string>
     <string name="empty_results">No matching videos</string>
     <string name="import_video">Import video</string>
     <string name="video_author">Author</string>
@@ -146,6 +150,7 @@
     <string name="only_public_layers_box_description">Only the public Layers Box is supported at the moment.</string>
     <string name="warning">Warning</string>
     <string name="public_layers_box_chosen_warning">Setting changed but still using public Layers Box, do you want to choose to use the private URL instead?</string>
+    <string name="go_to_settings">Go to settings</string>
 
     <string-array name="settings_annotation_pause_duration">
         <item name="1000">Fast</item>

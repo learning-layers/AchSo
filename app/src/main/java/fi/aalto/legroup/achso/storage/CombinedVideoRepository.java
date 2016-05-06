@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
+import android.webkit.URLUtil;
 
 import com.google.common.io.Files;
 import com.rollbar.android.Rollbar;
@@ -31,6 +32,8 @@ import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.entities.VideoReference;
 import fi.aalto.legroup.achso.entities.migration.VideoMigration;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
+import fi.aalto.legroup.achso.storage.remote.SyncRequiredEvent;
+import fi.aalto.legroup.achso.storage.remote.SyncService;
 import fi.aalto.legroup.achso.storage.remote.VideoHost;
 
 public class CombinedVideoRepository implements VideoRepository {
@@ -59,6 +62,17 @@ public class CombinedVideoRepository implements VideoRepository {
         this.serializer = serializer;
         this.localRoot = localRoot;
         this.cacheRoot = cacheRoot;
+    }
+
+    public void clear() {
+        allVideos.clear();
+        allGroups.clear();
+        cloudHosts.clear();
+        bus.post(new VideoRepositoryUpdatedEvent(this));
+    }
+
+    public void setCacheRoot(File path) {
+        cacheRoot = path;
     }
 
     private List<UUID> getCacheIds() {
@@ -111,6 +125,29 @@ public class CombinedVideoRepository implements VideoRepository {
         video.setManifestUri(Uri.fromFile(file));
         video.setLastModified(new Date(file.lastModified()));
         video.setRepository(this);
+
+
+        // Sanity test to check if user deleted video file from gallery
+        // Missing thumb nail icon is fine, since you can still watch the local video
+        if (video.isLocal()) {
+            Uri videoUri = video.getVideoUri();
+            File sanityCheckFile = new File(videoUri.getPath());
+
+            if (!sanityCheckFile.exists()) {
+
+                // Also remove thumb file;
+                File thumbFile = new File(video.getThumbUri().getPath());
+                File videoFile = getLocalVideoFile(video.getId());
+
+                thumbFile.delete();
+                videoFile.delete();
+                allVideos.remove(video.getId());
+                bus.post(new VideoRepositoryUpdatedEvent(this));
+
+                throw new IOException("Local video file not found at " + videoUri);
+            }
+        }
+
         return video;
     }
 
@@ -310,7 +347,7 @@ public class CombinedVideoRepository implements VideoRepository {
                     } else if (localFileOriginal.exists()) {
 
                         OptimizedVideo localVideo = tryLoadOrReUseVideo(localFileOriginal, indexVideo.getId());
-                        if (localVideo.getRevision() == indexVideo.getRevision()) {
+                        if (localVideo != null && localVideo.getRevision() == indexVideo.getRevision()) {
                             resultVideo = localVideo;
                         }
                     }
@@ -334,7 +371,7 @@ public class CombinedVideoRepository implements VideoRepository {
             }
         }
 
-        // Add the cached remote videos
+        // Remove unexistant cached videos
         List<UUID> cacheIds = getCacheIds();
         for (UUID id : cacheIds) {
             if (addedVideoIds.contains(id)) {
@@ -344,17 +381,8 @@ public class CombinedVideoRepository implements VideoRepository {
             File original = getOriginalCacheFile(id);
             File modified = getModifiedCacheFile(id);
 
-            File newest;
-            if (modified.exists()) {
-                newest = modified;
-            } else {
-                newest = original;
-            }
-
-            OptimizedVideo video = tryLoadOrReUseVideo(newest, id);
-            if (video != null) {
-                videos.add(video);
-            }
+            original.delete();
+            modified.delete();
         }
 
         // TODO: Remove this
@@ -533,6 +561,31 @@ public class CombinedVideoRepository implements VideoRepository {
         }
     }
 
+    private class DeleteVideoTask extends AsyncTask<UUID, Void, Void> {
+
+        @Override
+        protected Void doInBackground(UUID... params) {
+
+            for (UUID id : params) {
+                for (VideoHost host : cloudHosts) {
+                    try {
+                        host.deleteVideoManifest(id);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            bus.post(new SyncRequiredEvent(CombinedVideoRepository.this));
+        }
+    }
+
     @Override
     public void delete(UUID id) throws IOException {
         OptimizedVideo video = getVideo(id);
@@ -550,14 +603,14 @@ public class CombinedVideoRepository implements VideoRepository {
             // Doesn't matter if these fail, not necessary operation
             thumbFile.delete();
             videoFile.delete();
-        } else {
-            // TODO: Delete shared file
-            throw new IOException("Can't delete remote file");
-        }
 
-        // Remove the video from memory, if deleting has failed we have thrown before this
-        allVideos.remove(id);
-        bus.post(new VideoRepositoryUpdatedEvent(this));
+            // Remove the video from memory, if deleting has failed we have thrown before this
+            allVideos.remove(id);
+            bus.post(new VideoRepositoryUpdatedEvent(this));
+
+        } else {
+            new DeleteVideoTask().execute(id);
+        }
     }
 
     @Override

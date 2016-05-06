@@ -10,12 +10,15 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract.CommonDataKinds.Email;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.webkit.CookieManager;
 import android.webkit.ValueCallback;
@@ -47,7 +50,11 @@ public class SharingActivity extends Activity {
     public static final String ARG_TOKEN = "ARG_TOKEN";
     public static final String ARG_REFRESH_TOKEN = "ARG_REFRESH_TOKEN";
 
+    private static final int ACH_SO_ACCESS_CONTACTS = 1;
+
     private WebView webView;
+
+    private AchRailsJavascriptInterface achRailsJavascriptInterface;
 
     private static String getLanguageCode()
     {
@@ -65,7 +72,7 @@ public class SharingActivity extends Activity {
 
     public static boolean openShareActivity(Context context, List<UUID> videoIds)
     {
-         Uri uri = Uri.parse(context.getString(R.string.achRailsUrl))
+         Uri uri = App.getAchRailsUrl(context)
                 .buildUpon()
                 .appendPath(getLanguageCode())
                 .appendPath("videos")
@@ -78,7 +85,7 @@ public class SharingActivity extends Activity {
 
     public static boolean openManageGroupsActivity(Context context)
     {
-        Uri uri = Uri.parse(context.getString(R.string.achRailsUrl))
+        Uri uri = App.getAchRailsUrl(context)
                 .buildUpon()
                 .appendPath(getLanguageCode())
                 .appendPath("groups")
@@ -137,7 +144,9 @@ public class SharingActivity extends Activity {
             }
         });
 
-        webView.addJavascriptInterface(new AchRailsJavascriptInterface(this), "Android");
+        achRailsJavascriptInterface = new AchRailsJavascriptInterface(this);
+
+        webView.addJavascriptInterface(achRailsJavascriptInterface, "Android");
 
         // Remove last session before starting a new one. (Make sure can't get to old login)
         // NOTE: This affects all the cookies in this app globally, if we want to store some other
@@ -175,6 +184,16 @@ public class SharingActivity extends Activity {
                 headers.put("X-Refresh-Token", refreshToken);
         }
         webView.loadUrl(uri.toString(), headers);
+    }
+
+    public boolean hasUserGrantedContactAccess() {
+        return ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    public void askForContactPermission() {
+            ActivityCompat.requestPermissions(this, new String[]{
+                    android.Manifest.permission.READ_CONTACTS,
+            }, ACH_SO_ACCESS_CONTACTS);
     }
 
     private static class AccountManagerTokenRetriever {
@@ -241,6 +260,13 @@ public class SharingActivity extends Activity {
 
                 callback.run(token, refreshToken);
             }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        if (requestCode == ACH_SO_ACCESS_CONTACTS && grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            achRailsJavascriptInterface.openContactPicker();
         }
     }
 

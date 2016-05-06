@@ -53,9 +53,9 @@ public class AchRailsStrategy implements VideoHost {
                     .appendPath(id.toString() + ".json")
                     .toString());
     }
-    Request.Builder buildGroupsRequest() {
+    Request.Builder buildOwnGroupsRequest() {
         return new Request.Builder()
-                .url(endpointUrl.buildUpon().appendPath("groups.json").toString());
+                .url(endpointUrl.buildUpon().appendPath("groups").appendPath("own.json").toString());
     }
 
     private Response executeRequestNoFail(Request request) throws IOException {
@@ -91,7 +91,7 @@ public class AchRailsStrategy implements VideoHost {
 
     @Override
     public List<Group> getGroups() throws IOException {
-        Request request = buildGroupsRequest().get().build();
+        Request request = buildOwnGroupsRequest().get().build();
         Response response = executeRequest(request);
         JsonGroupList groups = serializer.read(JsonGroupList.class, response.body().byteStream());
         return groups.groups;
@@ -110,9 +110,28 @@ public class AchRailsStrategy implements VideoHost {
         return video;
     }
 
+    public Video downloadVideoManifestIfNewerThan(UUID id, int revision, boolean isView) throws IOException {
+        Request request = new Request.Builder()
+                .url(endpointUrl.buildUpon()
+                        .appendPath("videos")
+                        .appendPath(id.toString() + ".json")
+                        .appendQueryParameter("newer_than_rev", Integer.toString(revision))
+                        .appendQueryParameter("is_view", isView ? "1" : "0")
+                        .toString())
+                .get().build();
+        
+        Response response = executeRequest(request);
+
+        Video video = serializer.read(Video.class, response.body().byteStream());
+
+        video.setManifestUri(Uri.parse(request.uri().toString()));
+        video.setLastModified(response.headers().getDate("Last-Modified"));
+        return video;
+    }
+
     @Override
     public Video uploadVideoManifest(Video video) throws IOException {
-        
+
         Request.Builder requestBuilder = buildVideosRequest(video.getId());
 
         String serializedVideo = serializer.write(video);
@@ -131,7 +150,8 @@ public class AchRailsStrategy implements VideoHost {
 
     @Override
     public void deleteVideoManifest(UUID id) throws IOException {
-
+        Request request = buildVideosRequest(id).delete().build();
+        executeRequest(request);
     }
 
     @Override

@@ -29,6 +29,15 @@ public final class UploadService extends IntentService {
     private static List<MetadataUploader> metadataUploaders = new ArrayList<>();
 
     /**
+     * Remove all set uploaders
+     */
+    public static void clearUploaders() {
+        videoUploaders.clear();
+        thumbUploaders.clear();
+        metadataUploaders.clear();
+    }
+
+    /**
      * Add an uploader to as many things as possible.
      * @param uploader Should implement one or more of the following:
      *                 VideoUploader, ThumbnailUploader, MetadataUploader
@@ -112,6 +121,7 @@ public final class UploadService extends IntentService {
             return false;
         }
         video.setVideoUri(videoResult.videoUrl);
+        video.setDeleteUri(videoResult.deleteUrl);
 
         Uri thumbUrl = null;
         if (videoResult.thumbUrl != null) {
@@ -147,6 +157,11 @@ public final class UploadService extends IntentService {
 
         // Now we have the video and thumbnail urls and they are stored in the Video object, we
         // can serialize it to json with the new data and upload that.
+
+        // The uploaded video will have normalized rotation after transcoding, so clear the hacky
+        // rotation compensation property.
+        if (videoResult.didNormalizeRotation)
+            video.setRotation(0);
 
         try {
             // Upload the video manifest.

@@ -6,6 +6,8 @@ import android.os.Parcelable;
 
 import com.google.common.base.Objects;
 
+import java.util.Date;
+
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
 
 /**
@@ -17,16 +19,19 @@ public class Annotation implements JsonSerializable, Parcelable {
     protected PointF position;
     protected String text;
     protected User author;
+    protected Date createdTimestamp;
 
     Annotation() {
         // For serialization and pooling
+        createdTimestamp = new Date();
     }
 
-    public Annotation(long time, PointF position, String text, User author) {
+    public Annotation(long time, PointF position, String text, User author, Date createdTimestamp) {
         this.time = time;
         this.position = position;
         this.text = text;
         this.author = author;
+        this.createdTimestamp = createdTimestamp;
     }
 
     protected Annotation(Parcel parcel) {
@@ -76,6 +81,14 @@ public class Annotation implements JsonSerializable, Parcelable {
 
     public void setAuthor(User author) {
         this.author = author;
+    }
+
+    public Date getCreatedTimestamp() {
+        return createdTimestamp;
+    }
+
+    public void setCreatedTimestamp(Date createdTimestamp) {
+        this.createdTimestamp = createdTimestamp;
     }
 
     @Override

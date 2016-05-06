@@ -76,6 +76,7 @@
     <string name="no">Ei</string>
     <string name="logged_out">Olet kirjautunut ulos.</string>
     <string name="login_error">Kirjautuminen epäonnistui: %s</string>
+    <string name="login_with_another">Kirjaudu toisella käyttäjällä</string>
 
     <string-array name="genre_texts">
         <item>Hyvää työtä</item>

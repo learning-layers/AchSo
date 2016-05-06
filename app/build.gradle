@@ -3,7 +3,7 @@ apply from: 'build-helpers.gradle'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion '22.0.0'
+    buildToolsVersion '23.0.2'
 
     useLibrary 'org.apache.http.legacy'
 
@@ -12,12 +12,17 @@ android {
         minSdkVersion 16
         targetSdkVersion 23
         multiDexEnabled true
+        generatedDensities = []
 
         (versionName, versionCode) = project.getGitVersions()
     }
 
     dexOptions {
         javaMaxHeapSize '4g'
+    }
+
+    aaptOptions {
+        additionalParameters "--no-version-vectors"
     }
 
     buildTypes {
@@ -40,6 +45,11 @@ repositories {
     maven {
         url 'https://raw.github.com/embarkmobile/zxing-android-minimal/mvn-repo/maven-repository/'
     }
+
+    // For com.github.afollestad.material-dialogs
+    maven {
+        url "https://jitpack.io"
+    }
 }
 
 dependencies {
@@ -47,12 +57,15 @@ dependencies {
 
     // Android backwards-compatibility
     compile 'com.android.support:multidex:1.0.1'
-    compile 'com.android.support:support-v4:23.0.1'
-    compile 'com.android.support:appcompat-v7:23.0.1'
+    compile 'com.android.support:support-v4:23.2.1'
+    compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.android.support:recyclerview-v7:23.0.1'
+    compile 'com.google.android.exoplayer:exoplayer:r1.3.3'
 
     // Material design dialogs
-    compile 'com.afollestad:material-dialogs:0.7.9.1'
+    compile('com.github.afollestad.material-dialogs:commons:0.8.5.4@aar') {
+        transitive = true
+    }
 
     // Material design tab strip. Note that this is jpardogo's fork, not the original version
     // that's no longer updated. The class name of the view is still same, though.
