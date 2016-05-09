@@ -26,6 +26,7 @@
     <string name="semanticvideo_title">Pealkiri</string>
     <string name="semanticvideo_creator">Looja</string>
     <string name="semanticvideo_qrcode">QR kood</string>
+    <string name="semanticvideo_id">Video id</string>
     <string name="semanticvideo_genre">Žanr</string>
     <string name="semanticvideo_uploaded">Üleslaetud</string>
     <string name="semanticvideo_unknown_creator">Tundmatu looja</string>

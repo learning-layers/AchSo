@@ -31,7 +31,7 @@
     <!-- SemanticVideo data -->
     <string name="semanticvideo_title">Nimi</string>
     <string name="semanticvideo_creator">Tekijä</string>
-    <string name="semanticvideo_qrcode">QR-koodi</string>
+    <string name="semanticvideo_id">Videon tunniste</string>
     <string name="semanticvideo_genre">Lajityyppi</string>
     <string name="semanticvideo_uploaded">Lähetetty</string>
     <string name="semanticvideo_latitude">Leveysaste</string>

@@ -29,6 +29,7 @@
     <string name="semanticvideo_title">Titel</string>
     <string name="semanticvideo_creator">Ersteller</string>
     <string name="semanticvideo_qrcode">QR-Code</string>
+    <string name="semanticvideo_id">Video ID</string>
     <string name="semanticvideo_genre">Genre</string>
     <string name="semanticvideo_uploaded">Hochgeladen</string>
     <string name="semanticvideo_unknown_creator">Unbekannter Ersteller</string>
