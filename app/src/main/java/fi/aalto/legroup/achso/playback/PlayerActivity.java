@@ -349,8 +349,12 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
 
     @Override
     public void createAnnotation(PointF position) {
-        // Allow creating annotations only when paused
-        if (playerFragment.getState() != PlayerFragment.State.PAUSED) {
+
+        // No annotating while pause is already going on
+        if (playerFragment.getState() == PlayerFragment.State.ANNOTATION_PAUSED) {
+            return;
+
+        } else if (playerFragment.getState() != PlayerFragment.State.PAUSED) {
             playerFragment.pause();
             playerFragment.setState(PlayerFragment.State.PAUSED);
         }
