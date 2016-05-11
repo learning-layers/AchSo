@@ -505,7 +505,6 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
 
             case PLAYING:
                 enableControls();
-                hideControlsOverlay();
                 playPauseButton.setImageResource(R.drawable.ic_action_pause);
                 break;
 
@@ -570,9 +569,6 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
                 cancelControlsOverlayHide();
                 break;
 
-            case MotionEvent.ACTION_UP:
-                hideControlsOverlay();
-                break;
         }
 
         return super.dispatchTouchEvent(event);
