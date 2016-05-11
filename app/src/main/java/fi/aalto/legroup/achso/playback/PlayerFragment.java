@@ -273,7 +273,7 @@ public final class PlayerFragment extends Fragment implements ExoPlayer.Listener
         return subtitleContainer;
     }
 
-    private void setState(State state) {
+    public void setState(State state) {
         this.state = state;
 
         if (listener != null) {
