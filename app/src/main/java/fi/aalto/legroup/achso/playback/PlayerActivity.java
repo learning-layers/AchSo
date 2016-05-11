@@ -393,13 +393,11 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
 
     @Override
     public void editAnnotation(final Annotation annotation) {
-        System.out.println("editerioni annotatinori");
         // Allow editing annotations only when paused
         if (playerFragment.getState() != PlayerFragment.State.PAUSED) {
             return;
         }
 
-        System.out.println("editerioni annotatinoriadasasdasd");
         showAnnotationControls();
 
         annotationText.setText(annotation.getText());
