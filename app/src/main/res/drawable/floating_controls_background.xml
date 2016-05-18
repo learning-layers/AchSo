@@ -10,7 +10,7 @@
         android:top="16dp" />
 
     <solid
-        android:color="@color/background_floating_material_dark" />
+        android:color="#00000000" />
 
     <corners
         android:radius="2dp" />
