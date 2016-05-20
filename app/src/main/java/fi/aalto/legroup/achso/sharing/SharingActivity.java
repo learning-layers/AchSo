@@ -22,6 +22,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.webkit.CookieManager;
 import android.webkit.ValueCallback;
+import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -31,6 +32,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.nispok.snackbar.Snackbar;
 import com.nispok.snackbar.SnackbarManager;
+import com.rollbar.android.Rollbar;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,6 +46,8 @@ import java.util.UUID;
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.authentication.Authenticator;
+import fi.aalto.legroup.achso.playback.PlayerActivity;
+import fi.aalto.legroup.achso.entities.Video;
 
 public class SharingActivity extends Activity {
 
@@ -123,6 +127,12 @@ public class SharingActivity extends Activity {
         return true;
     }
 
+    public void openVideoActivity(UUID videoID) {
+        Intent detailIntent = new Intent(this, PlayerActivity.class);
+        detailIntent.putExtra(PlayerActivity.ARG_VIDEO_ID, videoID);
+        startActivity(detailIntent);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -142,7 +152,31 @@ public class SharingActivity extends Activity {
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
             }
+
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String urlToLoad) {
+                try {
+                    String[] pathParts = urlToLoad.split("/");
+                    String possibleUUID = pathParts[pathParts.length - 1];
+                    if (urlToLoad.contains("videos") && Video.isStringValidVideoID(possibleUUID)) {
+                        UUID videoId = UUID.fromString(possibleUUID);
+                        if (App.videoRepository.doesVideoExist(videoId)) {
+                            openVideoActivity(videoId);
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
+                } catch(Exception ex) {
+                    Rollbar.reportException(ex);
+                    return false;
+                }
+            }
         });
+
+        webView.setWebChromeClient(new WebChromeClient());
 
         achRailsJavascriptInterface = new AchRailsJavascriptInterface(this);
 

@@ -74,6 +74,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
     // Can be either a ViewStub or an inflated LinearLayout
     private View annotationControls;
 
+    private long lastAnnotationCreateTime = -6666;
     private ImageButton playPauseButton;
     private TextView elapsedTimeText;
     private MarkedSeekBar seekBar;
@@ -354,7 +355,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         if (playerFragment.getState() == PlayerFragment.State.ANNOTATION_PAUSED) {
             return;
 
-        } else if (playerFragment.getState() != PlayerFragment.State.PAUSED) {
+        } if (playerFragment.getState() != PlayerFragment.State.PAUSED) {
             playerFragment.pause();
             playerFragment.setState(PlayerFragment.State.PAUSED);
         }
@@ -364,7 +365,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         }
 
         long time = playerFragment.getPlaybackPosition();
-
+        lastAnnotationCreateTime = time;
 
         Date now = new Date();
         Annotation annotation = new Annotation(time, position, "", App.loginManager.getUser(), now);
@@ -507,6 +508,10 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
                 break;
 
             case PAUSED:
+                if (lastAnnotationCreateTime != -6666) {
+                    playerFragment.seekTo(lastAnnotationCreateTime);
+                    lastAnnotationCreateTime = -6666;
+                }
                 showControlsOverlay();
                 playPauseButton.setImageResource(R.drawable.ic_action_play);
                 break;
