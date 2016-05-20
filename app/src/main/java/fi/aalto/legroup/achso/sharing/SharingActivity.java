@@ -35,8 +35,6 @@ import com.nispok.snackbar.SnackbarManager;
 import com.rollbar.android.Rollbar;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -48,6 +46,7 @@ import java.util.UUID;
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.authentication.Authenticator;
+import fi.aalto.legroup.achso.playback.PlayerActivity;
 import fi.aalto.legroup.achso.entities.Video;
 
 public class SharingActivity extends Activity {
@@ -128,6 +127,12 @@ public class SharingActivity extends Activity {
         return true;
     }
 
+    public void openVideoActivity(UUID videoID) {
+        Intent detailIntent = new Intent(this, PlayerActivity.class);
+        detailIntent.putExtra(PlayerActivity.ARG_VIDEO_ID, videoID);
+        startActivity(detailIntent);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -154,6 +159,7 @@ public class SharingActivity extends Activity {
                     String[] pathParts = urlToLoad.split("/");
                     String possibleUUID = pathParts[pathParts.length - 1];
                     if (urlToLoad.contains("videos") && Video.isStringValidVideoID(possibleUUID)) {
+                        openVideoActivity(UUID.fromString(possibleUUID));
                         return true;
                     } else {
                         return false;
