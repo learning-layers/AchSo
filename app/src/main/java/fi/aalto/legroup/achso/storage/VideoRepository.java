@@ -63,6 +63,11 @@ public interface VideoRepository extends VideoInfoRepository {
     public void findVideoByVideoUri(Uri videoUri, String type, VideoCallback callback);
 
     /**
+     * Checks whether video storage contains a video with a certain ID.
+     */
+    public boolean doesVideoExist(UUID id);
+
+    /**
      * Migrate all videos to the current format version.
      */
     public void migrateVideos(Context context);

@@ -17,7 +17,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract.CommonDataKinds.Email;
-import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
@@ -159,8 +158,13 @@ public class SharingActivity extends Activity {
                     String[] pathParts = urlToLoad.split("/");
                     String possibleUUID = pathParts[pathParts.length - 1];
                     if (urlToLoad.contains("videos") && Video.isStringValidVideoID(possibleUUID)) {
-                        openVideoActivity(UUID.fromString(possibleUUID));
-                        return true;
+                        UUID videoId = UUID.fromString(possibleUUID);
+                        if (App.videoRepository.doesVideoExist(videoId)) {
+                            openVideoActivity(videoId);
+                            return true;
+                        } else {
+                            return false;
+                        }
                     } else {
                         return false;
                     }

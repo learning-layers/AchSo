@@ -632,6 +632,16 @@ public class CombinedVideoRepository implements VideoRepository {
     }
 
     @Override
+    public boolean doesVideoExist(UUID id) {
+        try {
+            getVideo(id);
+            return true;
+        } catch (IOException ex) {
+            return false;
+        }
+    }
+
+    @Override
     public void forceNextSyncImportant() {
         forceImportant = true;
     }
