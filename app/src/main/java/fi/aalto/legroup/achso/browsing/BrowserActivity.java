@@ -275,7 +275,7 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
 
             case R.id.action_logout:
                 // Go back to the 'All videos' tab since we're logging out!
-                // TODO: Disable user tapping the
+                // TODO: Disable user tapping the tabs after log out has not completed fully!
                 viewPager.setCurrentItem(0);
                 bus.post(new LoginRequestEvent(LoginRequestEvent.Type.EXPLICIT_LOGOUT));
                 return true;
