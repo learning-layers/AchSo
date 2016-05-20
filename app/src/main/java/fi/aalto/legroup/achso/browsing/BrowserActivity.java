@@ -87,6 +87,7 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
     private VideoTabAdapter tabAdapter;
     private MenuItem searchItem;
     private SwipeRefreshLayout swipeRefreshLayout;
+    private ViewPager viewPager;
 
     private PendingRepositoryUpdateListener pendingListener = new PendingRepositoryUpdateListener();
 
@@ -135,11 +136,12 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
         // expects pendingListener to be registered)
         bus.register(pendingListener);
 
-        ViewPager pager = (ViewPager) findViewById(R.id.pager);
+        viewPager = (ViewPager) findViewById(R.id.pager);
         PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) findViewById(R.id.toolbar_tabs);
 
-        pager.setAdapter(this.tabAdapter);
-        tabs.setViewPager(pager);
+        viewPager.setAdapter(this.tabAdapter);
+        tabs.setViewPager(viewPager);
+
 
         swipeRefreshLayout = (SwipeRefreshLayout)findViewById(R.id.swipe_refresh);
         swipeRefreshLayout.setOnRefreshListener(this);
@@ -272,6 +274,7 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
                 return true;
 
             case R.id.action_logout:
+                viewPager.setCurrentItem(0);
                 bus.post(new LoginRequestEvent(LoginRequestEvent.Type.EXPLICIT_LOGOUT));
                 return true;
 
