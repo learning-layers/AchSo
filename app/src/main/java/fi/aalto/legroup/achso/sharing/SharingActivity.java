@@ -22,6 +22,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.webkit.CookieManager;
 import android.webkit.ValueCallback;
+import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -174,6 +175,8 @@ public class SharingActivity extends Activity {
                 }
             }
         });
+
+        webView.setWebChromeClient(new WebChromeClient());
 
         achRailsJavascriptInterface = new AchRailsJavascriptInterface(this);
 
