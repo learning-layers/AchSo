@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
 import fi.aalto.legroup.achso.storage.VideoRepository;
@@ -26,6 +27,8 @@ public class Video implements JsonSerializable {
     protected transient Uri manifestUri;
     protected transient VideoRepository repository;
     protected transient Date lastModified;
+    protected static final Pattern  uuidPattern = Pattern.compile("");
+
 
     protected Uri videoUri;
     protected Uri thumbUri;
@@ -232,4 +235,14 @@ public class Video implements JsonSerializable {
     public Uri getDeleteUri() {
         return deleteUri;
     }
+
+    public static boolean isStringValidVideoID(String IDCandidate) {
+        try {
+            UUID test = UUID.fromString(IDCandidate);
+            return true;
+        } catch(IllegalArgumentException iaex) {
+            return false;
+        }
+    }
 }
+
