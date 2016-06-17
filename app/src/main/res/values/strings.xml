@@ -103,7 +103,7 @@
         <item quantity="other">%d items selected</item>
     </plurals>
 
-    <string name="annotation_hint">Describe this annotation</string>
+    <string name="annotation_hint">Write an annotation</string>
     <string name="comments">Comments</string>
     <string name="select_genre">Select genre</string>
     <string name="close">Close</string>
