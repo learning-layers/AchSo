@@ -44,6 +44,7 @@ public class Video implements JsonSerializable {
     protected User author;
     protected Location location;
     protected List<Annotation> annotations;
+    protected  boolean isLastAnnotationEmpty;
 
     Video() {
         // For serialization and pooling
@@ -69,6 +70,8 @@ public class Video implements JsonSerializable {
         this.location = location;
         this.formatVersion = formatVersion;
         this.annotations = annotations;
+
+        this.isLastAnnotationEmpty = false;
     }
 
     /**
@@ -214,6 +217,19 @@ public class Video implements JsonSerializable {
         }
 
         return this.annotations;
+    }
+
+    public void addNewAnnotation (Annotation annotation) {
+        this.isLastAnnotationEmpty = true;
+        this.annotations.add(annotation);
+    }
+
+    public void setIsLastAnnotationEmpty (boolean isLastAnnotationEmpty) {
+        this.isLastAnnotationEmpty  = isLastAnnotationEmpty;
+    }
+
+    public boolean getIsLastAnnotationEmpty() {
+        return this.isLastAnnotationEmpty;
     }
 
     public void setAnnotations(List<Annotation> annotations) {

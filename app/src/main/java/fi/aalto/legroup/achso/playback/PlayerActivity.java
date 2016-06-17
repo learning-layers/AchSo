@@ -83,6 +83,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
     private Button deleteButton;
     private Button saveButton;
     private EditText annotationText;
+    private Annotation lastAnnotationCreated;
 
     private Video video;
 
@@ -363,6 +364,12 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         // Disallow creating annotations when an annotation is being edited
         if (areAnnotationControlsVisible()) {
             hideAnnotationControls();
+
+            // Last created annotation is empty, just delete it
+            if (video.getIsLastAnnotationEmpty()) {
+                deleteAnnotation(lastAnnotationCreated);
+            }
+
             return;
         }
 
@@ -372,7 +379,8 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         Date now = new Date();
         Annotation annotation = new Annotation(time, position, "", App.loginManager.getUser(), now);
 
-        video.getAnnotations().add(annotation);
+        lastAnnotationCreated = annotation;
+        video.addNewAnnotation(annotation);
 
         if (!video.save()) {
             SnackbarManager.show(Snackbar.with(this).text(R.string.storage_error));
@@ -404,13 +412,13 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         showAnnotationControls();
 
         annotationText.setText(annotation.getText());
-
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 String text = annotationText.getText().toString();
 
                 annotation.setText(text);
+                video.setIsLastAnnotationEmpty(false);
 
                 if (!video.save()) {
                     SnackbarManager.show(Snackbar.with(PlayerActivity.this)
@@ -426,18 +434,24 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                video.getAnnotations().remove(annotation);
-
-                if (!video.save()) {
-                    SnackbarManager.show(Snackbar.with(PlayerActivity.this)
-                            .text(R.string.storage_error));
-                }
-
-                refreshAnnotations();
-
-                hideAnnotationControls();
+                deleteAnnotation(annotation);
             }
         });
+    }
+
+    private void deleteAnnotation(Annotation annotation) {
+        video.getAnnotations().remove(annotation);
+
+        video.setIsLastAnnotationEmpty(false);
+
+        if (!video.save()) {
+            SnackbarManager.show(Snackbar.with(PlayerActivity.this)
+                    .text(R.string.storage_error));
+        }
+
+        refreshAnnotations();
+
+        hideAnnotationControls();
     }
 
     private void showAnnotationControls() {
