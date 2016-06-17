@@ -350,17 +350,19 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
 
     @Override
     public void createAnnotation(PointF position) {
-
         // No annotating while pause is already going on
         if (playerFragment.getState() == PlayerFragment.State.ANNOTATION_PAUSED) {
             return;
+        }
 
-        } if (playerFragment.getState() != PlayerFragment.State.PAUSED) {
+        if (playerFragment.getState() != PlayerFragment.State.PAUSED) {
             playerFragment.pause();
             playerFragment.setState(PlayerFragment.State.PAUSED);
         }
+
         // Disallow creating annotations when an annotation is being edited
         if (areAnnotationControlsVisible()) {
+            hideAnnotationControls();
             return;
         }
 
@@ -562,7 +564,6 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
     @Override
     public boolean dispatchTouchEvent(@Nonnull MotionEvent event) {
         int action = event.getActionMasked();
-
         switch (action) {
             case MotionEvent.ACTION_DOWN:
                 showControlsOverlay();
