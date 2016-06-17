@@ -41,6 +41,7 @@
     <string name="author_is_unknown">Tundmatu</string>
     <string name="code_added_to_videos">Kood lisatud valitud videotele.</string>
     <string name="logged_in_as">Logisid sisse kasutajana %s.</string>
+    <string name="logged_in_as_short">Konto: %s</string>
     <string name="connection_problem">Ühenduse probleem</string>
     <string name="tethys_prefs">Tethys konto</string>
     <string name="yes">Jah</string>

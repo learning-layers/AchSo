@@ -59,6 +59,7 @@
     <string name="author_is_unknown">Unknown</string>
     <string name="code_added_to_videos">Code added to selected video(s).</string>
     <string name="logged_in_as">Logged in as %s.</string>
+    <string name="logged_in_as_short">Account: %s</string>
     <string name="connection_problem">Connection problem</string>
     <string name="tethys_prefs">Tethys account</string>
     <string name="yes">Yes</string>

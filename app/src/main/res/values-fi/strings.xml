@@ -60,6 +60,7 @@
     <string name="upload_successful">Lähetys on valmis.</string>
     <string name="buffering">Puskuroidaan…</string>
     <string name="logged_in_as">Kirjautunut nimellä %s.</string>
+    <string name="logged_in_as_short">Tili: %s</string>
     <string name="connection_problem">Yhteysongelma</string>
     <string name="authentication_problem">Tunnistautumisongelma</string>
     <string name="tethys_prefs">Tethys account</string>
