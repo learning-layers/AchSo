@@ -242,20 +242,22 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
             User user = App.loginManager.getUser();
             String infoTitle = user.getName();
             JsonObject userInfo = App.loginManager.getUserInfo();
+
             try {
                 if (userInfo != null) {
                     String email = userInfo.get("email").getAsString();
-                    infoTitle += " (" + email + ")";
+                    menu.findItem(R.id.info_email).setVisible(true).setTitle(email);
+
                 }
             } catch (Exception ex) {}
 
             String loggedInText = getResources().getString(R.string.logged_in_as_short, infoTitle);
-            menu.findItem(R.id.info_loggedinas).setTitle(loggedInText);
-            menu.findItem(R.id.info_loggedinas).setVisible(true);
+            menu.findItem(R.id.info_loggedinas).setVisible(true).setTitle(loggedInText);
         } else {
             menu.findItem(R.id.action_login).setVisible(true);
             menu.findItem(R.id.action_logout).setVisible(false);
             menu.findItem(R.id.info_loggedinas).setVisible(false);
+            menu.findItem(R.id.info_email).setVisible(false);
         }
 
         return super.onCreateOptionsMenu(menu);
