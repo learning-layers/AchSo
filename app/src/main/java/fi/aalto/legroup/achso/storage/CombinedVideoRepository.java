@@ -538,10 +538,9 @@ public class CombinedVideoRepository implements VideoRepository {
                     callback.found(list);
                 } catch (IOException ex) {
                     System.out.println(ex.getMessage());
+                    callback.notFound();
                 }
             }
-            callback.notFound();
-
             return null;
         }
     }

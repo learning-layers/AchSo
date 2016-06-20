@@ -34,6 +34,11 @@ public class AchRailsStrategy implements VideoHost {
     class JsonGroupList implements JsonSerializable {
         public List<Group> groups;
     }
+
+    class JsonVideoList implements  JsonSerializable {
+        public ArrayList<Video> videos;
+    }
+
     class JsonVideoReferences implements JsonSerializable {
         public JsonVideoReference[] videos;
     }
@@ -173,10 +178,8 @@ public class AchRailsStrategy implements VideoHost {
 
         Response response = executeRequest(request);
         if (response.isSuccessful()) {
-            String resp = response.body().string();
-            Gson gson = new Gson();
-            Video[] arr = gson.fromJson(resp, Video[].class);
-            return new ArrayList<>(Arrays.asList(arr));
+            JsonVideoList jsonVideoList = serializer.read(JsonVideoList.class, response.body().byteStream());
+            return jsonVideoList.videos;
         } else {
             return null;
         }

@@ -118,8 +118,10 @@ public final class SearchActivity extends ActionBarActivity {
 
 
     private void finishVideoOnlineQuery(ArrayList<Video> onlineVideos) {
+        if (onlineVideos != null) {
+            System.out.println("SIZE: " + onlineVideos.size());
+        }
 
-        System.out.println(Arrays.toString(onlineVideos.toArray()));
         Collection<OptimizedVideo> allVideos;
 
         try {
@@ -165,7 +167,6 @@ public final class SearchActivity extends ActionBarActivity {
         @Override
         public void notFound() {
             finishVideoOnlineQuery(null);
-            finish();
         }
     }
 
