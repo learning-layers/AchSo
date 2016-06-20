@@ -162,6 +162,7 @@ public class AchRailsStrategy implements VideoHost {
     public ArrayList<Video> findVideosByQuery(String query) throws  IOException {
         Uri url = endpointUrl.buildUpon()
                 .appendPath("videos")
+                .appendPath("search")
                 .appendQueryParameter("q", query)
                 .build();
 
@@ -171,11 +172,11 @@ public class AchRailsStrategy implements VideoHost {
                 .get().build();
 
         Response response = executeRequest(request);
-
         if (response.isSuccessful()) {
+            String resp = response.body().string();
             Gson gson = new Gson();
-            Video[] arr = gson.fromJson(response.body().string(), Video[].class);
-            return new ArrayList<Video>(Arrays.asList(arr));
+            Video[] arr = gson.fromJson(resp, Video[].class);
+            return new ArrayList<>(Arrays.asList(arr));
         } else {
             return null;
         }
