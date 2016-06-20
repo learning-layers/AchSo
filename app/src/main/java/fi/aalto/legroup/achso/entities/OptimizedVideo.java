@@ -310,7 +310,12 @@ public class OptimizedVideo {
         Video video = pooled.create(annotationCount, hasLocation);
 
         // Parse the Uri objects back from strings
-        video.setManifestUri(Uri.parse(manifestUri));
+        if (manifestUri != null) {
+            video.setManifestUri(Uri.parse(manifestUri));
+        } else {
+            video.setManifestUri(null);
+        }
+
         video.setVideoUri(Uri.parse(videoUri));
         video.setThumbUri(Uri.parse(thumbUri));
         if (deleteUri != null) {
