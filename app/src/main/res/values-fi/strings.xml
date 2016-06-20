@@ -88,7 +88,7 @@
 
     <string name="about">Tietoja</string>
     <string name="about_maps">Tietoja Mapsista</string>
-    <string name="annotation_hint">Anna annotaatiolle kuvaus</string>
+    <string name="annotation_hint">Kirjoita kuvaus</string>
     <string name="choose_account">Valitse tunnus</string>
     <string name="close">Sulje</string>
     <string name="comments">Kommentit</string>

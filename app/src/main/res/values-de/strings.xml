@@ -82,7 +82,7 @@
     </plurals>
 
     <string name="error_sharing">Einige Videos konnten nicht geteilt werden.</string>
-    <string name="annotation_hint">Beschreiben Sie diese Annotation</string>
+    <string name="annotation_hint">Schreiben Sie eine Annotation</string>
     <string name="comments">Kommentare</string>
     <string name="select_genre">Genre wählen</string>
     <string name="close">Schließen</string>

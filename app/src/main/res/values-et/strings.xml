@@ -79,7 +79,7 @@
     </plurals>
 
     <string name="error_sharing">Mõningaid videosid polnud võimalik jagada.</string>
-    <string name="annotation_hint">Kirjeldage seda märkust</string>
+    <string name="annotation_hint">Kirjutada märke</string>
     <string name="comments">Kommentaatid</string>
     <string name="select_genre">Vali žanr</string>
     <string name="close">Sulge</string>
