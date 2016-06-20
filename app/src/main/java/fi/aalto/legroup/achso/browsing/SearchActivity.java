@@ -122,6 +122,15 @@ public final class SearchActivity extends ActionBarActivity {
 
         Collection<OptimizedVideo> allVideos;
 
+        if (onlineVideos != null) {
+            for (Video video: onlineVideos) {
+                OptimizedVideo optimizedVideo = new OptimizedVideo(video);
+                newVideos.add(optimizedVideo);
+            }
+
+            App.videoRepository.addVideos(newVideos);
+        }
+
         try {
             allVideos = App.videoInfoRepository.getAll();
         } catch (IOException e) {
@@ -136,15 +145,6 @@ public final class SearchActivity extends ActionBarActivity {
             }
         }
 
-        if (onlineVideos != null) {
-            for (Video video: onlineVideos) {
-                OptimizedVideo optimizedVideo = new OptimizedVideo(video);
-                newVideos.add(optimizedVideo);
-                this.matches.add(optimizedVideo.getId());
-            }
-
-            App.videoRepository.addVideos(newVideos);
-        }
 
         // TODO: Better sorting?
         Collections.sort(matching,
