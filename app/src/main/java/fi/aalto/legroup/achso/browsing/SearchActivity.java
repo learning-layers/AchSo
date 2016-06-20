@@ -169,13 +169,23 @@ public final class SearchActivity extends ActionBarActivity {
     protected class FindQueryVideoCallback implements VideoRepository.VideoListCallback {
 
         @Override
-        public void found(ArrayList<Video> videos) {
-            finishVideoOnlineQuery(videos);
+        public void found(final ArrayList<Video> videos) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    finishVideoOnlineQuery(videos);
+                }
+            });
         }
 
         @Override
         public void notFound() {
-            finishVideoOnlineQuery(null);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    finishVideoOnlineQuery(null);
+                }
+            });
         }
     }
 

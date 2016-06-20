@@ -171,7 +171,7 @@ public class CombinedVideoRepository implements VideoRepository {
     @Override
     public void addVideos(List<OptimizedVideo> videos) {
         for (OptimizedVideo video: videos) {
-            if (doesVideoExist(video.getId()) == false) {
+            if (!doesVideoExist(video.getId())) {
                 allVideos.put(video.getId(), video);
             }
         }
