@@ -3,6 +3,7 @@ package fi.aalto.legroup.achso.browsing;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.ParcelUuid;
 import android.support.v7.app.ActionBarActivity;
@@ -13,6 +14,7 @@ import android.view.MenuItem;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -23,6 +25,8 @@ import javax.annotation.Nonnull;
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.OptimizedVideo;
+import fi.aalto.legroup.achso.entities.Video;
+import fi.aalto.legroup.achso.storage.VideoRepository;
 
 public final class SearchActivity extends ActionBarActivity {
 
@@ -30,6 +34,7 @@ public final class SearchActivity extends ActionBarActivity {
 
     private BrowserFragment browserFragment;
     private ArrayList<UUID> matches = new ArrayList<>();
+    private String lastQuery;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,10 +116,10 @@ public final class SearchActivity extends ActionBarActivity {
         }
     }
 
-    /**
-     * Searches all videos for a match against the given query.
-     */
-    private void queryVideos(String query) {
+
+    private void finishVideoOnlineQuery(ArrayList<Video> onlineVideos) {
+
+        System.out.println(Arrays.toString(onlineVideos.toArray()));
         Collection<OptimizedVideo> allVideos;
 
         try {
@@ -126,7 +131,7 @@ public final class SearchActivity extends ActionBarActivity {
 
         List<OptimizedVideo> matching = new ArrayList<>(allVideos.size());
         for (OptimizedVideo video : allVideos) {
-            if (isMatch(video, query)) {
+            if (isMatch(video, lastQuery)) {
                 matching.add(video);
             }
         }
@@ -140,6 +145,28 @@ public final class SearchActivity extends ActionBarActivity {
             this.matches.add(match.getId());
         }
         this.browserFragment.setVideos(this.matches);
+    }
+
+    /**
+     * Searches all videos for a match against the given query.
+     */
+    private void queryVideos(String query) {
+        lastQuery = query;
+        App.videoRepository.findOnlineVideoByQuery(query, new FindQueryVideoCallback());
+    }
+
+    protected class FindQueryVideoCallback implements VideoRepository.VideoListCallback {
+
+        @Override
+        public void found(ArrayList<Video> videos) {
+            finishVideoOnlineQuery(videos);
+        }
+
+        @Override
+        public void notFound() {
+            finishVideoOnlineQuery(null);
+            finish();
+        }
     }
 
     /**

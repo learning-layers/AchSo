@@ -8,8 +8,12 @@ import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 
+import com.google.gson.Gson;
+
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -152,6 +156,30 @@ public class AchRailsStrategy implements VideoHost {
     public void deleteVideoManifest(UUID id) throws IOException {
         Request request = buildVideosRequest(id).delete().build();
         executeRequest(request);
+    }
+
+    @Override
+    public ArrayList<Video> findVideosByQuery(String query) throws  IOException {
+        Uri url = endpointUrl.buildUpon()
+                .appendPath("videos")
+                .appendQueryParameter("q", query)
+                .build();
+
+        Request request = new Request.Builder()
+                .url(url.toString())
+                .addHeader("Accept", "application/json")
+                .get().build();
+
+        Response response = executeRequest(request);
+
+        if (response.isSuccessful()) {
+            Gson gson = new Gson();
+            Video[] arr = gson.fromJson(response.body().string(), Video[].class);
+            return new ArrayList<Video>(Arrays.asList(arr));
+        } else {
+            return null;
+        }
+
     }
 
     @Override

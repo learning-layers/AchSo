@@ -3,6 +3,7 @@ package fi.aalto.legroup.achso.storage.remote;
 import android.net.Uri;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,6 +19,8 @@ public interface VideoHost {
     public List<VideoReference> getIndex() throws IOException;
 
     public List<Group> getGroups() throws IOException;
+
+    public ArrayList<Video> findVideosByQuery(String query) throws  IOException;
 
     /**
      * Download video manifest data with a given ID.

@@ -501,6 +501,11 @@ public class CombinedVideoRepository implements VideoRepository {
         }
     }
 
+    @Override
+    public void findOnlineVideoByQuery(String query, VideoListCallback callback) {
+        new QueryVideoOnlineTask(callback).execute(query);
+    }
+
     private abstract class BaseVideoFindTask<T> extends AsyncTask<T, Void, Video> {
         private VideoCallback callback;
 
@@ -515,6 +520,29 @@ public class CombinedVideoRepository implements VideoRepository {
             } else {
                 callback.notFound();
             }
+        }
+    }
+
+    private class QueryVideoOnlineTask extends  AsyncTask<String, Void, Void> {
+        private VideoListCallback callback;
+
+        public QueryVideoOnlineTask(VideoListCallback callback) {
+            this.callback = callback;
+        }
+
+        @Override
+        protected Void doInBackground(String... params) {
+            for (VideoHost host: cloudHosts) {
+                try {
+                    ArrayList<Video> list = host.findVideosByQuery(params[0]);
+                    callback.found(list);
+                } catch (IOException ex) {
+                    System.out.println(ex.getMessage());
+                }
+            }
+            callback.notFound();
+
+            return null;
         }
     }
 
@@ -542,6 +570,7 @@ public class CombinedVideoRepository implements VideoRepository {
             return null;
         }
     }
+
 
     private class FindVideoByIdTask extends BaseVideoFindTask<UUID> {
 
