@@ -118,9 +118,7 @@ public final class SearchActivity extends ActionBarActivity {
 
 
     private void finishVideoOnlineQuery(ArrayList<Video> onlineVideos) {
-        if (onlineVideos != null) {
-            System.out.println("SIZE: " + onlineVideos.size());
-        }
+        List<OptimizedVideo> newVideos = new ArrayList<>();
 
         Collection<OptimizedVideo> allVideos;
 
@@ -138,6 +136,16 @@ public final class SearchActivity extends ActionBarActivity {
             }
         }
 
+        if (onlineVideos != null) {
+            for (Video video: onlineVideos) {
+                OptimizedVideo optimizedVideo = new OptimizedVideo(video);
+                newVideos.add(optimizedVideo);
+                this.matches.add(optimizedVideo.getId());
+            }
+
+            App.videoRepository.addVideos(newVideos);
+        }
+
         // TODO: Better sorting?
         Collections.sort(matching,
                 Collections.reverseOrder(new OptimizedVideo.CreateTimeComparator()));
@@ -146,6 +154,7 @@ public final class SearchActivity extends ActionBarActivity {
         for (OptimizedVideo match : matching) {
             this.matches.add(match.getId());
         }
+
         this.browserFragment.setVideos(this.matches);
     }
 

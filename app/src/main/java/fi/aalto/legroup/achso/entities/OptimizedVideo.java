@@ -188,12 +188,16 @@ public class OptimizedVideo {
      * Store the data of the video in a more GC friendly way.
      */
     public OptimizedVideo(Video video) {
-
         List<Annotation> annotations = video.getAnnotations();
         int annotationCount = annotations.size();
 
         // Store Uri objects as string (They internally are just wrapped string)
-        manifestUri = video.getManifestUri().toString();
+        if (video.getManifestUri() != null) {
+            manifestUri = video.getManifestUri().toString();
+        } else {
+            manifestUri = null;
+        }
+
         videoUri = video.getVideoUri().toString();
         thumbUri = video.getThumbUri().toString();
         if (video.getDeleteUri() != null) {

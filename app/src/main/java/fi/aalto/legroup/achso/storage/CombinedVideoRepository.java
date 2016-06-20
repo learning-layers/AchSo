@@ -168,6 +168,16 @@ public class CombinedVideoRepository implements VideoRepository {
         bus.post(new VideoRepositoryUpdatedEvent(this));
     }
 
+    @Override
+    public void addVideos(List<OptimizedVideo> videos) {
+        for (OptimizedVideo video: videos) {
+            if (doesVideoExist(video.getId()) == false) {
+                allVideos.put(video.getId(), video);
+            }
+        }
+        bus.post(new VideoRepositoryUpdatedEvent(this));
+    }
+
     private File[] safeListFiles(File root, FilenameFilter filter) {
         File[] files = root.listFiles(filter);
         if (files != null) {
