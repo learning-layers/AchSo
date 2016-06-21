@@ -442,8 +442,8 @@ public class CombinedVideoRepository implements VideoRepository {
             allVideos.put(video.getId(), new OptimizedVideo(video));
         } else {
             for (VideoHost host: cloudHosts) {
-                Video updatedVideo = host.uploadVideoManifest(video);
-                allVideos.put(updatedVideo.getId(), new OptimizedVideo(updatedVideo));
+                new UpdateRemoteVideoTask(null).execute(video);
+                //allVideos.put(updatedVideo.getId(), new OptimizedVideo(updatedVideo));
             }
         }
 
@@ -538,6 +538,33 @@ public class CombinedVideoRepository implements VideoRepository {
             } else {
                 callback.notFound();
             }
+        }
+    }
+
+    private class UpdateRemoteVideoTask extends AsyncTask<Video, Void, Video> {
+
+        private  VideoCallback callback;
+        public UpdateRemoteVideoTask(VideoCallback callback) {
+            this.callback = callback;
+        }
+
+        @Override
+        protected Video doInBackground(Video... params) {
+            Video video = params[0];
+
+            for (VideoHost host : cloudHosts) {
+                try {
+                    Video updatedVideo = host.uploadVideoManifest(video);
+
+                    if (updatedVideo != null) {
+                        return updatedVideo;
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            return null;
         }
     }
 
