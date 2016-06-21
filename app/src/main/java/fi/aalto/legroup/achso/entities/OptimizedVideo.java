@@ -41,6 +41,7 @@ public class OptimizedVideo {
     private float locationAccuracy;
     private boolean hasLocation;
     private boolean hasLastModified;
+    private boolean isTemporary;
 
     // This stores all the annotation text data. The single annotations refer
     // to parts of this buffer with indices specified in annotationTextStartEnd.
@@ -206,6 +207,7 @@ public class OptimizedVideo {
             deleteUri = null;
         }
 
+        isTemporary = video.getIsTemporary();
         repository = video.getRepository();
 
         id = video.getId();
@@ -324,6 +326,7 @@ public class OptimizedVideo {
             video.setDeleteUri(null);
         }
 
+        video.setIsTemporary(isTemporary);
         video.setRepository(repository);
         video.setId(id);
         video.setTitle(title);

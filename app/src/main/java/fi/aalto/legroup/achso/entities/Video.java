@@ -40,10 +40,12 @@ public class Video implements JsonSerializable {
     protected Date date;
     protected int revision;
     protected int formatVersion;
+    protected boolean isTemporary;
 
     protected User author;
     protected Location location;
     protected List<Annotation> annotations;
+
 
     Video() {
         // For serialization and pooling
@@ -69,6 +71,10 @@ public class Video implements JsonSerializable {
         this.location = location;
         this.formatVersion = formatVersion;
         this.annotations = annotations;
+
+        // Flag to indicate whether or not videou should be persisted on cache
+        // Eg. in search results...
+        this.isTemporary = false;
     }
 
     /**
@@ -144,6 +150,9 @@ public class Video implements JsonSerializable {
         return this.revision;
     }
 
+    public boolean getIsTemporary() { return this.isTemporary; }
+
+    public void setIsTemporary(boolean isTemporary) { this.isTemporary = isTemporary; }
 
     public void setRepository(VideoRepository repository) {
         this.repository = repository;

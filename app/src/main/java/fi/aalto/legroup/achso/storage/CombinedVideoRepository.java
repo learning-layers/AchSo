@@ -413,32 +413,40 @@ public class CombinedVideoRepository implements VideoRepository {
 
     public void save(Video video) throws IOException {
 
-        UUID id = video.getId();
-        File localFile = getLocalVideoFile(id);
-        File cacheFile = getOriginalCacheFile(id);
+        if (!video.getIsTemporary()) {
+            UUID id = video.getId();
+            File localFile = getLocalVideoFile(id);
+            File cacheFile = getOriginalCacheFile(id);
 
-        File targetFile;
+            File targetFile;
 
-        if (localFile.exists()) {
-            // The video is local, we can just overwrite it
-            targetFile = localFile;
-        } else if (cacheFile.exists()) {
-            // The video is from the cloud, save it as the modified one
-            targetFile = getModifiedCacheFile(id);
+            if (localFile.exists()) {
+                // The video is local, we can just overwrite it
+                targetFile = localFile;
+            } else if (cacheFile.exists()) {
+                // The video is from the cloud, save it as the modified one
+                targetFile = getModifiedCacheFile(id);
+            } else {
+                // The video doesn't exist in any repository, add it to local one.
+                targetFile = localFile;
+            }
+
+            if (video.isRemote()) {
+                hasVideoToUpload = true;
+            }
+
+            this.stateModified();
+            serializer.save(video, targetFile.toURI());
+
+            // Do partial update
+            allVideos.put(video.getId(), new OptimizedVideo(video));
         } else {
-            // The video doesn't exist in any repository, add it to local one.
-            targetFile = localFile;
+            for (VideoHost host: cloudHosts) {
+                Video updatedVideo = host.uploadVideoManifest(video);
+                allVideos.put(updatedVideo.getId(), new OptimizedVideo(updatedVideo));
+            }
         }
 
-        if (video.isRemote()) {
-            hasVideoToUpload = true;
-        }
-
-        this.stateModified();
-        serializer.save(video, targetFile.toURI());
-
-        // Do partial update
-        allVideos.put(video.getId(), new OptimizedVideo(video));
         bus.post(new VideoRepositoryUpdatedEvent(this));
     }
 

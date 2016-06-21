@@ -179,6 +179,11 @@ public class AchRailsStrategy implements VideoHost {
         Response response = executeRequest(request);
         if (response.isSuccessful()) {
             JsonVideoList jsonVideoList = serializer.read(JsonVideoList.class, response.body().byteStream());
+
+            for (Video video : jsonVideoList.videos) {
+                video.setIsTemporary(true);
+                video.setRepository(App.videoRepository);
+            }
             return jsonVideoList.videos;
         } else {
             return null;
