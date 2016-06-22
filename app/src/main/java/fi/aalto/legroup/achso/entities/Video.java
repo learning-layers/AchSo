@@ -82,6 +82,7 @@ public class Video implements JsonSerializable {
      * @return True if succeeded, false otherwise.
      */
     public boolean save() {
+        // TODO: Show error messages at failing to save temporary videos
         try {
             this.repository.save(this);
             return true;

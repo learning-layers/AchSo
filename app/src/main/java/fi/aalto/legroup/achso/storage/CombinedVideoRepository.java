@@ -442,14 +442,30 @@ public class CombinedVideoRepository implements VideoRepository {
             allVideos.put(video.getId(), new OptimizedVideo(video));
         } else {
             for (VideoHost host: cloudHosts) {
-                new UpdateRemoteVideoTask(null).execute(video);
-                //allVideos.put(updatedVideo.getId(), new OptimizedVideo(updatedVideo));
+                new UpdateRemoteVideoTask(new UpdateRemoteVideoCallback()).execute(video);
             }
         }
 
         bus.post(new VideoRepositoryUpdatedEvent(this));
     }
 
+    private void finishRemoteSave(Video video) {
+        allVideos.put(video.getId(), new OptimizedVideo(video));
+        bus.post(new VideoRepositoryUpdatedEvent(this));
+    }
+
+    protected class UpdateRemoteVideoCallback implements VideoRepository.VideoCallback {
+
+        @Override
+        public void found(Video video) {
+            finishRemoteSave(video);
+        }
+
+        @Override
+        public void notFound() {
+
+        }
+    }
     /**
      * Uploads the video manifest to some cloud host.
      * Note: The video data itself (and thumbnail) should be uploaded somewhere before this, since
@@ -543,7 +559,7 @@ public class CombinedVideoRepository implements VideoRepository {
 
     private class UpdateRemoteVideoTask extends AsyncTask<Video, Void, Video> {
 
-        private  VideoCallback callback;
+        private VideoCallback callback;
         public UpdateRemoteVideoTask(VideoCallback callback) {
             this.callback = callback;
         }
@@ -557,13 +573,16 @@ public class CombinedVideoRepository implements VideoRepository {
                     Video updatedVideo = host.uploadVideoManifest(video);
 
                     if (updatedVideo != null) {
+                        callback.found(updatedVideo);
                         return updatedVideo;
+                    } else {
+                        callback.notFound();
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
+                    callback.notFound();
                 }
             }
-
             return null;
         }
     }
