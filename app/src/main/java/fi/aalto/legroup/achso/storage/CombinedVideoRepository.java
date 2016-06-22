@@ -450,6 +450,8 @@ public class CombinedVideoRepository implements VideoRepository {
     }
 
     private void finishRemoteSave(Video video) {
+        video.setRepository(this);
+        video.setIsTemporary(true);
         allVideos.put(video.getId(), new OptimizedVideo(video));
         bus.post(new VideoRepositoryUpdatedEvent(this));
     }
@@ -557,7 +559,7 @@ public class CombinedVideoRepository implements VideoRepository {
         }
     }
 
-    private class UpdateRemoteVideoTask extends AsyncTask<Video, Void, Video> {
+    private class UpdateRemoteVideoTask extends AsyncTask<Video, Void, Void> {
 
         private VideoCallback callback;
         public UpdateRemoteVideoTask(VideoCallback callback) {
@@ -565,7 +567,7 @@ public class CombinedVideoRepository implements VideoRepository {
         }
 
         @Override
-        protected Video doInBackground(Video... params) {
+        protected Void doInBackground(Video... params) {
             Video video = params[0];
 
             for (VideoHost host : cloudHosts) {
@@ -574,15 +576,16 @@ public class CombinedVideoRepository implements VideoRepository {
 
                     if (updatedVideo != null) {
                         callback.found(updatedVideo);
-                        return updatedVideo;
                     } else {
                         callback.notFound();
                     }
+
                 } catch (IOException e) {
                     e.printStackTrace();
                     callback.notFound();
                 }
             }
+
             return null;
         }
     }
