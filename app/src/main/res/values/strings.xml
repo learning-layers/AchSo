@@ -13,7 +13,7 @@
         \nFINLAND
     </string>
 
-    <string name="my_videos">All videos</string>
+    <string name="my_videos">My videos</string>
     <string name="record">Record new video</string>
     <string name="read_qr_code">QR search</string>
     <string name="title_activity_information">Video information</string>
