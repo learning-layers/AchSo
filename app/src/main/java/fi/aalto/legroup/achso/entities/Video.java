@@ -40,7 +40,7 @@ public class Video implements JsonSerializable {
     protected Date date;
     protected int revision;
     protected int formatVersion;
-    protected boolean isTemporary;
+    protected transient boolean isTemporary;
 
     protected User author;
     protected Location location;
