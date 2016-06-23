@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="my_videos">Kõik videod</string>
+    <string name="my_videos">Minu videod</string>
     <string name="record">Salvesta uus video</string>
     <string name="read_qr_code">Otsi QR koodi abil</string>
     <string name="title_activity_information">Video info</string>

@@ -3,7 +3,7 @@
 
     <string name="app_name">Ach so!</string>
 
-    <string name="my_videos">Alle Videos</string>
+    <string name="my_videos">Meine Videos</string>
     <string name="record">Neues Video aufnehmen</string>
     <string name="read_qr_code">Mit QR-Code suchen</string>
     <string name="title_activity_information">Video-Informationen</string>
