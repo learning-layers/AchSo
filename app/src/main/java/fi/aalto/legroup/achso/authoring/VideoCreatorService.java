@@ -164,7 +164,7 @@ public final class VideoCreatorService extends IntentService {
         Video video = new Video(App.videoRepository, manifestUri, videoUri, thumbUri, id, title,
                 tag, rotation, date, author, location, formatVersion, annotations);
 
-        video.save();
+        video.save(null);
 
         bus.post(new VideoCreationStateEvent(VideoCreationStateEvent.Type.FINISHED));
     }

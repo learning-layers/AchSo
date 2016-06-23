@@ -227,7 +227,8 @@ public final class UploadService extends IntentService {
         boolean success = tryUpload(video);
 
         if (success) {
-            video.save();
+            //TODO: callback here
+            video.save(null);
         } else {
             // TODO: Get more data from tryUpload?
             postError(video.getId(), "Failed to upload video.");

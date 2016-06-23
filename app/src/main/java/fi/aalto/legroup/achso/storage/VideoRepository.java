@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 import fi.aalto.legroup.achso.entities.Video;
+import fi.aalto.legroup.achso.playback.PlayerActivity;
 
 /**
  * Provides full read/write access to video root entities.
@@ -50,7 +51,7 @@ public interface VideoRepository extends VideoInfoRepository {
     /**
      * Persists an entity, overwriting an existing one with the same ID if set.
      */
-    public void save(Video video) throws IOException;
+    public void save(Video video, VideoCallback callback) throws IOException;
 
     /**
      * Deletes an entity with the given ID.

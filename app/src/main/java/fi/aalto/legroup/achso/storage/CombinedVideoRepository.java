@@ -32,6 +32,7 @@ import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.entities.VideoReference;
 import fi.aalto.legroup.achso.entities.migration.VideoMigration;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
+import fi.aalto.legroup.achso.playback.PlayerActivity;
 import fi.aalto.legroup.achso.storage.remote.SyncRequiredEvent;
 import fi.aalto.legroup.achso.storage.remote.SyncService;
 import fi.aalto.legroup.achso.storage.remote.VideoHost;
@@ -216,7 +217,7 @@ public class CombinedVideoRepository implements VideoRepository {
             }
 
             video.setFormatVersion(Video.VIDEO_FORMAT_VERSION);
-            video.save();
+            video.save(null);
         }
     }
 
@@ -411,7 +412,7 @@ public class CombinedVideoRepository implements VideoRepository {
         this.stateNumber = (this.stateNumber + 1) % 10000;
     }
 
-    public void save(Video video) throws IOException {
+    public void save(Video video, VideoCallback callback) throws IOException {
 
         if (!video.getIsTemporary()) {
             UUID id = video.getId();
@@ -440,32 +441,43 @@ public class CombinedVideoRepository implements VideoRepository {
 
             // Do partial update
             allVideos.put(video.getId(), new OptimizedVideo(video));
-        } else {
-            for (VideoHost host: cloudHosts) {
-                new UpdateRemoteVideoTask(new UpdateRemoteVideoCallback()).execute(video);
+            if (callback != null) {
+                callback.found(video);
             }
+        } else {
+            new UpdateRemoteVideoTask(new UpdateRemoteVideoCallback(callback)).execute(video);
         }
 
         bus.post(new VideoRepositoryUpdatedEvent(this));
     }
 
-    private void finishRemoteSave(Video video) {
+    private void finishRemoteSave(Video video, VideoCallback callback) {
         video.setRepository(this);
         video.setIsTemporary(true);
         allVideos.put(video.getId(), new OptimizedVideo(video));
         bus.post(new VideoRepositoryUpdatedEvent(this));
+        if (callback != null) {
+            callback.found(video);
+        }
     }
 
     protected class UpdateRemoteVideoCallback implements VideoRepository.VideoCallback {
+        private VideoCallback saveCallback;
+
+        public UpdateRemoteVideoCallback (VideoCallback callback) {
+            this.saveCallback = callback;
+        }
 
         @Override
         public void found(Video video) {
-            finishRemoteSave(video);
+            finishRemoteSave(video, saveCallback);
         }
 
         @Override
         public void notFound() {
-
+            if (this.saveCallback != null) {
+                saveCallback.notFound();
+            }
         }
     }
     /**

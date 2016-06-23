@@ -10,6 +10,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
+import fi.aalto.legroup.achso.playback.PlayerActivity;
 import fi.aalto.legroup.achso.storage.VideoRepository;
 
 /**
@@ -72,23 +73,23 @@ public class Video implements JsonSerializable {
         this.formatVersion = formatVersion;
         this.annotations = annotations;
 
-        // Flag to indicate whether or not videou should be persisted on cache
+        // Flag to indicate whether or not video should be persisted on cache
         // Eg. in search results...
         this.isTemporary = false;
     }
 
     /**
      * Convenience method for saving a video.
-     * @return True if succeeded, false otherwise.
      */
-    public boolean save() {
+    public void save(VideoRepository.VideoCallback callback) {
         // TODO: Show error messages at failing to save temporary videos
         try {
-            this.repository.save(this);
-            return true;
+            this.repository.save(this, callback);
         } catch (Exception e) {
+            if (callback != null) {
+                callback.notFound();
+            }
             e.printStackTrace();
-            return false;
         }
     }
     public boolean isLocal() {
