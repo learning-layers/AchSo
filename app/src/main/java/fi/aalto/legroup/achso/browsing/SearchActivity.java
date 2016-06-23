@@ -27,12 +27,14 @@ import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.OptimizedVideo;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.storage.VideoRepository;
+import fi.aalto.legroup.achso.views.VideoRefreshLayout;
 
 public final class SearchActivity extends ActionBarActivity {
 
     private static final String STATE_MATCHES = "STATE_MATCHES";
 
     private BrowserFragment browserFragment;
+    private VideoRefreshLayout videoRefreshLayout;
     private ArrayList<UUID> matches = new ArrayList<>();
     private String lastQuery;
 
@@ -49,6 +51,7 @@ public final class SearchActivity extends ActionBarActivity {
 
         this.browserFragment = (BrowserFragment)
                 getSupportFragmentManager().findFragmentById(R.id.fragment_search_video);
+        videoRefreshLayout = (VideoRefreshLayout) findViewById(R.id.search_refresh);
 
         if (savedInstanceState == null) {
             handleIntent(getIntent());
@@ -155,6 +158,7 @@ public final class SearchActivity extends ActionBarActivity {
             this.matches.add(match.getId());
         }
 
+        videoRefreshLayout.setRefreshing(false);
         this.browserFragment.setVideos(this.matches);
     }
 
@@ -162,6 +166,13 @@ public final class SearchActivity extends ActionBarActivity {
      * Searches all videos for a match against the given query.
      */
     private void queryVideos(String query) {
+        videoRefreshLayout.post(new Runnable() {
+            @Override
+            public void run() {
+                videoRefreshLayout.setRefreshing(true);
+            }
+        });
+
         lastQuery = query;
         App.videoRepository.findOnlineVideoByQuery(query, new FindQueryVideoCallback());
     }
