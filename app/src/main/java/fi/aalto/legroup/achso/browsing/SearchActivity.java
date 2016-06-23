@@ -52,6 +52,7 @@ public final class SearchActivity extends ActionBarActivity {
         this.browserFragment = (BrowserFragment)
                 getSupportFragmentManager().findFragmentById(R.id.fragment_search_video);
         videoRefreshLayout = (VideoRefreshLayout) findViewById(R.id.search_refresh);
+        videoRefreshLayout.setEnabled(false);
 
         if (savedInstanceState == null) {
             handleIntent(getIntent());
