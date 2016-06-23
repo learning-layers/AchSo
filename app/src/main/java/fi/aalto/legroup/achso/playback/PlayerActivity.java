@@ -167,7 +167,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
 
     public class SavePlayerVideoCallback implements VideoRepository.VideoCallback {
         @Override
-        public void found(Video video) { System.out.println("Video saved!!!kjjkxkjjkh"); }
+        public void found(Video video) { }
 
         @Override
         public void notFound() {
