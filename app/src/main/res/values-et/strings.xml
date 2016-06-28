@@ -22,6 +22,7 @@
     <string name="cancel">Katkesta</string>
     <string name="edit_text">Muuda teksti</string>
     <string name="video_share">Jaga</string>
+    <string name="video_export">Ekspordi</string>
 
     <string name="semanticvideo_title">Pealkiri</string>
     <string name="semanticvideo_creator">Looja</string>
