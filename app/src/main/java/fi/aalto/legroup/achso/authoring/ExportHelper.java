@@ -8,6 +8,9 @@ import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
 
 import android.net.Uri;
+import android.text.TextUtils;
+import android.util.Patterns;
+
 import java.util.ArrayList;
 
 public class ExportHelper {
@@ -28,4 +31,15 @@ public class ExportHelper {
         this.endpointUri = endpointUri;
     }
 
+    public void exportVideos(ArrayList<Video> videos, String email) {
+        if (!isValidEmail(email)) {
+            return;
+        }
+
+    }
+
+    // http://stackoverflow.com/questions/1819142/how-should-i-validate-an-e-mail-address
+    public final static boolean isValidEmail(CharSequence target) {
+        return !TextUtils.isEmpty(target) && Patterns.EMAIL_ADDRESS.matcher(target).matches();
+    }
 }
