@@ -40,4 +40,10 @@
         android:title="@string/video_share"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/action_export_video"
+        android:icon="@drawable/ic_share_variant_white_24dp"
+        android:title="@string/video_export"
+        app:showAsAction="never" />
+
 </menu>
