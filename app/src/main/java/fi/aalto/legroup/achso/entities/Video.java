@@ -10,6 +10,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
+import fi.aalto.legroup.achso.playback.PlayerActivity;
 import fi.aalto.legroup.achso.storage.VideoRepository;
 
 /**
@@ -40,11 +41,13 @@ public class Video implements JsonSerializable {
     protected Date date;
     protected int revision;
     protected int formatVersion;
+    protected transient boolean isTemporary;
 
     protected User author;
     protected Location location;
     protected List<Annotation> annotations;
     protected  boolean isLastAnnotationEmpty;
+
 
     Video() {
         // For serialization and pooling
@@ -72,19 +75,24 @@ public class Video implements JsonSerializable {
         this.annotations = annotations;
 
         this.isLastAnnotationEmpty = false;
+
+        // Flag to indicate whether or not video should be persisted on cache
+        // Eg. in search results...
+        this.isTemporary = false;
     }
 
     /**
      * Convenience method for saving a video.
-     * @return True if succeeded, false otherwise.
      */
-    public boolean save() {
+    public void save(VideoRepository.VideoCallback callback) {
+        // TODO: Show error messages at failing to save temporary videos
         try {
-            this.repository.save(this);
-            return true;
+            this.repository.save(this, callback);
         } catch (Exception e) {
+            if (callback != null) {
+                callback.notFound();
+            }
             e.printStackTrace();
-            return false;
         }
     }
     public boolean isLocal() {
@@ -147,6 +155,9 @@ public class Video implements JsonSerializable {
         return this.revision;
     }
 
+    public boolean getIsTemporary() { return this.isTemporary; }
+
+    public void setIsTemporary(boolean isTemporary) { this.isTemporary = isTemporary; }
 
     public void setRepository(VideoRepository repository) {
         this.repository = repository;

@@ -166,6 +166,17 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         }
     }
 
+    public class SavePlayerVideoCallback implements VideoRepository.VideoCallback {
+        @Override
+        public void found(Video video) { }
+
+        @Override
+        public void notFound() {
+            SnackbarManager.show(Snackbar.with(PlayerActivity.this).text(R.string.storage_error));
+            finish();
+        }
+    }
+
     protected void loadVideo(UUID videoId) {
         Video video;
         try {
@@ -382,9 +393,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         lastAnnotationCreated = annotation;
         video.addNewAnnotation(annotation);
 
-        if (!video.save()) {
-            SnackbarManager.show(Snackbar.with(this).text(R.string.storage_error));
-        }
+        video.save(new SavePlayerVideoCallback());
 
         editAnnotation(annotation);
 
@@ -394,11 +403,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
     @Override
     public void moveAnnotation(Annotation annotation, PointF position) {
         annotation.setPosition(position);
-
-        if (!video.save()) {
-            SnackbarManager.show(Snackbar.with(this).text(R.string.storage_error));
-        }
-
+        video.save(new SavePlayerVideoCallback());
         refreshAnnotations();
     }
 
@@ -418,12 +423,10 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
                 String text = annotationText.getText().toString();
 
                 annotation.setText(text);
+
                 video.setIsLastAnnotationEmpty(false);
 
-                if (!video.save()) {
-                    SnackbarManager.show(Snackbar.with(PlayerActivity.this)
-                            .text(R.string.storage_error));
-                }
+                video.save(new SavePlayerVideoCallback());
 
                 refreshAnnotations();
 
@@ -441,13 +444,8 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
 
     private void deleteAnnotation(Annotation annotation) {
         video.getAnnotations().remove(annotation);
-
+        video.save(new SavePlayerVideoCallback());
         video.setIsLastAnnotationEmpty(false);
-
-        if (!video.save()) {
-            SnackbarManager.show(Snackbar.with(PlayerActivity.this)
-                    .text(R.string.storage_error));
-        }
 
         refreshAnnotations();
 

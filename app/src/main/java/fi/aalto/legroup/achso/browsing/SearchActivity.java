@@ -3,6 +3,7 @@ package fi.aalto.legroup.achso.browsing;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.ParcelUuid;
 import android.support.v7.app.ActionBarActivity;
@@ -13,6 +14,7 @@ import android.view.MenuItem;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -23,13 +25,18 @@ import javax.annotation.Nonnull;
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.OptimizedVideo;
+import fi.aalto.legroup.achso.entities.Video;
+import fi.aalto.legroup.achso.storage.VideoRepository;
+import fi.aalto.legroup.achso.views.VideoRefreshLayout;
 
 public final class SearchActivity extends ActionBarActivity {
 
     private static final String STATE_MATCHES = "STATE_MATCHES";
 
     private BrowserFragment browserFragment;
+    private VideoRefreshLayout videoRefreshLayout;
     private ArrayList<UUID> matches = new ArrayList<>();
+    private String lastQuery;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +51,8 @@ public final class SearchActivity extends ActionBarActivity {
 
         this.browserFragment = (BrowserFragment)
                 getSupportFragmentManager().findFragmentById(R.id.fragment_search_video);
+        videoRefreshLayout = (VideoRefreshLayout) findViewById(R.id.search_refresh);
+        videoRefreshLayout.setEnabled(false);
 
         if (savedInstanceState == null) {
             handleIntent(getIntent());
@@ -111,11 +120,20 @@ public final class SearchActivity extends ActionBarActivity {
         }
     }
 
-    /**
-     * Searches all videos for a match against the given query.
-     */
-    private void queryVideos(String query) {
+
+    private void finishVideoOnlineQuery(ArrayList<Video> onlineVideos) {
+        List<OptimizedVideo> newVideos = new ArrayList<>();
+
         Collection<OptimizedVideo> allVideos;
+
+        if (onlineVideos != null) {
+            for (Video video: onlineVideos) {
+                OptimizedVideo optimizedVideo = new OptimizedVideo(video);
+                newVideos.add(optimizedVideo);
+            }
+
+            App.videoRepository.addVideos(newVideos);
+        }
 
         try {
             allVideos = App.videoInfoRepository.getAll();
@@ -126,10 +144,11 @@ public final class SearchActivity extends ActionBarActivity {
 
         List<OptimizedVideo> matching = new ArrayList<>(allVideos.size());
         for (OptimizedVideo video : allVideos) {
-            if (isMatch(video, query)) {
+            if (isMatch(video, lastQuery)) {
                 matching.add(video);
             }
         }
+
 
         // TODO: Better sorting?
         Collections.sort(matching,
@@ -139,7 +158,47 @@ public final class SearchActivity extends ActionBarActivity {
         for (OptimizedVideo match : matching) {
             this.matches.add(match.getId());
         }
+
+        videoRefreshLayout.setRefreshing(false);
         this.browserFragment.setVideos(this.matches);
+    }
+
+    /**
+     * Searches all videos for a match against the given query.
+     */
+    private void queryVideos(String query) {
+        videoRefreshLayout.post(new Runnable() {
+            @Override
+            public void run() {
+                videoRefreshLayout.setRefreshing(true);
+            }
+        });
+
+        lastQuery = query;
+        App.videoRepository.findOnlineVideoByQuery(query, new FindQueryVideoCallback());
+    }
+
+    protected class FindQueryVideoCallback implements VideoRepository.VideoListCallback {
+
+        @Override
+        public void found(final ArrayList<Video> videos) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    finishVideoOnlineQuery(videos);
+                }
+            });
+        }
+
+        @Override
+        public void notFound() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    finishVideoOnlineQuery(null);
+                }
+            });
+        }
     }
 
     /**

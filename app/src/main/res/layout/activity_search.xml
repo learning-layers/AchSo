@@ -7,11 +7,15 @@
 
     <include layout="@layout/partial_toolbar_with_nav_button" />
 
-    <fragment
-        android:name="fi.aalto.legroup.achso.browsing.BrowserFragment"
-        android:id="@+id/fragment_search_video"
+    <fi.aalto.legroup.achso.views.VideoRefreshLayout
+        android:id="@+id/search_refresh"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:layout="@layout/fragment_browser" />
-
+        android:layout_height="match_parent">
+        <fragment
+            android:name="fi.aalto.legroup.achso.browsing.BrowserFragment"
+            android:id="@+id/fragment_search_video"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:layout="@layout/fragment_browser" />
+    </fi.aalto.legroup.achso.views.VideoRefreshLayout>
 </LinearLayout>

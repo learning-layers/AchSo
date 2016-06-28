@@ -4,9 +4,11 @@ import android.content.Context;
 import android.net.Uri;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.UUID;
 
 import fi.aalto.legroup.achso.entities.Video;
+import fi.aalto.legroup.achso.playback.PlayerActivity;
 
 /**
  * Provides full read/write access to video root entities.
@@ -15,6 +17,11 @@ public interface VideoRepository extends VideoInfoRepository {
 
     interface VideoCallback {
         public void found(Video video);
+        public void notFound();
+    }
+
+    interface VideoListCallback {
+        public void found(ArrayList<Video> videos);
         public void notFound();
     }
 
@@ -44,7 +51,7 @@ public interface VideoRepository extends VideoInfoRepository {
     /**
      * Persists an entity, overwriting an existing one with the same ID if set.
      */
-    public void save(Video video) throws IOException;
+    public void save(Video video, VideoCallback callback) throws IOException;
 
     /**
      * Deletes an entity with the given ID.
@@ -61,6 +68,8 @@ public interface VideoRepository extends VideoInfoRepository {
      * @return A valid Video or null if not found.
      */
     public void findVideoByVideoUri(Uri videoUri, String type, VideoCallback callback);
+
+    public void findOnlineVideoByQuery(String query, VideoListCallback callback);
 
     /**
      * Checks whether video storage contains a video with a certain ID.
