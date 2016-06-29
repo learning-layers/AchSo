@@ -30,7 +30,9 @@ import java.util.UUID;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
+import fi.aalto.legroup.achso.authoring.ExportHelper;
 import fi.aalto.legroup.achso.authoring.QRHelper;
+import fi.aalto.legroup.achso.authoring.ExportHelper;
 import fi.aalto.legroup.achso.authoring.VideoDeletionFragment;
 import fi.aalto.legroup.achso.entities.OptimizedVideo;
 import fi.aalto.legroup.achso.entities.Video;
@@ -210,16 +212,10 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
 
             case R.id.action_export_video:
             {
-                System.out.println("ASSADSADADSADS");
                 ArrayList<Video> videos = getSelectionVideos();
-                System.out.println("ASSADSADADSADS");
-
-                try {
-                    App.exportHelper.exportVideos(videos, "matti.jokitulppo@gmail.com");
-                } catch (IOException ex) {
-                    System.out.println(ex.getMessage());
-                }
-
+                ExportHelper.ExportPayload payload = new ExportHelper.ExportPayload("matti.jokitulppo@aalto.fi", videos);
+                ExportHelper.ExportVideosTask task = new ExportHelper.ExportVideosTask(new ExportHelper.ExportCallback());
+                task.execute(payload);
                 mode.finish();
                 return true;
             }

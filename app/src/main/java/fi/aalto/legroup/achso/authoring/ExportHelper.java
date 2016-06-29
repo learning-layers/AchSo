@@ -12,6 +12,7 @@ import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
 
 import android.accounts.Account;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Patterns;
 
@@ -40,6 +41,35 @@ public class ExportHelper {
         }
     }
 
+    public static class ExportVideosTask extends AsyncTask<ExportPayload, Void, Void> {
+        private ExportCallback callback;
+
+        public ExportVideosTask(ExportCallback callback) {
+            this.callback = callback;
+        }
+
+        @Override
+        protected Void doInBackground(ExportPayload... params) {
+            try {
+                ExportResponse response = App.exportHelper.exportVideos(params[0].videos, params[0].email);
+                callback.success(response);
+            } catch (IOException ex) {
+                callback.failure(ex.getMessage());
+            }
+            return null;
+        }
+    }
+
+    public static class ExportCallback {
+        public void success(ExportResponse response) {
+            System.out.println(response.message);
+        }
+
+        public void failure(String reason) {
+            System.out.println(reason);
+        }
+    }
+
     public ExportHelper(JsonSerializer serializer, Uri endpointUri) {
         this.serializer = serializer;
         this.endpointUri = endpointUri;
@@ -53,20 +83,23 @@ public class ExportHelper {
         ExportPayload exportPayload = new ExportPayload(email, videos);
 
         String serializedPayload = serializer.write(exportPayload);
-        System.out.println("load:" + serializedPayload);
-        //Request request = new Request.Builder()
-        //        .url(endpointUri.toString())
-        //        .post(RequestBody.create(MediaType.parse("application/json"), serializedPayload))
-        //        .build();
 
-        //Account account = App.loginManager.getAccount();
-        //Response response = App.authenticatedHttpClient.execute(request, account);
-        //if (!response.isSuccessful())
-        //    throw new IOException(response.body().string());
-        //ExportResponse result = serializer.read(ExportResponse.class, response.body().byteStream());
+        Request request = new Request.Builder()
+                .url(endpointUri.toString())
+                .post(RequestBody.create(MediaType.parse("application/json"), serializedPayload))
+                .build();
 
-        return new ExportResponse("ok");
 
+        Account account = App.loginManager.getAccount();
+        Response response = App.authenticatedHttpClient.execute(request, account);
+
+        if (!response.isSuccessful()) {
+            throw new IOException(response.body().string());
+        }
+
+        ExportResponse result = serializer.read(ExportResponse.class, response.body().byteStream());
+
+        return result;
     }
 
     // http://stackoverflow.com/questions/1819142/how-should-i-validate-an-e-mail-address
