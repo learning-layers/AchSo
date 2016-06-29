@@ -33,6 +33,7 @@ import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.authoring.QRHelper;
 import fi.aalto.legroup.achso.authoring.VideoDeletionFragment;
 import fi.aalto.legroup.achso.entities.OptimizedVideo;
+import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.playback.PlayerActivity;
 import fi.aalto.legroup.achso.sharing.SharingActivity;
 import fi.aalto.legroup.achso.storage.local.ExportService;
@@ -206,6 +207,23 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
                 startActivity(informationIntent);
                 mode.finish();
                 return true;
+
+            case R.id.action_export_video:
+            {
+                System.out.println("ASSADSADADSADS");
+                ArrayList<Video> videos = getSelectionVideos();
+                System.out.println("ASSADSADADSADS");
+
+                try {
+                    App.exportHelper.exportVideos(videos, "matti.jokitulppo@gmail.com");
+                } catch (IOException ex) {
+                    System.out.println(ex.getMessage());
+                }
+
+                mode.finish();
+                return true;
+            }
+
         }
 
         return false;
@@ -289,6 +307,24 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
         }
 
         return items;
+    }
+
+    private ArrayList<Video> getSelectionVideos() {
+        List<UUID> selection = getSelection();
+        ArrayList<Video> videos = new ArrayList<Video>();
+
+        for (UUID id : selection) {
+            try {
+                Video video = App.videoRepository.getVideo(id).inflate();
+                if (!video.isLocal()) {
+                    videos.add(video);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return videos;
     }
 
     private void clearSelection() {

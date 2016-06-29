@@ -53,18 +53,19 @@ public class ExportHelper {
         ExportPayload exportPayload = new ExportPayload(email, videos);
 
         String serializedPayload = serializer.write(exportPayload);
-        Request request = new Request.Builder()
-                .url(endpointUri.toString())
-                .post(RequestBody.create(MediaType.parse("application/json"), serializedPayload))
-                .build();
+        System.out.println("load:" + serializedPayload);
+        //Request request = new Request.Builder()
+        //        .url(endpointUri.toString())
+        //        .post(RequestBody.create(MediaType.parse("application/json"), serializedPayload))
+        //        .build();
 
-        Account account = App.loginManager.getAccount();
-        Response response = App.authenticatedHttpClient.execute(request, account);
-        if (!response.isSuccessful())
-            throw new IOException(response.body().string());
-        ExportResponse result = serializer.read(ExportResponse.class, response.body().byteStream());
+        //Account account = App.loginManager.getAccount();
+        //Response response = App.authenticatedHttpClient.execute(request, account);
+        //if (!response.isSuccessful())
+        //    throw new IOException(response.body().string());
+        //ExportResponse result = serializer.read(ExportResponse.class, response.body().byteStream());
 
-        return new ExportResponse(result.message);
+        return new ExportResponse("ok");
 
     }
 
