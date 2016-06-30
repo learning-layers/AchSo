@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.TextView;
 
+import com.google.gson.JsonObject;
 import com.melnykov.fab.ScrollDirectionListener;
 import com.nispok.snackbar.Snackbar;
 import com.nispok.snackbar.SnackbarManager;
@@ -30,9 +31,8 @@ import java.util.UUID;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
-import fi.aalto.legroup.achso.authoring.ExportHelper;
+import fi.aalto.legroup.achso.authoring.ExportDialogFragment;
 import fi.aalto.legroup.achso.authoring.QRHelper;
-import fi.aalto.legroup.achso.authoring.ExportHelper;
 import fi.aalto.legroup.achso.authoring.VideoDeletionFragment;
 import fi.aalto.legroup.achso.entities.OptimizedVideo;
 import fi.aalto.legroup.achso.entities.Video;
@@ -214,10 +214,15 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
             {
                 ArrayList<Video> videos = getSelectionVideos();
 
-                ExportHelper.ExportPayload payload = new ExportHelper.ExportPayload("matti.jokitulppo@aalto.fi", videos);
-                ExportHelper.ExportVideosTask task = new ExportHelper.ExportVideosTask(new BrowseExportCallback());
+                String email = "";
 
-                task.execute(payload);
+                JsonObject userInfo = App.loginManager.getUserInfo();
+
+                if (userInfo != null) {
+                    email = userInfo.get("email").getAsString();
+                }
+
+                showExportFragment(email, videos);
                 mode.finish();
                 return true;
             }
@@ -227,17 +232,6 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
         return false;
     }
 
-    private class BrowseExportCallback implements ExportHelper.ExportCallback {
-        @Override
-        public void success(ExportHelper.ExportResponse response) {
-            System.out.println(response.message);
-        }
-
-        @Override
-        public void failure(String reason) {
-            System.out.println(reason);
-        }
-    }
 
     @Override
     public void onDestroyActionMode(ActionMode mode) {
@@ -353,6 +347,10 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
             this.actionMode.setTitle(title);
             updateMenuItems();
         }
+    }
+
+    private void showExportFragment(String email, ArrayList<Video> videos) {
+        ExportDialogFragment.newInstance("matti.jokitulppo@aalto.fi", videos).show(getActivity().getFragmentManager(), "ExportDialog");
     }
 
     private void updateMenuItems() {

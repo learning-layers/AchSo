@@ -36,6 +36,7 @@
     <string name="edit_text">Edit text</string>
     <string name="video_share">Share</string>
     <string name="video_export">Export</string>
+    <string name="video_export_desc">Please write the email address where you would like to receive your videos</string>
     <string name="not_loggedin_share_nag">You must log in before sharing videos.</string>
     <string name="login_with_another">Log in with another account</string>
 
