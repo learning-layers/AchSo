@@ -116,6 +116,8 @@
     <string name="video_export">Vie video ulos</string>
     <string name="video_export_title">Viedään %s videota</string>
     <string name="video_export_desc">Kirjoita sähköpostiosoite johon haluat videoiden latauslinkin</string>
+    <string name="video_export_success">Videoiden vientitapahtuma onnistui!</string>
+    <string name="video_export_fail">Videoiden vienti ei onnistunut! Virhe: %s</string>
     <string name="view_video_info">Näytä tiedot</string>
     <string name="logout">Kirjaudu ulos</string>
     <string name="search">Etsi</string>

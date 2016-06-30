@@ -9,6 +9,8 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.nispok.snackbar.Snackbar;
+import com.nispok.snackbar.SnackbarManager;
 
 import java.util.ArrayList;
 
@@ -80,12 +82,12 @@ public final class ExportDialogFragment extends DialogFragment {
     private class BrowseExportCallback implements ExportHelper.ExportCallback {
         @Override
         public void success(ExportHelper.ExportResponse response) {
-            System.out.println(response.message);
+            SnackbarManager.show(Snackbar.with(activity).text(R.string.video_export_success));
         }
 
         @Override
         public void failure(String reason) {
-            System.out.println(reason);
+            SnackbarManager.show(Snackbar.with(activity).text(getResources().getString(R.string.video_export_fail, reason)));
         }
     }
 }

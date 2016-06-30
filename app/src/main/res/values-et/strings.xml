@@ -24,6 +24,8 @@
     <string name="video_share">Jaga</string>
     <string name="video_export">Ekspordi</string>
     <string name="video_export_title">Eksportivate %s videot</string>
+    <string name="video_export_success">Video eksportiv sabas edukalt!</string>
+    <string name="video_export_fail">Video eksportivate ebaõnnestus! Viga: %s</string>
     <string name="video_export_desc">Palun kirjuta e-posti aadress, kuhu soovid saada oma videos.</string>
 
     <string name="semanticvideo_title">Pealkiri</string>
