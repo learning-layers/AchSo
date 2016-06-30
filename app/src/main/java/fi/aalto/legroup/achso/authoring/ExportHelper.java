@@ -23,6 +23,8 @@ public class ExportHelper {
     private JsonSerializer serializer;
     private final Uri endpointUri;
 
+    // Payload that is sent to the AchSo!-video exporter
+    // See here: https://github.com/melonmanchan/achso-video-exporter#example-payload
     public static class ExportPayload implements JsonSerializable {
         public String email;
         public ArrayList<Video> videos;
@@ -33,6 +35,7 @@ public class ExportHelper {
         }
     }
 
+    // Response received from the exporter service
     public static class ExportResponse implements JsonSerializable {
         public String message;
 
@@ -41,6 +44,7 @@ public class ExportHelper {
         }
     }
 
+    // Asynchronous task for initializing the video export process
     public static class ExportVideosTask extends AsyncTask<ExportPayload, Void, Void> {
         private ExportCallback callback;
 
@@ -51,7 +55,7 @@ public class ExportHelper {
         @Override
         protected Void doInBackground(ExportPayload... params) {
             try {
-                ExportResponse response = App.exportHelper.exportVideos(params[0].videos, params[0].email);
+                ExportResponse response = App.exportHelper.exportVideos(params[0]);
                 callback.success(response);
             } catch (IOException ex) {
                 callback.failure(ex.getMessage());
@@ -60,14 +64,9 @@ public class ExportHelper {
         }
     }
 
-    public static class ExportCallback {
-        public void success(ExportResponse response) {
-            System.out.println(response.message);
-        }
-
-        public void failure(String reason) {
-            System.out.println(reason);
-        }
+    public interface ExportCallback {
+        void success(ExportResponse response);
+        void failure(String reason);
     }
 
     public ExportHelper(JsonSerializer serializer, Uri endpointUri) {
@@ -75,12 +74,10 @@ public class ExportHelper {
         this.endpointUri = endpointUri;
     }
 
-    public ExportResponse exportVideos(ArrayList<Video> videos, String email) throws IOException {
-        if (!isValidEmail(email)) {
-            throw new IOException("Invalid email address: " + email);
+    public ExportResponse exportVideos(ExportPayload exportPayload) throws IOException {
+        if (!isValidEmail(exportPayload.email)) {
+            throw new IOException("Invalid email address: " + exportPayload.email);
         }
-
-        ExportPayload exportPayload = new ExportPayload(email, videos);
 
         String serializedPayload = serializer.write(exportPayload);
 

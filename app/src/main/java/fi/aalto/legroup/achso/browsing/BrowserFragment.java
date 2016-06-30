@@ -213,8 +213,10 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
             case R.id.action_export_video:
             {
                 ArrayList<Video> videos = getSelectionVideos();
+
                 ExportHelper.ExportPayload payload = new ExportHelper.ExportPayload("matti.jokitulppo@aalto.fi", videos);
-                ExportHelper.ExportVideosTask task = new ExportHelper.ExportVideosTask(new ExportHelper.ExportCallback());
+                ExportHelper.ExportVideosTask task = new ExportHelper.ExportVideosTask(new BrowseExportCallback());
+
                 task.execute(payload);
                 mode.finish();
                 return true;
@@ -223,6 +225,18 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
         }
 
         return false;
+    }
+
+    private class BrowseExportCallback implements ExportHelper.ExportCallback {
+        @Override
+        public void success(ExportHelper.ExportResponse response) {
+            System.out.println(response.message);
+        }
+
+        @Override
+        public void failure(String reason) {
+            System.out.println(reason);
+        }
     }
 
     @Override
