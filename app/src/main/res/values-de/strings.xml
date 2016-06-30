@@ -26,7 +26,8 @@
     <string name="edit_text">Text bearbeiten</string>
     <string name="video_share">Teilen</string>
     <string name="video_export">Export</string>
-    <string name="video_export_desc">Export</string>
+    <string name="video_export_title">Export %s Videos</string>
+    <string name="video_export_desc">Schreiben Sie bitte die E-Mail- Adresse, an die Sie möchten, um Ihre Videos erhalten.</string>
 
     <string name="semanticvideo_title">Titel</string>
     <string name="semanticvideo_creator">Ersteller</string>

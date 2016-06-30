@@ -56,7 +56,7 @@ public final class ExportDialogFragment extends DialogFragment {
         setCancelable(false);
 
         return new MaterialDialog.Builder(this.activity)
-                .title(R.string.video_export)
+                .title(getResources().getString(R.string.video_export_title, this.videos.size()))
                 .positiveText(R.string.feedback_send)
                 .negativeText(R.string.cancel)
                 .callback(new ButtonCallback())
