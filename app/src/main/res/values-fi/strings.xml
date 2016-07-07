@@ -60,6 +60,7 @@
     <string name="upload_successful">Lähetys on valmis.</string>
     <string name="buffering">Puskuroidaan…</string>
     <string name="logged_in_as">Kirjautunut nimellä %s.</string>
+    <string name="logged_in_as_short">Tili: %s</string>
     <string name="connection_problem">Yhteysongelma</string>
     <string name="authentication_problem">Tunnistautumisongelma</string>
     <string name="tethys_prefs">Tethys account</string>
@@ -87,7 +88,7 @@
 
     <string name="about">Tietoja</string>
     <string name="about_maps">Tietoja Mapsista</string>
-    <string name="annotation_hint">Anna annotaatiolle kuvaus</string>
+    <string name="annotation_hint">Kirjoita kuvaus</string>
     <string name="choose_account">Valitse tunnus</string>
     <string name="close">Sulje</string>
     <string name="comments">Kommentit</string>
@@ -112,6 +113,11 @@
     <string name="video_author">Tekijä</string>
     <string name="video_no_location">Ei sijaintitietoa</string>
     <string name="video_share">Jaa</string>
+    <string name="video_export">Vie video ulos</string>
+    <string name="video_export_title">Viedään %s videota</string>
+    <string name="video_export_desc">Kirjoita sähköpostiosoite johon haluat videoiden latauslinkin</string>
+    <string name="video_export_success">Videoiden vientitapahtuma onnistui!</string>
+    <string name="video_export_fail">Videoiden vienti ei onnistunut! Virhe: %s</string>
     <string name="view_video_info">Näytä tiedot</string>
     <string name="logout">Kirjaudu ulos</string>
     <string name="search">Etsi</string>

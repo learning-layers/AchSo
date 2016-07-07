@@ -83,6 +83,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
     private Button deleteButton;
     private Button saveButton;
     private EditText annotationText;
+    private Annotation lastAnnotationCreated;
 
     private Video video;
 
@@ -161,6 +162,17 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         @Override
         public void notFound() {
             SnackbarManager.show(Snackbar.with(PlayerActivity.this).text(R.string.video_find_error));
+            finish();
+        }
+    }
+
+    public class SavePlayerVideoCallback implements VideoRepository.VideoCallback {
+        @Override
+        public void found(Video video) { }
+
+        @Override
+        public void notFound() {
+            SnackbarManager.show(Snackbar.with(PlayerActivity.this).text(R.string.storage_error));
             finish();
         }
     }
@@ -350,17 +362,25 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
 
     @Override
     public void createAnnotation(PointF position) {
-
         // No annotating while pause is already going on
         if (playerFragment.getState() == PlayerFragment.State.ANNOTATION_PAUSED) {
             return;
+        }
 
-        } if (playerFragment.getState() != PlayerFragment.State.PAUSED) {
+        if (playerFragment.getState() != PlayerFragment.State.PAUSED) {
             playerFragment.pause();
             playerFragment.setState(PlayerFragment.State.PAUSED);
         }
+
         // Disallow creating annotations when an annotation is being edited
         if (areAnnotationControlsVisible()) {
+            hideAnnotationControls();
+
+            // Last created annotation is empty, just delete it
+            if (video.getIsLastAnnotationEmpty()) {
+                deleteAnnotation(lastAnnotationCreated);
+            }
+
             return;
         }
 
@@ -370,11 +390,10 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         Date now = new Date();
         Annotation annotation = new Annotation(time, position, "", App.loginManager.getUser(), now);
 
-        video.getAnnotations().add(annotation);
+        lastAnnotationCreated = annotation;
+        video.addNewAnnotation(annotation);
 
-        if (!video.save()) {
-            SnackbarManager.show(Snackbar.with(this).text(R.string.storage_error));
-        }
+        video.save(new SavePlayerVideoCallback());
 
         editAnnotation(annotation);
 
@@ -384,11 +403,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
     @Override
     public void moveAnnotation(Annotation annotation, PointF position) {
         annotation.setPosition(position);
-
-        if (!video.save()) {
-            SnackbarManager.show(Snackbar.with(this).text(R.string.storage_error));
-        }
-
+        video.save(new SavePlayerVideoCallback());
         refreshAnnotations();
     }
 
@@ -402,7 +417,6 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         showAnnotationControls();
 
         annotationText.setText(annotation.getText());
-
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -410,10 +424,9 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
 
                 annotation.setText(text);
 
-                if (!video.save()) {
-                    SnackbarManager.show(Snackbar.with(PlayerActivity.this)
-                            .text(R.string.storage_error));
-                }
+                video.setIsLastAnnotationEmpty(false);
+
+                video.save(new SavePlayerVideoCallback());
 
                 refreshAnnotations();
 
@@ -424,18 +437,19 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                video.getAnnotations().remove(annotation);
-
-                if (!video.save()) {
-                    SnackbarManager.show(Snackbar.with(PlayerActivity.this)
-                            .text(R.string.storage_error));
-                }
-
-                refreshAnnotations();
-
-                hideAnnotationControls();
+                deleteAnnotation(annotation);
             }
         });
+    }
+
+    private void deleteAnnotation(Annotation annotation) {
+        video.getAnnotations().remove(annotation);
+        video.save(new SavePlayerVideoCallback());
+        video.setIsLastAnnotationEmpty(false);
+
+        refreshAnnotations();
+
+        hideAnnotationControls();
     }
 
     private void showAnnotationControls() {
@@ -562,7 +576,6 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
     @Override
     public boolean dispatchTouchEvent(@Nonnull MotionEvent event) {
         int action = event.getActionMasked();
-
         switch (action) {
             case MotionEvent.ACTION_DOWN:
                 showControlsOverlay();

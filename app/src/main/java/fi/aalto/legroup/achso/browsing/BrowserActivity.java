@@ -1,5 +1,6 @@
 package fi.aalto.legroup.achso.browsing;
 
+import android.accounts.Account;
 import android.Manifest;
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -35,6 +36,9 @@ import com.nispok.snackbar.Snackbar;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
+
+import com.google.gson.JsonObject;
+
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
@@ -61,6 +65,7 @@ import fi.aalto.legroup.achso.storage.remote.UploadStateEvent;
 import fi.aalto.legroup.achso.utilities.BaseActivity;
 import fi.aalto.legroup.achso.utilities.ProgressDialogFragment;
 import fi.aalto.legroup.achso.views.adapters.VideoTabAdapter;
+import fi.aalto.legroup.achso.entities.User;
 
 /**
  * Activity for browsing available videos.
@@ -233,9 +238,26 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
         if (App.loginManager.isLoggedIn()) {
             menu.findItem(R.id.action_login).setVisible(false);
             menu.findItem(R.id.action_logout).setVisible(true);
+
+            User user = App.loginManager.getUser();
+            String infoTitle = user.getName();
+            JsonObject userInfo = App.loginManager.getUserInfo();
+
+            try {
+                if (userInfo != null) {
+                    String email = userInfo.get("email").getAsString();
+                    menu.findItem(R.id.info_email).setVisible(true).setTitle(email);
+
+                }
+            } catch (Exception ex) {}
+
+            String loggedInText = getResources().getString(R.string.logged_in_as_short, infoTitle);
+            menu.findItem(R.id.info_loggedinas).setVisible(true).setTitle(loggedInText);
         } else {
             menu.findItem(R.id.action_login).setVisible(true);
             menu.findItem(R.id.action_logout).setVisible(false);
+            menu.findItem(R.id.info_loggedinas).setVisible(false);
+            menu.findItem(R.id.info_email).setVisible(false);
         }
 
         return super.onCreateOptionsMenu(menu);

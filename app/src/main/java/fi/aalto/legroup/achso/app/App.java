@@ -25,6 +25,7 @@ import fi.aalto.legroup.achso.authentication.AuthenticatedHttpClient;
 import fi.aalto.legroup.achso.authentication.LoginManager;
 import fi.aalto.legroup.achso.authentication.LoginRequestEvent;
 import fi.aalto.legroup.achso.authentication.OIDCConfig;
+import fi.aalto.legroup.achso.authoring.ExportHelper;
 import fi.aalto.legroup.achso.authoring.LocationManager;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
 import fi.aalto.legroup.achso.storage.CombinedVideoRepository;
@@ -57,6 +58,7 @@ public final class App extends MultiDexApplication
     private static CombinedVideoRepository combinedRepository;
     public static VideoRepository videoRepository;
     public static VideoInfoRepository videoInfoRepository;
+    public static ExportHelper exportHelper;
 
     public static File localStorageDirectory;
     public static File cacheVideoDirectoryBase;
@@ -65,6 +67,8 @@ public final class App extends MultiDexApplication
 
     private static Uri layersBoxUrl;
     private static Uri publicLayersBoxUrl;
+    private static Uri achsoExporterUrl;
+
     private static boolean usePublicLayersBox;
 
     @Override
@@ -79,6 +83,7 @@ public final class App extends MultiDexApplication
         layersBoxUrl = readLayersBoxUrl();
         usePublicLayersBox = preferences.getBoolean(AppPreferences.USE_PUBLIC_LAYERS_BOX, false);
         publicLayersBoxUrl = Uri.parse(getString(R.string.publicLayersBoxUrl));
+        achsoExporterUrl = Uri.parse(getString(R.string.achsoExportUrl));
 
         bus = new AppBus();
 
@@ -123,6 +128,8 @@ public final class App extends MultiDexApplication
 
         videoRepository = combinedRepository;
         videoInfoRepository = combinedRepository;
+
+        exportHelper = new ExportHelper(jsonSerializer, achsoExporterUrl);
 
         setupUploaders(this);
 

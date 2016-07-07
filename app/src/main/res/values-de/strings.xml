@@ -3,7 +3,7 @@
 
     <string name="app_name">Ach so!</string>
 
-    <string name="my_videos">Alle Videos</string>
+    <string name="my_videos">Meine Videos</string>
     <string name="record">Neues Video aufnehmen</string>
     <string name="read_qr_code">Mit QR-Code suchen</string>
     <string name="title_activity_information">Video-Informationen</string>
@@ -25,6 +25,11 @@
     <string name="cancel">Abbrechen</string>
     <string name="edit_text">Text bearbeiten</string>
     <string name="video_share">Teilen</string>
+    <string name="video_export">Export</string>
+    <string name="video_export_title">Export %s Videos</string>
+    <string name="video_export_desc">Schreiben Sie bitte die E-Mail- Adresse, an die Sie möchten, um Ihre Videos erhalten.</string>
+    <string name="video_export_success">Video Export der Warteschlange erfolgreich!</string>
+    <string name="video_export_fail">Exportieren von Videos fehlgeschlagen! Fehler: %s</string>
 
     <string name="semanticvideo_title">Titel</string>
     <string name="semanticvideo_creator">Ersteller</string>
@@ -43,6 +48,7 @@
     <string name="video_author">Autor</string>
     <string name="author_is_unknown">Unbekannt</string>
     <string name="code_added_to_videos">Code zu ausgewählten Videos hinzugefügt.</string>
+    <string name="logged_in_as_short">Konto: %s</string>
     <string name="logged_in_as">Als %s eingeloggt.</string>
     <string name="connection_problem">Problem mit der Verbindung</string>
     <string name="tethys_prefs">Tethys Account</string>
@@ -81,7 +87,7 @@
     </plurals>
 
     <string name="error_sharing">Einige Videos konnten nicht geteilt werden.</string>
-    <string name="annotation_hint">Beschreiben Sie diese Annotation</string>
+    <string name="annotation_hint">Schreiben Sie eine Annotation</string>
     <string name="comments">Kommentare</string>
     <string name="select_genre">Genre wählen</string>
     <string name="close">Schließen</string>

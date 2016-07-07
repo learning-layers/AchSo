@@ -17,6 +17,7 @@ import com.nispok.snackbar.SnackbarManager;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.entities.Video;
+import fi.aalto.legroup.achso.storage.VideoRepository;
 
 public final class DetailFragment extends Fragment {
 
@@ -95,6 +96,16 @@ public final class DetailFragment extends Fragment {
         uploadedField.setText(uploaded);
     }
 
+    public class SaveTitleCallback implements VideoRepository.VideoCallback {
+        @Override
+        public void found(Video video) { }
+
+        @Override
+        public void notFound() {
+            SnackbarManager.show(Snackbar.with(getActivity()).text(R.string.storage_error));
+        }
+    }
+
     private void showTitleEditDialog() {
         final EditText text = new EditText(getActivity());
 
@@ -112,11 +123,7 @@ public final class DetailFragment extends Fragment {
                         if (Strings.isNullOrEmpty(title)) return;
 
                         video.setTitle(title);
-
-                        if (!video.save()) {
-                            SnackbarManager.show(
-                                    Snackbar.with(getActivity()).text(R.string.storage_error));
-                        }
+                        video.save(new SaveTitleCallback());
 
                         populateInformation();
                     }

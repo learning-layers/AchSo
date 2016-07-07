@@ -41,6 +41,7 @@ public class OptimizedVideo {
     private float locationAccuracy;
     private boolean hasLocation;
     private boolean hasLastModified;
+    private boolean isTemporary;
 
     // This stores all the annotation text data. The single annotations refer
     // to parts of this buffer with indices specified in annotationTextStartEnd.
@@ -188,12 +189,16 @@ public class OptimizedVideo {
      * Store the data of the video in a more GC friendly way.
      */
     public OptimizedVideo(Video video) {
-
         List<Annotation> annotations = video.getAnnotations();
         int annotationCount = annotations.size();
 
         // Store Uri objects as string (They internally are just wrapped string)
-        manifestUri = video.getManifestUri().toString();
+        if (video.getManifestUri() != null) {
+            manifestUri = video.getManifestUri().toString();
+        } else {
+            manifestUri = null;
+        }
+
         videoUri = video.getVideoUri().toString();
         thumbUri = video.getThumbUri().toString();
         if (video.getDeleteUri() != null) {
@@ -202,6 +207,7 @@ public class OptimizedVideo {
             deleteUri = null;
         }
 
+        isTemporary = video.getIsTemporary();
         repository = video.getRepository();
 
         id = video.getId();
@@ -306,7 +312,12 @@ public class OptimizedVideo {
         Video video = pooled.create(annotationCount, hasLocation);
 
         // Parse the Uri objects back from strings
-        video.setManifestUri(Uri.parse(manifestUri));
+        if (manifestUri != null) {
+            video.setManifestUri(Uri.parse(manifestUri));
+        } else {
+            video.setManifestUri(null);
+        }
+
         video.setVideoUri(Uri.parse(videoUri));
         video.setThumbUri(Uri.parse(thumbUri));
         if (deleteUri != null) {
@@ -315,6 +326,7 @@ public class OptimizedVideo {
             video.setDeleteUri(null);
         }
 
+        video.setIsTemporary(isTemporary);
         video.setRepository(repository);
         video.setId(id);
         video.setTitle(title);

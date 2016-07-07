@@ -13,7 +13,7 @@
         \nFINLAND
     </string>
 
-    <string name="my_videos">All videos</string>
+    <string name="my_videos">My videos</string>
     <string name="record">Record new video</string>
     <string name="read_qr_code">QR search</string>
     <string name="title_activity_information">Video information</string>
@@ -35,6 +35,11 @@
     <string name="cancel">Cancel</string>
     <string name="edit_text">Edit text</string>
     <string name="video_share">Share</string>
+    <string name="video_export">Export</string>
+    <string name="video_export_title">Exporting %s videos</string>
+    <string name="video_export_desc">Please write the email address where you would like to receive your videos.</string>
+    <string name="video_export_success">Video exporting queued succesfully!</string>
+    <string name="video_export_fail">Video exporting failed! Error: %s</string>
     <string name="not_loggedin_share_nag">You must log in before sharing videos.</string>
     <string name="login_with_another">Log in with another account</string>
 
@@ -59,6 +64,7 @@
     <string name="author_is_unknown">Unknown</string>
     <string name="code_added_to_videos">Code added to selected video(s).</string>
     <string name="logged_in_as">Logged in as %s.</string>
+    <string name="logged_in_as_short">Account: %s</string>
     <string name="connection_problem">Connection problem</string>
     <string name="tethys_prefs">Tethys account</string>
     <string name="yes">Yes</string>
@@ -102,7 +108,7 @@
         <item quantity="other">%d items selected</item>
     </plurals>
 
-    <string name="annotation_hint">Describe this annotation</string>
+    <string name="annotation_hint">Write an annotation</string>
     <string name="comments">Comments</string>
     <string name="select_genre">Select genre</string>
     <string name="close">Close</string>

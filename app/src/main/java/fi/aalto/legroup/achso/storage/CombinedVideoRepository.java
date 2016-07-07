@@ -32,6 +32,7 @@ import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.entities.VideoReference;
 import fi.aalto.legroup.achso.entities.migration.VideoMigration;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
+import fi.aalto.legroup.achso.playback.PlayerActivity;
 import fi.aalto.legroup.achso.storage.remote.SyncRequiredEvent;
 import fi.aalto.legroup.achso.storage.remote.SyncService;
 import fi.aalto.legroup.achso.storage.remote.VideoHost;
@@ -168,6 +169,16 @@ public class CombinedVideoRepository implements VideoRepository {
         bus.post(new VideoRepositoryUpdatedEvent(this));
     }
 
+    @Override
+    public void addVideos(List<OptimizedVideo> videos) {
+        for (OptimizedVideo video: videos) {
+            if (!doesVideoExist(video.getId())) {
+                allVideos.put(video.getId(), video);
+            }
+        }
+        bus.post(new VideoRepositoryUpdatedEvent(this));
+    }
+
     private File[] safeListFiles(File root, FilenameFilter filter) {
         File[] files = root.listFiles(filter);
         if (files != null) {
@@ -206,7 +217,7 @@ public class CombinedVideoRepository implements VideoRepository {
             }
 
             video.setFormatVersion(Video.VIDEO_FORMAT_VERSION);
-            video.save();
+            video.save(null);
         }
     }
 
@@ -401,37 +412,74 @@ public class CombinedVideoRepository implements VideoRepository {
         this.stateNumber = (this.stateNumber + 1) % 10000;
     }
 
-    public void save(Video video) throws IOException {
+    public void save(Video video, VideoCallback callback) throws IOException {
 
-        UUID id = video.getId();
-        File localFile = getLocalVideoFile(id);
-        File cacheFile = getOriginalCacheFile(id);
+        if (!video.getIsTemporary()) {
+            UUID id = video.getId();
+            File localFile = getLocalVideoFile(id);
+            File cacheFile = getOriginalCacheFile(id);
 
-        File targetFile;
+            File targetFile;
 
-        if (localFile.exists()) {
-            // The video is local, we can just overwrite it
-            targetFile = localFile;
-        } else if (cacheFile.exists()) {
-            // The video is from the cloud, save it as the modified one
-            targetFile = getModifiedCacheFile(id);
+            if (localFile.exists()) {
+                // The video is local, we can just overwrite it
+                targetFile = localFile;
+            } else if (cacheFile.exists()) {
+                // The video is from the cloud, save it as the modified one
+                targetFile = getModifiedCacheFile(id);
+            } else {
+                // The video doesn't exist in any repository, add it to local one.
+                targetFile = localFile;
+            }
+
+            if (video.isRemote()) {
+                hasVideoToUpload = true;
+            }
+
+            this.stateModified();
+            serializer.save(video, targetFile.toURI());
+
+            // Do partial update
+            allVideos.put(video.getId(), new OptimizedVideo(video));
+            if (callback != null) {
+                callback.found(video);
+            }
         } else {
-            // The video doesn't exist in any repository, add it to local one.
-            targetFile = localFile;
+            new UpdateRemoteVideoTask(new UpdateRemoteVideoCallback(callback)).execute(video);
         }
 
-        if (video.isRemote()) {
-            hasVideoToUpload = true;
-        }
-
-        this.stateModified();
-        serializer.save(video, targetFile.toURI());
-
-        // Do partial update
-        allVideos.put(video.getId(), new OptimizedVideo(video));
         bus.post(new VideoRepositoryUpdatedEvent(this));
     }
 
+    private void finishRemoteSave(Video video, VideoCallback callback) {
+        video.setRepository(this);
+        video.setIsTemporary(true);
+        allVideos.put(video.getId(), new OptimizedVideo(video));
+        bus.post(new VideoRepositoryUpdatedEvent(this));
+        if (callback != null) {
+            callback.found(video);
+        }
+    }
+
+    protected class UpdateRemoteVideoCallback implements VideoRepository.VideoCallback {
+        private VideoCallback saveCallback;
+
+        public UpdateRemoteVideoCallback (VideoCallback callback) {
+            this.saveCallback = callback;
+        }
+
+        @Override
+        public void found(Video video) {
+            finishRemoteSave(video, saveCallback);
+        }
+
+        @Override
+        public void notFound() {
+            if (this.saveCallback != null) {
+                saveCallback.notFound();
+            }
+        }
+    }
     /**
      * Uploads the video manifest to some cloud host.
      * Note: The video data itself (and thumbnail) should be uploaded somewhere before this, since
@@ -501,6 +549,11 @@ public class CombinedVideoRepository implements VideoRepository {
         }
     }
 
+    @Override
+    public void findOnlineVideoByQuery(String query, VideoListCallback callback) {
+        new QueryVideoOnlineTask(callback).execute(query);
+    }
+
     private abstract class BaseVideoFindTask<T> extends AsyncTask<T, Void, Video> {
         private VideoCallback callback;
 
@@ -515,6 +568,59 @@ public class CombinedVideoRepository implements VideoRepository {
             } else {
                 callback.notFound();
             }
+        }
+    }
+
+    private class UpdateRemoteVideoTask extends AsyncTask<Video, Void, Void> {
+
+        private VideoCallback callback;
+        public UpdateRemoteVideoTask(VideoCallback callback) {
+            this.callback = callback;
+        }
+
+        @Override
+        protected Void doInBackground(Video... params) {
+            Video video = params[0];
+
+            for (VideoHost host : cloudHosts) {
+                try {
+                    Video updatedVideo = host.uploadVideoManifest(video);
+
+                    if (updatedVideo != null) {
+                        callback.found(updatedVideo);
+                    } else {
+                        callback.notFound();
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    callback.notFound();
+                }
+            }
+
+            return null;
+        }
+    }
+
+    private class QueryVideoOnlineTask extends  AsyncTask<String, Void, Void> {
+        private VideoListCallback callback;
+
+        public QueryVideoOnlineTask(VideoListCallback callback) {
+            this.callback = callback;
+        }
+
+        @Override
+        protected Void doInBackground(String... params) {
+            for (VideoHost host: cloudHosts) {
+                try {
+                    ArrayList<Video> list = host.findVideosByQuery(params[0]);
+                    callback.found(list);
+                } catch (IOException ex) {
+                    System.out.println(ex.getMessage());
+                    callback.notFound();
+                }
+            }
+            return null;
         }
     }
 
@@ -542,6 +648,7 @@ public class CombinedVideoRepository implements VideoRepository {
             return null;
         }
     }
+
 
     private class FindVideoByIdTask extends BaseVideoFindTask<UUID> {
 

@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.TextView;
 
+import com.google.gson.JsonObject;
 import com.melnykov.fab.ScrollDirectionListener;
 import com.nispok.snackbar.Snackbar;
 import com.nispok.snackbar.SnackbarManager;
@@ -30,9 +31,11 @@ import java.util.UUID;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
+import fi.aalto.legroup.achso.authoring.ExportDialogFragment;
 import fi.aalto.legroup.achso.authoring.QRHelper;
 import fi.aalto.legroup.achso.authoring.VideoDeletionFragment;
 import fi.aalto.legroup.achso.entities.OptimizedVideo;
+import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.playback.PlayerActivity;
 import fi.aalto.legroup.achso.sharing.SharingActivity;
 import fi.aalto.legroup.achso.storage.local.ExportService;
@@ -206,10 +209,29 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
                 startActivity(informationIntent);
                 mode.finish();
                 return true;
+
+            case R.id.action_export_video:
+            {
+                ArrayList<Video> videos = getSelectionVideos();
+
+                String email = "";
+
+                JsonObject userInfo = App.loginManager.getUserInfo();
+
+                if (userInfo != null) {
+                    email = userInfo.get("email").getAsString();
+                }
+
+                showExportFragment(email, videos);
+                mode.finish();
+                return true;
+            }
+
         }
 
         return false;
     }
+
 
     @Override
     public void onDestroyActionMode(ActionMode mode) {
@@ -291,6 +313,24 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
         return items;
     }
 
+    private ArrayList<Video> getSelectionVideos() {
+        List<UUID> selection = getSelection();
+        ArrayList<Video> videos = new ArrayList<Video>();
+
+        for (UUID id : selection) {
+            try {
+                Video video = App.videoRepository.getVideo(id).inflate();
+                if (!video.isLocal()) {
+                    videos.add(video);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return videos;
+    }
+
     private void clearSelection() {
         this.adapter.clearSelectedItems();
     }
@@ -307,6 +347,10 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
             this.actionMode.setTitle(title);
             updateMenuItems();
         }
+    }
+
+    private void showExportFragment(String email, ArrayList<Video> videos) {
+        ExportDialogFragment.newInstance("matti.jokitulppo@aalto.fi", videos).show(getActivity().getFragmentManager(), "ExportDialog");
     }
 
     private void updateMenuItems() {
