@@ -14,6 +14,8 @@
     <string name="deletion_question">Kustuta valitud videod ja nende annotatsioonid?</string>
     <string name="storage_error">Ei pääsenud videote hoidlale ligi.</string>
 
+   <string name="video_download">Lae võrguühenduseta kasutamiseks</string>
+
     <string name="login">Logi sisse</string>
     <string name="logout">Välju</string>
     <string name="not_loggedin_nag_title">Pole sisse loginud</string>

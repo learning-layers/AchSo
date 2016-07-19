@@ -138,16 +138,30 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
 
         MenuItem upload_menu_item = menu.findItem(R.id.action_upload);
         MenuItem share_menu_item = menu.findItem(R.id.action_share_to_group);
+        MenuItem download_menu_item = menu.findItem(R.id.action_download);
+        MenuItem export_menu_item = menu.findItem(R.id.action_export_video);
+
+
         if (App.loginManager.isLoggedIn()) {
             upload_menu_item.setEnabled(true);
             share_menu_item.setEnabled(true);
+            download_menu_item.setEnabled(true);
+            export_menu_item.setEnabled(true);
+
             upload_menu_item.getIcon().setAlpha(255);
             share_menu_item.getIcon().setAlpha(255);
+            download_menu_item.getIcon().setAlpha(255);
+            export_menu_item.getIcon().setAlpha(255);
         } else {
             upload_menu_item.setEnabled(false);
             share_menu_item.setEnabled(false);
+            download_menu_item.setEnabled(false);
+            export_menu_item.setEnabled(false);
+
             upload_menu_item.getIcon().setAlpha(130);
             share_menu_item.getIcon().setAlpha(130);
+            download_menu_item.getIcon().setAlpha(130);
+            export_menu_item.getIcon().setAlpha(130);
         }
         return true;
     }
@@ -207,6 +221,11 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
                 Intent informationIntent = new Intent(getActivity(), DetailActivity.class);
                 informationIntent.putExtra(DetailActivity.ARG_VIDEO_ID, getSelection().get(0));
                 startActivity(informationIntent);
+                mode.finish();
+                return true;
+
+            case R.id.action_download:
+
                 mode.finish();
                 return true;
 
@@ -370,13 +389,21 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
                 e.printStackTrace();
             }
         }
+
         MenuItem upload_menu_item = menu.findItem(R.id.action_upload);
+        MenuItem export_menu_item = menu.findItem(R.id.action_export_video);
+        MenuItem download_menu_item = menu.findItem(R.id.action_download);
         MenuItem share_menu_item = menu.findItem(R.id.action_share_to_group);
+
         if (hasLocal) {
             share_menu_item.setVisible(false);
+            download_menu_item.setVisible(false);
+            export_menu_item.setVisible(false);
             upload_menu_item.setVisible(true);
         } else {
+            download_menu_item.setVisible(true);
             share_menu_item.setVisible(true);
+            export_menu_item.setVisible(true);
             upload_menu_item.setVisible(false);
         }
     }

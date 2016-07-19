@@ -27,6 +27,8 @@
     <string name="storage_error">Could not access video storage.</string>
     <string name="video_find_error">Could not find the video.</string>
 
+    <string name="video_download">Download for offline use</string>
+
     <string name="login">Log in</string>
     <string name="logout">Log out</string>
     <string name="not_loggedin_nag_title">Not logged in</string>

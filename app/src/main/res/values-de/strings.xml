@@ -17,6 +17,8 @@
     <string name="deletion_question">Möchten Sie die ausgewählten Videos und Annotationen löschen?</string>
     <string name="storage_error">Kann nicht auf Videospeicher zugreifen.</string>
 
+    <string name="video_download">Laden Sie für die Offline-Nutzung</string>
+
     <string name="login">Login</string>
     <string name="logout">Logout</string>
     <string name="not_loggedin_nag_title">Nicht eingeloggt</string>

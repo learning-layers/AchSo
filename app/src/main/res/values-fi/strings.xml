@@ -113,6 +113,7 @@
     <string name="video_author">Tekijä</string>
     <string name="video_no_location">Ei sijaintitietoa</string>
     <string name="video_share">Jaa</string>
+    <string name="video_download">Lataa offline-käyttöön</string>
     <string name="video_export">Vie video ulos</string>
     <string name="video_export_title">Viedään %s videota</string>
     <string name="video_export_desc">Kirjoita sähköpostiosoite johon haluat videoiden latauslinkin</string>
