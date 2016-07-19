@@ -16,7 +16,7 @@ import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
-import fi.aalto.legroup.achso.storage.remote.upload.VideoUploader;
+import fi.aalto.legroup.achso.storage.remote.upload.uploaders.VideoUploader;
 
 public class GoViTraStrategy implements VideoUploader {
 

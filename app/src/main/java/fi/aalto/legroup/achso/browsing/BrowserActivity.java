@@ -61,7 +61,7 @@ import fi.aalto.legroup.achso.sharing.SharingActivity;
 import fi.aalto.legroup.achso.storage.VideoRepositoryUpdatedEvent;
 import fi.aalto.legroup.achso.storage.remote.SyncRequiredEvent;
 import fi.aalto.legroup.achso.storage.remote.SyncService;
-import fi.aalto.legroup.achso.storage.remote.UploadStateEvent;
+import fi.aalto.legroup.achso.storage.remote.upload.UploadStateEvent;
 import fi.aalto.legroup.achso.utilities.BaseActivity;
 import fi.aalto.legroup.achso.utilities.ProgressDialogFragment;
 import fi.aalto.legroup.achso.views.adapters.VideoTabAdapter;

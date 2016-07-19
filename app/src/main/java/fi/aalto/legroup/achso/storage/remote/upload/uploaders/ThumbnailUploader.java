@@ -1,4 +1,4 @@
-package fi.aalto.legroup.achso.storage.remote.upload;
+package fi.aalto.legroup.achso.storage.remote.upload.uploaders;
 
 import android.net.Uri;
 
