@@ -42,6 +42,7 @@ import fi.aalto.legroup.achso.storage.local.ExportService;
 import fi.aalto.legroup.achso.storage.remote.UploadErrorEvent;
 import fi.aalto.legroup.achso.storage.remote.UploadService;
 import fi.aalto.legroup.achso.storage.remote.UploadStateEvent;
+import fi.aalto.legroup.achso.storage.remote.download.DownloadService;
 import fi.aalto.legroup.achso.views.RecyclerItemClickListener;
 import fi.aalto.legroup.achso.views.adapters.VideoGridAdapter;
 import fi.aalto.legroup.achso.views.utilities.DimensionUnits;
@@ -225,7 +226,8 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
                 return true;
 
             case R.id.action_download:
-
+                List<UUID> selection = getSelection();
+                DownloadService.download(getActivity(), selection);
                 mode.finish();
                 return true;
 

@@ -157,6 +157,7 @@
 
         <service android:name=".storage.local.ExportService" />
         <service android:name=".storage.remote.UploadService" />
+        <service android:name=".storage.remote.download.DownloadService" />
         <service android:name=".storage.remote.SyncService" />
         <service android:name=".authoring.VideoCreatorService" />
 
