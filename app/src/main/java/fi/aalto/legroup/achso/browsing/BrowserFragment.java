@@ -350,7 +350,7 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
     }
 
     private void showExportFragment(String email, ArrayList<Video> videos) {
-        ExportDialogFragment.newInstance("matti.jokitulppo@aalto.fi", videos).show(getActivity().getFragmentManager(), "ExportDialog");
+        ExportDialogFragment.newInstance(email, videos).show(getActivity().getFragmentManager(), "ExportDialog");
     }
 
     private void updateMenuItems() {
