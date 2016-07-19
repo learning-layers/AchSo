@@ -2,6 +2,7 @@ package fi.aalto.legroup.achso.storage.remote.download;
 
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.Video;
+import fi.aalto.legroup.achso.storage.remote.upload.UploadStateEvent;
 
 import android.app.IntentService;
 import android.content.Context;
@@ -13,6 +14,8 @@ import java.util.List;
 import java.util.UUID;
 
 public class DownloadService extends IntentService {
+    // TODO: Refactor this and UploadService into a more generic solution?
+
     public static final String ARG_VIDEO_ID = "ARG_VIDEO_ID";
     private Bus bus;
 
@@ -45,16 +48,17 @@ public class DownloadService extends IntentService {
             video = App.videoRepository.getVideo(id).inflate();
         } catch (IOException e) {
             e.printStackTrace();
+            postError(id, "Could not load video.");
             return;
         }
 
-        System.out.print("id: " + video.getId());
-
         if (App.loginManager.isLoggedOut()) {
+            postError(id, "User is not logged in");
             return;
         }
 
         if (video.isLocal()) {
+            postError(id, "Video is already downloaded (Local video)");
             return;
         }
 
@@ -63,8 +67,15 @@ public class DownloadService extends IntentService {
         if (success) {
 
         } else {
+            postError(id, "Failed to download video");
             // TODO: Get more data from tryUpload?
         }
+
+        DownloadStateEvent.Type type = success
+                ? UploadStateEvent.Type.SUCCEEDED
+                : UploadStateEvent.Type.FAILED;
+
+        bus.post(new DownloadStateEvent(video.getId(), type));
     }
 
     @Override
@@ -77,5 +88,9 @@ public class DownloadService extends IntentService {
     public void onDestroy() {
         this.bus.unregister(this);
         super.onDestroy();
+    }
+
+    private void postError(UUID id, String errorMessage) {
+        this.bus.post(new DownloadErrorEvent(id, errorMessage));
     }
 }
