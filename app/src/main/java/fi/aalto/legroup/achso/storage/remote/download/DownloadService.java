@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.UUID;
 
 public class DownloadService extends IntentService {
-    // TODO: Refactor this and UploadService into a more generic solution?
 
     public static final String ARG_VIDEO_ID = "ARG_VIDEO_ID";
     private Bus bus;
