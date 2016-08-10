@@ -7,13 +7,11 @@ import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
+import com.squareup.picasso.Downloader;
 
-import com.google.gson.Gson;
-
+import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,6 +22,8 @@ import fi.aalto.legroup.achso.entities.VideoReference;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
 import fi.aalto.legroup.achso.storage.remote.VideoHost;
+import okio.BufferedSink;
+import okio.Okio;
 
 public class AchRailsStrategy implements VideoHost {
 
@@ -81,7 +81,6 @@ public class AchRailsStrategy implements VideoHost {
     }
 
     private Response executeRequest(Request request) throws IOException {
-
         return validateResponse(executeRequestNoFail(request));
     }
 
@@ -118,6 +117,29 @@ public class AchRailsStrategy implements VideoHost {
         video.setLastModified(response.headers().getDate("Last-Modified"));
         return video;
     }
+    private  void downloadFile(Uri uri, File endpoint) throws IOException {
+        Request request = new Request.Builder()
+                .url(uri.toString())
+                .get().build();
+
+        Response response = executeRequest(request);
+        BufferedSink sink = Okio.buffer(Okio.sink(endpoint));
+        sink.writeAll(response.body().source());
+        sink.close();
+    }
+
+    @Override
+    public void downloadCachedFiles(Video video, Uri thumbUri, Uri videoUri) throws IOException {
+        UUID uuid = video.getId();
+        File thumbFile = App.videoRepository.getThumbCacheFile(uuid);
+        File videoFile = App.videoRepository.getVideoCacheFile(uuid);
+
+        downloadFile(thumbUri, thumbFile);
+        downloadFile(videoUri, videoFile);
+
+        video.setCacheThumbUri(android.net.Uri.parse((thumbFile.toURI().toString())));
+        video.setCacheVideoUri(android.net.Uri.parse((videoFile.toURI().toString())));
+    }
 
     public Video downloadVideoManifestIfNewerThan(UUID id, int revision, boolean isView) throws IOException {
         Request request = new Request.Builder()
@@ -128,7 +150,7 @@ public class AchRailsStrategy implements VideoHost {
                         .appendQueryParameter("is_view", isView ? "1" : "0")
                         .toString())
                 .get().build();
-        
+
         Response response = executeRequest(request);
 
         Video video = serializer.read(Video.class, response.body().byteStream());

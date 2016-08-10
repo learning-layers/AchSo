@@ -108,6 +108,16 @@ public class CombinedVideoRepository implements VideoRepository {
         return new File(cacheRoot, id + "_" + suffix + ".json");
     }
 
+    @Override
+    public File getThumbCacheFile(UUID id) {
+        return new File(cacheRoot, id + ".jpg");
+    }
+
+    @Override
+    public File getVideoCacheFile(UUID id) {
+        return new File(cacheRoot, id + ".mp4");
+    }
+
     private UUID getIdFromFile(File file) {
         final int uuidLength = 36;
         return UUID.fromString(file.getName().substring(0, uuidLength));
@@ -521,6 +531,18 @@ public class CombinedVideoRepository implements VideoRepository {
         if (!localFile.delete()) {
             // For logging purposes
             throw new IOException("Failed to delete local file");
+        }
+    }
+
+    public void downloadVideo(Video video) throws IOException {
+        Video result = null;
+
+        for (VideoHost host: cloudHosts) {
+            try {
+                host.downloadCachedFiles(video, video.getThumbUri(), video.getVideoUri());
+            } catch (IOException e) {
+                throw new IOException("Failed to download video", e);
+            }
         }
     }
 

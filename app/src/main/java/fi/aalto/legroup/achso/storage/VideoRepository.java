@@ -3,6 +3,7 @@ package fi.aalto.legroup.achso.storage;
 import android.content.Context;
 import android.net.Uri;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.UUID;
@@ -62,6 +63,10 @@ public interface VideoRepository extends VideoInfoRepository {
      * Upload a video. May throw if the repository doesn't support uploading.
      */
     public void uploadVideo(Video video) throws IOException;
+
+    public File getThumbCacheFile(UUID id);
+
+    public File getVideoCacheFile(UUID id);
 
     /**
      *
