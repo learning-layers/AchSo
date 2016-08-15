@@ -49,7 +49,7 @@ public class Video implements JsonSerializable {
     protected User author;
     protected Location location;
     protected List<Annotation> annotations;
-    protected  boolean isLastAnnotationEmpty;
+    protected transient boolean isLastAnnotationEmpty;
 
 
     Video() {
