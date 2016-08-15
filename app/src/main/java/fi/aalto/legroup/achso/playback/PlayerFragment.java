@@ -172,12 +172,12 @@ public final class PlayerFragment extends Fragment implements ExoPlayer.Listener
      */
     public void prepare(Video video, AnnotationEditor annotationEditor) {
 
-        Uri videoUri = video.getVideoUri();
+        Uri videoUri = video.getPlaybackUri();
         orientationPatcher.updateOrientation(video);
         orientationPatcher.setView(videoSurface);
 
         // Seems as if the DefaultUriDataSource cannot correctly guess a local file URI, so just do it manually
-        if (video.isLocal()) {
+        if (video.isLocal() || video.hasCachedFiles()) {
             dataSource = new FileDataSource();
         } else {
             String userAgent = Util.getUserAgent(getActivity(), "ACHSO");

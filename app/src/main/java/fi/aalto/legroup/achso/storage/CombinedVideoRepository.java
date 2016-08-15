@@ -357,11 +357,16 @@ public class CombinedVideoRepository implements VideoRepository {
                     OptimizedVideo resultVideo = null;
 
                     if (localFileModified.exists()) {
-
                         Video localVideo = readVideoFromFile(localFileModified);
                         Video uploadedVideo = host.uploadVideoManifest(localVideo);
-                        writeVideoToFile(uploadedVideo, localFileOriginal);
 
+                        // Since merging is done on the server side, preserve cached video data URIs
+                        if (localVideo.hasCachedFiles()) {
+                            uploadedVideo.setCacheVideoUri(localVideo.getCacheVideoUri());
+                            uploadedVideo.setCacheThumbUri(localVideo.getCacheThumbUri());
+                        }
+
+                        writeVideoToFile(uploadedVideo, localFileOriginal);
                         resultVideo = new OptimizedVideo(uploadedVideo);
                         localFileModified.delete();
 

@@ -10,7 +10,6 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
-import fi.aalto.legroup.achso.playback.PlayerActivity;
 import fi.aalto.legroup.achso.storage.VideoRepository;
 
 /**
@@ -119,7 +118,7 @@ public class Video implements JsonSerializable {
     }
 
     public boolean hasCachedFiles() {
-        return this.thumbCacheUri != null && this.videoCacheUri  != null;
+        return this.thumbCacheUri != null && this.videoCacheUri != null;
     }
 
     public boolean isRemote() {
@@ -136,6 +135,14 @@ public class Video implements JsonSerializable {
 
     public Uri getVideoUri() {
         return this.videoUri;
+    }
+
+    public Uri getPlaybackUri () {
+        if (this.hasCachedFiles()) {
+            return this.videoCacheUri;
+        } else {
+            return this.videoUri;
+        }
     }
 
     public Uri getThumbUri() {
@@ -199,7 +206,8 @@ public class Video implements JsonSerializable {
     public Uri getCacheThumbUri() {
         return this.thumbCacheUri;
     }
-        public void setId(UUID id) {
+
+    public void setId(UUID id) {
         this.id = id;
     }
 
