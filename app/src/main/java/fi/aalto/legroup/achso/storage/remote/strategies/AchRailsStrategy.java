@@ -117,12 +117,12 @@ public class AchRailsStrategy implements VideoHost {
         video.setLastModified(response.headers().getDate("Last-Modified"));
         return video;
     }
-    private  void downloadFile(Uri uri, File endpoint) throws IOException {
+    private void downloadFile(Uri uri, File endpoint) throws IOException {
         Request request = new Request.Builder()
                 .url(uri.toString())
                 .get().build();
 
-        Response response = executeRequest(request);
+        Response response = App.httpClient.newCall(request).execute();
         BufferedSink sink = Okio.buffer(Okio.sink(endpoint));
         sink.writeAll(response.body().source());
         sink.close();

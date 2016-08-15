@@ -35,7 +35,12 @@ public class DownloadService extends IntentService {
     }
 
     private boolean tryDownload(Video video) {
-        return false;
+        try {
+            App.videoRepository.downloadVideo(video);
+            return true;
+        } catch(IOException ex) {
+            return false;
+        }
     }
 
     @Override

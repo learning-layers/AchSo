@@ -534,9 +534,8 @@ public class CombinedVideoRepository implements VideoRepository {
         }
     }
 
+    @Override
     public void downloadVideo(Video video) throws IOException {
-        Video result = null;
-
         for (VideoHost host: cloudHosts) {
             try {
                 host.downloadCachedFiles(video, video.getThumbUri(), video.getVideoUri());

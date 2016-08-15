@@ -64,6 +64,11 @@ public interface VideoRepository extends VideoInfoRepository {
      */
     public void uploadVideo(Video video) throws IOException;
 
+    /**
+     * Downloads a video.
+     */
+    public void downloadVideo(Video video) throws IOException;
+
     public File getThumbCacheFile(UUID id);
 
     public File getVideoCacheFile(UUID id);
