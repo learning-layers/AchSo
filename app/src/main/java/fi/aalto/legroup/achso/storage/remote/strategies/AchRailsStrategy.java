@@ -139,6 +139,8 @@ public class AchRailsStrategy implements VideoHost {
 
         video.setCacheThumbUri(android.net.Uri.parse((thumbFile.toURI().toString())));
         video.setCacheVideoUri(android.net.Uri.parse((videoFile.toURI().toString())));
+
+        video.save(null);
     }
 
     public Video downloadVideoManifestIfNewerThan(UUID id, int revision, boolean isView) throws IOException {
