@@ -117,8 +117,17 @@ public class OptimizedVideo {
     public VideoRepository getRepository() {
         return this.repository;
     }
+
     public void setRepository(VideoRepository repository) {
         this.repository = repository;
+    }
+
+    public boolean hasCachedFiles() {
+        return this.cacheThumbUri != null && this.cacheVideoUri != null;
+    }
+
+    public Uri getCacheThumbUri() {
+        return Uri.parse(cacheThumbUri);
     }
 
     public long getLastModified() {

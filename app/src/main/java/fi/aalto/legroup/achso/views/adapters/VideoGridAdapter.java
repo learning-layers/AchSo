@@ -74,7 +74,14 @@ public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapte
 
         holder.getTitleText().setText(video.getTitle());
 
-        Uri thumbUri = video.getThumbUri();
+        Uri thumbUri;
+
+        if (video.hasCachedFiles()) {
+            thumbUri = video.getThumbUri();
+        } else {
+            thumbUri = video.getThumbUri();
+        }
+
         ImageView thumbImage = holder.getThumbImage();
 
         Picasso.with(this.context).load(thumbUri).into(thumbImage);
