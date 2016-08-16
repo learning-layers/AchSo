@@ -142,7 +142,6 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
         MenuItem download_menu_item = menu.findItem(R.id.action_download);
         MenuItem export_menu_item = menu.findItem(R.id.action_export_video);
 
-
         if (App.loginManager.isLoggedIn()) {
             upload_menu_item.setEnabled(true);
             share_menu_item.setEnabled(true);
@@ -164,6 +163,7 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
             download_menu_item.getIcon().setAlpha(130);
             export_menu_item.getIcon().setAlpha(130);
         }
+
         return true;
     }
 
@@ -401,6 +401,7 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
         MenuItem upload_menu_item = menu.findItem(R.id.action_upload);
         MenuItem export_menu_item = menu.findItem(R.id.action_export_video);
         MenuItem download_menu_item = menu.findItem(R.id.action_download);
+        MenuItem cache_remove_item = menu.findItem(R.id.action_cache_remove);
         MenuItem share_menu_item = menu.findItem(R.id.action_share_to_group);
 
         if (hasLocal) {
@@ -415,8 +416,15 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
 
         if (hasCached || hasLocal) {
            download_menu_item.setVisible(false);
+
         } else {
             download_menu_item.setVisible(true);
+        }
+
+        if (hasCached) {
+            cache_remove_item.setVisible(true);
+        } else {
+            cache_remove_item.setVisible(false);
         }
     }
 
