@@ -77,7 +77,7 @@ public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapte
         Uri thumbUri;
 
         if (video.hasCachedFiles()) {
-            thumbUri = video.getThumbUri();
+            thumbUri = video.getCacheThumbUri();
         } else {
             thumbUri = video.getThumbUri();
         }
