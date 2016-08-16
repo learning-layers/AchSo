@@ -377,11 +377,17 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
     private void updateMenuItems() {
         Menu menu = this.actionMode.getMenu();
         boolean hasLocal = false;
+        boolean hasCached = false;
         List<UUID> selection = getSelection();
 
         for (UUID id : selection) {
             try {
                 OptimizedVideo video = App.videoRepository.getVideo(id);
+
+                if (video.hasCachedFiles()) {
+                    hasCached = true;
+                }
+
                 if (video.isLocal()) {
                     hasLocal = true;
                     break;
@@ -399,14 +405,18 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
 
         if (hasLocal) {
             share_menu_item.setVisible(false);
-            download_menu_item.setVisible(false);
             export_menu_item.setVisible(false);
             upload_menu_item.setVisible(true);
         } else {
-            download_menu_item.setVisible(true);
             share_menu_item.setVisible(true);
             export_menu_item.setVisible(true);
             upload_menu_item.setVisible(false);
+        }
+
+        if (hasCached || hasLocal) {
+           download_menu_item.setVisible(false);
+        } else {
+            download_menu_item.setVisible(true);
         }
     }
 
