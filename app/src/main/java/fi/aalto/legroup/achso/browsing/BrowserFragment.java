@@ -39,6 +39,9 @@ import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.playback.PlayerActivity;
 import fi.aalto.legroup.achso.sharing.SharingActivity;
 import fi.aalto.legroup.achso.storage.local.ExportService;
+import fi.aalto.legroup.achso.storage.remote.TransferErrorEvent;
+import fi.aalto.legroup.achso.storage.remote.download.DownloadErrorEvent;
+import fi.aalto.legroup.achso.storage.remote.download.DownloadStateEvent;
 import fi.aalto.legroup.achso.storage.remote.upload.UploadErrorEvent;
 import fi.aalto.legroup.achso.storage.remote.upload.UploadService;
 import fi.aalto.legroup.achso.storage.remote.upload.UploadStateEvent;
@@ -210,9 +213,11 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
                         e.printStackTrace();
                     }
                 }
+
                 if (!hasLocal) {
                     SharingActivity.openShareActivity(getActivity(), selection);
                 }
+
                 mode.finish();
                 return true;
             }
@@ -228,6 +233,10 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
             case R.id.action_download:
                 List<UUID> selection = getSelection();
                 DownloadService.download(getActivity(), selection);
+                mode.finish();
+                return true;
+
+            case R.id.action_cache_remove:
                 mode.finish();
                 return true;
 
@@ -290,6 +299,11 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
     }
 
     @Subscribe
+    public void onDownloadState(DownloadStateEvent event) {
+        // TODO
+    }
+
+    @Subscribe
     public void onUploadState(UploadStateEvent event) {
         UUID videoId = event.getVideoId();
 
@@ -305,19 +319,29 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
         }
     }
 
-    @Subscribe
-    public void onUploadError(UploadErrorEvent event) {
+    private void onTransferError(TransferErrorEvent event, String defaultErrorMessage) {
         UUID videoId = event.getVideoId();
         String message = event.getErrorMessage();
 
         this.adapter.hideProgress(videoId);
 
         if (message == null) {
-            message = getString(R.string.upload_error);
+            message = defaultErrorMessage;
         }
 
         SnackbarManager.show(Snackbar.with(getActivity()).text(message));
     }
+
+    @Subscribe
+    public void onDownloadError(DownloadErrorEvent event) {
+        onTransferError(event, getString(R.string.download_error));
+    }
+
+    @Subscribe
+    public void onUploadError(UploadErrorEvent event) {
+        onTransferError(event, getString(R.string.upload_error));
+    }
+
 
     private List<UUID> getSelection() {
         List<Integer> positions = this.adapter.getSelectedItems();

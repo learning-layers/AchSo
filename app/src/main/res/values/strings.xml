@@ -118,6 +118,7 @@
     <string name="migration_notification">Ach so! is updating your videos…</string>
     <string name="playback_error">A playback error occurred.</string>
     <string name="upload_error">Uploading failed; please try again.</string>
+    <string name="download_error">Downloading failed; please try again.</string>
 
     <string name="share_preparing_toast">You will be notified when the videos are ready for sharing.</string>
 
