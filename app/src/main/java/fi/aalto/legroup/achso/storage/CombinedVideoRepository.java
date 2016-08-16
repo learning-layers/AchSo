@@ -742,6 +742,13 @@ public class CombinedVideoRepository implements VideoRepository {
             bus.post(new VideoRepositoryUpdatedEvent(this));
 
         } else {
+            if (video.hasCachedFiles()) {
+                File cacheThumbFile = new File(video.getCacheThumbUri().getPath());
+                File cacheVideoFile = new File(video.getCacheVideoUri().getPath());
+
+                cacheThumbFile.delete();
+                cacheVideoFile.delete();
+            }
             new DeleteVideoTask().execute(id);
         }
     }

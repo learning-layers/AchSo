@@ -130,6 +130,10 @@ public class OptimizedVideo {
         return Uri.parse(cacheThumbUri);
     }
 
+    public Uri getCacheVideoUri() {
+        return Uri.parse(cacheVideoUri);
+    }
+
     public long getLastModified() {
         return lastModified;
     }
