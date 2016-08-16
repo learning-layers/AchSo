@@ -40,6 +40,7 @@ import fi.aalto.legroup.achso.playback.PlayerActivity;
 import fi.aalto.legroup.achso.sharing.SharingActivity;
 import fi.aalto.legroup.achso.storage.local.ExportService;
 import fi.aalto.legroup.achso.storage.remote.TransferErrorEvent;
+import fi.aalto.legroup.achso.storage.remote.TransferStateEvent;
 import fi.aalto.legroup.achso.storage.remote.download.DownloadErrorEvent;
 import fi.aalto.legroup.achso.storage.remote.download.DownloadStateEvent;
 import fi.aalto.legroup.achso.storage.remote.upload.UploadErrorEvent;
@@ -310,13 +311,7 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
         }
     }
 
-    @Subscribe
-    public void onDownloadState(DownloadStateEvent event) {
-        // TODO
-    }
-
-    @Subscribe
-    public void onUploadState(UploadStateEvent event) {
+    private void onTransferState(TransferStateEvent event) {
         UUID videoId = event.getVideoId();
 
         switch (event.getType()) {
@@ -329,6 +324,16 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
                 this.adapter.hideProgress(videoId);
                 break;
         }
+    }
+
+    @Subscribe
+    public void onDownloadState(DownloadStateEvent event) {
+        onTransferState(event);
+    }
+
+    @Subscribe
+    public void onUploadState(UploadStateEvent event) {
+        onTransferState(event);
     }
 
     private void onTransferError(TransferErrorEvent event, String defaultErrorMessage) {

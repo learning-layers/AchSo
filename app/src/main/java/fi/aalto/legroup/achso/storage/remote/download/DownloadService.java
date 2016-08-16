@@ -66,11 +66,11 @@ public class DownloadService extends IntentService {
             return;
         }
 
+        bus.post(new DownloadStateEvent(video.getId(), DownloadStateEvent.Type.STARTED));
+
         boolean success = tryDownload(video);
 
-        if (success) {
-
-        } else {
+        if (!success) {
             postError(id, "Failed to download video");
             // TODO: Get more data from tryUpload?
         }
