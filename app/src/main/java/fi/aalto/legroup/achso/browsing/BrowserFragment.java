@@ -231,14 +231,26 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
                 return true;
 
             case R.id.action_download:
+            {
                 List<UUID> selection = getSelection();
                 DownloadService.download(getActivity(), selection);
                 mode.finish();
                 return true;
+            }
 
             case R.id.action_cache_remove:
+            {
+                List<UUID> selection = getSelection();
+
+                try {
+                    App.videoRepository.deleteCachedFiles(selection);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
                 mode.finish();
                 return true;
+            }
 
             case R.id.action_export_video:
             {

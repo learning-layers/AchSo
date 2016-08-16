@@ -6,6 +6,7 @@ import android.net.Uri;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import fi.aalto.legroup.achso.entities.Video;
@@ -53,6 +54,11 @@ public interface VideoRepository extends VideoInfoRepository {
      * Persists an entity, overwriting an existing one with the same ID if set.
      */
     public void save(Video video, VideoCallback callback) throws IOException;
+
+    /**
+     * Deletes cached files from video
+     */
+    public void deleteCachedFiles(List<UUID> ids) throws IOException;
 
     /**
      * Deletes an entity with the given ID.

@@ -720,6 +720,33 @@ public class CombinedVideoRepository implements VideoRepository {
     }
 
     @Override
+    public void deleteCachedFiles(List<UUID> ids) throws IOException {
+        this.stateModified();
+
+        for (UUID id : ids) {
+            OptimizedVideo video = getVideo(id);
+
+            if (video.hasCachedFiles()) {
+                File cacheThumbFile = new File(video.getCacheThumbUri().getPath());
+                File cacheVideoFile = new File(video.getCacheVideoUri().getPath());
+
+                cacheThumbFile.delete();
+                cacheVideoFile.delete();
+
+                Video regularVideo = video.inflate();
+
+                regularVideo.setCacheVideoUri(null);
+                regularVideo.setCacheThumbUri(null);
+                regularVideo.save(null);
+
+            }
+        }
+
+        bus.post(new VideoRepositoryUpdatedEvent(this));
+    }
+
+
+    @Override
     public void delete(UUID id) throws IOException {
         OptimizedVideo video = getVideo(id);
 
