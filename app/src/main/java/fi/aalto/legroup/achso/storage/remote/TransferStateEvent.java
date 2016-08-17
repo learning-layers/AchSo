@@ -2,12 +2,12 @@ package fi.aalto.legroup.achso.storage.remote;
 
 import java.util.UUID;
 
-public class UploadStateEvent {
+public class TransferStateEvent {
 
     private UUID videoId;
     private Type type;
 
-    public UploadStateEvent(UUID videoId, Type type) {
+    public TransferStateEvent(UUID videoId, Type type) {
         this.videoId = videoId;
         this.type = type;
     }

@@ -29,6 +29,10 @@ public class OptimizedVideo {
     private String videoUri;
     private String thumbUri;
     private String deleteUri;
+
+    private String cacheThumbUri;
+    private String cacheVideoUri;
+
     private UUID id;
     private String title;
     private String tag;
@@ -113,8 +117,21 @@ public class OptimizedVideo {
     public VideoRepository getRepository() {
         return this.repository;
     }
+
     public void setRepository(VideoRepository repository) {
         this.repository = repository;
+    }
+
+    public boolean hasCachedFiles() {
+        return this.cacheThumbUri != null && this.cacheVideoUri != null;
+    }
+
+    public Uri getCacheThumbUri() {
+        return Uri.parse(cacheThumbUri);
+    }
+
+    public Uri getCacheVideoUri() {
+        return Uri.parse(cacheVideoUri);
     }
 
     public long getLastModified() {
@@ -201,10 +218,23 @@ public class OptimizedVideo {
 
         videoUri = video.getVideoUri().toString();
         thumbUri = video.getThumbUri().toString();
+
         if (video.getDeleteUri() != null) {
             deleteUri = video.getDeleteUri().toString();
         } else {
             deleteUri = null;
+        }
+
+        if (video.getCacheVideoUri() != null) {
+            cacheVideoUri = video.getCacheVideoUri().toString();
+        } else {
+            cacheVideoUri = null;
+        }
+
+        if (video.getCacheThumbUri() != null) {
+            cacheThumbUri = video.getCacheThumbUri().toString();
+        } else {
+            cacheThumbUri = null;
         }
 
         isTemporary = video.getIsTemporary();
@@ -318,8 +348,21 @@ public class OptimizedVideo {
             video.setManifestUri(null);
         }
 
+        if (cacheVideoUri != null) {
+            video.setCacheVideoUri(Uri.parse(cacheVideoUri));
+        } else {
+            video.setCacheVideoUri(null);
+        }
+
+        if (cacheThumbUri != null) {
+            video.setCacheThumbUri(Uri.parse(cacheThumbUri));
+        } else {
+            video.setCacheThumbUri(null);
+        }
+
         video.setVideoUri(Uri.parse(videoUri));
         video.setThumbUri(Uri.parse(thumbUri));
+
         if (deleteUri != null) {
             video.setDeleteUri(Uri.parse(deleteUri));
         } else {

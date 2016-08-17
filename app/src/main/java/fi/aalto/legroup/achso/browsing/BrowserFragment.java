@@ -39,9 +39,14 @@ import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.playback.PlayerActivity;
 import fi.aalto.legroup.achso.sharing.SharingActivity;
 import fi.aalto.legroup.achso.storage.local.ExportService;
-import fi.aalto.legroup.achso.storage.remote.UploadErrorEvent;
-import fi.aalto.legroup.achso.storage.remote.UploadService;
-import fi.aalto.legroup.achso.storage.remote.UploadStateEvent;
+import fi.aalto.legroup.achso.storage.remote.TransferErrorEvent;
+import fi.aalto.legroup.achso.storage.remote.TransferStateEvent;
+import fi.aalto.legroup.achso.storage.remote.download.DownloadErrorEvent;
+import fi.aalto.legroup.achso.storage.remote.download.DownloadStateEvent;
+import fi.aalto.legroup.achso.storage.remote.upload.UploadErrorEvent;
+import fi.aalto.legroup.achso.storage.remote.upload.UploadService;
+import fi.aalto.legroup.achso.storage.remote.upload.UploadStateEvent;
+import fi.aalto.legroup.achso.storage.remote.download.DownloadService;
 import fi.aalto.legroup.achso.views.RecyclerItemClickListener;
 import fi.aalto.legroup.achso.views.adapters.VideoGridAdapter;
 import fi.aalto.legroup.achso.views.utilities.DimensionUnits;
@@ -138,17 +143,31 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
 
         MenuItem upload_menu_item = menu.findItem(R.id.action_upload);
         MenuItem share_menu_item = menu.findItem(R.id.action_share_to_group);
+        MenuItem download_menu_item = menu.findItem(R.id.action_download);
+        MenuItem export_menu_item = menu.findItem(R.id.action_export_video);
+
         if (App.loginManager.isLoggedIn()) {
             upload_menu_item.setEnabled(true);
             share_menu_item.setEnabled(true);
+            download_menu_item.setEnabled(true);
+            export_menu_item.setEnabled(true);
+
             upload_menu_item.getIcon().setAlpha(255);
             share_menu_item.getIcon().setAlpha(255);
+            download_menu_item.getIcon().setAlpha(255);
+            export_menu_item.getIcon().setAlpha(255);
         } else {
             upload_menu_item.setEnabled(false);
             share_menu_item.setEnabled(false);
+            download_menu_item.setEnabled(false);
+            export_menu_item.setEnabled(false);
+
             upload_menu_item.getIcon().setAlpha(130);
             share_menu_item.getIcon().setAlpha(130);
+            download_menu_item.getIcon().setAlpha(130);
+            export_menu_item.getIcon().setAlpha(130);
         }
+
         return true;
     }
 
@@ -195,9 +214,11 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
                         e.printStackTrace();
                     }
                 }
+
                 if (!hasLocal) {
                     SharingActivity.openShareActivity(getActivity(), selection);
                 }
+
                 mode.finish();
                 return true;
             }
@@ -209,6 +230,28 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
                 startActivity(informationIntent);
                 mode.finish();
                 return true;
+
+            case R.id.action_download:
+            {
+                List<UUID> selection = getSelection();
+                DownloadService.download(getActivity(), selection);
+                mode.finish();
+                return true;
+            }
+
+            case R.id.action_cache_remove:
+            {
+                List<UUID> selection = getSelection();
+
+                try {
+                    App.videoRepository.deleteCachedFiles(selection);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                mode.finish();
+                return true;
+            }
 
             case R.id.action_export_video:
             {
@@ -268,8 +311,7 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
         }
     }
 
-    @Subscribe
-    public void onUploadState(UploadStateEvent event) {
+    private void onTransferState(TransferStateEvent event) {
         UUID videoId = event.getVideoId();
 
         switch (event.getType()) {
@@ -285,18 +327,38 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
     }
 
     @Subscribe
-    public void onUploadError(UploadErrorEvent event) {
+    public void onDownloadState(DownloadStateEvent event) {
+        onTransferState(event);
+    }
+
+    @Subscribe
+    public void onUploadState(UploadStateEvent event) {
+        onTransferState(event);
+    }
+
+    private void onTransferError(TransferErrorEvent event, String defaultErrorMessage) {
         UUID videoId = event.getVideoId();
         String message = event.getErrorMessage();
 
         this.adapter.hideProgress(videoId);
 
         if (message == null) {
-            message = getString(R.string.upload_error);
+            message = defaultErrorMessage;
         }
 
         SnackbarManager.show(Snackbar.with(getActivity()).text(message));
     }
+
+    @Subscribe
+    public void onDownloadError(DownloadErrorEvent event) {
+        onTransferError(event, getString(R.string.download_error));
+    }
+
+    @Subscribe
+    public void onUploadError(UploadErrorEvent event) {
+        onTransferError(event, getString(R.string.upload_error));
+    }
+
 
     private List<UUID> getSelection() {
         List<Integer> positions = this.adapter.getSelectedItems();
@@ -350,17 +412,24 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
     }
 
     private void showExportFragment(String email, ArrayList<Video> videos) {
-        ExportDialogFragment.newInstance(email, videos).show(getActivity().getFragmentManager(), "ExportDialog");
+        ExportDialogFragment.newInstance(email, videos)
+                .show(getActivity().getFragmentManager(), "ExportDialog");
     }
 
     private void updateMenuItems() {
         Menu menu = this.actionMode.getMenu();
         boolean hasLocal = false;
+        boolean hasCached = false;
         List<UUID> selection = getSelection();
 
         for (UUID id : selection) {
             try {
                 OptimizedVideo video = App.videoRepository.getVideo(id);
+
+                if (video.hasCachedFiles()) {
+                    hasCached = true;
+                }
+
                 if (video.isLocal()) {
                     hasLocal = true;
                     break;
@@ -370,14 +439,34 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
                 e.printStackTrace();
             }
         }
+
         MenuItem upload_menu_item = menu.findItem(R.id.action_upload);
+        MenuItem export_menu_item = menu.findItem(R.id.action_export_video);
+        MenuItem download_menu_item = menu.findItem(R.id.action_download);
+        MenuItem cache_remove_item = menu.findItem(R.id.action_cache_remove);
         MenuItem share_menu_item = menu.findItem(R.id.action_share_to_group);
+
         if (hasLocal) {
             share_menu_item.setVisible(false);
+            export_menu_item.setVisible(false);
             upload_menu_item.setVisible(true);
         } else {
             share_menu_item.setVisible(true);
+            export_menu_item.setVisible(true);
             upload_menu_item.setVisible(false);
+        }
+
+        if (hasCached || hasLocal) {
+           download_menu_item.setVisible(false);
+
+        } else {
+            download_menu_item.setVisible(true);
+        }
+
+        if (hasCached) {
+            cache_remove_item.setVisible(true);
+        } else {
+            cache_remove_item.setVisible(false);
         }
     }
 

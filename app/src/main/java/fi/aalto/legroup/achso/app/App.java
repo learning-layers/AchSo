@@ -32,10 +32,9 @@ import fi.aalto.legroup.achso.storage.CombinedVideoRepository;
 import fi.aalto.legroup.achso.storage.VideoInfoRepository;
 import fi.aalto.legroup.achso.storage.VideoRepository;
 import fi.aalto.legroup.achso.storage.remote.SyncService;
-import fi.aalto.legroup.achso.storage.remote.UploadService;
+import fi.aalto.legroup.achso.storage.remote.upload.UploadService;
 import fi.aalto.legroup.achso.storage.remote.strategies.AchRailsStrategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.ClViTra2Strategy;
-import fi.aalto.legroup.achso.storage.remote.strategies.DumbPhpStrategy;
 import fi.aalto.legroup.achso.storage.remote.strategies.GoViTraStrategy;
 import fi.legroup.aalto.cryptohelper.CryptoHelper;
 

@@ -161,8 +161,8 @@ public final class VideoCreatorService extends IntentService {
         // Save always with the most recent version.
         int formatVersion = Video.VIDEO_FORMAT_VERSION;
 
-        Video video = new Video(App.videoRepository, manifestUri, videoUri, thumbUri, id, title,
-                tag, rotation, date, author, location, formatVersion, annotations);
+        Video video = new Video(App.videoRepository, manifestUri, videoUri, thumbUri, null, null,
+                id, title, tag, rotation, date, author, location, formatVersion, annotations);
 
         video.save(null);
 
@@ -377,6 +377,7 @@ public final class VideoCreatorService extends IntentService {
             id = (UUID) parcel.readValue(UUID.class.getClassLoader());
             videoUri = (Uri) parcel.readValue(Uri.class.getClassLoader());
             authorUri = (Uri) parcel.readValue(Uri.class.getClassLoader());
+
             location = (Location) parcel.readValue(Location.class.getClassLoader());
 
             title = parcel.readString();

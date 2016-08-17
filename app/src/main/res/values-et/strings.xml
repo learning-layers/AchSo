@@ -14,6 +14,9 @@
     <string name="deletion_question">Kustuta valitud videod ja nende annotatsioonid?</string>
     <string name="storage_error">Ei pääsenud videote hoidlale ligi.</string>
 
+   <string name="video_download">Lae võrguühenduseta kasutamiseks</string>
+   <string name="cache_delete">Eemaldada foorumis faile</string>
+
     <string name="login">Logi sisse</string>
     <string name="logout">Välju</string>
     <string name="not_loggedin_nag_title">Pole sisse loginud</string>
@@ -92,6 +95,7 @@
     <string name="migration_notification">Ach so! uuendab su videosid…</string>
     <string name="playback_error">Video esitluse viga.</string>
     <string name="upload_error">Üleslaadimne ebaõnnestus; proovi uuesti.</string>
+    <string name="download_error">Allalaadimine ebaõnnestus; proovi uuesti.</string>
     <string name="settings_layers_box_summary">The URL to the Layers box</string>
     <string name="settings_layers_box_title">Layers box address</string>
 

@@ -3,8 +3,10 @@ package fi.aalto.legroup.achso.storage;
 import android.content.Context;
 import android.net.Uri;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import fi.aalto.legroup.achso.entities.Video;
@@ -54,6 +56,11 @@ public interface VideoRepository extends VideoInfoRepository {
     public void save(Video video, VideoCallback callback) throws IOException;
 
     /**
+     * Deletes cached files from video
+     */
+    public void deleteCachedFiles(List<UUID> ids) throws IOException;
+
+    /**
      * Deletes an entity with the given ID.
      */
     public void delete(UUID id) throws IOException;
@@ -62,6 +69,15 @@ public interface VideoRepository extends VideoInfoRepository {
      * Upload a video. May throw if the repository doesn't support uploading.
      */
     public void uploadVideo(Video video) throws IOException;
+
+    /**
+     * Downloads a video.
+     */
+    public void downloadVideo(Video video) throws IOException;
+
+    public File getThumbCacheFile(UUID id);
+
+    public File getVideoCacheFile(UUID id);
 
     /**
      *
