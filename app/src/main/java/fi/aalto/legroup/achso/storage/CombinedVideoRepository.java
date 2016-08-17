@@ -123,6 +123,11 @@ public class CombinedVideoRepository implements VideoRepository {
         return UUID.fromString(file.getName().substring(0, uuidLength));
     }
 
+
+    private File getCacheVideoFile(UUID id) { return new File(cacheRoot, id + ".mp4"); }
+
+    private File getCacheThumbFile(UUID id) { return new File(cacheRoot, id + ".jpg");  }
+
     private File getOriginalCacheFile(UUID id) {
         return getCacheFile(id, "original");
     }
@@ -407,8 +412,14 @@ public class CombinedVideoRepository implements VideoRepository {
             File original = getOriginalCacheFile(id);
             File modified = getModifiedCacheFile(id);
 
+            File thumbFile = getThumbCacheFile(id);
+            File videoFile = getVideoCacheFile(id);
+
             original.delete();
             modified.delete();
+
+            thumbFile.delete();
+            videoFile.delete();
         }
 
         // TODO: Remove this

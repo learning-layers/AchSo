@@ -72,7 +72,6 @@ public class DownloadService extends IntentService {
 
         if (!success) {
             postError(id, "Failed to download video");
-            // TODO: Get more data from tryUpload?
         }
 
         DownloadStateEvent.Type type = success
