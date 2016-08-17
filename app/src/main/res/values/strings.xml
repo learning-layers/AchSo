@@ -27,6 +27,9 @@
     <string name="storage_error">Could not access video storage.</string>
     <string name="video_find_error">Could not find the video.</string>
 
+    <string name="video_download">Download for offline use</string>
+    <string name="cache_delete">Remove offline files</string>
+
     <string name="login">Log in</string>
     <string name="logout">Log out</string>
     <string name="not_loggedin_nag_title">Not logged in</string>
@@ -116,6 +119,7 @@
     <string name="migration_notification">Ach so! is updating your videos…</string>
     <string name="playback_error">A playback error occurred.</string>
     <string name="upload_error">Uploading failed; please try again.</string>
+    <string name="download_error">Downloading failed; please try again.</string>
 
     <string name="share_preparing_toast">You will be notified when the videos are ready for sharing.</string>
 

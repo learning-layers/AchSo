@@ -20,7 +20,7 @@ import java.net.URLConnection;
 
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.Video;
-import fi.aalto.legroup.achso.storage.remote.upload.VideoUploader;
+import fi.aalto.legroup.achso.storage.remote.upload.uploaders.VideoUploader;
 
 /**
  * Uploads raw videos to the Cloud Video Transcoder.

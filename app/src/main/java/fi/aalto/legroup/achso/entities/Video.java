@@ -10,7 +10,6 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
-import fi.aalto.legroup.achso.playback.PlayerActivity;
 import fi.aalto.legroup.achso.storage.VideoRepository;
 
 /**
@@ -34,6 +33,9 @@ public class Video implements JsonSerializable {
     protected Uri videoUri;
     protected Uri thumbUri;
     protected Uri deleteUri;
+    protected Uri videoCacheUri;
+    protected Uri thumbCacheUri;
+
     protected UUID id;
     protected String title;
     protected String tag;
@@ -46,7 +48,7 @@ public class Video implements JsonSerializable {
     protected User author;
     protected Location location;
     protected List<Annotation> annotations;
-    protected  boolean isLastAnnotationEmpty;
+    protected transient boolean isLastAnnotationEmpty;
 
 
     Video() {
@@ -55,13 +57,17 @@ public class Video implements JsonSerializable {
         formatVersion = 0;
     }
 
-    public Video(VideoRepository repository, Uri manifestUri, Uri videoUri, Uri thumbUri, UUID id,
-                 String title, String tag, int rotation, Date date, User author,
+    public Video(VideoRepository repository, Uri manifestUri, Uri videoUri, Uri thumbUri,
+                 Uri videoCacheUri, Uri thumbCacheUri,  UUID id, String title,
+                 String tag, int rotation, Date date, User author,
                  Location location, int formatVersion, List<Annotation> annotations) {
 
         this.manifestUri = manifestUri;
         this.videoUri = videoUri;
         this.thumbUri = thumbUri;
+        // TODO: Investigate if these are necessary to set in constructor?
+        this.thumbCacheUri = thumbCacheUri;
+        this.videoCacheUri = videoCacheUri;
         this.id = id;
         this.title = title;
         this.tag = tag;
@@ -111,6 +117,10 @@ public class Video implements JsonSerializable {
         }
     }
 
+    public boolean hasCachedFiles() {
+        return this.thumbCacheUri != null && this.videoCacheUri != null;
+    }
+
     public boolean isRemote() {
         return !isLocal();
     }
@@ -125,6 +135,14 @@ public class Video implements JsonSerializable {
 
     public Uri getVideoUri() {
         return this.videoUri;
+    }
+
+    public Uri getPlaybackUri () {
+        if (this.hasCachedFiles()) {
+            return this.videoCacheUri;
+        } else {
+            return this.videoUri;
+        }
     }
 
     public Uri getThumbUri() {
@@ -171,6 +189,22 @@ public class Video implements JsonSerializable {
 
     public void setThumbUri(Uri thumbUri) {
         this.thumbUri = thumbUri;
+    }
+
+    public void setCacheVideoUri(Uri cacheVideoUri) {
+        this.videoCacheUri  = cacheVideoUri;
+    }
+
+    public void setCacheThumbUri(Uri cacheThumbUri) {
+        this.thumbCacheUri  = cacheThumbUri;
+    }
+
+    public Uri getCacheVideoUri() {
+        return this.videoCacheUri;
+    }
+
+    public Uri getCacheThumbUri() {
+        return this.thumbCacheUri;
     }
 
     public void setId(UUID id) {

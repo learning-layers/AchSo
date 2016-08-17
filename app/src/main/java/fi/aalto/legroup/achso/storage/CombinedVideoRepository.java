@@ -108,10 +108,25 @@ public class CombinedVideoRepository implements VideoRepository {
         return new File(cacheRoot, id + "_" + suffix + ".json");
     }
 
+    @Override
+    public File getThumbCacheFile(UUID id) {
+        return new File(cacheRoot, id + ".jpg");
+    }
+
+    @Override
+    public File getVideoCacheFile(UUID id) {
+        return new File(cacheRoot, id + ".mp4");
+    }
+
     private UUID getIdFromFile(File file) {
         final int uuidLength = 36;
         return UUID.fromString(file.getName().substring(0, uuidLength));
     }
+
+
+    private File getCacheVideoFile(UUID id) { return new File(cacheRoot, id + ".mp4"); }
+
+    private File getCacheThumbFile(UUID id) { return new File(cacheRoot, id + ".jpg");  }
 
     private File getOriginalCacheFile(UUID id) {
         return getCacheFile(id, "original");
@@ -347,11 +362,16 @@ public class CombinedVideoRepository implements VideoRepository {
                     OptimizedVideo resultVideo = null;
 
                     if (localFileModified.exists()) {
-
                         Video localVideo = readVideoFromFile(localFileModified);
                         Video uploadedVideo = host.uploadVideoManifest(localVideo);
-                        writeVideoToFile(uploadedVideo, localFileOriginal);
 
+                        // Since merging is done on the server side, preserve cached video data URIs
+                        if (localVideo.hasCachedFiles()) {
+                            uploadedVideo.setCacheVideoUri(localVideo.getCacheVideoUri());
+                            uploadedVideo.setCacheThumbUri(localVideo.getCacheThumbUri());
+                        }
+
+                        writeVideoToFile(uploadedVideo, localFileOriginal);
                         resultVideo = new OptimizedVideo(uploadedVideo);
                         localFileModified.delete();
 
@@ -392,8 +412,14 @@ public class CombinedVideoRepository implements VideoRepository {
             File original = getOriginalCacheFile(id);
             File modified = getModifiedCacheFile(id);
 
+            File thumbFile = getThumbCacheFile(id);
+            File videoFile = getVideoCacheFile(id);
+
             original.delete();
             modified.delete();
+
+            thumbFile.delete();
+            videoFile.delete();
         }
 
         // TODO: Remove this
@@ -521,6 +547,17 @@ public class CombinedVideoRepository implements VideoRepository {
         if (!localFile.delete()) {
             // For logging purposes
             throw new IOException("Failed to delete local file");
+        }
+    }
+
+    @Override
+    public void downloadVideo(Video video) throws IOException {
+        for (VideoHost host: cloudHosts) {
+            try {
+                host.downloadCachedFiles(video, video.getThumbUri(), video.getVideoUri());
+            } catch (IOException e) {
+                throw new IOException("Failed to download video", e);
+            }
         }
     }
 
@@ -694,6 +731,33 @@ public class CombinedVideoRepository implements VideoRepository {
     }
 
     @Override
+    public void deleteCachedFiles(List<UUID> ids) throws IOException {
+        this.stateModified();
+
+        for (UUID id : ids) {
+            OptimizedVideo video = getVideo(id);
+
+            if (video.hasCachedFiles()) {
+                File cacheThumbFile = new File(video.getCacheThumbUri().getPath());
+                File cacheVideoFile = new File(video.getCacheVideoUri().getPath());
+
+                cacheThumbFile.delete();
+                cacheVideoFile.delete();
+
+                Video regularVideo = video.inflate();
+
+                regularVideo.setCacheVideoUri(null);
+                regularVideo.setCacheThumbUri(null);
+                regularVideo.save(null);
+
+            }
+        }
+
+        bus.post(new VideoRepositoryUpdatedEvent(this));
+    }
+
+
+    @Override
     public void delete(UUID id) throws IOException {
         OptimizedVideo video = getVideo(id);
 
@@ -716,6 +780,13 @@ public class CombinedVideoRepository implements VideoRepository {
             bus.post(new VideoRepositoryUpdatedEvent(this));
 
         } else {
+            if (video.hasCachedFiles()) {
+                File cacheThumbFile = new File(video.getCacheThumbUri().getPath());
+                File cacheVideoFile = new File(video.getCacheVideoUri().getPath());
+
+                cacheThumbFile.delete();
+                cacheVideoFile.delete();
+            }
             new DeleteVideoTask().execute(id);
         }
     }

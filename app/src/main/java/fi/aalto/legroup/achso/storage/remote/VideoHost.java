@@ -2,6 +2,7 @@ package fi.aalto.legroup.achso.storage.remote;
 
 import android.net.Uri;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +30,8 @@ public interface VideoHost {
      * @throws IOException
      */
     public Video downloadVideoManifest(UUID id) throws IOException;
+
+    public void downloadCachedFiles(Video video, Uri thumbUri, Uri videoUri) throws IOException;
 
     /**
      * Persists an entity, overwriting an existing one with the same ID if set.

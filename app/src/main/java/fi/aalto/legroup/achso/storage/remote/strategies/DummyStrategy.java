@@ -5,8 +5,8 @@ import android.net.Uri;
 import java.io.IOException;
 
 import fi.aalto.legroup.achso.entities.Video;
-import fi.aalto.legroup.achso.storage.remote.upload.ThumbnailUploader;
-import fi.aalto.legroup.achso.storage.remote.upload.VideoUploader;
+import fi.aalto.legroup.achso.storage.remote.upload.uploaders.ThumbnailUploader;
+import fi.aalto.legroup.achso.storage.remote.upload.uploaders.VideoUploader;
 
 /**
  * Always succeeds to "upload".

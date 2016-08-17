@@ -17,6 +17,9 @@
     <string name="deletion_question">Möchten Sie die ausgewählten Videos und Annotationen löschen?</string>
     <string name="storage_error">Kann nicht auf Videospeicher zugreifen.</string>
 
+    <string name="video_download">Laden Sie für die Offline-Nutzung</string>
+    <string name="cache_delete">Entfernen Offline-Dateien</string>
+
     <string name="login">Login</string>
     <string name="logout">Logout</string>
     <string name="not_loggedin_nag_title">Nicht eingeloggt</string>
@@ -95,6 +98,7 @@
     <string name="migration_notification">Ach so! aktualisiert Ihre Videos…</string>
     <string name="playback_error">Ein Wiedergabefehler ist aufgetreten.</string>
     <string name="upload_error">Hochladen gescheitert; bitte erneut versuchen.</string>
+    <string name="download_error">Herunterladen gescheitert; bitte erneut versuchen.</string>
     <string name="settings_layers_box_summary">The URL to the Layers box</string>
     <string name="settings_layers_box_title">Layers box address</string>
 
