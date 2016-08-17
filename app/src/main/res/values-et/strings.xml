@@ -15,6 +15,7 @@
     <string name="storage_error">Ei pääsenud videote hoidlale ligi.</string>
 
    <string name="video_download">Lae võrguühenduseta kasutamiseks</string>
+   <string name="cache_delete">Eemaldada foorumis faile</string>
 
     <string name="login">Logi sisse</string>
     <string name="logout">Välju</string>

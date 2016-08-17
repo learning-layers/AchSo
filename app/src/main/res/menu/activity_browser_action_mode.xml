@@ -30,7 +30,7 @@
     <item
         android:id="@+id/action_cache_remove"
         android:icon="@drawable/ic_cloud_off_white_24dp"
-        android:title="Delete cached files"
+        android:title="@string/cache_delete"
         app:showAsAction="ifRoom|withText" />
 
     <item

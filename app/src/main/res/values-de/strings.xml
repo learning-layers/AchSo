@@ -18,6 +18,7 @@
     <string name="storage_error">Kann nicht auf Videospeicher zugreifen.</string>
 
     <string name="video_download">Laden Sie für die Offline-Nutzung</string>
+    <string name="cache_delete">Entfernen Offline-Dateien</string>
 
     <string name="login">Login</string>
     <string name="logout">Logout</string>
