@@ -44,14 +44,15 @@ public class MarkerCanvas extends FrameLayout implements View.OnClickListener {
         this.listener = listener;
     }
 
-    public Marker addMarker(PointF position, Drawable background) {
-        return addMarker(position, background, true);
+    public Marker addMarker(PointF position, int color, Drawable background) {
+        return addMarker(position, color, background, true);
     }
 
-    public Marker addMarker(PointF position, Drawable background, boolean isDraggable) {
+    public Marker addMarker(PointF position, int color, Drawable background, boolean isDraggable) {
         Marker marker = new Marker(getContext());
 
         marker.setImageDrawable(background);
+        marker.setColorFilter(color);
         marker.setDraggable(isDraggable);
         marker.setOnClickListener(this);
 

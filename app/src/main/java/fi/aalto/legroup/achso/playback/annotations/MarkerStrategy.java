@@ -36,7 +36,9 @@ public final class MarkerStrategy implements AnnotationRenderer.Strategy, Marker
     public void render(final List<Annotation> annotations) {
         for (Annotation annotation : annotations) {
             PointF markerPosition = annotation.getPosition();
-            Marker marker = canvas.addMarker(markerPosition, markerBackground);
+            int color = annotation.calculateColor();
+
+            Marker marker = canvas.addMarker(markerPosition, color, markerBackground);
 
             marker.setTag(annotation);
         }

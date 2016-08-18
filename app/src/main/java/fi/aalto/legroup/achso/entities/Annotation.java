@@ -1,5 +1,6 @@
 package fi.aalto.legroup.achso.entities;
 
+import android.graphics.Color;
 import android.graphics.PointF;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -14,6 +15,9 @@ import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
  * An annotation entity that describes a video's annotation.
  */
 public class Annotation implements JsonSerializable, Parcelable {
+
+    private static final int FNV_32_INIT = 0x811c9dc5;
+    private static final int FNV_32_PRIME = 0x01000193;
 
     protected long time;
     protected PointF position;
@@ -43,6 +47,21 @@ public class Annotation implements JsonSerializable, Parcelable {
 
     public long getTime() {
         return this.time;
+    }
+
+    // Calculate random color from author name using FNV
+    public int calculateColor() {
+        String name  = this.author.getName();
+
+        int rv = FNV_32_INIT;
+        int len = name.length();
+
+        for (int i = 0; i < len; i++) {
+            rv ^= name.charAt(i);
+            rv *= FNV_32_PRIME;
+        }
+
+        return rv;
     }
 
     public void setTime(long time) {
