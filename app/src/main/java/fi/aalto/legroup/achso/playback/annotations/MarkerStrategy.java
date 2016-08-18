@@ -3,7 +3,9 @@ package fi.aalto.legroup.achso.playback.annotations;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.PointF;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
 import android.os.Build;
 import android.support.annotation.DrawableRes;
 
@@ -22,12 +24,12 @@ public final class MarkerStrategy implements AnnotationRenderer.Strategy, Marker
 
     private final MarkerCanvas canvas;
     private final AnnotationEditor editor;
-    private final Drawable markerBackground;
+    private final LayerDrawable markerBackground;
 
     public MarkerStrategy(MarkerCanvas canvas, AnnotationEditor editor) {
         this.canvas = canvas;
         this.editor = editor;
-        this.markerBackground = getDrawable(canvas.getContext(), R.drawable.annotation_marker);
+        this.markerBackground = (LayerDrawable) getDrawable(canvas.getContext(), R.drawable.annotation_marker);
 
         canvas.setListener(this);
     }
@@ -38,7 +40,15 @@ public final class MarkerStrategy implements AnnotationRenderer.Strategy, Marker
             PointF markerPosition = annotation.getPosition();
             int color = annotation.calculateColor();
 
-            Marker marker = canvas.addMarker(markerPosition, color, markerBackground);
+            // Replace the placeholder outer ring with a colored one
+            Drawable ring = getDrawable(canvas.getContext(), R.drawable.annotation_marker_outer_ring);
+
+            if (ring != null) {
+                ring.setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
+                markerBackground.setDrawableByLayerId(R.id.outer_ring, ring);
+            }
+
+            Marker marker = canvas.addMarker(markerPosition, markerBackground);
 
             marker.setTag(annotation);
         }
