@@ -19,6 +19,29 @@ public class Annotation implements JsonSerializable, Parcelable {
     private static final int FNV_32_INIT = 0x811c9dc5;
     private static final int FNV_32_PRIME = 0x01000193;
 
+    // Taken from https://material.google.com/style/color.html#color-color-palette
+    private static final int[] materialDesignPalette = {
+            0x40F44336,
+            0x40E91E63,
+            0x409C27B0,
+            0x40673AB7,
+            0x403F51B5,
+            0x402196F3,
+            0x4003A9F4,
+            0x4000BCD4,
+            0x40009688,
+            0x404CAF50,
+            0x408BC34A,
+            0x40CDDC39,
+            0x40FFEB3B,
+            0x40FFC107,
+            0x40FF9800,
+            0x40FF5722,
+            0x40795548,
+            0x409E9E9E,
+            0x40607D8B
+    };
+
     protected long time;
     protected PointF position;
     protected String text;
@@ -61,7 +84,11 @@ public class Annotation implements JsonSerializable, Parcelable {
             rv *= FNV_32_PRIME;
         }
 
-        return rv;
+        int index = rv % (materialDesignPalette.length - 1);
+
+        if (index < 0) index *= -1;
+
+        return materialDesignPalette[index];
     }
 
     public void setTime(long time) {
