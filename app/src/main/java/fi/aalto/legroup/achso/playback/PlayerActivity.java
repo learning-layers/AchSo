@@ -181,7 +181,6 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         Video video;
         try {
             video = App.videoRepository.getVideo(videoId).inflate();
-
         } catch (IOException e) {
             e.printStackTrace();
             SnackbarManager.show(Snackbar.with(this).text(R.string.storage_error));

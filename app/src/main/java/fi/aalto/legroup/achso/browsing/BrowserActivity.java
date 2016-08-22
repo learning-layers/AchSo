@@ -2,6 +2,8 @@ package fi.aalto.legroup.achso.browsing;
 
 import android.accounts.Account;
 import android.Manifest;
+import android.app.Activity;
+import android.app.Application;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.SearchManager;
@@ -57,6 +59,7 @@ import fi.aalto.legroup.achso.authentication.LoginStateEvent;
 import fi.aalto.legroup.achso.authentication.OIDCConfig;
 import fi.aalto.legroup.achso.authoring.QRHelper;
 import fi.aalto.legroup.achso.authoring.VideoCreatorService;
+import fi.aalto.legroup.achso.authoring.VideoTrimActivity;
 import fi.aalto.legroup.achso.settings.SettingsActivity;
 import fi.aalto.legroup.achso.sharing.SharingActivity;
 import fi.aalto.legroup.achso.storage.VideoRepositoryUpdatedEvent;
@@ -579,10 +582,14 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
     }
 
     private void trimVideo(final UUID videoId) {
+
+        final Activity self = this;
         promptUserForTrimming(new MaterialDialog.SingleButtonCallback() {
             @Override
             public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                System.out.println(videoId);
+                Intent intent = new Intent(self, VideoTrimActivity.class);
+                intent.putExtra(VideoTrimActivity.ARG_VIDEO_ID, videoId.toString());
+                startActivity(intent);
             }
         });
     }

@@ -168,7 +168,7 @@
         <item name="4000">Slow</item>
     </string-array>
 
-    <string-array translatable="false" name="settings_annotation_pause_duration_values">
+    <string-array name="settings_annotation_pause_duration_values" translatable="false">
         <item name="1000">1000</item>
         <item name="2000">2000</item>
         <item name="4000">4000</item>

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest
-    package="fi.aalto.legroup.achso"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="fi.aalto.legroup.achso">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -18,15 +17,12 @@
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
-
     <uses-feature
         android:name="android.hardware.camera.autofocus"
         android:required="false" />
-
     <uses-feature
         android:name="android.hardware.location.gps"
         android:required="false" />
-
     <uses-feature
         android:name="android.hardware.location"
         android:required="false" />
@@ -43,33 +39,28 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/Theme.Custom.Light">
-
         <activity
             android:name=".browsing.BrowserActivity"
             android:label="@string/app_name">
-
             <meta-data
                 android:name="android.app.default_searchable"
                 android:value=".browsing.SearchActivity" />
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
         </activity>
-
         <activity
             android:name=".playback.PlayerActivity"
+            android:exported="true"
             android:parentActivityName=".browsing.BrowserActivity"
-            android:theme="@style/Theme.Custom.Immersive"
-            android:exported="true">
-
+            android:theme="@style/Theme.Custom.Immersive">
             <intent-filter
                 android:icon="@drawable/ic_launcher"
                 android:label="@string/app_name"
                 android:priority="1">
-
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
@@ -79,29 +70,24 @@
                     android:host="*"
                     android:mimeType="application/achso"
                     android:pathPattern=".*\\.achso" />
-
             </intent-filter>
-
             <intent-filter
                 android:icon="@drawable/ic_launcher"
                 android:label="@string/app_name"
                 android:priority="1">
-
                 <action android:name="fi.aalto.legroup.achso.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data android:scheme="http" />
                 <data android:scheme="https" />
-
                 <data android:mimeType="video/mp4" />
             </intent-filter>
-
             <intent-filter
                 android:icon="@drawable/ic_launcher"
                 android:label="@string/app_name"
                 android:priority="1">
-
                 <action android:name="android.intent.action.VIEW" />
                 <action android:name="fi.aalto.legroup.achso.action.VIEW" />
 
@@ -110,15 +96,12 @@
 
                 <data android:scheme="achso" />
             </intent-filter>
-
         </activity>
-
         <activity
             android:name=".browsing.SearchActivity"
             android:label="@string/search"
             android:launchMode="singleTop"
             android:parentActivityName=".browsing.BrowserActivity">
-
             <meta-data
                 android:name="android.app.searchable"
                 android:resource="@xml/searchable" />
@@ -126,30 +109,24 @@
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
             </intent-filter>
-
         </activity>
-
         <activity
             android:name=".settings.SettingsActivity"
             android:label="@string/settings"
             android:parentActivityName=".browsing.BrowserActivity" />
-
         <activity
             android:name=".browsing.DetailActivity"
             android:label="@string/title_activity_information"
             android:parentActivityName=".browsing.BrowserActivity" />
-
         <activity
             android:name=".authentication.AuthorizationActivity"
             android:label="@string/app_name"
             android:parentActivityName=".browsing.BrowserActivity" />
-
         <activity
             android:name=".sharing.SharingActivity"
+            android:configChanges="orientation|screenSize"
             android:label="@string/app_name"
-            android:parentActivityName=".browsing.BrowserActivity"
-            android:configChanges="orientation|screenSize" />
-
+            android:parentActivityName=".browsing.BrowserActivity" />
         <activity
             android:name=".authentication.LoginActivity"
             android:label="@string/choose_account"
@@ -160,11 +137,9 @@
         <service android:name=".storage.remote.download.DownloadService" />
         <service android:name=".storage.remote.SyncService" />
         <service android:name=".authoring.VideoCreatorService" />
-
         <service
             android:name=".authentication.AuthenticatorService"
             android:permission="android.permission.ACCOUNT_MANAGER">
-
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator" />
             </intent-filter>
@@ -172,17 +147,16 @@
             <meta-data
                 android:name="android.accounts.AccountAuthenticator"
                 android:resource="@xml/authenticator" />
-
         </service>
 
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
-
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="@string/google_maps_api_key" />
 
+        <activity android:name=".authoring.VideoTrimActivity"></activity>
     </application>
 
 </manifest>
