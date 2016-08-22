@@ -17,6 +17,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
@@ -442,6 +443,8 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
             return;
         }
 
+        trimVideo(resultData.getData());
+
         // Data might not be there, in which case a fallback has been set in #recordVideo().
         if (resultData != null) {
             videoBuilder.setVideoUri(resultData.getData());
@@ -572,6 +575,31 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
 
             SyncService.syncWithCloudStorage(this);
         }
+    }
+
+    private void trimVideo(final Uri videoUri) {
+        promptUserForTrimming(new MaterialDialog.SingleButtonCallback() {
+            @Override
+            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                System.out.println(videoUri);
+            }
+        });
+    }
+
+    private void promptUserForTrimming(MaterialDialog.SingleButtonCallback callback) {
+       promptYesNoDialog(callback, "Cropping", "Would you like to crop the video?", getString(R.string.ok));
+    }
+
+    private void promptYesNoDialog(MaterialDialog.SingleButtonCallback callback, String heading, String content, String positiveText) {
+        MaterialDialog dialog = new MaterialDialog.Builder(this)
+                .title(heading)
+                .content(content)
+                .negativeText(R.string.cancel)
+                .positiveText(positiveText)
+                .onPositive(callback)
+                .build();
+
+        dialog.show();
     }
 
     private boolean checkPermissions(int messageResource, String permissions[], int[] grantResults) {
