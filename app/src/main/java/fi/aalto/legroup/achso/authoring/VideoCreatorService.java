@@ -97,10 +97,11 @@ public final class VideoCreatorService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        bus.post(new VideoCreationStateEvent(VideoCreationStateEvent.Type.STARTED));
+        UUID id = (UUID) intent.getSerializableExtra(ARG_VIDEO_ID);
+
+        bus.post(new VideoCreationStateEvent(VideoCreationStateEvent.Type.STARTED, id));
 
         Uri videoContentUri = intent.getParcelableExtra(ARG_VIDEO_URI);
-        UUID id = (UUID) intent.getSerializableExtra(ARG_VIDEO_ID);
         String title = intent.getStringExtra(ARG_VIDEO_TITLE);
         String tag = intent.getStringExtra(ARG_VIDEO_TAG);
         Date date = (Date) intent.getSerializableExtra(ARG_VIDEO_DATE);
@@ -137,7 +138,7 @@ public final class VideoCreatorService extends IntentService {
             ensureVideoContent(videoContentUri, videoFile);
         } catch (IOException e) {
             // TODO: Error message
-            bus.post(new VideoCreationStateEvent(VideoCreationStateEvent.Type.ERROR));
+            bus.post(new VideoCreationStateEvent(VideoCreationStateEvent.Type.ERROR, id));
             e.printStackTrace();
             return;
         }
@@ -166,7 +167,7 @@ public final class VideoCreatorService extends IntentService {
 
         video.save(null);
 
-        bus.post(new VideoCreationStateEvent(VideoCreationStateEvent.Type.FINISHED));
+        bus.post(new VideoCreationStateEvent(VideoCreationStateEvent.Type.FINISHED, id));
     }
 
     /**
@@ -332,13 +333,18 @@ public final class VideoCreatorService extends IntentService {
 
         private Type type;
 
-        public VideoCreationStateEvent(Type type) {
+        private UUID uuid;
+
+        public VideoCreationStateEvent(Type type, UUID uuid) {
             this.type = type;
+            this.uuid = uuid;
         }
 
         public Type getType() {
             return this.type;
         }
+
+        public UUID getId() { return this.uuid; }
 
         public enum Type {
             STARTED,

@@ -443,8 +443,6 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
             return;
         }
 
-        trimVideo(resultData.getData());
-
         // Data might not be there, in which case a fallback has been set in #recordVideo().
         if (resultData != null) {
             videoBuilder.setVideoUri(resultData.getData());
@@ -536,6 +534,9 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
                     manager.beginTransaction().remove(fragment).commit();
                 }
 
+                UUID id = event.getId();
+                trimVideo(id);
+
                 break;
         }
     }
@@ -577,11 +578,11 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
         }
     }
 
-    private void trimVideo(final Uri videoUri) {
+    private void trimVideo(final UUID videoId) {
         promptUserForTrimming(new MaterialDialog.SingleButtonCallback() {
             @Override
             public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                System.out.println(videoUri);
+                System.out.println(videoId);
             }
         });
     }
