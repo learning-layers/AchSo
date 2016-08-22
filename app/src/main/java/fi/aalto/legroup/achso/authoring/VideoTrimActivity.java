@@ -1,11 +1,13 @@
 package fi.aalto.legroup.achso.authoring;
 
+import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.graphics.PointF;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
@@ -24,6 +26,7 @@ import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.entities.serialization.Serializable;
 import fi.aalto.legroup.achso.playback.AnnotationEditor;
 import fi.aalto.legroup.achso.playback.PlayerFragment;
+import fi.aalto.legroup.achso.utilities.RepeatingTask;
 import fi.aalto.legroup.achso.views.MarkedSeekBar;
 
 public class VideoTrimActivity extends ActionBarActivity implements PlayerFragment.PlaybackStateListener,
@@ -42,6 +45,8 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
     private MarkedSeekBar seekBar;
 
     private ImageButton playPauseButton;
+
+    private SeekBarUpdater seekBarUpdater = new SeekBarUpdater();
 
     private void loadVideo(UUID videoId) {
         Video video;
@@ -85,41 +90,109 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
 
     @Override
     public void createAnnotation(PointF position) {
-
+    // No-op
     }
 
     @Override
     public void editAnnotation(Annotation annotation) {
-
+        // No-op
     }
 
     @Override
     public void moveAnnotation(Annotation annotation, PointF position) {
-
+        // No-op
     }
 
     @Override
-    public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+        long elapsedTime = (long) (progress / 1000f);
+
+        if (fromUser) {
+            playerFragment.seekTo(progress);
+        }
 
     }
 
     @Override
     public void onStartTrackingTouch(SeekBar seekBar) {
 
+        seekBarUpdater.stop();
     }
 
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
-
+        seekBarUpdater.run();
     }
 
+
+    private final class SeekBarUpdater extends RepeatingTask {
+
+        // How often the seek bar should be updated (in milliseconds)
+        private static final int UPDATING_FREQUENCY = 250;
+
+        public SeekBarUpdater() {
+            super(UPDATING_FREQUENCY);
+        }
+
+        @Override
+        protected void doWork() {
+            int progress = (int) playerFragment.getPlaybackPosition();
+            animateTo(progress);
+        }
+
+        private void animateTo(int progress) {
+            int oldProgress = seekBar.getProgress();
+
+            // Only animate if playback is progressing forwards, otherwise it's confusing
+            if (oldProgress < progress) {
+                ObjectAnimator animator =
+                        ObjectAnimator.ofInt(seekBar, "progress", oldProgress, progress);
+
+                animator.setDuration(UPDATING_FREQUENCY);
+                animator.setInterpolator(new LinearInterpolator());
+
+                animator.start();
+            } else {
+                seekBar.setProgress(progress);
+            }
+        }
+
+    }
     @Override
     public void onPlaybackStateChanged(PlayerFragment.State state) {
+        switch (state) {
+            case PREPARED:
+                // Initialise the seek bar now that we have a duration and a position
+                seekBar.setMax((int) playerFragment.getDuration());
+                seekBar.setProgress((int) playerFragment.getPlaybackPosition());
+                seekBarUpdater.run();
+                break;
 
+            case PLAYING:
+                playPauseButton.setImageResource(R.drawable.ic_action_pause);
+                break;
+
+            case PAUSED:
+                playPauseButton.setImageResource(R.drawable.ic_action_play);
+                break;
+        }
     }
 
     @Override
     public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.playPauseButton:
+                togglePlayback();
+                break;
+        }
+    }
 
+    public void togglePlayback() {
+        if (playerFragment.getState() == PlayerFragment.State.PLAYING) {
+            playerFragment.pause();
+        } else {
+            playerFragment.play();
+        }
     }
 }
