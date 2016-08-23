@@ -34,6 +34,12 @@
         app:showAsAction="ifRoom|withText" />
 
     <item
+        android:id="@+id/action_trim"
+        android:icon="@drawable/ic_cloud_off_white_24dp"
+        android:title="Trim video"
+        app:showAsAction="ifRoom|withText" />
+
+    <item
         android:id="@+id/action_qr_to_video"
         android:icon="@drawable/ic_qrcode_white_24dp"
         android:title="@string/qr_to_video"
