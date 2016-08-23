@@ -180,6 +180,12 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
     }
 
     @Override
+    protected void onPause() {
+        seekBarUpdater.stop();
+        super.onPause();
+    }
+
+    @Override
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.playPauseButton:

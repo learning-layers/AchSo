@@ -327,27 +327,6 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
     }
 
     /**
-     * Hide controls using a delay.
-     */
-    private void hideControlsOverlay() {
-        controllerVisibilityHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                // Don't hide if we're paused
-                if (playerFragment.getState() == PlayerFragment.State.PAUSED) {
-                    return;
-                }
-
-                playbackControls.animate().alpha(0).setDuration(CONTROLS_HIDE_DURATION).start();
-                annotationControls.animate().alpha(0).setDuration(CONTROLS_HIDE_DURATION).start();
-                toolbar.animate().alpha(0).setDuration(CONTROLS_HIDE_DURATION).start();
-
-                anchorSubtitleContainerTo(null);
-            }
-        }, CONTROLS_HIDE_DELAY);
-    }
-
-    /**
      * Cancel pending hiding operations.
      */
     private void cancelControlsOverlayHide() {
