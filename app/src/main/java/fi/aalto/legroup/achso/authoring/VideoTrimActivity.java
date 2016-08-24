@@ -44,7 +44,7 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
     private int endTrimTime;
     private PlayerFragment playerFragment;
 
-    private TrimSeekBar seekBar;
+    private SeekBar seekBar;
     private RangeSeekBar<Integer> rangeSeekBar;
 
     private ImageButton playPauseButton;
@@ -85,12 +85,13 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
         Intent intent = getIntent();
 
         playPauseButton = (ImageButton) findViewById(R.id.playPauseButton);
-        seekBar = (TrimSeekBar) findViewById(R.id.seekBar);
+        seekBar = (SeekBar) findViewById(R.id.seekBar);
         rangeSeekBar = (RangeSeekBar<Integer>) findViewById(R.id.trimBar);
         playPauseButton.setOnClickListener(this);
         seekBar.setOnSeekBarChangeListener(this);
         this.id = UUID.fromString(intent.getStringExtra(ARG_VIDEO_ID));
         rangeSeekBar.setSelectedMinValue(0);
+        
     }
 
     @Override

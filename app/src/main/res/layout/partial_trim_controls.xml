@@ -36,15 +36,14 @@
             android:layout_weight="0.65"
              />
 
-        <view
-            class="fi.aalto.legroup.achso.views.TrimSeekBar"
+        <android.widget.SeekBar
             android:id="@+id/seekBar"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:minHeight="0dp"
             android:maxHeight="1000dp"
-            android:layout_weight="0.35" />
-
+            android:layout_weight="0.35"
+            />
     </LinearLayout>
 
 </LinearLayout>
