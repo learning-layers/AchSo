@@ -4,15 +4,11 @@ import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.graphics.PointF;
 import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Range;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.SeekBar;
-import android.widget.TextView;
 
 import com.nispok.snackbar.Snackbar;
 import com.nispok.snackbar.SnackbarManager;
@@ -26,12 +22,9 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.Annotation;
 import fi.aalto.legroup.achso.entities.Video;
-import fi.aalto.legroup.achso.entities.serialization.Serializable;
 import fi.aalto.legroup.achso.playback.AnnotationEditor;
 import fi.aalto.legroup.achso.playback.PlayerFragment;
 import fi.aalto.legroup.achso.utilities.RepeatingTask;
-import fi.aalto.legroup.achso.views.MarkedSeekBar;
-import fi.aalto.legroup.achso.views.TrimSeekBar;
 
 public class VideoTrimActivity extends ActionBarActivity implements PlayerFragment.PlaybackStateListener,
         SeekBar.OnSeekBarChangeListener, AnnotationEditor, View.OnClickListener {
@@ -40,8 +33,11 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
 
     private Video video;
     private UUID id;
+
     private int startTrimTime = 0;
-    private int endTrimTime;
+    private int endTrimTime = 0;
+    private int videoLength = 0;
+
     private PlayerFragment playerFragment;
 
     private SeekBar seekBar;
@@ -50,6 +46,10 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
     private ImageButton playPauseButton;
 
     private SeekBarUpdater seekBarUpdater = new SeekBarUpdater();
+
+    private int percentageToVideoLength(float percentage) {
+        return Math.round(videoLength * percentage);
+    }
 
     private void loadVideo(UUID videoId) {
         Video video;
@@ -91,7 +91,14 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
         seekBar.setOnSeekBarChangeListener(this);
         this.id = UUID.fromString(intent.getStringExtra(ARG_VIDEO_ID));
         rangeSeekBar.setSelectedMinValue(0);
-        
+
+        rangeSeekBar.setOnRangeSeekBarChangeListener(new RangeSeekBar.OnRangeSeekBarChangeListener<Integer>() {
+            @Override
+            public void onRangeSeekBarValuesChanged(RangeSeekBar<?> bar, Integer minValue, Integer maxValue) {
+                startTrimTime = percentageToVideoLength(minValue / 100.0f);
+                endTrimTime = percentageToVideoLength(maxValue / 100.0f);
+            }
+        });
     }
 
     @Override
@@ -165,10 +172,9 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
         switch (state) {
             case PREPARED:
                 // Initialise the seek bar now that we have a duration and a position
-                endTrimTime = (int) playerFragment.getDuration();
-                seekBar.setMax(endTrimTime);
+                videoLength = (int) playerFragment.getDuration();
+                seekBar.setMax(videoLength);
                 seekBar.setProgress((int) playerFragment.getPlaybackPosition());
-                rangeSeekBar.setSelectedMaxValue(endTrimTime);
                 seekBarUpdater.run();
                 break;
 
