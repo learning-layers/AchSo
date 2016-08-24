@@ -6,6 +6,7 @@ import android.graphics.PointF;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Range;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
 import android.widget.ImageButton;
@@ -15,6 +16,8 @@ import android.widget.TextView;
 
 import com.nispok.snackbar.Snackbar;
 import com.nispok.snackbar.SnackbarManager;
+
+import org.florescu.android.rangeseekbar.RangeSeekBar;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -41,9 +44,8 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
     private int endTrimTime;
     private PlayerFragment playerFragment;
 
-    private LinearLayout playbackControls;
-
     private TrimSeekBar seekBar;
+    private RangeSeekBar<Integer> rangeSeekBar;
 
     private ImageButton playPauseButton;
 
@@ -84,9 +86,11 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
 
         playPauseButton = (ImageButton) findViewById(R.id.playPauseButton);
         seekBar = (TrimSeekBar) findViewById(R.id.seekBar);
+        rangeSeekBar = (RangeSeekBar<Integer>) findViewById(R.id.trimBar);
         playPauseButton.setOnClickListener(this);
         seekBar.setOnSeekBarChangeListener(this);
         this.id = UUID.fromString(intent.getStringExtra(ARG_VIDEO_ID));
+        rangeSeekBar.setSelectedMinValue(0);
     }
 
     @Override
@@ -163,6 +167,7 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
                 endTrimTime = (int) playerFragment.getDuration();
                 seekBar.setMax(endTrimTime);
                 seekBar.setProgress((int) playerFragment.getPlaybackPosition());
+                rangeSeekBar.setSelectedMaxValue(endTrimTime);
                 seekBarUpdater.run();
                 break;
 
