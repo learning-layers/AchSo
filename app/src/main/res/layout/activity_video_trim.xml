@@ -15,7 +15,7 @@
     <include layout="@layout/partial_toolbar_with_nav_button_transparent" />
 
     <include
-        layout="@layout/partial_playback_controls"
+        layout="@layout/partial_trim_controls"
         android:id="@+id/playbackControls"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

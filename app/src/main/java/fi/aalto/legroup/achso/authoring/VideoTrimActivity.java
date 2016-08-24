@@ -28,6 +28,7 @@ import fi.aalto.legroup.achso.playback.AnnotationEditor;
 import fi.aalto.legroup.achso.playback.PlayerFragment;
 import fi.aalto.legroup.achso.utilities.RepeatingTask;
 import fi.aalto.legroup.achso.views.MarkedSeekBar;
+import fi.aalto.legroup.achso.views.TrimSeekBar;
 
 public class VideoTrimActivity extends ActionBarActivity implements PlayerFragment.PlaybackStateListener,
         SeekBar.OnSeekBarChangeListener, AnnotationEditor, View.OnClickListener {
@@ -36,13 +37,13 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
 
     private Video video;
     private UUID id;
-    private int startTrimTime;
+    private int startTrimTime = 0;
     private int endTrimTime;
     private PlayerFragment playerFragment;
 
     private LinearLayout playbackControls;
 
-    private MarkedSeekBar seekBar;
+    private TrimSeekBar seekBar;
 
     private ImageButton playPauseButton;
 
@@ -82,7 +83,7 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
         Intent intent = getIntent();
 
         playPauseButton = (ImageButton) findViewById(R.id.playPauseButton);
-        seekBar = (MarkedSeekBar) findViewById(R.id.seekBar);
+        seekBar = (TrimSeekBar) findViewById(R.id.seekBar);
         playPauseButton.setOnClickListener(this);
         seekBar.setOnSeekBarChangeListener(this);
         this.id = UUID.fromString(intent.getStringExtra(ARG_VIDEO_ID));
@@ -90,7 +91,7 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
 
     @Override
     public void createAnnotation(PointF position) {
-    // No-op
+        // No-op
     }
 
     @Override
@@ -105,18 +106,13 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
 
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-
-        long elapsedTime = (long) (progress / 1000f);
-
         if (fromUser) {
             playerFragment.seekTo(progress);
         }
-
     }
 
     @Override
     public void onStartTrackingTouch(SeekBar seekBar) {
-
         seekBarUpdater.stop();
     }
 
@@ -164,7 +160,8 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
         switch (state) {
             case PREPARED:
                 // Initialise the seek bar now that we have a duration and a position
-                seekBar.setMax((int) playerFragment.getDuration());
+                endTrimTime = (int) playerFragment.getDuration();
+                seekBar.setMax(endTrimTime);
                 seekBar.setProgress((int) playerFragment.getPlaybackPosition());
                 seekBarUpdater.run();
                 break;
