@@ -27,6 +27,7 @@
         android:layout_height="match_parent">
 
         <org.florescu.android.rangeseekbar.RangeSeekBar
+            app:internalPadding="0dp"
             app:showLabels="false"
             app:valuesAboveThumbs="false"
             android:id="@+id/trimBar"

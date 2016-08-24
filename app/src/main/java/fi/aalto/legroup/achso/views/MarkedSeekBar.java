@@ -69,6 +69,7 @@ public class MarkedSeekBar extends SeekBar {
         super.setOnSeekBarChangeListener(listener);
     }
 
+
     /**
      * Sets the positions that should be drawn on the seek bar. Marker positions should be integers
      * that are greater than or equal to 0 and less than or equal to getMax().
