@@ -95,10 +95,35 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
         rangeSeekBar.setOnRangeSeekBarChangeListener(new RangeSeekBar.OnRangeSeekBarChangeListener<Integer>() {
             @Override
             public void onRangeSeekBarValuesChanged(RangeSeekBar<?> bar, Integer minValue, Integer maxValue) {
-                startTrimTime = percentageToVideoLength(minValue / 100.0f);
-                endTrimTime = percentageToVideoLength(maxValue / 100.0f);
+                int newStartTime = percentageToVideoLength(minValue / 100.0f);
+                int newEndTime = percentageToVideoLength(maxValue / 100.0f);
+
+                setVideoStart(newStartTime);
+                setVideoEnd(newEndTime);
             }
         });
+    }
+
+    private void setVideoStart(int newStart) {
+        this.startTrimTime = newStart;
+        long currentPlaytime = playerFragment.getPlaybackPosition();
+
+        if (currentPlaytime < newStart) {
+            playerFragment.pause();
+            playerFragment.seekTo(startTrimTime);
+            seekBar.setProgress(startTrimTime);
+        }
+
+    }
+    private void setVideoEnd(int newEnd) {
+        this.endTrimTime = newEnd;
+        long currentPlaytime = playerFragment.getPlaybackPosition();
+
+        if (currentPlaytime > newEnd) {
+            playerFragment.pause();
+            playerFragment.seekTo(endTrimTime);
+            seekBar.setProgress(endTrimTime);
+        }
     }
 
     @Override
@@ -118,7 +143,7 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
 
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-        if (fromUser) {
+        if (fromUser && progress > startTrimTime && progress < endTrimTime) {
             playerFragment.seekTo(progress);
         }
     }
@@ -132,7 +157,6 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
     public void onStopTrackingTouch(SeekBar seekBar) {
         seekBarUpdater.run();
     }
-
 
     private final class SeekBarUpdater extends RepeatingTask {
 
@@ -150,6 +174,12 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
         }
 
         private void animateTo(int progress) {
+
+            if (progress > endTrimTime) {
+                progress = endTrimTime;
+                playerFragment.pause();
+            }
+
             int oldProgress = seekBar.getProgress();
 
             // Only animate if playback is progressing forwards, otherwise it's confusing
@@ -173,6 +203,7 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
             case PREPARED:
                 // Initialise the seek bar now that we have a duration and a position
                 videoLength = (int) playerFragment.getDuration();
+                endTrimTime = videoLength;
                 seekBar.setMax(videoLength);
                 seekBar.setProgress((int) playerFragment.getPlaybackPosition());
                 seekBarUpdater.run();
