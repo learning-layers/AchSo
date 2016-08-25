@@ -85,6 +85,9 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
     private EditText annotationText;
     private Annotation lastAnnotationCreated;
 
+    private int startTrimTime;
+    private int endTrimTime;
+
     private Video video;
 
     private Uri intentFile;
@@ -211,6 +214,11 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
     protected void loadVideo(Video video) {
 
         this.video = video;
+        this.startTrimTime = video.getStartTime();
+        this.endTrimTime = video.getEndTime();
+
+        System.out.println("trim start" + startTrimTime);
+        System.out.println("trim end" + endTrimTime);
 
         new DownloadUpdatedVideoAsync().execute(video);
 
@@ -239,16 +247,6 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
             case android.R.id.home:
                 finish();
                 return true;
-            /*
-            case R.id.action_share:
-                ExportService.export(this, video.getId());
-                return true;
-
-            case R.id.action_upload:
-                return true;
-
-            */
-
             case R.id.action_view_video_info:
                 Intent informationIntent = new Intent(this, DetailActivity.class);
                 informationIntent.putExtra(DetailActivity.ARG_VIDEO_ID, video.getId());
@@ -296,7 +294,9 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
     }
 
     public void togglePlayback() {
-        if (playerFragment.getState() == PlayerFragment.State.PLAYING) {
+        if (playerFragment.getPlaybackPosition() > endTrimTime && isEndTrimSet()) {
+            return;
+        } else if (playerFragment.getState() == PlayerFragment.State.PLAYING) {
             playerFragment.pause();
         } else {
             playerFragment.play();
@@ -420,6 +420,10 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         });
     }
 
+    private boolean isEndTrimSet() {
+        return this.endTrimTime != Integer.MAX_VALUE && this.video.isLocal();
+    }
+
     private void deleteAnnotation(Annotation annotation) {
         video.getAnnotations().remove(annotation);
         video.save(new SavePlayerVideoCallback());
@@ -486,6 +490,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         switch (state) {
             case PREPARED:
                 // Initialise the seek bar now that we have a duration and a position
+                playerFragment.seekTo(startTrimTime);
                 seekBar.setMax((int) playerFragment.getDuration());
                 seekBar.setProgress((int) playerFragment.getPlaybackPosition());
                 seekBarUpdater.run();
@@ -526,7 +531,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
 
         elapsedTimeText.setText(elapsedTimeString);
 
-        if (fromUser) {
+        if (fromUser && progress > startTrimTime && progress < endTrimTime) {
             playerFragment.seekTo(progress);
         }
     }
@@ -584,6 +589,12 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         }
 
         private void animateTo(int progress) {
+
+            if (progress > endTrimTime && isEndTrimSet()) {
+                progress = endTrimTime;
+                playerFragment.pause();
+            }
+
             int oldProgress = seekBar.getProgress();
 
             // Only animate if playback is progressing forwards, otherwise it's confusing

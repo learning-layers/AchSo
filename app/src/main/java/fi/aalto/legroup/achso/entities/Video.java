@@ -89,7 +89,7 @@ public class Video implements JsonSerializable {
         this.isTemporary = false;
 
         this.startTime = 0;
-        this.endTime = -1;
+        this.endTime = Integer.MAX_VALUE;
     }
 
     /**
