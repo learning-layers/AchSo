@@ -235,7 +235,9 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
     }
 
     public void togglePlayback() {
-        if (playerFragment.getState() == PlayerFragment.State.PLAYING) {
+        if (playerFragment.getPlaybackPosition() > endTrimTime) {
+            return;
+        }  else if (playerFragment.getState() == PlayerFragment.State.PLAYING) {
             playerFragment.pause();
         } else {
             playerFragment.play();
