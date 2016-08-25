@@ -24,12 +24,10 @@ public final class MarkerStrategy implements AnnotationRenderer.Strategy, Marker
 
     private final MarkerCanvas canvas;
     private final AnnotationEditor editor;
-    private final LayerDrawable markerBackground;
 
     public MarkerStrategy(MarkerCanvas canvas, AnnotationEditor editor) {
         this.canvas = canvas;
         this.editor = editor;
-        this.markerBackground = (LayerDrawable) getDrawable(canvas.getContext(), R.drawable.annotation_marker);
 
         canvas.setListener(this);
     }
@@ -41,15 +39,12 @@ public final class MarkerStrategy implements AnnotationRenderer.Strategy, Marker
             int color = annotation.calculateColor();
 
             // Replace the placeholder outer ring with a colored one
-            Drawable ring = getDrawable(canvas.getContext(), R.drawable.annotation_marker_outer_ring);
+            Drawable ring = getDrawable(canvas.getContext(), R.drawable.annotation_marker_outer_ring).mutate();
+            LayerDrawable bg = (LayerDrawable) getDrawable(canvas.getContext(), R.drawable.annotation_marker).mutate();
+            ring.setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
 
-            if (ring != null) {
-                ring.setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
-                markerBackground.setDrawableByLayerId(R.id.outer_ring, ring);
-            }
-
-            Marker marker = canvas.addMarker(markerPosition, markerBackground);
-
+            bg.setDrawableByLayerId(R.id.outer_ring, ring);
+            Marker marker = canvas.addMarker(markerPosition, bg);
             marker.setTag(annotation);
         }
     }
