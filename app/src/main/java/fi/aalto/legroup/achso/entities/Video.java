@@ -150,6 +150,39 @@ public class Video implements JsonSerializable {
         }
     }
 
+    public void purgeAnnotationsOlderThan(int time) {
+        if (this.annotations == null || !this.isLocal()) {
+            return;
+        }
+
+        ArrayList<Annotation> newAnnotations = new ArrayList<Annotation>();
+
+        for (Annotation annotation : annotations) {
+            if (annotation.getTime() < time) {
+                newAnnotations.add(annotation);
+            }
+        }
+
+        setAnnotations(newAnnotations);
+    }
+
+    public void purgeAnnotationsEarlierThan(int time) {
+
+        if (this.annotations == null || !this.isLocal()) {
+            return;
+        }
+
+        ArrayList<Annotation> newAnnotations = new ArrayList<Annotation>();
+
+        for (Annotation annotation : annotations) {
+            if (annotation.getTime() > time) {
+                newAnnotations.add(annotation);
+            }
+        }
+
+        setAnnotations(newAnnotations);
+    }
+
     public Uri getThumbUri() {
         return this.thumbUri;
     }
@@ -168,11 +201,15 @@ public class Video implements JsonSerializable {
 
     public int getStartTime() { return this.startTime; }
 
-    public void setStartTime(int startTime) { this.startTime = startTime; }
+    public void setStartTime(int startTime) {
+        this.startTime = startTime;
+    }
 
     public int getEndTime() { return this.endTime; }
 
-    public void setEndTime(int endTime) { this.endTime = endTime; }
+    public void setEndTime(int endTime) {
+        this.endTime = endTime;
+    }
 
     public int getRotation() {
         return this.rotation;
