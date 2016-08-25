@@ -142,6 +142,16 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
     }
 
     @Override
+    public void onBackPressed() {
+        if (startTrimTime != 0 || endTrimTime != videoLength) {
+            video.setStartTime(startTrimTime);
+            video.setEndTime(endTrimTime);
+            video.save(null);
+        }
+        super.onBackPressed();
+    }
+
+    @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
         if (fromUser && progress > startTrimTime && progress < endTrimTime) {
             playerFragment.seekTo(progress);
