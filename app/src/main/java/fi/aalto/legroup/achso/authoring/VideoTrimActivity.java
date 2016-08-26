@@ -51,6 +51,10 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
         return Math.round(videoLength * percentage);
     }
 
+    private int lengthToPercentage(int length) {
+        return Math.round(100 * (length / (float) videoLength));
+    }
+
     private void loadVideo(UUID videoId) {
         Video video;
         try {
@@ -61,7 +65,6 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
         }
 
         this.video = video;
-
         playerFragment = (PlayerFragment)
                 getFragmentManager().findFragmentById(R.id.videoPlayerFragment);
 
@@ -69,6 +72,18 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
         playerFragment.prepare(video, this);
     }
 
+    private void setRangeBarValues(Video video) {
+        int start = video.getStartTime();
+        int end = video.getEndTime();
+
+        int minValue = lengthToPercentage(start);
+        rangeSeekBar.setSelectedMinValue(minValue);
+
+        if (end != Integer.MAX_VALUE) {
+            int maxValue = lengthToPercentage(end);
+            rangeSeekBar.setSelectedMaxValue(maxValue);
+        }
+    }
 
     @Override
     protected void onResumeFragments() {
@@ -89,7 +104,7 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
         playPauseButton.setOnClickListener(this);
         seekBar.setOnSeekBarChangeListener(this);
         this.id = UUID.fromString(intent.getStringExtra(ARG_VIDEO_ID));
-        rangeSeekBar.setSelectedMinValue(0);
+
 
         rangeSeekBar.setOnRangeSeekBarChangeListener(new RangeSeekBar.OnRangeSeekBarChangeListener<Integer>() {
             @Override
@@ -216,6 +231,7 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
                 endTrimTime = videoLength;
                 seekBar.setMax(videoLength);
                 seekBar.setProgress((int) playerFragment.getPlaybackPosition());
+                setRangeBarValues(this.video);
                 seekBarUpdater.run();
                 break;
 
