@@ -211,6 +211,11 @@ public class Video implements JsonSerializable {
         this.endTime = endTime;
     }
 
+    public void removeTrimming() {
+        setStartTime(0);
+        setEndTime(Integer.MAX_VALUE);
+    }
+
     public int getRotation() {
         return this.rotation;
     }
@@ -280,7 +285,6 @@ public class Video implements JsonSerializable {
     public void setRevision(int revision) {
         this.revision = revision;
     }
-
 
     public User getAuthor() {
         return this.author;
