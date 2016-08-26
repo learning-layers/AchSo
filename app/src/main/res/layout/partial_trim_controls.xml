@@ -33,7 +33,7 @@
             android:id="@+id/trimBar"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="0.65"
+            android:layout_weight="0.60"
              />
 
         <android.widget.SeekBar
@@ -42,7 +42,7 @@
             android:layout_height="0dp"
             android:minHeight="0dp"
             android:maxHeight="1000dp"
-            android:layout_weight="0.35"
+            android:layout_weight="0.40"
             />
     </LinearLayout>
 
