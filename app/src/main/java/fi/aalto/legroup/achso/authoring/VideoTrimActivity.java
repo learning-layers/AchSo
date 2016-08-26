@@ -130,6 +130,8 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
 
     }
     private void setVideoEnd(int newEnd) {
+        if (newEnd == Integer.MAX_VALUE) return;
+
         this.endTrimTime = newEnd;
         long currentPlaytime = playerFragment.getPlaybackPosition();
 
@@ -229,9 +231,15 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
                 // Initialise the seek bar now that we have a duration and a position
                 videoLength = (int) playerFragment.getDuration();
                 endTrimTime = videoLength;
+
+                setRangeBarValues(this.video);
+                setVideoStart(video.getStartTime());
+                setVideoEnd(video.getEndTime());
+
                 seekBar.setMax(videoLength);
                 seekBar.setProgress((int) playerFragment.getPlaybackPosition());
-                setRangeBarValues(this.video);
+
+
                 seekBarUpdater.run();
                 break;
 
