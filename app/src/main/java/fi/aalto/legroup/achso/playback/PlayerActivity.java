@@ -61,9 +61,6 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
 
     public static final String ARG_VIDEO_ID = "ARG_VIDEO_ID";
 
-    // How long the user can be inactive before the controls get hidden (in milliseconds)
-    private static final int CONTROLS_HIDE_DELAY = 5000;
-
     // Animation duration for hiding and showing controls (in milliseconds)
     private static final int CONTROLS_HIDE_DURATION = 300;
 
