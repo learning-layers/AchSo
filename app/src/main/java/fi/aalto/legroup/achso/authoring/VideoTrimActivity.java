@@ -238,13 +238,15 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
 
                 seekBar.setMax(videoLength);
                 seekBar.setProgress((int) playerFragment.getPlaybackPosition());
-
-
                 seekBarUpdater.run();
                 break;
 
             case PLAYING:
                 playPauseButton.setImageResource(R.drawable.ic_action_pause);
+                break;
+
+            case FINISHED:
+                playerFragment.seekTo(startTrimTime);
                 break;
 
             case PAUSED:

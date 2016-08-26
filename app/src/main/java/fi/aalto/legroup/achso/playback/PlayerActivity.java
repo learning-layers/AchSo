@@ -510,6 +510,10 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
                 playPauseButton.setImageResource(R.drawable.ic_action_play);
                 break;
 
+            case FINISHED:
+                playerFragment.seekTo(0);
+                break;
+
             case ANNOTATION_PAUSED:
                 disableControls();
                 playPauseButton.setImageResource(R.drawable.ic_action_play);
