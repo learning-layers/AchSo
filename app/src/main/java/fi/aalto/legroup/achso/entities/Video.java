@@ -150,37 +150,46 @@ public class Video implements JsonSerializable {
         }
     }
 
-    public void purgeAnnotationsOlderThan(int time) {
-        if (this.annotations == null || !this.isLocal()) {
-            return;
-        }
+    private interface AnnotationComparer {
+        boolean compareTimes(long first, long second);
+    }
 
+
+    private void purgeOutOfBoundsAnnotations(int time, AnnotationComparer comparer) {
         ArrayList<Annotation> newAnnotations = new ArrayList<Annotation>();
 
         for (Annotation annotation : annotations) {
-            if (annotation.getTime() < time) {
+            if (comparer.compareTimes(annotation.getTime(), time)) {
                 newAnnotations.add(annotation);
             }
         }
 
         setAnnotations(newAnnotations);
     }
-
-    public void purgeAnnotationsEarlierThan(int time) {
-
+    public void purgeAnnotationsOlderThan(int time) {
         if (this.annotations == null || !this.isLocal()) {
             return;
         }
 
-        ArrayList<Annotation> newAnnotations = new ArrayList<Annotation>();
-
-        for (Annotation annotation : annotations) {
-            if (annotation.getTime() > time) {
-                newAnnotations.add(annotation);
+        purgeOutOfBoundsAnnotations(time, new AnnotationComparer() {
+            @Override
+            public boolean compareTimes(long first, long second) {
+                return first < second;
             }
+        });
+    }
+
+    public void purgeAnnotationsEarlierThan(int time) {
+        if (this.annotations == null || !this.isLocal()) {
+            return;
         }
 
-        setAnnotations(newAnnotations);
+        purgeOutOfBoundsAnnotations(time, new AnnotationComparer() {
+            @Override
+            public boolean compareTimes(long first, long second) {
+                return first > second;
+            }
+        });
     }
 
     public Uri getThumbUri() {
