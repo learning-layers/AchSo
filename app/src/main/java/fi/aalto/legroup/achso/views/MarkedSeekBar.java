@@ -70,7 +70,7 @@ public class MarkedSeekBar extends SeekBar {
 
         trimIndicatorPaint = new Paint();
         trimIndicatorPaint.setAntiAlias(true);
-        trimIndicatorPaint.setColor(Color.BLUE);
+        trimIndicatorPaint.setColor(Color.parseColor("#33b5e5"));
         trimIndicatorPaint.setStyle(Paint.Style.STROKE);
         trimIndicatorPaint.setStrokeWidth(markerStrokeWidthPx);
 
