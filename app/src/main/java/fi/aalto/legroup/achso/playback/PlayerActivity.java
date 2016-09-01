@@ -82,7 +82,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
     private EditText annotationText;
     private Annotation lastAnnotationCreated;
 
-    private int startTrimTime;
+    private int startTrimTime = 0;
     private int endTrimTime;
 
     private Video video;
@@ -512,7 +512,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
                 break;
 
             case FINISHED:
-                playerFragment.seekTo(0);
+                playerFragment.seekTo(startTrimTime);
                 break;
 
             case ANNOTATION_PAUSED:
