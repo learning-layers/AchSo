@@ -528,19 +528,15 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
 
                 break;
 
-            case ERROR:
-                showSnackbar(R.string.storage_error);
-                // Fall through
-
             case FINISHED:
                 if (fragment != null) {
                     manager.beginTransaction().remove(fragment).commit();
                 }
-
-                UUID id = event.getId();
-                trimVideo(id);
-
                 break;
+
+            case ERROR:
+                showSnackbar(R.string.storage_error);
+                // Fall through
         }
     }
 
@@ -579,35 +575,6 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
 
             SyncService.syncWithCloudStorage(this);
         }
-    }
-
-    private void trimVideo(final UUID videoId) {
-
-        final Activity self = this;
-        promptUserForTrimming(new MaterialDialog.SingleButtonCallback() {
-            @Override
-            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                Intent intent = new Intent(self, VideoTrimActivity.class);
-                intent.putExtra(VideoTrimActivity.ARG_VIDEO_ID, videoId.toString());
-                startActivity(intent);
-            }
-        });
-    }
-
-    private void promptUserForTrimming(MaterialDialog.SingleButtonCallback callback) {
-       promptYesNoDialog(callback, "Cropping", "Would you like to crop the video?", getString(R.string.ok));
-    }
-
-    private void promptYesNoDialog(MaterialDialog.SingleButtonCallback callback, String heading, String content, String positiveText) {
-        MaterialDialog dialog = new MaterialDialog.Builder(this)
-                .title(heading)
-                .content(content)
-                .negativeText(R.string.cancel)
-                .positiveText(positiveText)
-                .onPositive(callback)
-                .build();
-
-        dialog.show();
     }
 
     private boolean checkPermissions(int messageResource, String permissions[], int[] grantResults) {
