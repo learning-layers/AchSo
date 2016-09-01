@@ -29,8 +29,8 @@ public class MarkedSeekBar extends SeekBar {
 
     protected List<Integer> markers = new ArrayList<>();
 
-    protected int trimStartTime = 0;
     protected int trimEndTime = 0;
+    protected int trimStartTime = Integer.MAX_VALUE;
 
     public MarkedSeekBar(Context context) {
         super(context);
@@ -119,7 +119,7 @@ public class MarkedSeekBar extends SeekBar {
         int posY = (getHeight() - getPaddingTop() - getPaddingBottom()) / 2;
         int max = getMax();
 
-        if (trimEndTime != 0 && trimStartTime != 0) {
+        if (trimEndTime != 0 || trimStartTime != Integer.MAX_VALUE) {
             float startX = (float) trimStartTime / max * markerAreaWidth;
             float endX = (float) trimEndTime / max * markerAreaWidth;
 
