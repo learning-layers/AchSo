@@ -34,6 +34,7 @@ import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.authoring.ExportDialogFragment;
 import fi.aalto.legroup.achso.authoring.QRHelper;
 import fi.aalto.legroup.achso.authoring.VideoDeletionFragment;
+import fi.aalto.legroup.achso.authoring.VideoTrimActivity;
 import fi.aalto.legroup.achso.entities.OptimizedVideo;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.playback.PlayerActivity;
@@ -253,9 +254,23 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
                 return true;
             }
 
+            case R.id.action_trim: {
+                List<UUID> selection = getLocalVideoSelection();
+                UUID firstVideoId = selection.get(0);
+
+                if (firstVideoId != null) {
+                    Intent intent = new Intent(getActivity(), VideoTrimActivity.class);
+                    intent.putExtra(VideoTrimActivity.ARG_VIDEO_ID, firstVideoId.toString());
+                    startActivity(intent);
+                }
+
+                mode.finish();
+                return true;
+            }
+
             case R.id.action_export_video:
             {
-                ArrayList<Video> videos = getSelectionVideos();
+                ArrayList<Video> videos = getRemoteSelectionVideos();
 
                 String email = "";
 
@@ -360,6 +375,23 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
     }
 
 
+    private List<UUID> getLocalVideoSelection() {
+        List<UUID> ids = getSelection();
+
+        for (UUID id : ids) {
+            try {
+                Video video = App.videoRepository.getVideo(id).inflate();
+                if (video.isLocal()) {
+                    ids.add(video.getId());
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return ids;
+    }
+
     private List<UUID> getSelection() {
         List<Integer> positions = this.adapter.getSelectedItems();
         List<UUID> items = new ArrayList<>();
@@ -375,7 +407,7 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
         return items;
     }
 
-    private ArrayList<Video> getSelectionVideos() {
+    private ArrayList<Video> getRemoteSelectionVideos() {
         List<UUID> selection = getSelection();
         ArrayList<Video> videos = new ArrayList<Video>();
 
@@ -445,13 +477,16 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
         MenuItem download_menu_item = menu.findItem(R.id.action_download);
         MenuItem cache_remove_item = menu.findItem(R.id.action_cache_remove);
         MenuItem share_menu_item = menu.findItem(R.id.action_share_to_group);
+        MenuItem trim_menu_item = menu.findItem(R.id.action_trim);
 
         if (hasLocal) {
             share_menu_item.setVisible(false);
             export_menu_item.setVisible(false);
             upload_menu_item.setVisible(true);
+            trim_menu_item.setVisible(true);
         } else {
             share_menu_item.setVisible(true);
+            trim_menu_item.setVisible(false);
             export_menu_item.setVisible(true);
             upload_menu_item.setVisible(false);
         }

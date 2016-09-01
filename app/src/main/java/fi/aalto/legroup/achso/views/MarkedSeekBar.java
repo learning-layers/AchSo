@@ -21,12 +21,16 @@ public class MarkedSeekBar extends SeekBar {
     protected static final int MARKER_STROKE_WIDTH_DP = 2;
 
     protected SnappingOnSeekBarChangeListener listener;
+    protected Paint trimIndicatorPaint;
     protected Paint markerPaint;
     protected Paint markerSecondaryPaint;
     protected Paint markerDisabledPaint;
     protected float markerRadiusPx;
 
     protected List<Integer> markers = new ArrayList<>();
+
+    protected int trimEndTime = 0;
+    protected int trimStartTime = Integer.MAX_VALUE;
 
     public MarkedSeekBar(Context context) {
         super(context);
@@ -64,10 +68,17 @@ public class MarkedSeekBar extends SeekBar {
         markerDisabledPaint.setColor(Color.BLACK);
         markerDisabledPaint.setAlpha(0x20);
 
+        trimIndicatorPaint = new Paint();
+        trimIndicatorPaint.setAntiAlias(true);
+        trimIndicatorPaint.setColor(Color.parseColor("#33b5e5"));
+        trimIndicatorPaint.setStyle(Paint.Style.STROKE);
+        trimIndicatorPaint.setStrokeWidth(markerStrokeWidthPx);
+
         listener = new SnappingOnSeekBarChangeListener(markers);
 
         super.setOnSeekBarChangeListener(listener);
     }
+
 
     /**
      * Sets the positions that should be drawn on the seek bar. Marker positions should be integers
@@ -84,6 +95,13 @@ public class MarkedSeekBar extends SeekBar {
         invalidate();
     }
 
+    public void setTrim(int start, int end) {
+        this.trimStartTime = start;
+        this.trimEndTime = end;
+
+        invalidate();
+    }
+
     @Override
     public void setOnSeekBarChangeListener(OnSeekBarChangeListener decoratedListener) {
         listener.setDelegate(decoratedListener);
@@ -94,17 +112,20 @@ public class MarkedSeekBar extends SeekBar {
     protected void onDraw(@Nonnull Canvas canvas) {
         super.onDraw(canvas);
 
-        if (markers.isEmpty()) {
-            return;
-        }
-
         canvas.save();
         canvas.translate(getPaddingLeft(), getPaddingTop());
 
-        int max = getMax();
         int markerAreaWidth = getWidth() - getPaddingLeft() - getPaddingRight();
-
         int posY = (getHeight() - getPaddingTop() - getPaddingBottom()) / 2;
+        int max = getMax();
+
+        if (trimEndTime != 0 || trimStartTime != Integer.MAX_VALUE) {
+            float startX = (float) trimStartTime / max * markerAreaWidth;
+            float endX = (float) trimEndTime / max * markerAreaWidth;
+
+            canvas.drawCircle((int) startX, posY, markerRadiusPx, trimIndicatorPaint);
+            canvas.drawCircle((int) endX, posY, markerRadiusPx, trimIndicatorPaint);
+        }
 
         for (int marker : markers) {
             Paint paint = getMarkerPaint(marker);

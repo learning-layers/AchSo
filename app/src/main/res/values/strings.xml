@@ -63,6 +63,7 @@
     <string name="browse_no_permissions">Could not show videos due to permissions</string>
     <string name="empty_results">No matching videos</string>
     <string name="import_video">Import video</string>
+    <string name="trim_video">Trim video</string>
     <string name="video_author">Author</string>
     <string name="author_is_unknown">Unknown</string>
     <string name="code_added_to_videos">Code added to selected video(s).</string>
@@ -168,7 +169,7 @@
         <item name="4000">Slow</item>
     </string-array>
 
-    <string-array translatable="false" name="settings_annotation_pause_duration_values">
+    <string-array name="settings_annotation_pause_duration_values" translatable="false">
         <item name="1000">1000</item>
         <item name="2000">2000</item>
         <item name="4000">4000</item>

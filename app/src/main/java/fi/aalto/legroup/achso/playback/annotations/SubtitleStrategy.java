@@ -5,6 +5,7 @@ import android.support.annotation.LayoutRes;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.google.common.base.CharMatcher;
@@ -41,6 +42,7 @@ public final class SubtitleStrategy implements AnnotationRenderer.Strategy {
 
     @Override
     public void render(final List<Annotation> annotations) {
+        int index = 0;
         for (Annotation annotation : annotations) {
             String annotationText = annotation.getText();
 
@@ -58,9 +60,17 @@ public final class SubtitleStrategy implements AnnotationRenderer.Strategy {
                 view = (TextView) views.pop();
             }
 
+            if (index > 0) {
+                LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) view.getLayoutParams();
+                params.setMargins(0, 25, 0, 0);
+                view.setLayoutParams(params);
+            }
+
+            view.setBackgroundColor(0x7F000000);
             view.setText(annotationText);
 
             container.addView(view);
+            index++;
         }
     }
 

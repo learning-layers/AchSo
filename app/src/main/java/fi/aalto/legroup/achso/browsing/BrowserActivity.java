@@ -2,6 +2,8 @@ package fi.aalto.legroup.achso.browsing;
 
 import android.accounts.Account;
 import android.Manifest;
+import android.app.Activity;
+import android.app.Application;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.SearchManager;
@@ -17,6 +19,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
@@ -56,6 +59,7 @@ import fi.aalto.legroup.achso.authentication.LoginStateEvent;
 import fi.aalto.legroup.achso.authentication.OIDCConfig;
 import fi.aalto.legroup.achso.authoring.QRHelper;
 import fi.aalto.legroup.achso.authoring.VideoCreatorService;
+import fi.aalto.legroup.achso.authoring.VideoTrimActivity;
 import fi.aalto.legroup.achso.settings.SettingsActivity;
 import fi.aalto.legroup.achso.sharing.SharingActivity;
 import fi.aalto.legroup.achso.storage.VideoRepositoryUpdatedEvent;
@@ -524,16 +528,15 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
 
                 break;
 
-            case ERROR:
-                showSnackbar(R.string.storage_error);
-                // Fall through
-
             case FINISHED:
                 if (fragment != null) {
                     manager.beginTransaction().remove(fragment).commit();
                 }
-
                 break;
+
+            case ERROR:
+                showSnackbar(R.string.storage_error);
+                // Fall through
         }
     }
 

@@ -61,9 +61,6 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
 
     public static final String ARG_VIDEO_ID = "ARG_VIDEO_ID";
 
-    // How long the user can be inactive before the controls get hidden (in milliseconds)
-    private static final int CONTROLS_HIDE_DELAY = 5000;
-
     // Animation duration for hiding and showing controls (in milliseconds)
     private static final int CONTROLS_HIDE_DURATION = 300;
 
@@ -84,6 +81,9 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
     private Button saveButton;
     private EditText annotationText;
     private Annotation lastAnnotationCreated;
+
+    private int startTrimTime = 0;
+    private int endTrimTime;
 
     private Video video;
 
@@ -181,7 +181,6 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         Video video;
         try {
             video = App.videoRepository.getVideo(videoId).inflate();
-
         } catch (IOException e) {
             e.printStackTrace();
             SnackbarManager.show(Snackbar.with(this).text(R.string.storage_error));
@@ -210,8 +209,14 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
     }
 
     protected void loadVideo(Video video) {
-
         this.video = video;
+
+        this.startTrimTime = video.getStartTime();
+        this.endTrimTime = video.getEndTime();
+
+        if (video.hasTrimming()) {
+            seekBar.setTrim(startTrimTime, endTrimTime);
+        }
 
         new DownloadUpdatedVideoAsync().execute(video);
 
@@ -240,16 +245,6 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
             case android.R.id.home:
                 finish();
                 return true;
-            /*
-            case R.id.action_share:
-                ExportService.export(this, video.getId());
-                return true;
-
-            case R.id.action_upload:
-                return true;
-
-            */
-
             case R.id.action_view_video_info:
                 Intent informationIntent = new Intent(this, DetailActivity.class);
                 informationIntent.putExtra(DetailActivity.ARG_VIDEO_ID, video.getId());
@@ -297,7 +292,9 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
     }
 
     public void togglePlayback() {
-        if (playerFragment.getState() == PlayerFragment.State.PLAYING) {
+        if (playerFragment.getPlaybackPosition() > endTrimTime && isEndTrimSet()) {
+            return;
+        } else if (playerFragment.getState() == PlayerFragment.State.PLAYING) {
             playerFragment.pause();
         } else {
             playerFragment.play();
@@ -325,27 +322,6 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         toolbar.animate().alpha(1).setDuration(CONTROLS_HIDE_DURATION).start();
 
         anchorSubtitleContainerTo(playbackControls);
-    }
-
-    /**
-     * Hide controls using a delay.
-     */
-    private void hideControlsOverlay() {
-        controllerVisibilityHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                // Don't hide if we're paused
-                if (playerFragment.getState() == PlayerFragment.State.PAUSED) {
-                    return;
-                }
-
-                playbackControls.animate().alpha(0).setDuration(CONTROLS_HIDE_DURATION).start();
-                annotationControls.animate().alpha(0).setDuration(CONTROLS_HIDE_DURATION).start();
-                toolbar.animate().alpha(0).setDuration(CONTROLS_HIDE_DURATION).start();
-
-                anchorSubtitleContainerTo(null);
-            }
-        }, CONTROLS_HIDE_DELAY);
     }
 
     /**
@@ -442,6 +418,10 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         });
     }
 
+    private boolean isEndTrimSet() {
+        return this.endTrimTime != Integer.MAX_VALUE && this.video.isLocal();
+    }
+
     private void deleteAnnotation(Annotation annotation) {
         video.getAnnotations().remove(annotation);
         video.save(new SavePlayerVideoCallback());
@@ -508,6 +488,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         switch (state) {
             case PREPARED:
                 // Initialise the seek bar now that we have a duration and a position
+                playerFragment.seekTo(startTrimTime);
                 seekBar.setMax((int) playerFragment.getDuration());
                 seekBar.setProgress((int) playerFragment.getPlaybackPosition());
                 seekBarUpdater.run();
@@ -530,6 +511,10 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
                 playPauseButton.setImageResource(R.drawable.ic_action_play);
                 break;
 
+            case FINISHED:
+                playerFragment.seekTo(startTrimTime);
+                break;
+
             case ANNOTATION_PAUSED:
                 disableControls();
                 playPauseButton.setImageResource(R.drawable.ic_action_play);
@@ -548,7 +533,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
 
         elapsedTimeText.setText(elapsedTimeString);
 
-        if (fromUser) {
+        if (fromUser && progress > startTrimTime && progress < endTrimTime) {
             playerFragment.seekTo(progress);
         }
     }
@@ -590,6 +575,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         return super.dispatchTouchEvent(event);
     }
 
+    //TODO: DRY up this class
     private final class SeekBarUpdater extends RepeatingTask {
 
         // How often the seek bar should be updated (in milliseconds)
@@ -606,6 +592,12 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         }
 
         private void animateTo(int progress) {
+
+            if (progress > endTrimTime && isEndTrimSet()) {
+                progress = endTrimTime;
+                playerFragment.pause();
+            }
+
             int oldProgress = seekBar.getProgress();
 
             // Only animate if playback is progressing forwards, otherwise it's confusing

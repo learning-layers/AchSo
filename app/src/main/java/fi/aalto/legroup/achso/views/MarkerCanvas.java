@@ -2,7 +2,7 @@ package fi.aalto.legroup.achso.views;
 
 import android.content.Context;
 import android.graphics.PointF;
-import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
 import android.util.AttributeSet;
 import android.view.DragEvent;
 import android.view.GestureDetector;
@@ -44,11 +44,11 @@ public class MarkerCanvas extends FrameLayout implements View.OnClickListener {
         this.listener = listener;
     }
 
-    public Marker addMarker(PointF position, Drawable background) {
+    public Marker addMarker(PointF position, LayerDrawable background) {
         return addMarker(position, background, true);
     }
 
-    public Marker addMarker(PointF position, Drawable background, boolean isDraggable) {
+    public Marker addMarker(PointF position, LayerDrawable background, boolean isDraggable) {
         Marker marker = new Marker(getContext());
 
         marker.setImageDrawable(background);

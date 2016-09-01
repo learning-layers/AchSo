@@ -318,7 +318,7 @@ public final class PlayerFragment extends Fragment implements ExoPlayer.Listener
 
             case ExoPlayer.STATE_ENDED:
                 pause();
-                seekTo(0);
+                setState(State.FINISHED);
                 break;
         }
     }
@@ -464,6 +464,7 @@ public final class PlayerFragment extends Fragment implements ExoPlayer.Listener
         PREPARED,
         PLAYING,
         PAUSED,
+        FINISHED,
         ANNOTATION_PAUSED
     }
 

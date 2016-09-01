@@ -33,6 +33,9 @@ public class OptimizedVideo {
     private String cacheThumbUri;
     private String cacheVideoUri;
 
+    private int startTime;
+    private int endTime;
+
     private UUID id;
     private String title;
     private String tag;
@@ -237,6 +240,9 @@ public class OptimizedVideo {
             cacheThumbUri = null;
         }
 
+        startTime = video.getStartTime();
+        endTime = video.getEndTime();
+
         isTemporary = video.getIsTemporary();
         repository = video.getRepository();
 
@@ -369,6 +375,8 @@ public class OptimizedVideo {
             video.setDeleteUri(null);
         }
 
+        video.setStartTime(startTime);
+        video.setEndTime(endTime);
         video.setIsTemporary(isTemporary);
         video.setRepository(repository);
         video.setId(id);

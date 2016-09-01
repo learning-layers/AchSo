@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="fi.aalto.legroup.achso.authoring.VideoTrimActivity">
+
+    <fragment
+        android:name="fi.aalto.legroup.achso.playback.PlayerFragment"
+        android:id="@+id/videoPlayerFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:layout="@layout/fragment_player" />
+
+    <include layout="@layout/partial_toolbar_with_nav_button_transparent" />
+
+    <include
+        layout="@layout/partial_trim_controls"
+        android:id="@+id/playbackControls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginRight="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp" />
+
+</RelativeLayout>

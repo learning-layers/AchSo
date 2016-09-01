@@ -45,6 +45,9 @@ public class Video implements JsonSerializable {
     protected int formatVersion;
     protected transient boolean isTemporary;
 
+    protected int startTime;
+    protected int endTime;
+
     protected User author;
     protected Location location;
     protected List<Annotation> annotations;
@@ -65,7 +68,6 @@ public class Video implements JsonSerializable {
         this.manifestUri = manifestUri;
         this.videoUri = videoUri;
         this.thumbUri = thumbUri;
-        // TODO: Investigate if these are necessary to set in constructor?
         this.thumbCacheUri = thumbCacheUri;
         this.videoCacheUri = videoCacheUri;
         this.id = id;
@@ -85,6 +87,9 @@ public class Video implements JsonSerializable {
         // Flag to indicate whether or not video should be persisted on cache
         // Eg. in search results...
         this.isTemporary = false;
+
+        this.startTime = 0;
+        this.endTime = Integer.MAX_VALUE;
     }
 
     /**
@@ -145,6 +150,48 @@ public class Video implements JsonSerializable {
         }
     }
 
+    private interface AnnotationComparer {
+        boolean compareTimes(long first, long second);
+    }
+
+
+    private void purgeOutOfBoundsAnnotations(int time, AnnotationComparer comparer) {
+        ArrayList<Annotation> newAnnotations = new ArrayList<Annotation>();
+
+        for (Annotation annotation : annotations) {
+            if (comparer.compareTimes(annotation.getTime(), time)) {
+                newAnnotations.add(annotation);
+            }
+        }
+
+        setAnnotations(newAnnotations);
+    }
+    public void purgeAnnotationsOlderThan(int time) {
+        if (this.annotations == null || !this.isLocal()) {
+            return;
+        }
+
+        purgeOutOfBoundsAnnotations(time, new AnnotationComparer() {
+            @Override
+            public boolean compareTimes(long first, long second) {
+                return first < second;
+            }
+        });
+    }
+
+    public void purgeAnnotationsEarlierThan(int time) {
+        if (this.annotations == null || !this.isLocal()) {
+            return;
+        }
+
+        purgeOutOfBoundsAnnotations(time, new AnnotationComparer() {
+            @Override
+            public boolean compareTimes(long first, long second) {
+                return first > second;
+            }
+        });
+    }
+
     public Uri getThumbUri() {
         return this.thumbUri;
     }
@@ -159,6 +206,27 @@ public class Video implements JsonSerializable {
 
     public String getTag() {
         return this.tag;
+    }
+
+    public int getStartTime() { return this.startTime; }
+
+    public void setStartTime(int startTime) {
+        this.startTime = startTime;
+    }
+
+    public int getEndTime() { return this.endTime; }
+
+    public void setEndTime(int endTime) {
+        this.endTime = endTime;
+    }
+
+    public void removeTrimming() {
+        setStartTime(0);
+        setEndTime(Integer.MAX_VALUE);
+    }
+
+    public boolean hasTrimming() {
+        return this.startTime != 0 || this.endTime != Integer.MAX_VALUE;
     }
 
     public int getRotation() {
@@ -230,7 +298,6 @@ public class Video implements JsonSerializable {
     public void setRevision(int revision) {
         this.revision = revision;
     }
-
 
     public User getAuthor() {
         return this.author;

@@ -548,6 +548,9 @@ public class CombinedVideoRepository implements VideoRepository {
             // For logging purposes
             throw new IOException("Failed to delete local file");
         }
+
+        video.removeTrimming();
+        video.save(null);
     }
 
     @Override

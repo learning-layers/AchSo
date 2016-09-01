@@ -1,5 +1,6 @@
 package fi.aalto.legroup.achso.entities;
 
+import android.graphics.Color;
 import android.graphics.PointF;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -14,6 +15,32 @@ import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
  * An annotation entity that describes a video's annotation.
  */
 public class Annotation implements JsonSerializable, Parcelable {
+
+    private static final int FNV_32_INIT = 0x811c9dc5;
+    private static final int FNV_32_PRIME = 0x01000193;
+
+    // Taken from https://material.google.com/style/color.html#color-color-palette
+    private static final int[] materialDesignPalette = {
+            0xFFF44336,
+            0xFFE91E63,
+            0xFF9C27B0,
+            0xFF673AB7,
+            0xFF3F51B5,
+            0xFF2196F3,
+            0xFF03A9F4,
+            0xFF00BCD4,
+            0xFF009688,
+            0xFF4CAF50,
+            0xFF8BC34A,
+            0xFFCDDC39,
+            0xFFFFEB3B,
+            0xFFFFC107,
+            0xFFFF9800,
+            0xFFFF5722,
+            0xFF795548,
+            0xFF9E9E9E,
+            0xFF607D8B
+    };
 
     protected long time;
     protected PointF position;
@@ -43,6 +70,25 @@ public class Annotation implements JsonSerializable, Parcelable {
 
     public long getTime() {
         return this.time;
+    }
+
+    // Calculate random color from author name using FNV
+    public int calculateColor() {
+        String name  = this.author.getName();
+
+        int rv = FNV_32_INIT;
+        int len = name.length();
+
+        for (int i = 0; i < len; i++) {
+            rv ^= name.charAt(i);
+            rv *= FNV_32_PRIME;
+        }
+
+        int index = rv % (materialDesignPalette.length - 1);
+
+        if (index < 0) index *= -1;
+
+        return materialDesignPalette[index];
     }
 
     public void setTime(long time) {

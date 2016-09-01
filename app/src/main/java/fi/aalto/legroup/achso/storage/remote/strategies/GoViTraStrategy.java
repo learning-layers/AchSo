@@ -35,12 +35,24 @@ public class GoViTraStrategy implements VideoUploader {
         this.endpointUri = endpointUri.buildUpon().appendPath("uploads").build();
     }
 
+    private String buildUploadUrl(Video video) {
+        int trimEnd = video.getEndTime();
+        int trimStart = video.getStartTime();
+        String endpoint = endpointUri.toString();
+
+        if (trimStart != 0 && trimEnd != Integer.MAX_VALUE) {
+            endpoint += String.format("?start=%s&end=%s", trimStart, trimEnd);
+        }
+
+        return endpoint;
+    }
+
     public VideoUploader.VideoUploadResult uploadVideo(Video video) throws IOException {
         File file = new File(video.getVideoUri().getPath());
         String mimeType = URLConnection.guessContentTypeFromName(file.getPath());
 
         Request request = new Request.Builder()
-                .url(endpointUri.toString())
+                .url(buildUploadUrl(video))
                 .post(RequestBody.create(MediaType.parse(mimeType), file))
                 .build();
 
@@ -48,6 +60,7 @@ public class GoViTraStrategy implements VideoUploader {
         Response response = App.authenticatedHttpClient.execute(request, account);
         if (!response.isSuccessful())
             throw new IOException(response.body().string());
+
         JsonResult result = serializer.read(JsonResult.class, response.body().byteStream());
 
         return new VideoUploadResult(result.video, result.thumbnail, result.deleteUrl, true);

@@ -81,6 +81,8 @@ dependencies {
     // Nice core libraries for a multitude of tasks
     compile 'com.google.guava:guava:18.0'
 
+    compile 'org.florescu.android.rangeseekbar:rangeseekbar-library:0.3.0'
+
     // Google Play Services APIs
     compile 'com.google.android.gms:play-services-base:8.1.0'
     compile 'com.google.android.gms:play-services-maps:8.1.0'
