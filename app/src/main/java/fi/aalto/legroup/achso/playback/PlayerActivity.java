@@ -209,13 +209,14 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
     }
 
     protected void loadVideo(Video video) {
-
         this.video = video;
+
         this.startTrimTime = video.getStartTime();
         this.endTrimTime = video.getEndTime();
 
-        System.out.println("trim start" + startTrimTime);
-        System.out.println("trim end" + endTrimTime);
+        if (video.hasTrimming()) {
+            seekBar.setTrim(startTrimTime, endTrimTime);
+        }
 
         new DownloadUpdatedVideoAsync().execute(video);
 
