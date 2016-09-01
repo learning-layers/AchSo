@@ -575,6 +575,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         return super.dispatchTouchEvent(event);
     }
 
+    //TODO: DRY up this class
     private final class SeekBarUpdater extends RepeatingTask {
 
         // How often the seek bar should be updated (in milliseconds)
