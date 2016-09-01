@@ -159,12 +159,16 @@ public class VideoTrimActivity extends ActionBarActivity implements PlayerFragme
 
     @Override
     public void onBackPressed() {
-        video.setStartTime(startTrimTime);
-        video.setEndTime(endTrimTime);
-        video.purgeAnnotationsEarlierThan(startTrimTime);
-        video.purgeAnnotationsOlderThan(endTrimTime);
-        video.save(null);
+        if (startTrimTime == 0 && endTrimTime == videoLength) {
+            video.removeTrimming();
+        } else {
+            video.setStartTime(startTrimTime);
+            video.setEndTime(endTrimTime);
+            video.purgeAnnotationsEarlierThan(startTrimTime);
+            video.purgeAnnotationsOlderThan(endTrimTime);
+        }
 
+        video.save(null);
         super.onBackPressed();
     }
 
