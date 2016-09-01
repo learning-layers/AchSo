@@ -36,7 +36,7 @@
     <item
         android:id="@+id/action_trim"
         android:icon="@drawable/ic_cloud_off_white_24dp"
-        android:title="Trim video"
+        android:title="@string/trim_video"
         app:showAsAction="ifRoom|withText" />
 
     <item

@@ -48,6 +48,7 @@
 
     <string name="empty_results">Keine passenden Videos</string>
     <string name="import_video">Video hinzufügen</string>
+    <string name="trim_video">Trim Video</string>
     <string name="video_author">Autor</string>
     <string name="author_is_unknown">Unbekannt</string>
     <string name="code_added_to_videos">Code zu ausgewählten Videos hinzugefügt.</string>

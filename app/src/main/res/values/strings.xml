@@ -63,6 +63,7 @@
     <string name="browse_no_permissions">Could not show videos due to permissions</string>
     <string name="empty_results">No matching videos</string>
     <string name="import_video">Import video</string>
+    <string name="trim_video">Trim video</string>
     <string name="video_author">Author</string>
     <string name="author_is_unknown">Unknown</string>
     <string name="code_added_to_videos">Code added to selected video(s).</string>
