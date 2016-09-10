@@ -20,7 +20,7 @@
         android:layout_height="match_parent"
         android:id="@+id/selectionOverlay"
         android:background="#88000000"
-        android:src="@drawable/ic_done_white_48dp"
+        android:src="@drawable/ic_play_circle_outline_white_48dp"
         android:scaleType="center" />
 
     <LinearLayout
