@@ -22,4 +22,7 @@ public class Group implements JsonSerializable {
     public void setVideos(List<UUID> videos) {
         this.videos = videos;
     }
+    public  boolean hasVideo(UUID id) {
+        return this.videos.contains(id);
+    }
 }

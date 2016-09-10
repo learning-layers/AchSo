@@ -804,6 +804,19 @@ public class CombinedVideoRepository implements VideoRepository {
         return allGroups;
     }
 
+    @Override
+    public boolean videoBelongsToGroup(UUID id) {
+        if (this.allGroups == null) { return false; }
+
+        for (Group group : this.allGroups) {
+            if (group.hasVideo(id)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     @Override @NonNull
     public OptimizedVideo getVideo(UUID id) throws IOException {
         OptimizedVideo video = allVideos.get(id);

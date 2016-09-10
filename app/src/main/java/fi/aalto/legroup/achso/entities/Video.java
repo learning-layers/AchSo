@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
 import fi.aalto.legroup.achso.storage.VideoRepository;
 
@@ -362,6 +363,20 @@ public class Video implements JsonSerializable {
 
     public Uri getDeleteUri() {
         return deleteUri;
+    }
+
+    public boolean hasBeenShared() {
+        // Local video, no chance of being shared
+        if (this.isLocal()) {
+            return false;
+        }
+
+        // Video authored by someone else, which means shared
+        if (this.author != App.loginManager.getUser()) {
+            return true;
+        }
+
+        return App.videoRepository.videoBelongsToGroup(this.id);
     }
 
     public static boolean isStringValidVideoID(String IDCandidate) {

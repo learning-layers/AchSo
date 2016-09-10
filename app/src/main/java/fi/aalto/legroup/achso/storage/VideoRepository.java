@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.UUID;
 
 import fi.aalto.legroup.achso.entities.Video;
-import fi.aalto.legroup.achso.playback.PlayerActivity;
 
 /**
  * Provides full read/write access to video root entities.
@@ -78,6 +77,14 @@ public interface VideoRepository extends VideoInfoRepository {
     public File getThumbCacheFile(UUID id);
 
     public File getVideoCacheFile(UUID id);
+
+
+    /**
+     *
+     * @return A boolean to indicate if a given video has been shared
+     */
+
+    public boolean videoBelongsToGroup(UUID id);
 
     /**
      *
