@@ -91,6 +91,10 @@ public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapte
         } else {
             holder.getUploadIndicator().setImageResource(R.drawable.ic_cloud_done_white_24dp);
         }
+
+        if (!video.hasBeenShared()) {
+            holder.getSharedIndicator().setVisibility(View.INVISIBLE);
+        }
     }
 
     @Override
@@ -167,6 +171,7 @@ public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapte
         private TextView titleText;
         private ImageView thumbImage;
         private ImageView uploadIndicator;
+        private ImageView sharedIndicator;
         private ProgressBar progressBar;
         private View selectionOverlay;
 
@@ -177,6 +182,7 @@ public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapte
             this.titleText = (TextView) view.findViewById(R.id.titleText);
             this.thumbImage = (ImageView) view.findViewById(R.id.thumbImage);
             this.uploadIndicator = (ImageView) view.findViewById(R.id.uploadButton);
+            this.sharedIndicator = (ImageView) view.findViewById(R.id.sharedButton);
             this.progressBar = (ProgressBar) view.findViewById(R.id.progressBar);
             this.selectionOverlay = view.findViewById(R.id.selectionOverlay);
         }
@@ -195,6 +201,10 @@ public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapte
 
         public ImageView getUploadIndicator() {
             return this.uploadIndicator;
+        }
+
+        public ImageView getSharedIndicator() {
+            return this.sharedIndicator;
         }
 
         public ProgressBar getProgressBar() {

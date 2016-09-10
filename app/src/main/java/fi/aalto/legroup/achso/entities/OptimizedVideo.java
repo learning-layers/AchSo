@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.storage.VideoRepository;
 
 /**
@@ -197,6 +198,20 @@ public class OptimizedVideo {
         }
     }
 
+    public boolean hasBeenShared() {
+        // Local video, no chance of being shared
+        if (this.isLocal()) {
+            return false;
+        }
+
+        User author = UserPool.getInternedUser(this.authorUserIndex);
+
+        if (author == App.loginManager.getUser()) {
+            return true;
+        }
+
+        return App.videoRepository.videoBelongsToGroup(this.id);
+    }
     public int getFormatVersion() {
         return formatVersion;
     }

@@ -365,20 +365,6 @@ public class Video implements JsonSerializable {
         return deleteUri;
     }
 
-    public boolean hasBeenShared() {
-        // Local video, no chance of being shared
-        if (this.isLocal()) {
-            return false;
-        }
-
-        // Video authored by someone else, which means shared
-        if (this.author != App.loginManager.getUser()) {
-            return true;
-        }
-
-        return App.videoRepository.videoBelongsToGroup(this.id);
-    }
-
     public static boolean isStringValidVideoID(String IDCandidate) {
         try {
             UUID test = UUID.fromString(IDCandidate);
