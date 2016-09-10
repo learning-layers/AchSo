@@ -300,19 +300,21 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
     @Override
     public void onItemClick(View childView, int position) {
         if (actionMode == null) {
+            startActionMode();
+        }
+
+        if (this.adapter.isSelected(position)) {
             showVideo(position);
         } else {
-            toggleSelection(position);
+           toggleSelection(position);
         }
     }
 
     @Override
     public void onItemLongPress(View childView, int position) {
-        if (actionMode == null) {
-            startActionMode();
+        if (actionMode != null) {
+            toggleSelection(position);
         }
-
-        toggleSelection(position);
     }
 
     /**
