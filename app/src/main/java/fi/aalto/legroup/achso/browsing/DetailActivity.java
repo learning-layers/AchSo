@@ -12,6 +12,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebView;
+import android.widget.Button;
 import android.widget.ListView;
 
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -27,6 +28,7 @@ import com.nispok.snackbar.SnackbarManager;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import fi.aalto.legroup.achso.R;
@@ -41,6 +43,8 @@ public final class DetailActivity extends FragmentActivity
     public static final String ARG_VIDEO_ID = "ARG_VIDEO_ID";
 
     private Video video;
+
+    private ListView groupsList;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -90,6 +94,20 @@ public final class DetailActivity extends FragmentActivity
             findViewById(R.id.unknownLocationText).setVisibility(View.GONE);
         }
 
+        groupsList = (ListView) findViewById(R.id.groupsList);
+
+        Button toggleGroups = (Button)  findViewById(R.id.toggleGroupsList);
+
+        toggleGroups.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (groupsList.getVisibility() == View.VISIBLE) {
+                    groupsList.setVisibility(View.GONE);
+                } else {
+                    groupsList.setVisibility(View.VISIBLE);
+                }
+            }
+        });
         loadGroups();
     }
 
@@ -97,8 +115,7 @@ public final class DetailActivity extends FragmentActivity
         try {
             ArrayList<Group> groups = new ArrayList<Group>(App.videoRepository.getGroups());
             GroupsListAdapter adapter = new GroupsListAdapter(this, R.layout.partial_group_list_item, groups);
-            ListView listView = (ListView) findViewById(R.id.groupsList);
-            listView.setAdapter(adapter);
+            groupsList.setAdapter(adapter);
         } catch (IOException e) {
             e.printStackTrace();
         }

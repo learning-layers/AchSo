@@ -61,6 +61,7 @@
         android:layout_height="0dp">
 
         <Button
+            android:id="@+id/toggleGroupsList"
             android:layout_marginTop="10dp"
             android:layout_marginBottom="10dp"
             android:drawableLeft="@drawable/ic_group_white_24dp"
@@ -69,6 +70,7 @@
             android:layout_width="match_parent">
         </Button>
         <ListView
+            android:visibility="gone"
             android:id="@+id/groupsList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
