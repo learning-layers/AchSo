@@ -12,6 +12,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebView;
+import android.widget.ListView;
 
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -25,11 +26,14 @@ import com.nispok.snackbar.Snackbar;
 import com.nispok.snackbar.SnackbarManager;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.UUID;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
+import fi.aalto.legroup.achso.entities.Group;
 import fi.aalto.legroup.achso.entities.Video;
+import fi.aalto.legroup.achso.views.adapters.GroupsListAdapter;
 
 public final class DetailActivity extends FragmentActivity
         implements MenuItem.OnMenuItemClickListener {
@@ -85,6 +89,23 @@ public final class DetailActivity extends FragmentActivity
 
             findViewById(R.id.unknownLocationText).setVisibility(View.GONE);
         }
+
+        loadGroups();
+    }
+
+    public void loadGroups() {
+        try {
+            ArrayList<Group> groups = new ArrayList<Group>(App.videoRepository.getGroups());
+            GroupsListAdapter adapter = new GroupsListAdapter(this, R.layout.partial_group_list_item, groups);
+            ListView listView = (ListView) findViewById(R.id.groupsList);
+            listView.setAdapter(adapter);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void showGroupsList() {
+
     }
 
     @Override
