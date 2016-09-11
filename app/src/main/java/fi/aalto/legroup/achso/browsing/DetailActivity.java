@@ -14,6 +14,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -154,6 +155,13 @@ public final class DetailActivity extends FragmentActivity
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        groupsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Group group = (Group) adapterView.getItemAtPosition(i);
+            }
+        });
     }
 
     public void showGroupsList() {
