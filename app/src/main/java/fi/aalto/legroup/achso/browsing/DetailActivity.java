@@ -150,7 +150,7 @@ public final class DetailActivity extends FragmentActivity
     public void loadGroups() {
         try {
             ArrayList<Group> groups = new ArrayList<Group>(App.videoRepository.getGroups());
-            GroupsListAdapter adapter = new GroupsListAdapter(this, R.layout.partial_group_list_item, groups);
+            GroupsListAdapter adapter = new GroupsListAdapter(this, R.layout.partial_group_list_item, groups, video.getId());
             groupsList.setAdapter(adapter);
         } catch (IOException e) {
             e.printStackTrace();

@@ -8,6 +8,7 @@ import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.entities.Group;
@@ -15,10 +16,12 @@ import fi.aalto.legroup.achso.entities.Group;
 public class GroupsListAdapter extends ArrayAdapter<Group> {
     private ArrayList<Group> groups;
     private Context context;
+    private UUID videoId;
 
-    public GroupsListAdapter(Context context, int resource, ArrayList<Group> groups) {
+    public GroupsListAdapter(Context context, int resource, ArrayList<Group> groups, UUID videoId) {
         super(context, resource, groups);
         this.context = context;
+        this.videoId = videoId;
         this.groups = new ArrayList<Group>();
         this.groups.addAll(groups);
     }
@@ -46,6 +49,7 @@ public class GroupsListAdapter extends ArrayAdapter<Group> {
 
         holder.name.setText(group.getName());
         holder.name.setTag(group);
+        holder.name.setChecked(group.hasVideo(videoId));
 
         return convertView;
     }
