@@ -5,15 +5,12 @@
     android:layout_height="wrap_content">
 
     <CheckBox
-        android:layout_marginTop="5dp"
-        android:layout_marginBottom="5dp"
         android:id="@+id/groupCheckbox"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:focusableInTouchMode="false"
         android:focusable="false"
-        android:clickable="false"
         android:layout_alignParentLeft="true"
-        android:text="Group name"
-        >
+        android:text="Group name">
     </CheckBox>
 </RelativeLayout>

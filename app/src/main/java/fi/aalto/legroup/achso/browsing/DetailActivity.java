@@ -147,25 +147,34 @@ public final class DetailActivity extends FragmentActivity
         listView.setLayoutParams(params);
     }
 
+    private class OnGroupShareChanged implements GroupsListAdapter.OnGroupSharedEventListener{
+
+        public  OnGroupShareChanged() {}
+
+        @Override
+        public void onClick(Group group, boolean isShared) {
+            System.out.println(group.getName());
+            System.out.println(isShared);
+
+            UUID id = video.getId();
+
+            if (isShared) {
+                group.addVideoToGroup(id);
+            } else {
+                group.removeVideoFromGroup(id);
+            }
+        }
+    }
     public void loadGroups() {
         try {
             ArrayList<Group> groups = new ArrayList<Group>(App.videoRepository.getGroups());
             GroupsListAdapter adapter = new GroupsListAdapter(this, R.layout.partial_group_list_item, groups, video.getId());
+            adapter.setListener(new OnGroupShareChanged());
+
             groupsList.setAdapter(adapter);
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        groupsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Group group = (Group) adapterView.getItemAtPosition(i);
-            }
-        });
-    }
-
-    public void showGroupsList() {
-
     }
 
     @Override

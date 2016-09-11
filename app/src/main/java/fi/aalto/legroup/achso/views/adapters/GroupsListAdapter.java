@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 
 import java.util.ArrayList;
 import java.util.UUID;
@@ -17,6 +18,11 @@ public class GroupsListAdapter extends ArrayAdapter<Group> {
     private ArrayList<Group> groups;
     private Context context;
     private UUID videoId;
+    private  OnGroupSharedEventListener listener;
+
+    public interface OnGroupSharedEventListener {
+        void onClick(Group group, boolean isShared);
+    }
 
     public GroupsListAdapter(Context context, int resource, ArrayList<Group> groups, UUID videoId) {
         super(context, resource, groups);
@@ -26,8 +32,12 @@ public class GroupsListAdapter extends ArrayAdapter<Group> {
         this.groups.addAll(groups);
     }
 
-    private class GroupHolder {
-        CheckBox name;
+    public class GroupHolder {
+        public CheckBox name;
+    }
+
+    public void setListener(OnGroupSharedEventListener listener) {
+        this.listener = listener;
     }
 
     @Override
@@ -45,11 +55,19 @@ public class GroupsListAdapter extends ArrayAdapter<Group> {
             holder = (GroupHolder) convertView.getTag();
         }
 
-        Group group = groups.get(pos);
+        final Group group = groups.get(pos);
 
         holder.name.setText(group.getName());
         holder.name.setTag(group);
         holder.name.setChecked(group.hasVideo(videoId));
+        holder.name.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if (listener != null) {
+                    listener.onClick(group, b);
+                }
+            }
+        });
 
         return convertView;
     }

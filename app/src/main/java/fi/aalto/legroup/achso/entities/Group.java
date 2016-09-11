@@ -25,4 +25,14 @@ public class Group implements JsonSerializable {
     public  boolean hasVideo(UUID id) {
         return this.videos.contains(id);
     }
+
+    public void removeVideoFromGroup(UUID videoID) {
+        this.videos.remove(videoID);
+    }
+
+    public void addVideoToGroup(UUID videoID) {
+        if (!this.videos.contains(videoID)) {
+            this.videos.add(videoID);
+        }
+    }
 }
