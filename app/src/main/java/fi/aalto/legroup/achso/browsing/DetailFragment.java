@@ -131,6 +131,4 @@ public final class DetailFragment extends Fragment {
                 .show();
     }
 
-    private void showGenreEditDialog() {}
-
 }

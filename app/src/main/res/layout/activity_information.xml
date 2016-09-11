@@ -6,48 +6,86 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="fill_parent"
-        android:layout_weight="5">
-
-        <fragment
-            android:layout_width="match_parent"
-            android:layout_height="fill_parent"
-            android:name="com.google.android.gms.maps.SupportMapFragment"
-            android:id="@+id/mapFragment"
-            map:uiCompass="false"
-            map:uiRotateGestures="false"
-            map:uiScrollGestures="false"
-            map:uiTiltGestures="false"
-            map:uiZoomControls="true"
-            map:uiZoomGestures="false"
-            tools:ignore="MissingPrefix" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:id="@+id/unknownLocationText"
-            android:background="#88000000"
-            android:textColor="@android:color/primary_text_dark"
-            android:padding="8dp"
-            android:text="@string/semanticvideo_unknown_location" />
-
-    </FrameLayout>
-
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="fill_parent"
-        android:layout_weight="4">
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_weight="0.5"
+        android:layout_height="0dp">
 
-        <fragment
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:name="fi.aalto.legroup.achso.browsing.DetailFragment"
-            android:id="@+id/informationFragment"
-            tools:layout="@layout/fragment_information" />
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1">
+            <fragment
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:name="fi.aalto.legroup.achso.browsing.DetailFragment"
+                android:id="@+id/informationFragment"
+                tools:layout="@layout/fragment_information" />
 
+        </FrameLayout>
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1">
+
+            <fragment
+                android:layout_width="match_parent"
+                android:layout_height="fill_parent"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
+                android:id="@+id/mapFragment"
+                map:uiCompass="false"
+                map:uiRotateGestures="false"
+                map:uiScrollGestures="false"
+                map:uiTiltGestures="false"
+                map:uiZoomControls="true"
+                map:uiZoomGestures="false"
+                tools:ignore="MissingPrefix" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:id="@+id/unknownLocationText"
+                android:background="#88000000"
+                android:textColor="@android:color/primary_text_dark"
+                android:padding="8dp"
+                android:text="@string/semanticvideo_unknown_location" />
+
+        </FrameLayout>
     </LinearLayout>
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_weight="0.4"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp">
 
+        <Button
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:drawableLeft="@drawable/ic_group_white_24dp"
+            android:text="Upload and share to your groups ▼"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent">
+
+        </Button>
+        <CheckBox
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:drawableLeft="@drawable/ic_file_download_white_24dp"
+            android:id="@+id/availableOfflineCheckbox"
+            android:text="Available offline?"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+        </CheckBox>
+
+        <Button
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:drawableLeft="@drawable/ic_action_play"
+            android:text="List of annotations ▼"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent">
+        </Button>
+    </LinearLayout>
 </LinearLayout>
