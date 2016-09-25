@@ -153,7 +153,7 @@ public final class DetailActivity extends FragmentActivity
 
         @Override
         public void onClick(Group group, boolean isShared) {
-            System.out.println(group.getName());
+            System.out.println("id: " + group.getId());
             System.out.println(isShared);
 
             UUID id = video.getId();
