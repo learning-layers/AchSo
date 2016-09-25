@@ -37,8 +37,10 @@ import java.util.UUID;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
+import fi.aalto.legroup.achso.entities.Annotation;
 import fi.aalto.legroup.achso.entities.Group;
 import fi.aalto.legroup.achso.entities.Video;
+import fi.aalto.legroup.achso.views.adapters.AnnotationsListAdapter;
 import fi.aalto.legroup.achso.views.adapters.GroupsListAdapter;
 
 public final class DetailActivity extends FragmentActivity
@@ -49,6 +51,7 @@ public final class DetailActivity extends FragmentActivity
     private Video video;
 
     private ListView groupsList;
+    private ListView annotationsList;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -123,6 +126,24 @@ public final class DetailActivity extends FragmentActivity
 
         loadGroups();
         setListViewHeightBasedOnChildren(groupsList);
+
+        annotationsList = (ListView) findViewById(R.id.annotationsList);
+
+        Button toggleAnnotations = (Button) findViewById(R.id.toggleAnnotationsList);
+
+        toggleAnnotations.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (annotationsList.getVisibility() == View.VISIBLE) {
+                    annotationsList.setVisibility(View.GONE);
+                } else {
+                    annotationsList.setVisibility(View.VISIBLE);
+                }
+            }
+        });
+
+        loadAnnotations();
+        setListViewHeightBasedOnChildren(annotationsList);
     }
     
     // Hack from https://stackoverflow.com/questions/18367522/android-list-view-inside-a-scroll-view
@@ -147,6 +168,23 @@ public final class DetailActivity extends FragmentActivity
         listView.setLayoutParams(params);
     }
 
+    private class OnAnnotationClicked implements AnnotationsListAdapter.OnAnnotationItemClickedListener{
+
+        public  OnAnnotationClicked() {}
+
+        @Override
+        public void onClick(Annotation annotation) {
+            System.out.println("hello");
+        }
+    }
+
+    public void loadAnnotations() {
+        List<Annotation> annotations = video.getAnnotations();
+        AnnotationsListAdapter adapter = new AnnotationsListAdapter(this, R.layout.partial_annotation_list_item, annotations);
+        adapter.setListener(new OnAnnotationClicked());
+        annotationsList.setAdapter(adapter);
+    }
+
     private class OnGroupShareChanged implements GroupsListAdapter.OnGroupSharedEventListener{
 
         public  OnGroupShareChanged() {}
@@ -158,13 +196,12 @@ public final class DetailActivity extends FragmentActivity
 
             if (isShared) {
                 App.videoRepository.addVideoToGroup(videoId, groupId);
-                //group.addVideoToGroup(videoId);
             } else {
                 App.videoRepository.removeVideoFromGroup(videoId, groupId);
-                //group.removeVideoFromGroup(videoId);
             }
         }
     }
+
     public void loadGroups() {
         try {
             ArrayList<Group> groups = new ArrayList<Group>(App.videoRepository.getGroups());
