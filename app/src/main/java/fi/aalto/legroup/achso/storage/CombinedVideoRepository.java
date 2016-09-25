@@ -817,6 +817,16 @@ public class CombinedVideoRepository implements VideoRepository {
         return false;
     }
 
+    @Override
+    public void removeVideoFromGroup(UUID videoID) {
+
+    }
+
+    @Override
+    public void addVideoToGroup(UUID videoID) {
+
+    }
+
     @Override @NonNull
     public OptimizedVideo getVideo(UUID id) throws IOException {
         OptimizedVideo video = allVideos.get(id);
