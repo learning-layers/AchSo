@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.webkit.URLUtil;
 
 import com.google.common.io.Files;
+import com.google.common.primitives.Booleans;
 import com.rollbar.android.Rollbar;
 import com.squareup.otto.Bus;
 
@@ -817,26 +818,57 @@ public class CombinedVideoRepository implements VideoRepository {
         return false;
     }
 
-    @Override
-    public void removeVideoFromGroup(UUID videoID, int groupID) {
-        for (VideoHost host : cloudHosts) {
-            try {
-                host.unshareVideo(videoID, groupID);
-            } catch(Exception ex) {
-                System.out.println(ex);
+    private class ShareVideoTask extends AsyncTask<Boolean, Void, Void> {
+
+        private int groupId;
+        private UUID videoId;
+
+        public void setGroupId(int id) {
+            this.groupId = id;
+        }
+
+        public void setVideoId(UUID id) {
+            this.videoId = id;
+        }
+
+        @Override
+        protected Void doInBackground(Boolean... params) {
+            Boolean isShared = params[0];
+            for (VideoHost host : cloudHosts) {
+                try {
+                    if (isShared) {
+                        host.shareVideo(this.videoId, this.groupId);
+                    } else {
+                        host.unshareVideo(this.videoId, this.groupId);
+                    }
+                } catch(Exception ex) {
+                    System.out.println(ex);
+                }
             }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
         }
     }
 
     @Override
+    public void removeVideoFromGroup(UUID videoID, int groupID) {
+        ShareVideoTask task = new ShareVideoTask();
+        task.setGroupId(groupID);
+        task.setVideoId(videoID);
+        task.execute(false);
+    }
+
+    @Override
     public void addVideoToGroup(UUID videoID, int groupID) {
-        for (VideoHost host : cloudHosts) {
-            try {
-                host.shareVideo(videoID, groupID);
-            } catch(Exception ex) {
-                System.out.println(ex);
-            }
-        }
+        ShareVideoTask task = new ShareVideoTask();
+        task.setGroupId(groupID);
+        task.setVideoId(videoID);
+        task.execute(true);
     }
 
     @Override @NonNull

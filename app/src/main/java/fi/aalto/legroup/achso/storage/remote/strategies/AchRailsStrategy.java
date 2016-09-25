@@ -125,7 +125,6 @@ public class AchRailsStrategy implements VideoHost {
     public void unshareVideo(UUID videoId, int groupId) throws IOException {
         Request request = buildGroupUnshareRequest(videoId, groupId).delete().build();
         Response response = executeRequest(request);
-        System.out.println("unshare code:" + response.code());
     }
 
     @Override
@@ -135,7 +134,6 @@ public class AchRailsStrategy implements VideoHost {
         RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), obj.toString());
         Request request = buildGroupShareRequest(videoId).post(body).build();
         Response response = executeRequest(request);
-        System.out.println("share code:" + response.code());
     }
 
     @Override
