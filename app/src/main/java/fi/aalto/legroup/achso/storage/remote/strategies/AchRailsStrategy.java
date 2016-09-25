@@ -3,11 +3,16 @@ package fi.aalto.legroup.achso.storage.remote.strategies;
 import android.accounts.Account;
 import android.net.Uri;
 
+import com.squareup.okhttp.FormEncodingBuilder;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 import com.squareup.picasso.Downloader;
+
+import org.apache.http.protocol.RequestUserAgent;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -62,9 +67,20 @@ public class AchRailsStrategy implements VideoHost {
                     .appendPath(id.toString() + ".json")
                     .toString());
     }
+
     Request.Builder buildOwnGroupsRequest() {
         return new Request.Builder()
                 .url(endpointUrl.buildUpon().appendPath("groups").appendPath("own.json").toString());
+    }
+
+    Request.Builder buildGroupShareRequest(UUID videoId) {
+        return new Request.Builder()
+                .url(endpointUrl.buildUpon().appendPath("videos").appendPath(videoId.toString()).appendPath("shares").toString());
+    }
+
+    Request.Builder buildGroupUnshareRequest(UUID videoId, int groupId) {
+        return new Request.Builder()
+                .url(endpointUrl.buildUpon().appendPath("videos").appendPath(videoId.toString()).appendPath("shares").appendPath(Integer.toString(groupId)).toString());
     }
 
     private Response executeRequestNoFail(Request request) throws IOException {
@@ -107,12 +123,19 @@ public class AchRailsStrategy implements VideoHost {
 
     @Override
     public void unshareVideo(UUID videoId, int groupId) throws IOException {
-        
+        Request request = buildGroupUnshareRequest(videoId, groupId).delete().build();
+        Response response = executeRequest(request);
+        System.out.println("unshare code:" + response.code());
     }
 
     @Override
-    public void shareVideo(UUID videoId, int groupId) throws IOException {
-
+    public void shareVideo(UUID videoId, int groupId) throws IOException, JSONException {
+        JSONObject obj = new JSONObject();
+        obj.put("group", groupId);
+        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), obj.toString());
+        Request request = buildGroupShareRequest(videoId).post(body).build();
+        Response response = executeRequest(request);
+        System.out.println("share code:" + response.code());
     }
 
     @Override

@@ -822,8 +822,8 @@ public class CombinedVideoRepository implements VideoRepository {
         for (VideoHost host : cloudHosts) {
             try {
                 host.unshareVideo(videoID, groupID);
-            } catch(IOException ex) {
-
+            } catch(Exception ex) {
+                System.out.println(ex);
             }
         }
     }
@@ -833,8 +833,8 @@ public class CombinedVideoRepository implements VideoRepository {
         for (VideoHost host : cloudHosts) {
             try {
                 host.shareVideo(videoID, groupID);
-            } catch(IOException ex) {
-
+            } catch(Exception ex) {
+                System.out.println(ex);
             }
         }
     }
