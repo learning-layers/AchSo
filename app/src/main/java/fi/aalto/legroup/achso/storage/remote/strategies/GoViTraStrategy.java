@@ -40,7 +40,7 @@ public class GoViTraStrategy implements VideoUploader {
         int trimStart = video.getStartTime();
         String endpoint = endpointUri.toString();
 
-        if (trimStart != 0 && trimEnd != Integer.MAX_VALUE) {
+        if (video.hasTrimming()) {
             endpoint += String.format("?start=%s&end=%s", trimStart, trimEnd);
         }
 

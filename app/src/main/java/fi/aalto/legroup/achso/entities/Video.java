@@ -227,7 +227,11 @@ public class Video implements JsonSerializable {
     }
 
     public boolean hasTrimming() {
-        return this.startTime != 0 || this.endTime != Integer.MAX_VALUE;
+        if (this.startTime == 0 && this.endTime == Integer.MAX_VALUE) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     public int getRotation() {
