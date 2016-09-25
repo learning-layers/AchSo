@@ -376,7 +376,13 @@ public class OptimizedVideo {
         }
 
         video.setStartTime(startTime);
-        video.setEndTime(endTime);
+
+        if (endTime == 0) {
+            video.setEndTime(Integer.MAX_VALUE);
+        } else {
+            video.setEndTime(endTime);
+        }
+
         video.setIsTemporary(isTemporary);
         video.setRepository(repository);
         video.setId(id);
