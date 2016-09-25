@@ -106,6 +106,16 @@ public class AchRailsStrategy implements VideoHost {
     }
 
     @Override
+    public void unshareVideo(UUID videoId, int groupId) throws IOException {
+        
+    }
+
+    @Override
+    public void shareVideo(UUID videoId, int groupId) throws IOException {
+
+    }
+
+    @Override
     public Video downloadVideoManifest(UUID id) throws IOException {
 
         Request request = buildVideosRequest(id).get().build();

@@ -21,6 +21,10 @@ public interface VideoHost {
 
     public List<Group> getGroups() throws IOException;
 
+    public void unshareVideo(UUID videoId, int groupId) throws IOException;
+
+    public void shareVideo(UUID videoId, int groupId) throws IOException;
+
     public ArrayList<Video> findVideosByQuery(String query) throws  IOException;
 
     /**

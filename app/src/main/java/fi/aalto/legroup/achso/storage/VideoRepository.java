@@ -78,13 +78,9 @@ public interface VideoRepository extends VideoInfoRepository {
 
     public File getVideoCacheFile(UUID id);
 
-    /**
-     *
-     * @return A boolean to indicate if a given video has been shared
-     */
-    public void removeVideoFromGroup(UUID videoId);
+    public void removeVideoFromGroup(UUID videoId, int groupId);
 
-    public void addVideoToGroup(UUID videoId);
+    public void addVideoToGroup(UUID videoId, int groupId);
 
     /**
      *

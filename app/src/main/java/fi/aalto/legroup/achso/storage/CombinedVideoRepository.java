@@ -818,13 +818,25 @@ public class CombinedVideoRepository implements VideoRepository {
     }
 
     @Override
-    public void removeVideoFromGroup(UUID videoID) {
+    public void removeVideoFromGroup(UUID videoID, int groupID) {
+        for (VideoHost host : cloudHosts) {
+            try {
+                host.unshareVideo(videoID, groupID);
+            } catch(IOException ex) {
 
+            }
+        }
     }
 
     @Override
-    public void addVideoToGroup(UUID videoID) {
+    public void addVideoToGroup(UUID videoID, int groupID) {
+        for (VideoHost host : cloudHosts) {
+            try {
+                host.shareVideo(videoID, groupID);
+            } catch(IOException ex) {
 
+            }
+        }
     }
 
     @Override @NonNull
