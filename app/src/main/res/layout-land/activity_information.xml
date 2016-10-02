@@ -1,49 +1,113 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:map="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="horizontal"
-    android:baselineAligned="false">
+    android:layout_height="wrap_content">
 
-    <FrameLayout
-        android:layout_width="fill_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="@integer/activity_smaller_fragment_weight">
-
-        <fragment
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:name="com.google.android.gms.maps.SupportMapFragment"
-            android:id="@+id/mapFragment"
-            map:uiCompass="false"
-            map:uiRotateGestures="false"
-            map:uiScrollGestures="false"
-            map:uiTiltGestures="false"
-            map:uiZoomControls="true"
-            map:uiZoomGestures="false"
-            tools:ignore="MissingPrefix" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:id="@+id/unknownLocationText"
-            android:background="#88000000"
-            android:textColor="@android:color/primary_text_dark"
-            android:padding="8dp"
-            android:text="@string/semanticvideo_unknown_location" />
-
-    </FrameLayout>
-
-    <fragment
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="fill_parent"
-        android:layout_weight="@integer/activity_larger_fragment_weight"
-        android:name="fi.aalto.legroup.achso.browsing.DetailFragment"
-        android:id="@+id/informationFragment"
-        tools:layout="@layout/fragment_information" />
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:baselineAligned="false">
 
-</LinearLayout>
+        <LinearLayout
+            android:layout_weight="0.5"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_width="match_parent">
+
+            <FrameLayout
+                android:layout_width="fill_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="@integer/activity_smaller_fragment_weight">
+
+                <fragment
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:name="com.google.android.gms.maps.SupportMapFragment"
+                    android:id="@+id/mapFragment"
+                    map:uiCompass="false"
+                    map:uiRotateGestures="false"
+                    map:uiScrollGestures="false"
+                    map:uiTiltGestures="false"
+                    map:uiZoomControls="true"
+                    map:uiZoomGestures="false"
+                    tools:ignore="MissingPrefix" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:id="@+id/unknownLocationText"
+                    android:background="#88000000"
+                    android:textColor="@android:color/primary_text_dark"
+                    android:padding="8dp"
+                    android:text="@string/semanticvideo_unknown_location" />
+
+            </FrameLayout>
+            <fragment
+                android:layout_width="match_parent"
+                android:layout_height="fill_parent"
+                android:layout_weight="@integer/activity_larger_fragment_weight"
+                android:name="fi.aalto.legroup.achso.browsing.DetailFragment"
+                android:id="@+id/informationFragment"
+                tools:layout="@layout/fragment_information" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_weight="0.5"
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+
+            <CheckBox
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:drawableLeft="@drawable/ic_file_download_white_24dp"
+                android:id="@+id/availableOfflineCheckbox"
+                android:text="Available offline?"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+            </CheckBox>
+
+            <Button
+                android:id="@+id/toggleGroupsList"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:drawableLeft="@drawable/ic_group_white_24dp"
+                android:text="Share with groups ▼"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent">
+            </Button>
+
+            <ListView
+                android:visibility="gone"
+                android:id="@+id/groupsList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+            </ListView>
+
+            <Button
+                android:id="@+id/toggleAnnotationsList"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:drawableLeft="@drawable/ic_action_play"
+                android:text="List of annotations ▼"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent">
+            </Button>
+
+            <ListView
+                android:visibility="gone"
+                android:id="@+id/annotationsList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+            </ListView>
+
+        </LinearLayout>
+    </LinearLayout>
+
+</ScrollView>
