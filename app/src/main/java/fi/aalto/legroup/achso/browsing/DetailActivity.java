@@ -3,6 +3,7 @@ package fi.aalto.legroup.achso.browsing;
 import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
@@ -40,6 +41,7 @@ import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.Annotation;
 import fi.aalto.legroup.achso.entities.Group;
 import fi.aalto.legroup.achso.entities.Video;
+import fi.aalto.legroup.achso.playback.PlayerActivity;
 import fi.aalto.legroup.achso.views.adapters.AnnotationsListAdapter;
 import fi.aalto.legroup.achso.views.adapters.GroupsListAdapter;
 
@@ -172,13 +174,22 @@ public final class DetailActivity extends FragmentActivity
         listView.setLayoutParams(params);
     }
 
+    private void goToVideoAtPoint(long timestamp) {
+        Intent intent = new Intent(DetailActivity.this, PlayerActivity.class);
+        UUID id = video.getId();
+        intent.putExtra(PlayerActivity.ARG_VIDEO_ID, id);
+        intent.putExtra(PlayerActivity.ARG_VIDEO_TIME, timestamp);
+        startActivity(intent);
+    }
+
     private class OnAnnotationClicked implements AnnotationsListAdapter.OnAnnotationItemClickedListener{
 
         public  OnAnnotationClicked() {}
 
         @Override
         public void onClick(Annotation annotation) {
-            System.out.println("hello");
+            long time = annotation.getTime();
+            goToVideoAtPoint(time);
         }
     }
 

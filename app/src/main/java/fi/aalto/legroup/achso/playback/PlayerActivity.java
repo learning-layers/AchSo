@@ -60,6 +60,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         View.OnClickListener {
 
     public static final String ARG_VIDEO_ID = "ARG_VIDEO_ID";
+    public static final String ARG_VIDEO_TIME = "ARG_VIDEO_TIME";
 
     // Animation duration for hiding and showing controls (in milliseconds)
     private static final int CONTROLS_HIDE_DURATION = 300;
