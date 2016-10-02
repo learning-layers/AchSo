@@ -113,21 +113,26 @@ public final class DetailActivity extends FragmentActivity
             }
         });
 
+
         Button toggleGroups = (Button)  findViewById(R.id.toggleGroupsList);
 
-        toggleGroups.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (groupsList.getVisibility() == View.VISIBLE) {
-                    groupsList.setVisibility(View.GONE);
-                } else {
-                    groupsList.setVisibility(View.VISIBLE);
+        if (video.isLocal()) {
+           toggleGroups.setEnabled(false);
+        } else {
+            toggleGroups.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (groupsList.getVisibility() == View.VISIBLE) {
+                        groupsList.setVisibility(View.GONE);
+                    } else {
+                        groupsList.setVisibility(View.VISIBLE);
+                    }
                 }
-            }
-        });
+            });
 
-        loadGroups();
-        setListViewHeightBasedOnChildren(groupsList);
+            loadGroups();
+            setListViewHeightBasedOnChildren(groupsList);
+        }
 
         annotationsList = (ListView) findViewById(R.id.annotationsList);
 
@@ -146,10 +151,11 @@ public final class DetailActivity extends FragmentActivity
                     }
                 }
             });
+
+            loadAnnotations();
+            setListViewHeightBasedOnChildren(annotationsList);
         }
 
-        loadAnnotations();
-        setListViewHeightBasedOnChildren(annotationsList);
     }
     
     // Hack from https://stackoverflow.com/questions/18367522/android-list-view-inside-a-scroll-view
