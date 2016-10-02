@@ -85,6 +85,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
 
     private int startTrimTime = 0;
     private int endTrimTime;
+    private long initialPlaybackTime;
 
     private Video video;
 
@@ -119,6 +120,8 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
         playPauseButton.setOnClickListener(this);
 
         seekBar.setOnSeekBarChangeListener(this);
+
+        initialPlaybackTime = getIntent().getLongExtra(ARG_VIDEO_TIME, -1);
     }
 
     @Override
@@ -493,12 +496,18 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
                 seekBar.setMax((int) playerFragment.getDuration());
                 seekBar.setProgress((int) playerFragment.getPlaybackPosition());
                 seekBarUpdater.run();
-
                 refreshAnnotations();
                 anchorSubtitleContainerTo(playbackControls);
                 break;
 
             case PLAYING:
+                // Special case: We want to go to a specific annotation and stop there
+                if (initialPlaybackTime != -1) {
+                    playerFragment.seekTo(initialPlaybackTime);
+                    playerFragment.pause();
+                    initialPlaybackTime = -1;
+                }
+
                 enableControls();
                 playPauseButton.setImageResource(R.drawable.ic_action_pause);
                 break;
