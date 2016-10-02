@@ -31,7 +31,9 @@ public class AnnotationsListAdapter extends ArrayAdapter<Annotation> {
     }
 
     public class AnnotationHolder {
-        public TextView text;
+        public TextView author;
+        public TextView timestamp;
+        public TextView content;
     }
 
     public void setListener(OnAnnotationItemClickedListener listener) {
@@ -47,7 +49,11 @@ public class AnnotationsListAdapter extends ArrayAdapter<Annotation> {
             convertView = inflater.inflate(R.layout.partial_annotation_list_item, null);
 
             holder = new AnnotationHolder();
-            holder.text = (TextView) convertView.findViewById(R.id.annotationListItemText);
+
+            holder.author = (TextView) convertView.findViewById(R.id.annotationListAuthor);
+            holder.timestamp = (TextView) convertView.findViewById(R.id.annotationListTime);
+            holder.content = (TextView) convertView.findViewById(R.id.annotationListContent);
+
             convertView.setTag(holder);
         } else {
             holder = (AnnotationHolder) convertView.getTag();
@@ -55,8 +61,11 @@ public class AnnotationsListAdapter extends ArrayAdapter<Annotation> {
 
         final Annotation annotation = annotations.get(pos);
 
-        holder.text.setText(annotation.getTime() + " : " + annotation.getText());
-        holder.text.setOnClickListener(new View.OnClickListener() {
+        holder.author.setText(annotation.getAuthor().getName());
+        holder.timestamp.setText(String.valueOf(annotation.getTime()));
+        holder.content.setText(annotation.getText());
+
+        holder.content.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (listener != null) {
