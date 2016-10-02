@@ -131,16 +131,20 @@ public final class DetailActivity extends FragmentActivity
 
         Button toggleAnnotations = (Button) findViewById(R.id.toggleAnnotationsList);
 
-        toggleAnnotations.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (annotationsList.getVisibility() == View.VISIBLE) {
-                    annotationsList.setVisibility(View.GONE);
-                } else {
-                    annotationsList.setVisibility(View.VISIBLE);
+        if (video.getAnnotations().size() == 0) {
+           toggleAnnotations.setEnabled(false);
+        } else {
+            toggleAnnotations.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (annotationsList.getVisibility() == View.VISIBLE) {
+                        annotationsList.setVisibility(View.GONE);
+                    } else {
+                        annotationsList.setVisibility(View.VISIBLE);
+                    }
                 }
-            }
-        });
+            });
+        }
 
         loadAnnotations();
         setListViewHeightBasedOnChildren(annotationsList);
