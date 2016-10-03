@@ -117,6 +117,20 @@ public final class DetailActivity extends AppCompatActivity
 
 
         Button toggleGroups = (Button)  findViewById(R.id.toggleGroupsList);
+        Button uploadVideo = (Button) findViewById(R.id.uploadVideoButton);
+
+        if (!video.isLocal()) {
+            uploadVideo.setEnabled(false);
+            uploadVideo.setVisibility(View.GONE);
+        } else {
+            uploadVideo.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    // TODO: Initiate video upload.
+
+                }
+            });
+        }
 
         if (video.isLocal()) {
            toggleGroups.setEnabled(false);
