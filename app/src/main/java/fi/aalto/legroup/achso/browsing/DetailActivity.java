@@ -9,6 +9,9 @@ import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -45,7 +48,7 @@ import fi.aalto.legroup.achso.playback.PlayerActivity;
 import fi.aalto.legroup.achso.views.adapters.AnnotationsListAdapter;
 import fi.aalto.legroup.achso.views.adapters.GroupsListAdapter;
 
-public final class DetailActivity extends FragmentActivity
+public final class DetailActivity extends AppCompatActivity
         implements MenuItem.OnMenuItemClickListener {
 
     public static final String ARG_VIDEO_ID = "ARG_VIDEO_ID";
@@ -71,11 +74,10 @@ public final class DetailActivity extends FragmentActivity
         }
 
         setContentView(R.layout.activity_information);
-        ActionBar bar = getActionBar();
 
-        if (bar != null) {
-            bar.setDisplayHomeAsUpEnabled(true);
-        }
+        Toolbar bar = (Toolbar)  findViewById(R.id.toolbar);
+        setSupportActionBar(bar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         SupportMapFragment mapFragment = (SupportMapFragment)
                 getSupportFragmentManager().findFragmentById(R.id.mapFragment);
