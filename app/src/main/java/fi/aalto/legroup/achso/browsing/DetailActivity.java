@@ -173,9 +173,10 @@ public final class DetailActivity extends AppCompatActivity
                 }
             });
 
-            loadGroups();
-            setListViewHeightBasedOnChildren(groupsList);
         }
+
+        loadGroups();
+        setListViewHeightBasedOnChildren(groupsList);
 
         annotationsList = (ListView) findViewById(R.id.annotationsList);
 
@@ -198,7 +199,6 @@ public final class DetailActivity extends AppCompatActivity
             loadAnnotations();
             setListViewHeightBasedOnChildren(annotationsList);
         }
-
     }
 
     @Subscribe
