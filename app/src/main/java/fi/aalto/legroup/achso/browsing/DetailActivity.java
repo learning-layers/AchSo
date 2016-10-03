@@ -33,6 +33,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.nispok.snackbar.Snackbar;
 import com.nispok.snackbar.SnackbarManager;
+import com.squareup.otto.Bus;
+import com.squareup.otto.Subscribe;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -45,6 +47,9 @@ import fi.aalto.legroup.achso.entities.Annotation;
 import fi.aalto.legroup.achso.entities.Group;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.playback.PlayerActivity;
+import fi.aalto.legroup.achso.storage.remote.upload.UploadErrorEvent;
+import fi.aalto.legroup.achso.storage.remote.upload.UploadService;
+import fi.aalto.legroup.achso.storage.remote.upload.UploadStateEvent;
 import fi.aalto.legroup.achso.views.adapters.AnnotationsListAdapter;
 import fi.aalto.legroup.achso.views.adapters.GroupsListAdapter;
 
@@ -55,13 +60,29 @@ public final class DetailActivity extends AppCompatActivity
 
     private Video video;
 
+    private Bus bus;
     private ListView groupsList;
     private ListView annotationsList;
+
+    private Button uploadButton;
+    private Button groupsButton;
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        bus.register(this);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        bus.unregister(this);
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        this.bus = App.bus;
         UUID videoId = (UUID) getIntent().getSerializableExtra(ARG_VIDEO_ID);
 
         try {
@@ -116,26 +137,32 @@ public final class DetailActivity extends AppCompatActivity
         });
 
 
-        Button toggleGroups = (Button)  findViewById(R.id.toggleGroupsList);
-        Button uploadVideo = (Button) findViewById(R.id.uploadVideoButton);
+        groupsButton = (Button)  findViewById(R.id.toggleGroupsList);
+        uploadButton = (Button) findViewById(R.id.uploadVideoButton);
 
         if (!video.isLocal()) {
-            uploadVideo.setEnabled(false);
-            uploadVideo.setVisibility(View.GONE);
+            uploadButton.setEnabled(false);
+            uploadButton.setVisibility(View.GONE);
         } else {
-            uploadVideo.setOnClickListener(new View.OnClickListener() {
+            uploadButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    // TODO: Initiate video upload.
 
+                    // TODO: Initiate video upload.
+                    UUID id = video.getId();
+                    ArrayList list = new ArrayList();
+                    list.add(id);
+
+                    uploadButton.setEnabled(false);
+                    UploadService.upload(DetailActivity.this, list);
                 }
             });
         }
 
         if (video.isLocal()) {
-           toggleGroups.setEnabled(false);
+           groupsButton.setEnabled(false);
         } else {
-            toggleGroups.setOnClickListener(new View.OnClickListener() {
+            groupsButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     if (groupsList.getVisibility() == View.VISIBLE) {
@@ -173,7 +200,23 @@ public final class DetailActivity extends AppCompatActivity
         }
 
     }
-    
+
+    @Subscribe
+    public void onUploadState(UploadStateEvent event) {
+        switch (event.getType()) {
+            case SUCCEEDED:
+                SnackbarManager.show(Snackbar.with(DetailActivity.this).text("Uploading video succeeded"));
+                uploadButton.setVisibility(View.GONE);
+                groupsButton.setEnabled(true);
+        }
+    }
+
+    @Subscribe
+    public void onUploadError(UploadErrorEvent event) {
+        String message = event.getErrorMessage();
+        SnackbarManager.show(Snackbar.with(DetailActivity.this).text(message));
+    }
+
     // Hack from https://stackoverflow.com/questions/18367522/android-list-view-inside-a-scroll-view
     public static void setListViewHeightBasedOnChildren(ListView listView) {
         ListAdapter listAdapter = listView.getAdapter();
