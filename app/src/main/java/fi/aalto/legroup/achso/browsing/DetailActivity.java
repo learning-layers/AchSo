@@ -46,7 +46,9 @@ import fi.aalto.legroup.achso.entities.Annotation;
 import fi.aalto.legroup.achso.entities.Group;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.playback.PlayerActivity;
+import fi.aalto.legroup.achso.storage.remote.download.DownloadErrorEvent;
 import fi.aalto.legroup.achso.storage.remote.download.DownloadService;
+import fi.aalto.legroup.achso.storage.remote.download.DownloadStateEvent;
 import fi.aalto.legroup.achso.storage.remote.upload.UploadErrorEvent;
 import fi.aalto.legroup.achso.storage.remote.upload.UploadService;
 import fi.aalto.legroup.achso.storage.remote.upload.UploadStateEvent;
@@ -231,6 +233,23 @@ public final class DetailActivity extends AppCompatActivity
             loadAnnotations();
             setListViewHeightBasedOnChildren(annotationsList);
         }
+    }
+
+    @Subscribe
+    public void onDownloadState(DownloadStateEvent event) {
+        switch (event.getType()) {
+            case SUCCEEDED:
+                if (event.getVideoId() == video.getId()) {
+                    isAvailableOfflineCheckbox.setEnabled(true);
+                }
+        }
+    }
+
+    @Subscribe
+    public void onDownloadError(DownloadErrorEvent event) {
+        String message = event.getErrorMessage();
+        SnackbarManager.show(Snackbar.with(DetailActivity.this).text(message));
+        isAvailableOfflineCheckbox.setEnabled(true);
     }
 
     @Subscribe
