@@ -40,6 +40,7 @@ public class OptimizedVideo {
     private UUID id;
     private String title;
     private String tag;
+    private boolean isPublic;
     private long dateInMs;
     private int revision;
     private long lastModifiedInMs;
@@ -110,9 +111,13 @@ public class OptimizedVideo {
         return tag;
     }
 
+    public boolean getIsPublic() { return this.isPublic; }
+
     public void setTag(String tag) {
         this.tag = tag;
     }
+
+    public void setIsPublic(boolean isPublic) { this.isPublic = isPublic; }
 
     public int getRevision() {
         return revision;
@@ -264,6 +269,7 @@ public class OptimizedVideo {
         id = video.getId();
         title = video.getTitle();
         tag = video.getTag();
+        isPublic = video.getIsPublic();
         rotation = video.getRotation();
 
         // Store Date objects as long (They internally are just wrapped long)
@@ -403,6 +409,7 @@ public class OptimizedVideo {
         video.setId(id);
         video.setTitle(title);
         video.setTag(tag);
+        video.setIsPublic(isPublic);
         video.setRotation(rotation);
 
         // Create the Date objects from the longs

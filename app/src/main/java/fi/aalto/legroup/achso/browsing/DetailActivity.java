@@ -139,6 +139,8 @@ public final class DetailActivity extends AppCompatActivity
             isPublicCheckbox.setEnabled(false);
         }
 
+        System.out.println("is public: " + video.getIsPublic());
+        isPublicCheckbox.setChecked(video.getIsPublic());
 
         isPublicCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
