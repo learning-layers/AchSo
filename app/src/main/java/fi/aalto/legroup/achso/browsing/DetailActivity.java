@@ -7,9 +7,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -18,7 +16,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -161,19 +158,18 @@ public final class DetailActivity extends AppCompatActivity
 
         if (video.isLocal()) {
            groupsButton.setEnabled(false);
-        } else {
-            groupsButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (groupsList.getVisibility() == View.VISIBLE) {
-                        groupsList.setVisibility(View.GONE);
-                    } else {
-                        groupsList.setVisibility(View.VISIBLE);
-                    }
-                }
-            });
-
         }
+
+        groupsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (groupsList.getVisibility() == View.VISIBLE) {
+                    groupsList.setVisibility(View.GONE);
+                } else {
+                    groupsList.setVisibility(View.VISIBLE);
+                }
+            }
+        });
 
         loadGroups();
         setListViewHeightBasedOnChildren(groupsList);
@@ -205,9 +201,10 @@ public final class DetailActivity extends AppCompatActivity
     public void onUploadState(UploadStateEvent event) {
         switch (event.getType()) {
             case SUCCEEDED:
-                SnackbarManager.show(Snackbar.with(DetailActivity.this).text("Uploading video succeeded"));
-                uploadButton.setVisibility(View.GONE);
-                groupsButton.setEnabled(true);
+                if (event.getVideoId() == video.getId()) {
+                    uploadButton.setVisibility(View.GONE);
+                    groupsButton.setEnabled(true);
+                }
         }
     }
 

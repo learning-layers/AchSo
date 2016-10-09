@@ -156,4 +156,5 @@
     <string name="list_of_annotations">Annotaatiolista ▼</string>
     <string name="share_with_groups">Jaa ryhmien kanssa ▼</string>
     <string name="upload_video">Lähetä video</string>
+    <string name="upload_succeeded">Videon lähetys onnistui</string>
 </resources>

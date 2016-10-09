@@ -179,5 +179,6 @@
     <string name="share_with_groups">Share with groups ▼</string>
     <string name="list_of_annotations">List of annotations ▼</string>
     <string name="semanticvideo_latitude"></string>
+    <string name="upload_succeeded">Uploading video succeeded</string>
 
 </resources>

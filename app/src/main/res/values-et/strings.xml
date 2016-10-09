@@ -125,6 +125,7 @@
  <string name="list_of_annotations">Loetelu annotatsioonid ▼</string>
  <string name="share_with_groups">Jaga rühmad  ▼</string>
  <string name="upload_video">Laadi video</string>
+ <string name="upload_succeeded">Videote õnnestus</string>
 
 
 </resources>
