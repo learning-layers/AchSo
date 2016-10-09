@@ -145,12 +145,13 @@ public final class DetailActivity extends AppCompatActivity
                 @Override
                 public void onClick(View view) {
 
+                    uploadButton.setEnabled(false);
+                    uploadButton.setAlpha(.5f);
                     // TODO: Initiate video upload.
                     UUID id = video.getId();
                     ArrayList list = new ArrayList();
                     list.add(id);
 
-                    uploadButton.setEnabled(false);
                     UploadService.upload(DetailActivity.this, list);
                 }
             });
@@ -212,6 +213,8 @@ public final class DetailActivity extends AppCompatActivity
     public void onUploadError(UploadErrorEvent event) {
         String message = event.getErrorMessage();
         SnackbarManager.show(Snackbar.with(DetailActivity.this).text(message));
+        uploadButton.setEnabled(true);
+        uploadButton.setAlpha(1f);
     }
 
     // Hack from https://stackoverflow.com/questions/18367522/android-list-view-inside-a-scroll-view
