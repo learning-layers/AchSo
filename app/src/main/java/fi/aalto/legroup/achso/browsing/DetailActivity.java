@@ -145,13 +145,15 @@ public final class DetailActivity extends AppCompatActivity
                 @Override
                 public void onClick(View view) {
 
+                    String currentlyUploading = getString(R.string.currently_uploading);
+
                     uploadButton.setEnabled(false);
                     uploadButton.setAlpha(.5f);
-                    // TODO: Initiate video upload.
+                    uploadButton.setText(currentlyUploading);
+
                     UUID id = video.getId();
                     ArrayList list = new ArrayList();
                     list.add(id);
-
                     UploadService.upload(DetailActivity.this, list);
                 }
             });

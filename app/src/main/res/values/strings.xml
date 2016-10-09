@@ -180,5 +180,6 @@
     <string name="list_of_annotations">List of annotations ▼</string>
     <string name="semanticvideo_latitude"></string>
     <string name="upload_succeeded">Uploading video succeeded</string>
+    <string name="currently_uploading">Uploading...</string>
 
 </resources>

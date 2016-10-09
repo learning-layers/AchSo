@@ -126,6 +126,7 @@
  <string name="share_with_groups">Jaga rühmad  ▼</string>
  <string name="upload_video">Laadi video</string>
  <string name="upload_succeeded">Videote õnnestus</string>
+ <string name="currently_uploading">üleslaadimine...</string>
 
 
 </resources>

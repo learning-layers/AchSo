@@ -130,5 +130,6 @@
     <string name="upload_video">Video hochladen</string>
     <string name="upload_successful"></string>
     <string name="upload_succeeded">Hochladen von Video gelungen</string>
+    <string name="currently_uploading">Hochladen...</string>
 
 </resources>

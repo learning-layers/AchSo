@@ -157,4 +157,5 @@
     <string name="share_with_groups">Jaa ryhmien kanssa ▼</string>
     <string name="upload_video">Lähetä video</string>
     <string name="upload_succeeded">Videon lähetys onnistui</string>
+    <string name="currently_uploading">Lähetetään...</string>
 </resources>
