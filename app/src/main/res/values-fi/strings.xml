@@ -152,4 +152,8 @@
     <string name="not_loggedin_share_nag">Kirjaudu jakaaksesi videoita.</string>
     <string name="unknown_genre">Tuntematon tyyppi</string>
     <string name="warning">Varoitus</string>
+    <string name="available_offline">Saatavilla laitteella?</string>
+    <string name="list_of_annotations">Annotaatiolista ▼</string>
+    <string name="share_with_groups">Jaa ryhmien kanssa ▼</string>
+    <string name="upload_video">Lähetä video</string>
 </resources>

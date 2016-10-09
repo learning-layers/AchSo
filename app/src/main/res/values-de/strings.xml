@@ -124,5 +124,10 @@
     <string name="contact_has_no_email">Der ausgewählte Kontakt hat keine E-Mail gespeichert</string>
     <string name="not_loggedin_share_nag">Sie müssen sich anmelden um Videos teilen zu können.</string>
     <string name="warning">Warnung</string>
+    <string name="available_offline">Verfügbar offline?</string>
+    <string name="list_of_annotations">Liste der Anmerkungen ▼</string>
+    <string name="share_with_groups">Teilen mit Gruppen ▼</string>
+    <string name="upload_video">Video hochladen</string>
+    <string name="upload_successful"></string>
 
 </resources>

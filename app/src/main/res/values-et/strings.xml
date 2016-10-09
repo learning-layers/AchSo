@@ -121,7 +121,10 @@
     <string name="contact_has_no_email">Valitud kontaktil pole e-posti aadressi</string>
     <string name="not_loggedin_share_nag">Videote jagamiseks on vaja sisse logida.</string>
     <string name="warning">Hoiatus</string>
-
+ <string name="available_offline">Saadaval offline?</string>
+ <string name="list_of_annotations">Loetelu annotatsioonid ▼</string>
+ <string name="share_with_groups">Jaga rühmad  ▼</string>
+ <string name="upload_video">Laadi video</string>
 
 
 </resources>
