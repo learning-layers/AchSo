@@ -70,6 +70,7 @@ public final class DetailActivity extends AppCompatActivity
     private Button groupsButton;
 
     private CheckBox isAvailableOfflineCheckbox;
+    private CheckBox isPublicCheckbox;
 
     @Override
     public void onResume() {
@@ -87,7 +88,7 @@ public final class DetailActivity extends AppCompatActivity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.bus = App.bus;
-        UUID videoId = (UUID) getIntent().getSerializableExtra(ARG_VIDEO_ID);
+        final UUID videoId = (UUID) getIntent().getSerializableExtra(ARG_VIDEO_ID);
 
         try {
             video = App.videoRepository.getVideo(videoId).inflate();
@@ -131,10 +132,25 @@ public final class DetailActivity extends AppCompatActivity
         }
 
         isAvailableOfflineCheckbox = (CheckBox)  findViewById(R.id.availableOfflineCheckbox);
+        isPublicCheckbox = (CheckBox) findViewById(R.id.isVideoPublic);
 
         if (video.isLocal()) {
             isAvailableOfflineCheckbox.setEnabled(false);
+            isPublicCheckbox.setEnabled(false);
         }
+
+
+        isPublicCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                UUID id = video.getId();
+                if (b) {
+                    App.videoRepository.makeVideoPublic(id);
+                } else {
+                    App.videoRepository.makeVideoPrivate(id);
+                }
+            }
+        });
 
         isAvailableOfflineCheckbox.setChecked(video.hasCachedFiles());
 
@@ -258,6 +274,7 @@ public final class DetailActivity extends AppCompatActivity
             case SUCCEEDED:
                 if (event.getVideoId() == video.getId()) {
                     uploadButton.setVisibility(View.GONE);
+                    isPublicCheckbox.setEnabled(true);
                     groupsButton.setEnabled(true);
                 }
         }

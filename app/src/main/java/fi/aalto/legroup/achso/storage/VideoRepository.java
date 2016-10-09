@@ -87,6 +87,9 @@ public interface VideoRepository extends VideoInfoRepository {
 
     public void addVideoToGroup(UUID videoId, int groupId);
 
+    public void makeVideoPublic(UUID videoId);
+
+    public void makeVideoPrivate(UUID videoId);
     /**
      *
      * @return A boolean to indicate if a given video has been shared

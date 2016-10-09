@@ -78,6 +78,11 @@ public class AchRailsStrategy implements VideoHost {
                 .url(endpointUrl.buildUpon().appendPath("videos").appendPath(videoId.toString()).appendPath("shares").toString());
     }
 
+    Request.Builder buildVideoPublicRequest(UUID videoId) {
+        return new Request.Builder()
+                .url(endpointUrl.buildUpon().appendPath("videos").appendPath(videoId.toString()).appendPath("shares").appendPath("set_publicity").toString());
+    }
+
     Request.Builder buildGroupUnshareRequest(UUID videoId, int groupId) {
         return new Request.Builder()
                 .url(endpointUrl.buildUpon().appendPath("videos").appendPath(videoId.toString()).appendPath("shares").appendPath(Integer.toString(groupId)).toString());
@@ -133,6 +138,26 @@ public class AchRailsStrategy implements VideoHost {
         obj.put("group", groupId);
         RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), obj.toString());
         Request request = buildGroupShareRequest(videoId).post(body).build();
+        Response response = executeRequest(request);
+    }
+
+    @Override
+    public void makeVideoPublic(UUID videoId) throws IOException, JSONException {
+        JSONObject obj = new JSONObject();
+        obj.put("isPublic", true);
+        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), obj.toString());
+
+        Request request = buildVideoPublicRequest(videoId).put(body).build();
+        Response response = executeRequest(request);
+    }
+
+    @Override
+    public void makeVideoPrivate(UUID videoId) throws IOException, JSONException {
+        JSONObject obj = new JSONObject();
+        obj.put("isPublic", false);
+        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), obj.toString());
+
+        Request request = buildVideoPublicRequest(videoId).put(body).build();
         Response response = executeRequest(request);
     }
 

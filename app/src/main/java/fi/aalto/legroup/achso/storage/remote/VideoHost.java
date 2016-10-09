@@ -23,6 +23,10 @@ public interface VideoHost {
 
     public List<Group> getGroups() throws IOException;
 
+    public void makeVideoPublic(UUID videoId) throws IOException, JSONException;
+
+    public void makeVideoPrivate(UUID videoId) throws IOException, JSONException;
+
     public void unshareVideo(UUID videoId, int groupId) throws IOException;
 
     public void shareVideo(UUID videoId, int groupId) throws IOException, JSONException;

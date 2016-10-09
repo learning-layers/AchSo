@@ -895,6 +895,51 @@ public class CombinedVideoRepository implements VideoRepository {
         task.execute(true);
     }
 
+    private class PubliticeVideoTask extends AsyncTask<Boolean, Void, Void> {
+
+        private UUID videoId;
+
+        public void setVideoId(UUID id) {
+            this.videoId = id;
+        }
+
+        @Override
+        protected Void doInBackground(Boolean... params) {
+            Boolean isPublic = params[0];
+            for (VideoHost host : cloudHosts) {
+                try {
+                    if (isPublic) {
+                        host.makeVideoPublic(this.videoId);
+                    } else {
+                        host.makeVideoPrivate(this.videoId);
+                    }
+                } catch(Exception ex) {
+                    System.out.println(ex);
+                }
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+        }
+    }
+    @Override
+    public void makeVideoPublic(UUID videoID) {
+        PubliticeVideoTask task = new PubliticeVideoTask();
+        task.setVideoId(videoID);
+        task.execute(true);
+    }
+
+    @Override
+    public void makeVideoPrivate(UUID videoID) {
+        PubliticeVideoTask task = new PubliticeVideoTask();
+        task.setVideoId(videoID);
+        task.execute(false);
+    }
+
     @Override @NonNull
     public OptimizedVideo getVideo(UUID id) throws IOException {
         OptimizedVideo video = allVideos.get(id);
