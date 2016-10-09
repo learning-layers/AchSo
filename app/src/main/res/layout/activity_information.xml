@@ -65,16 +65,31 @@
             android:layout_width="fill_parent"
             android:layout_height="0dp">
 
-            <CheckBox
+            <LinearLayout
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="10dp"
-                android:drawableLeft="@drawable/ic_file_download_white_24dp"
-                android:id="@+id/availableOfflineCheckbox"
-                android:text="@string/available_offline"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
-            </CheckBox>
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
+                <CheckBox
+                    android:layout_gravity="left"
+                    android:drawableLeft="@drawable/ic_file_download_white_24dp"
+                    android:id="@+id/availableOfflineCheckbox"
+                    android:text="@string/available_offline"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                </CheckBox>
+
+                <CheckBox
+                    android:layout_gravity="right"
+                    android:id="@+id/isVideoPublic"
+                    android:text="Is video public?"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                </CheckBox>
+
+            </LinearLayout>
             <Button
                 android:backgroundTint="@color/teal_700"
                 android:textColor="@color/white_text"
