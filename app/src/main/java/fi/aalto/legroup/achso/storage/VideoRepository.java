@@ -60,6 +60,11 @@ public interface VideoRepository extends VideoInfoRepository {
     public void deleteCachedFiles(List<UUID> ids) throws IOException;
 
     /**
+     * Delete a single cached file
+     */
+    public void deleteCachedFile(UUID id) throws IOException;
+
+    /**
      * Deletes an entity with the given ID.
      */
     public void delete(UUID id) throws IOException;

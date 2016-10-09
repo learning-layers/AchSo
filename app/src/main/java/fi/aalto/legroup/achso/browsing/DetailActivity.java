@@ -46,6 +46,7 @@ import fi.aalto.legroup.achso.entities.Annotation;
 import fi.aalto.legroup.achso.entities.Group;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.playback.PlayerActivity;
+import fi.aalto.legroup.achso.storage.remote.download.DownloadService;
 import fi.aalto.legroup.achso.storage.remote.upload.UploadErrorEvent;
 import fi.aalto.legroup.achso.storage.remote.upload.UploadService;
 import fi.aalto.legroup.achso.storage.remote.upload.UploadStateEvent;
@@ -138,7 +139,22 @@ public final class DetailActivity extends AppCompatActivity
         isAvailableOfflineCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                UUID id = video.getId();
 
+                isAvailableOfflineCheckbox.setEnabled(false);
+                if (b) {
+                    DownloadService.download(DetailActivity.this, id);
+
+                    isAvailableOfflineCheckbox.setChecked(true);
+                } else {
+                    try {
+                        App.videoRepository.deleteCachedFile(id);
+                        isAvailableOfflineCheckbox.setEnabled(true);
+                        isAvailableOfflineCheckbox.setChecked(false);
+                    } catch (IOException ex) {
+
+                    }
+                }
             }
         });
 
@@ -171,9 +187,7 @@ public final class DetailActivity extends AppCompatActivity
                     uploadButton.setText(currentlyUploading);
 
                     UUID id = video.getId();
-                    ArrayList list = new ArrayList();
-                    list.add(id);
-                    UploadService.upload(DetailActivity.this, list);
+                    UploadService.upload(DetailActivity.this, id);
                 }
             });
         }
