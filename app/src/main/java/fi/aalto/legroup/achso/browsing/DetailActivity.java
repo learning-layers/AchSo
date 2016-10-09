@@ -17,6 +17,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 
@@ -63,6 +65,8 @@ public final class DetailActivity extends AppCompatActivity
 
     private Button uploadButton;
     private Button groupsButton;
+
+    private CheckBox isAvailableOfflineCheckbox;
 
     @Override
     public void onResume() {
@@ -122,6 +126,21 @@ public final class DetailActivity extends AppCompatActivity
 
             findViewById(R.id.unknownLocationText).setVisibility(View.GONE);
         }
+
+        isAvailableOfflineCheckbox = (CheckBox)  findViewById(R.id.availableOfflineCheckbox);
+
+        if (video.isLocal()) {
+            isAvailableOfflineCheckbox.setEnabled(false);
+        }
+
+        isAvailableOfflineCheckbox.setChecked(video.hasCachedFiles());
+
+        isAvailableOfflineCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+
+            }
+        });
 
         groupsList = (ListView) findViewById(R.id.groupsList);
 
