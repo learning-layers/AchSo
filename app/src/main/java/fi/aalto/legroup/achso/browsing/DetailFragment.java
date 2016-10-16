@@ -23,7 +23,6 @@ public final class DetailFragment extends Fragment {
 
     private TextView titleField;
     private TextView creatorField;
-    private TextView qrCodeField;
     private TextView uploadedField;
 
     private ImageButton titleEditButton;
@@ -48,7 +47,6 @@ public final class DetailFragment extends Fragment {
 
         titleField = (TextView) view.findViewById(R.id.titleField);
         creatorField = (TextView) view.findViewById(R.id.creatorField);
-        qrCodeField = (TextView) view.findViewById(R.id.qrCodeField);
         uploadedField = (TextView) view.findViewById(R.id.uploadedField);
 
         titleEditButton = (ImageButton) view.findViewById(R.id.titleEditButton);
@@ -73,16 +71,12 @@ public final class DetailFragment extends Fragment {
 
     private void populateInformation() {
         String authorName = video.getAuthor().getName();
-        String qrCode = video.getId().toString();
         String uploaded;
 
         if (Strings.isNullOrEmpty(authorName)) {
             authorName = getString(R.string.semanticvideo_unknown_creator);
         }
 
-        if (Strings.isNullOrEmpty(qrCode)) {
-            qrCode = getString(R.string.semanticvideo_no_qr);
-        }
 
         if (video.isRemote()) {
             uploaded = getString(R.string.yes);
@@ -92,7 +86,6 @@ public final class DetailFragment extends Fragment {
 
         titleField.setText(video.getTitle());
         creatorField.setText(authorName);
-        qrCodeField.setText(qrCode);
         uploadedField.setText(uploaded);
     }
 
