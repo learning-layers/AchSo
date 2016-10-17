@@ -78,9 +78,6 @@ public class Video implements JsonSerializable {
         this.isPublic = isPublic;
         this.rotation = rotation;
         this.date = date;
-
-        System.out.println("is public: " + isPublic);
-
         this.repository = repository;
         this.author = author;
         this.location = location;

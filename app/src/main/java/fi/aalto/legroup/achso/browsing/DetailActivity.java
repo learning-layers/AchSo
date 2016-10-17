@@ -46,6 +46,7 @@ import fi.aalto.legroup.achso.entities.Annotation;
 import fi.aalto.legroup.achso.entities.Group;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.playback.PlayerActivity;
+import fi.aalto.legroup.achso.storage.VideoRepository;
 import fi.aalto.legroup.achso.storage.remote.download.DownloadErrorEvent;
 import fi.aalto.legroup.achso.storage.remote.download.DownloadService;
 import fi.aalto.legroup.achso.storage.remote.download.DownloadStateEvent;
@@ -147,10 +148,14 @@ public final class DetailActivity extends AppCompatActivity
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 UUID id = video.getId();
                 if (b) {
+                    video.setIsPublic(true);
                     App.videoRepository.makeVideoPublic(id);
                 } else {
+                    video.setIsPublic(false);
                     App.videoRepository.makeVideoPrivate(id);
                 }
+
+                video.save(null);
             }
         });
 
@@ -172,7 +177,7 @@ public final class DetailActivity extends AppCompatActivity
                         isAvailableOfflineCheckbox.setEnabled(true);
                         isAvailableOfflineCheckbox.setChecked(false);
                     } catch (IOException ex) {
-
+                        System.out.println(ex);
                     }
                 }
             }
