@@ -69,6 +69,7 @@ public final class DetailActivity extends AppCompatActivity
 
     private Button uploadButton;
     private Button groupsButton;
+    private Button toggleAnnotations;
 
     private CheckBox isAvailableOfflineCheckbox;
     private CheckBox isPublicCheckbox;
@@ -102,6 +103,16 @@ public final class DetailActivity extends AppCompatActivity
 
         setContentView(R.layout.activity_information);
 
+        isAvailableOfflineCheckbox = (CheckBox)  findViewById(R.id.availableOfflineCheckbox);
+        isPublicCheckbox = (CheckBox) findViewById(R.id.isVideoPublic);
+
+        groupsList = (ListView) findViewById(R.id.groupsList);
+        annotationsList = (ListView) findViewById(R.id.annotationsList);
+
+        groupsButton = (Button)  findViewById(R.id.toggleGroupsList);
+        uploadButton = (Button) findViewById(R.id.uploadVideoButton);
+        toggleAnnotations = (Button) findViewById(R.id.toggleAnnotationsList);
+
         Toolbar bar = (Toolbar)  findViewById(R.id.toolbar);
         setSupportActionBar(bar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -132,15 +143,66 @@ public final class DetailActivity extends AppCompatActivity
             findViewById(R.id.unknownLocationText).setVisibility(View.GONE);
         }
 
-        isAvailableOfflineCheckbox = (CheckBox)  findViewById(R.id.availableOfflineCheckbox);
-        isPublicCheckbox = (CheckBox) findViewById(R.id.isVideoPublic);
+        initializeGroupsButton();
+        initializeUploadButton();
+        initializeAnnotationsButton();
+        initializeIsLocal();
+        initializeIsPublic();
 
+        groupsList.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                view.getParent().requestDisallowInterceptTouchEvent(true);
+                return false;
+            }
+        });
+
+        loadGroups();
+        setListViewHeightBasedOnChildren(groupsList);
+    }
+
+    private void initializeGroupsButton() {
         if (video.isLocal()) {
-            isAvailableOfflineCheckbox.setEnabled(false);
+            groupsButton.setEnabled(false);
+        }
+
+        groupsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (groupsList.getVisibility() == View.VISIBLE) {
+                    groupsList.setVisibility(View.GONE);
+                } else {
+                    groupsList.setVisibility(View.VISIBLE);
+                }
+            }
+        });
+    }
+
+    private void initializeAnnotationsButton() {
+        if (video.getAnnotations().size() == 0) {
+            toggleAnnotations.setEnabled(false);
+        } else {
+            toggleAnnotations.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (annotationsList.getVisibility() == View.VISIBLE) {
+                        annotationsList.setVisibility(View.GONE);
+                    } else {
+                        annotationsList.setVisibility(View.VISIBLE);
+                    }
+                }
+            });
+
+            loadAnnotations();
+            setListViewHeightBasedOnChildren(annotationsList);
+        }
+    }
+
+    private void initializeIsPublic() {
+        if (video.isLocal()) {
             isPublicCheckbox.setEnabled(false);
         }
 
-        System.out.println("is public: " + video.getIsPublic());
         isPublicCheckbox.setChecked(video.getIsPublic());
 
         isPublicCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -158,6 +220,12 @@ public final class DetailActivity extends AppCompatActivity
                 video.save(null);
             }
         });
+    }
+
+    private void initializeIsLocal() {
+        if (video.isLocal()) {
+            isAvailableOfflineCheckbox.setEnabled(false);
+        }
 
         isAvailableOfflineCheckbox.setChecked(video.hasCachedFiles());
 
@@ -182,21 +250,9 @@ public final class DetailActivity extends AppCompatActivity
                 }
             }
         });
+    }
 
-        groupsList = (ListView) findViewById(R.id.groupsList);
-
-        groupsList.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                view.getParent().requestDisallowInterceptTouchEvent(true);
-                return false;
-            }
-        });
-
-
-        groupsButton = (Button)  findViewById(R.id.toggleGroupsList);
-        uploadButton = (Button) findViewById(R.id.uploadVideoButton);
-
+    private void initializeUploadButton() {
         if (!video.isLocal()) {
             uploadButton.setEnabled(false);
             uploadButton.setVisibility(View.GONE);
@@ -215,46 +271,6 @@ public final class DetailActivity extends AppCompatActivity
                     UploadService.upload(DetailActivity.this, id);
                 }
             });
-        }
-
-        if (video.isLocal()) {
-           groupsButton.setEnabled(false);
-        }
-
-        groupsButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (groupsList.getVisibility() == View.VISIBLE) {
-                    groupsList.setVisibility(View.GONE);
-                } else {
-                    groupsList.setVisibility(View.VISIBLE);
-                }
-            }
-        });
-
-        loadGroups();
-        setListViewHeightBasedOnChildren(groupsList);
-
-        annotationsList = (ListView) findViewById(R.id.annotationsList);
-
-        Button toggleAnnotations = (Button) findViewById(R.id.toggleAnnotationsList);
-
-        if (video.getAnnotations().size() == 0) {
-           toggleAnnotations.setEnabled(false);
-        } else {
-            toggleAnnotations.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (annotationsList.getVisibility() == View.VISIBLE) {
-                        annotationsList.setVisibility(View.GONE);
-                    } else {
-                        annotationsList.setVisibility(View.VISIBLE);
-                    }
-                }
-            });
-
-            loadAnnotations();
-            setListViewHeightBasedOnChildren(annotationsList);
         }
     }
 
