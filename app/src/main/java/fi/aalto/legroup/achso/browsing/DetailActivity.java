@@ -46,7 +46,6 @@ import fi.aalto.legroup.achso.entities.Annotation;
 import fi.aalto.legroup.achso.entities.Group;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.playback.PlayerActivity;
-import fi.aalto.legroup.achso.storage.VideoRepository;
 import fi.aalto.legroup.achso.storage.remote.download.DownloadErrorEvent;
 import fi.aalto.legroup.achso.storage.remote.download.DownloadService;
 import fi.aalto.legroup.achso.storage.remote.download.DownloadStateEvent;

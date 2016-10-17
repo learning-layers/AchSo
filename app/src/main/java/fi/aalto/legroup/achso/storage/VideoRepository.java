@@ -113,4 +113,9 @@ public interface VideoRepository extends VideoInfoRepository {
      * Migrate all videos to the current format version.
      */
     public void migrateVideos(Context context);
+
+    /**
+     * Checks to see if currentyly logged in user is authorized to change sharing/publicity settings
+     */
+    public boolean isAuthorizedToShareVideo(UUID id);
 }

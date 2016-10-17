@@ -6,7 +6,7 @@ import java.util.ArrayList;
  * Use this class to store users memory efficiently.
  * Maps User objects to indices that can later retrieve the actual User back.
  */
-final class UserPool {
+public final class UserPool {
 
     private UserPool() {
         // This class is meant only to be static

@@ -27,8 +27,11 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.Group;
 import fi.aalto.legroup.achso.entities.OptimizedVideo;
+import fi.aalto.legroup.achso.entities.User;
+import fi.aalto.legroup.achso.entities.UserPool;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.entities.VideoReference;
 import fi.aalto.legroup.achso.entities.migration.VideoMigration;
@@ -709,6 +712,7 @@ public class CombinedVideoRepository implements VideoRepository {
         }
     }
 
+
     private class DeleteVideoTask extends AsyncTask<UUID, Void, Void> {
 
         @Override
@@ -732,6 +736,28 @@ public class CombinedVideoRepository implements VideoRepository {
             super.onPostExecute(aVoid);
             bus.post(new SyncRequiredEvent(CombinedVideoRepository.this));
         }
+    }
+
+    @Override
+    public boolean isAuthorizedToShareVideo(UUID id) {
+        OptimizedVideo video;
+        User currentUser;
+        User author;
+
+        try {
+            video = getVideo(id);
+        } catch (IOException e) {
+            return false;
+        }
+
+        currentUser = App.loginManager.getUser();
+        author = UserPool.getInternedUser(video.getAuthorUserIndex());
+
+        if (currentUser == author) {
+            return true;
+        }
+
+        return false;
     }
 
     @Override

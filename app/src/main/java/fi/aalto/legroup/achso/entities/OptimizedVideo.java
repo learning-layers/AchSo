@@ -135,6 +135,10 @@ public class OptimizedVideo {
         return this.cacheThumbUri != null && this.cacheVideoUri != null;
     }
 
+    public int getAuthorUserIndex() {
+        return this.authorUserIndex;
+    }
+
     public Uri getCacheThumbUri() {
         return Uri.parse(cacheThumbUri);
     }
