@@ -142,11 +142,19 @@ public final class DetailActivity extends AppCompatActivity
             findViewById(R.id.unknownLocationText).setVisibility(View.GONE);
         }
 
-        initializeGroupsButton();
         initializeUploadButton();
         initializeAnnotationsButton();
         initializeIsLocal();
-        initializeIsPublic();
+
+        if (!App.videoRepository.isAuthorizedToShareVideo(video.getId())) {
+            System.out.println("not authorized!");
+            isPublicCheckbox.setEnabled(false);
+            groupsButton.setEnabled(false);
+            SnackbarManager.show(Snackbar.with(DetailActivity.this).text("You do not have the rights to share this video!"));
+        } else {
+            initializeGroupsButton();
+            initializeIsPublic();
+        }
 
         groupsList.setOnTouchListener(new View.OnTouchListener() {
             @Override

@@ -753,7 +753,7 @@ public class CombinedVideoRepository implements VideoRepository {
         currentUser = App.loginManager.getUser();
         author = UserPool.getInternedUser(video.getAuthorUserIndex());
 
-        if (currentUser == author) {
+        if (currentUser.equals(author)) {
             return true;
         }
 
