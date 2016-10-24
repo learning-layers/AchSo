@@ -128,5 +128,7 @@
  <string name="upload_succeeded">Videote õnnestus</string>
  <string name="currently_uploading">üleslaadimine...</string>
  <string name="is_video_public">Kas otsida?</string>
+ <string name="qr_tag_fail">Sildi video QR ebaõnnestus!</string>
+ <string name="qr_tag_success">Video sildistatud QR koodi</string>
 
 </resources>

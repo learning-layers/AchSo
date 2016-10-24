@@ -159,4 +159,6 @@
     <string name="upload_succeeded">Videon lähetys onnistui</string>
     <string name="currently_uploading">Lähetetään...</string>
     <string name="is_video_public">Näkyy haussa?</string>
+    <string name="qr_tag_fail">QR-koodin lisäys videoon epäonnistuo</string>
+    <string name="qr_tag_success">QR-koodin lisäys videoon onnistui</string>
 </resources>

@@ -181,12 +181,14 @@ public final class DetailActivity extends AppCompatActivity
         video.save(new VideoRepository.VideoCallback() {
             @Override
             public void found(Video video) {
-                SnackbarManager.show(Snackbar.with(DetailActivity.this).text("QR code tagged to video"));
+                String message = getResources().getString(R.string.qr_tag_success);
+                SnackbarManager.show(Snackbar.with(DetailActivity.this).text(message));
             }
 
             @Override
             public void notFound() {
-                SnackbarManager.show(Snackbar.with(DetailActivity.this).text("Tagging QR code failed."));
+                String message = getResources().getString(R.string.qr_tag_fail);
+                SnackbarManager.show(Snackbar.with(DetailActivity.this).text(message));
             }
         });
     }
