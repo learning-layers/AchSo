@@ -72,9 +72,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
+                <Button
+                    android:layout_weight="0.33"
+                    android:id="@+id/addQRButton"
+                    android:text="Add QR"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
                 <CheckBox
-                    android:layout_gravity="left"
-                    android:drawableLeft="@drawable/ic_file_download_white_24dp"
+                    android:layout_weight="0.33"
                     android:id="@+id/availableOfflineCheckbox"
                     android:text="@string/available_offline"
                     android:layout_width="wrap_content"
@@ -82,9 +88,9 @@
                 </CheckBox>
 
                 <CheckBox
-                    android:layout_gravity="right"
+                    android:layout_weight="0.33"
                     android:id="@+id/isVideoPublic"
-                    android:text="Is video public?"
+                    android:text="@string/is_video_public"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content">
                 </CheckBox>

@@ -42,10 +42,12 @@ import java.util.UUID;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
+import fi.aalto.legroup.achso.authoring.QRHelper;
 import fi.aalto.legroup.achso.entities.Annotation;
 import fi.aalto.legroup.achso.entities.Group;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.playback.PlayerActivity;
+import fi.aalto.legroup.achso.storage.VideoRepository;
 import fi.aalto.legroup.achso.storage.remote.download.DownloadErrorEvent;
 import fi.aalto.legroup.achso.storage.remote.download.DownloadService;
 import fi.aalto.legroup.achso.storage.remote.download.DownloadStateEvent;
@@ -69,6 +71,7 @@ public final class DetailActivity extends AppCompatActivity
     private Button uploadButton;
     private Button groupsButton;
     private Button toggleAnnotations;
+    private Button addQRButton;
 
     private CheckBox isAvailableOfflineCheckbox;
     private CheckBox isPublicCheckbox;
@@ -110,6 +113,7 @@ public final class DetailActivity extends AppCompatActivity
 
         groupsButton = (Button)  findViewById(R.id.toggleGroupsList);
         uploadButton = (Button) findViewById(R.id.uploadVideoButton);
+        addQRButton = (Button)  findViewById(R.id.addQRButton);
         toggleAnnotations = (Button) findViewById(R.id.toggleAnnotationsList);
 
         Toolbar bar = (Toolbar)  findViewById(R.id.toolbar);
@@ -142,6 +146,7 @@ public final class DetailActivity extends AppCompatActivity
             findViewById(R.id.unknownLocationText).setVisibility(View.GONE);
         }
 
+        initializeAddQRButton();
         initializeUploadButton();
         initializeAnnotationsButton();
         initializeIsLocal();
@@ -166,6 +171,37 @@ public final class DetailActivity extends AppCompatActivity
 
         loadGroups();
         setListViewHeightBasedOnChildren(groupsList);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        String code = QRHelper.getQRCodeForResult(requestCode, resultCode, data);
+        video.setTag(code);
+        video.save(new VideoRepository.VideoCallback() {
+            @Override
+            public void found(Video video) {
+                SnackbarManager.show(Snackbar.with(DetailActivity.this).text("QR code tagged to video"));
+            }
+
+            @Override
+            public void notFound() {
+                SnackbarManager.show(Snackbar.with(DetailActivity.this).text("Tagging QR code failed."));
+            }
+        });
+    }
+
+    private void initializeAddQRButton() {
+
+        addQRButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                UUID id = video.getId();
+                List ids = new ArrayList<>();
+                ids.add(id);
+                QRHelper.readQRCodeForVideos(DetailActivity.this, ids, null);
+            }
+        });
     }
 
     private void initializeGroupsButton() {

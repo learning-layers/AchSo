@@ -158,4 +158,5 @@
     <string name="upload_video">Lähetä video</string>
     <string name="upload_succeeded">Videon lähetys onnistui</string>
     <string name="currently_uploading">Lähetetään...</string>
+    <string name="is_video_public">Näkyy haussa?</string>
 </resources>

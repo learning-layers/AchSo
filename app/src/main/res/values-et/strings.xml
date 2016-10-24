@@ -127,6 +127,6 @@
  <string name="upload_video">Laadi video</string>
  <string name="upload_succeeded">Videote õnnestus</string>
  <string name="currently_uploading">üleslaadimine...</string>
-
+ <string name="is_video_public">Kas otsida?</string>
 
 </resources>

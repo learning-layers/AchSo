@@ -131,5 +131,6 @@
     <string name="upload_successful"></string>
     <string name="upload_succeeded">Hochladen von Video gelungen</string>
     <string name="currently_uploading">Hochladen...</string>
+    <string name="is_video_public">Ist durchsuchbar?</string>
 
 </resources>

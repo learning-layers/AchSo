@@ -13,12 +13,15 @@ import com.nispok.snackbar.Snackbar;
 import com.nispok.snackbar.SnackbarManager;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.OptimizedVideo;
+import fi.aalto.legroup.achso.entities.Video;
+import fi.aalto.legroup.achso.storage.VideoRepository;
 
 public class QRHelper {
     private static boolean launchedForAdding;
@@ -55,8 +58,9 @@ public class QRHelper {
             for (UUID id : ids) {
                 try {
                     OptimizedVideo video = App.videoRepository.getVideo(id);
-                    video.setTag(code);
-                    video.inflate().save(null);
+                    Video realVideo = video.inflate();
+                    realVideo.setTag(code);
+                    realVideo.save(null);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -74,7 +78,7 @@ public class QRHelper {
         }
     }
 
-    private static String getQRCodeForResult(int requestCode, int resultCode, Intent intent) {
+    public static String getQRCodeForResult(int requestCode, int resultCode, Intent intent) {
         IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
         if (result != null) {
             return result.getContents();

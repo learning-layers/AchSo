@@ -181,5 +181,6 @@
     <string name="semanticvideo_latitude"></string>
     <string name="upload_succeeded">Uploading video succeeded</string>
     <string name="currently_uploading">Uploading...</string>
+    <string name="is_video_public">Is searchable?</string>
 
 </resources>

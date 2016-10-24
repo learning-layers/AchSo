@@ -63,16 +63,36 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content">
 
-            <CheckBox
+            <LinearLayout
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="10dp"
-                android:drawableLeft="@drawable/ic_file_download_white_24dp"
-                android:id="@+id/availableOfflineCheckbox"
-                android:text="Available offline?"
+                android:orientation="horizontal"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
-            </CheckBox>
 
+                <Button
+                    android:layout_weight="0.33"
+                    android:id="@+id/addQRButton"
+                    android:text="Add QR"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+                <CheckBox
+                    android:layout_weight="0.33"
+                    android:drawableLeft="@drawable/ic_file_download_white_24dp"
+                    android:id="@+id/availableOfflineCheckbox"
+                    android:text="Available offline?"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                </CheckBox>
+
+                <CheckBox
+                    android:layout_weight="0.33"
+                    android:id="@+id/isVideoPublic"
+                    android:text="@string/is_video_public"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                </CheckBox>
+            </LinearLayout>
             <Button
                 android:id="@+id/toggleGroupsList"
                 android:layout_marginTop="10dp"
