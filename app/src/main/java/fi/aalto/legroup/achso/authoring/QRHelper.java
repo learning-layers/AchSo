@@ -51,33 +51,6 @@ public class QRHelper {
         integrator.initiateScan();
     }
 
-    public static void readQRCodeResult(Activity activity, int requestCode, int resultCode, Intent data) {
-
-        String code = getQRCodeForResult(requestCode, resultCode, data);
-        if (launchedForAdding) {
-            for (UUID id : ids) {
-                try {
-                    OptimizedVideo video = App.videoRepository.getVideo(id);
-                    Video realVideo = video.inflate();
-                    realVideo.setTag(code);
-                    realVideo.save(null);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            SnackbarManager.show(Snackbar.with(activity).text(R.string.code_added_to_videos));
-
-            if (mode != null) {
-                mode.finish();
-            }
-        } else {
-            SearchView search = (SearchView) menuItem.getActionView();
-            search.setQuery(code, true);
-            MenuItemCompat.expandActionView(menuItem);
-        }
-    }
-
     public static String getQRCodeForResult(int requestCode, int resultCode, Intent intent) {
         IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
         if (result != null) {

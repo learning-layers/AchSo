@@ -317,11 +317,6 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
             case REQUEST_CHOOSE_VIDEO:
                 createVideo(resultCode, data);
                 break;
-
-            // FIXME: Default is not good here
-            default:
-                QRHelper.readQRCodeResult(this, requestCode, resultCode, data);
-                break;
         }
     }
 
