@@ -276,10 +276,6 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
                 chooseVideo();
                 return true;
 
-            case R.id.action_read_qrcode:
-                QRHelper.readQRCodeForSearching(this, this.searchItem);
-                return true;
-
             case R.id.action_manage_groups:
                 SharingActivity.openManageGroupsActivity(this);
                 return true;
