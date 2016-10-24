@@ -118,7 +118,11 @@ public final class DetailActivity extends AppCompatActivity
 
         Toolbar bar = (Toolbar)  findViewById(R.id.toolbar);
         setSupportActionBar(bar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        android.support.v7.app.ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
 
         SupportMapFragment mapFragment = (SupportMapFragment)
                 getSupportFragmentManager().findFragmentById(R.id.mapFragment);

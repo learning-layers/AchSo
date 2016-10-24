@@ -94,6 +94,14 @@
                 </CheckBox>
             </LinearLayout>
             <Button
+                android:backgroundTint="@color/teal_700"
+                android:textColor="@color/white_text"
+                android:id="@+id/uploadVideoButton"
+                android:text="@string/upload_video"
+                android:layout_marginBottom="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+            <Button
                 android:id="@+id/toggleGroupsList"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="10dp"
