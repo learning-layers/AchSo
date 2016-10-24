@@ -158,11 +158,6 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
     @Override
     public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_qr_to_video:
-                QRHelper.readQRCodeForVideos(getActivity(), getSelection(), mode);
-                mode.finish();
-                return true;
-
             case R.id.action_share_video:
                 ExportService.export(getActivity(), getSelection());
                 mode.finish();
