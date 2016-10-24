@@ -12,6 +12,7 @@ import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -108,6 +109,7 @@ public final class SearchActivity extends ActionBarActivity {
         }
 
         this.browserFragment.setVideos(this.matches);
+        setBrowserFragmentPlaceholder();
     }
 
     @Override
@@ -186,6 +188,14 @@ public final class SearchActivity extends ActionBarActivity {
 
         videoRefreshLayout.setRefreshing(false);
         this.browserFragment.setVideos(this.matches);
+        setBrowserFragmentPlaceholder();
+    }
+
+    private void setBrowserFragmentPlaceholder() {
+        if (this.matches.size() == 0) {
+            TextView noResults = (TextView) findViewById(R.id.place_holder);
+            noResults.setText(getResources().getText(R.string.empty_results) + " : " + lastQuery);
+        }
     }
 
     /**
