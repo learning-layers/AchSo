@@ -134,5 +134,6 @@
     <string name="is_video_public">Ist durchsuchbar?</string>
     <string name="qr_tag_fail">Etikettieren Video mit QR fehlgeschlagen!</string>
     <string name="qr_tag_success">Video markiert mit QR-Code</string>
+    <string name="add_qr">In QR</string>
 
 </resources>

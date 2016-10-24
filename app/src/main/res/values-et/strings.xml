@@ -130,5 +130,6 @@
  <string name="is_video_public">Kas otsida?</string>
  <string name="qr_tag_fail">Sildi video QR ebaõnnestus!</string>
  <string name="qr_tag_success">Video sildistatud QR koodi</string>
+ <string name="add_qr">Lisa QR</string>
 
 </resources>

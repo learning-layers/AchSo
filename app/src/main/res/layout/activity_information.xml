@@ -75,7 +75,7 @@
                 <Button
                     android:layout_weight="0.33"
                     android:id="@+id/addQRButton"
-                    android:text="Add QR"
+                    android:text="@string/add_qr"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
 

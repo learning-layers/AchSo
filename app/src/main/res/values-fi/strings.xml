@@ -161,4 +161,5 @@
     <string name="is_video_public">Näkyy haussa?</string>
     <string name="qr_tag_fail">QR-koodin lisäys videoon epäonnistuo</string>
     <string name="qr_tag_success">QR-koodin lisäys videoon onnistui</string>
+    <string name="add_qr">Lisää QR</string>
 </resources>

@@ -184,5 +184,6 @@
     <string name="is_video_public">Is searchable?</string>
     <string name="qr_tag_success">Video tagged with QR code</string>
     <string name="qr_tag_fail">Tagging video with QR failed!</string>
+    <string name="add_qr">Add QR</string>
 
 </resources>
