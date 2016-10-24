@@ -86,18 +86,14 @@ public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapte
 
         Picasso.with(this.context).load(thumbUri).into(thumbImage);
 
-        if (video.isLocal()) {
-            holder.getUploadIndicator().setImageAlpha(0x80);
-            holder.getUploadIndicator().setImageResource(R.drawable.ic_cloud_off_white_24dp);
+        if (video.isLocal() || video.hasCachedFiles()) {
+            holder.getUploadIndicator().setImageResource(R.drawable.ic_file_download_white_24dp);
         } else {
-            holder.getUploadIndicator().setImageAlpha(0xFF);
             holder.getUploadIndicator().setImageResource(R.drawable.ic_cloud_done_white_24dp);
         }
 
-        if (video.hasCachedFiles()) {
-            holder.getFavoriteIndicator().setImageAlpha(0xFF);
-        } else {
-            holder.getFavoriteIndicator().setImageAlpha(0x00);
+        if (!video.hasBeenShared()) {
+            holder.getSharedIndicator().setVisibility(View.INVISIBLE);
         }
     }
 
@@ -175,7 +171,7 @@ public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapte
         private TextView titleText;
         private ImageView thumbImage;
         private ImageView uploadIndicator;
-        private ImageView favoriteIndicator;
+        private ImageView sharedIndicator;
         private ProgressBar progressBar;
         private View selectionOverlay;
 
@@ -186,7 +182,7 @@ public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapte
             this.titleText = (TextView) view.findViewById(R.id.titleText);
             this.thumbImage = (ImageView) view.findViewById(R.id.thumbImage);
             this.uploadIndicator = (ImageView) view.findViewById(R.id.uploadButton);
-            this.favoriteIndicator = (ImageView) view.findViewById(R.id.favoriteButton);
+            this.sharedIndicator = (ImageView) view.findViewById(R.id.sharedButton);
             this.progressBar = (ProgressBar) view.findViewById(R.id.progressBar);
             this.selectionOverlay = view.findViewById(R.id.selectionOverlay);
         }
@@ -203,12 +199,12 @@ public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapte
             return this.thumbImage;
         }
 
-        public ImageView getFavoriteIndicator () {
-            return this.favoriteIndicator;
-        }
-
         public ImageView getUploadIndicator() {
             return this.uploadIndicator;
+        }
+
+        public ImageView getSharedIndicator() {
+            return this.sharedIndicator;
         }
 
         public ProgressBar getProgressBar() {

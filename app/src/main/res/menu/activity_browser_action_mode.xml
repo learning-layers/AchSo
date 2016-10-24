@@ -10,39 +10,9 @@
         app:showAsAction="ifRoom|withText" />
 
     <item
-        android:id="@+id/action_upload"
-        android:icon="@drawable/ic_cloud_upload_white_24dp"
-        android:title="@string/upload"
-        app:showAsAction="ifRoom|withText" />
-
-    <item
-        android:id="@+id/action_share_to_group"
-        android:icon="@drawable/ic_group_white_24dp"
-        android:title="@string/video_share"
-        app:showAsAction="ifRoom|withText" />
-
-    <item
-        android:id="@+id/action_download"
-        android:icon="@drawable/ic_cloud_off_white_24dp"
-        android:title="@string/video_download"
-        app:showAsAction="ifRoom|withText" />
-
-    <item
-        android:id="@+id/action_cache_remove"
-        android:icon="@drawable/ic_cloud_off_white_24dp"
-        android:title="@string/cache_delete"
-        app:showAsAction="ifRoom|withText" />
-
-    <item
         android:id="@+id/action_trim"
         android:icon="@drawable/ic_cloud_off_white_24dp"
         android:title="@string/trim_video"
-        app:showAsAction="ifRoom|withText" />
-
-    <item
-        android:id="@+id/action_qr_to_video"
-        android:icon="@drawable/ic_qrcode_white_24dp"
-        android:title="@string/qr_to_video"
         app:showAsAction="ifRoom|withText" />
 
     <item

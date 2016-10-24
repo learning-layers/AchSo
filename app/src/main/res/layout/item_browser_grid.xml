@@ -20,7 +20,7 @@
         android:layout_height="match_parent"
         android:id="@+id/selectionOverlay"
         android:background="#88000000"
-        android:src="@drawable/ic_done_white_48dp"
+        android:src="@drawable/ic_play_circle_outline_white_48dp"
         android:scaleType="center" />
 
     <LinearLayout
@@ -57,8 +57,8 @@
         <ImageButton
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:id="@+id/favoriteButton"
-            android:src="@drawable/ic_favorite_white_24dp"
+            android:id="@+id/sharedButton"
+            android:src="@drawable/ic_group_white_24dp"
             android:background="@android:color/transparent"
             android:scaleType="center"
             android:layout_margin="8dp" />
@@ -67,7 +67,7 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:id="@+id/uploadButton"
-            android:src="@drawable/ic_cloud_off_white_24dp"
+            android:src="@drawable/ic_file_download_white_24dp"
             android:background="@android:color/transparent"
             android:scaleType="center"
             android:layout_margin="8dp" />

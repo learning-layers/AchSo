@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.webkit.URLUtil;
 
 import com.google.common.io.Files;
+import com.google.common.primitives.Booleans;
 import com.rollbar.android.Rollbar;
 import com.squareup.otto.Bus;
 
@@ -26,8 +27,11 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.Group;
 import fi.aalto.legroup.achso.entities.OptimizedVideo;
+import fi.aalto.legroup.achso.entities.User;
+import fi.aalto.legroup.achso.entities.UserPool;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.entities.VideoReference;
 import fi.aalto.legroup.achso.entities.migration.VideoMigration;
@@ -708,6 +712,7 @@ public class CombinedVideoRepository implements VideoRepository {
         }
     }
 
+
     private class DeleteVideoTask extends AsyncTask<UUID, Void, Void> {
 
         @Override
@@ -731,6 +736,52 @@ public class CombinedVideoRepository implements VideoRepository {
             super.onPostExecute(aVoid);
             bus.post(new SyncRequiredEvent(CombinedVideoRepository.this));
         }
+    }
+
+    @Override
+    public boolean isAuthorizedToShareVideo(UUID id) {
+        OptimizedVideo video;
+        User currentUser;
+        User author;
+
+        try {
+            video = getVideo(id);
+        } catch (IOException e) {
+            return false;
+        }
+
+        currentUser = App.loginManager.getUser();
+        author = UserPool.getInternedUser(video.getAuthorUserIndex());
+
+        if (currentUser.equals(author)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
+    public  void deleteCachedFile(UUID id) throws  IOException {
+        this.stateModified();
+
+        OptimizedVideo video = getVideo(id);
+
+        if (video.hasCachedFiles()) {
+            File cacheThumbFile = new File(video.getCacheThumbUri().getPath());
+            File cacheVideoFile = new File(video.getCacheVideoUri().getPath());
+
+            cacheThumbFile.delete();
+            cacheVideoFile.delete();
+
+            Video regularVideo = video.inflate();
+
+            regularVideo.setCacheVideoUri(null);
+            regularVideo.setCacheThumbUri(null);
+            regularVideo.save(null);
+
+        }
+
+        bus.post(new VideoRepositoryUpdatedEvent(this));
     }
 
     @Override
@@ -802,6 +853,117 @@ public class CombinedVideoRepository implements VideoRepository {
     @Override
     public Collection<Group> getGroups() throws IOException {
         return allGroups;
+    }
+
+    @Override
+    public boolean videoBelongsToGroup(UUID id) {
+        if (this.allGroups == null) { return false; }
+
+        for (Group group : this.allGroups) {
+            if (group.hasVideo(id)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private class ShareVideoTask extends AsyncTask<Boolean, Void, Void> {
+
+        private int groupId;
+        private UUID videoId;
+
+        public void setGroupId(int id) {
+            this.groupId = id;
+        }
+
+        public void setVideoId(UUID id) {
+            this.videoId = id;
+        }
+
+        @Override
+        protected Void doInBackground(Boolean... params) {
+            Boolean isShared = params[0];
+            for (VideoHost host : cloudHosts) {
+                try {
+                    if (isShared) {
+                        host.shareVideo(this.videoId, this.groupId);
+                    } else {
+                        host.unshareVideo(this.videoId, this.groupId);
+                    }
+                } catch(Exception ex) {
+                    System.out.println(ex);
+                }
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+        }
+    }
+
+    @Override
+    public void removeVideoFromGroup(UUID videoID, int groupID) {
+        ShareVideoTask task = new ShareVideoTask();
+        task.setGroupId(groupID);
+        task.setVideoId(videoID);
+        task.execute(false);
+    }
+
+    @Override
+    public void addVideoToGroup(UUID videoID, int groupID) {
+        ShareVideoTask task = new ShareVideoTask();
+        task.setGroupId(groupID);
+        task.setVideoId(videoID);
+        task.execute(true);
+    }
+
+    private class PubliticeVideoTask extends AsyncTask<Boolean, Void, Void> {
+
+        private UUID videoId;
+
+        public void setVideoId(UUID id) {
+            this.videoId = id;
+        }
+
+        @Override
+        protected Void doInBackground(Boolean... params) {
+            Boolean isPublic = params[0];
+            for (VideoHost host : cloudHosts) {
+                try {
+                    if (isPublic) {
+                        host.makeVideoPublic(this.videoId);
+                    } else {
+                        host.makeVideoPrivate(this.videoId);
+                    }
+                } catch(Exception ex) {
+                    System.out.println(ex);
+                }
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+        }
+    }
+    @Override
+    public void makeVideoPublic(UUID videoID) {
+        PubliticeVideoTask task = new PubliticeVideoTask();
+        task.setVideoId(videoID);
+        task.execute(true);
+    }
+
+    @Override
+    public void makeVideoPrivate(UUID videoID) {
+        PubliticeVideoTask task = new PubliticeVideoTask();
+        task.setVideoId(videoID);
+        task.execute(false);
     }
 
     @Override @NonNull

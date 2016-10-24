@@ -28,12 +28,6 @@
             app:showAsAction="never" />
 
         <item
-            android:id="@+id/action_read_qrcode"
-            android:icon="@drawable/ic_qrcode_white_24dp"
-            android:title="@string/read_qr_code"
-            app:showAsAction="never" />
-
-        <item
             android:id="@+id/action_settings"
             android:title="@string/settings"
             app:showAsAction="never|withText" />

@@ -77,6 +77,12 @@ public final class UploadService extends IntentService {
         }
     }
 
+    public static void upload(Context context, UUID video) {
+            Intent intent = new Intent(context, UploadService.class);
+            intent.putExtra(ARG_VIDEO_ID, video);
+            context.startService(intent);
+    }
+
     public UploadService() {
         super("UploadService");
 

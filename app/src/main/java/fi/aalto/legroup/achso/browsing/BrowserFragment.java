@@ -142,30 +142,13 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
     @Override
     public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
 
-        MenuItem upload_menu_item = menu.findItem(R.id.action_upload);
-        MenuItem share_menu_item = menu.findItem(R.id.action_share_to_group);
-        MenuItem download_menu_item = menu.findItem(R.id.action_download);
         MenuItem export_menu_item = menu.findItem(R.id.action_export_video);
 
         if (App.loginManager.isLoggedIn()) {
-            upload_menu_item.setEnabled(true);
-            share_menu_item.setEnabled(true);
-            download_menu_item.setEnabled(true);
             export_menu_item.setEnabled(true);
-
-            upload_menu_item.getIcon().setAlpha(255);
-            share_menu_item.getIcon().setAlpha(255);
-            download_menu_item.getIcon().setAlpha(255);
             export_menu_item.getIcon().setAlpha(255);
         } else {
-            upload_menu_item.setEnabled(false);
-            share_menu_item.setEnabled(false);
-            download_menu_item.setEnabled(false);
             export_menu_item.setEnabled(false);
-
-            upload_menu_item.getIcon().setAlpha(130);
-            share_menu_item.getIcon().setAlpha(130);
-            download_menu_item.getIcon().setAlpha(130);
             export_menu_item.getIcon().setAlpha(130);
         }
 
@@ -175,11 +158,6 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
     @Override
     public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_qr_to_video:
-                QRHelper.readQRCodeForVideos(getActivity(), getSelection(), mode);
-                mode.finish();
-                return true;
-
             case R.id.action_share_video:
                 ExportService.export(getActivity(), getSelection());
                 mode.finish();
@@ -191,39 +169,6 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
                 mode.finish();
                 return true;
 
-            case R.id.action_upload:
-                {
-                    List<UUID> selection = getSelection();
-                    UploadService.upload(getActivity(), selection);
-                    mode.finish();
-                    return true;
-                }
-            case R.id.action_share_to_group:
-            {
-                // do the check again just in case that videos have changed state while the menu
-                // has been visible
-                boolean hasLocal = false;
-                List<UUID> selection = getSelection();
-                for (UUID id : selection) {
-                    try {
-                        OptimizedVideo video = App.videoRepository.getVideo(id);
-                        if (video.isLocal()) {
-                            hasLocal = true;
-                            break;
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                if (!hasLocal) {
-                    SharingActivity.openShareActivity(getActivity(), selection);
-                }
-
-                mode.finish();
-                return true;
-            }
-
 
             case R.id.action_view_video_info:
                 Intent informationIntent = new Intent(getActivity(), DetailActivity.class);
@@ -231,28 +176,6 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
                 startActivity(informationIntent);
                 mode.finish();
                 return true;
-
-            case R.id.action_download:
-            {
-                List<UUID> selection = getSelection();
-                DownloadService.download(getActivity(), selection);
-                mode.finish();
-                return true;
-            }
-
-            case R.id.action_cache_remove:
-            {
-                List<UUID> selection = getSelection();
-
-                try {
-                    App.videoRepository.deleteCachedFiles(selection);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                mode.finish();
-                return true;
-            }
 
             case R.id.action_trim: {
                 List<UUID> selection = getLocalVideoSelection();
@@ -300,19 +223,21 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
     @Override
     public void onItemClick(View childView, int position) {
         if (actionMode == null) {
+            startActionMode();
+        }
+
+        if (this.adapter.isSelected(position)) {
             showVideo(position);
         } else {
-            toggleSelection(position);
+           toggleSelection(position);
         }
     }
 
     @Override
     public void onItemLongPress(View childView, int position) {
-        if (actionMode == null) {
-            startActionMode();
+        if (actionMode != null) {
+            toggleSelection(position);
         }
-
-        toggleSelection(position);
     }
 
     /**
@@ -451,16 +376,11 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
     private void updateMenuItems() {
         Menu menu = this.actionMode.getMenu();
         boolean hasLocal = false;
-        boolean hasCached = false;
         List<UUID> selection = getSelection();
 
         for (UUID id : selection) {
             try {
                 OptimizedVideo video = App.videoRepository.getVideo(id);
-
-                if (video.hasCachedFiles()) {
-                    hasCached = true;
-                }
 
                 if (video.isLocal()) {
                     hasLocal = true;
@@ -472,36 +392,15 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
             }
         }
 
-        MenuItem upload_menu_item = menu.findItem(R.id.action_upload);
         MenuItem export_menu_item = menu.findItem(R.id.action_export_video);
-        MenuItem download_menu_item = menu.findItem(R.id.action_download);
-        MenuItem cache_remove_item = menu.findItem(R.id.action_cache_remove);
-        MenuItem share_menu_item = menu.findItem(R.id.action_share_to_group);
         MenuItem trim_menu_item = menu.findItem(R.id.action_trim);
 
         if (hasLocal) {
-            share_menu_item.setVisible(false);
             export_menu_item.setVisible(false);
-            upload_menu_item.setVisible(true);
             trim_menu_item.setVisible(true);
         } else {
-            share_menu_item.setVisible(true);
             trim_menu_item.setVisible(false);
             export_menu_item.setVisible(true);
-            upload_menu_item.setVisible(false);
-        }
-
-        if (hasCached || hasLocal) {
-           download_menu_item.setVisible(false);
-
-        } else {
-            download_menu_item.setVisible(true);
-        }
-
-        if (hasCached) {
-            cache_remove_item.setVisible(true);
-        } else {
-            cache_remove_item.setVisible(false);
         }
     }
 

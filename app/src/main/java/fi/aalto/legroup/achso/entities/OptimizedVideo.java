@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.storage.VideoRepository;
 
 /**
@@ -39,6 +40,7 @@ public class OptimizedVideo {
     private UUID id;
     private String title;
     private String tag;
+    private boolean isPublic;
     private long dateInMs;
     private int revision;
     private long lastModifiedInMs;
@@ -109,9 +111,13 @@ public class OptimizedVideo {
         return tag;
     }
 
+    public boolean getIsPublic() { return this.isPublic; }
+
     public void setTag(String tag) {
         this.tag = tag;
     }
+
+    public void setIsPublic(boolean isPublic) { this.isPublic = isPublic; }
 
     public int getRevision() {
         return revision;
@@ -127,6 +133,10 @@ public class OptimizedVideo {
 
     public boolean hasCachedFiles() {
         return this.cacheThumbUri != null && this.cacheVideoUri != null;
+    }
+
+    public int getAuthorUserIndex() {
+        return this.authorUserIndex;
     }
 
     public Uri getCacheThumbUri() {
@@ -197,6 +207,20 @@ public class OptimizedVideo {
         }
     }
 
+    public boolean hasBeenShared() {
+        // Local video, no chance of being shared
+        if (this.isLocal()) {
+            return false;
+        }
+
+        User author = UserPool.getInternedUser(this.authorUserIndex);
+
+        if (author == App.loginManager.getUser()) {
+            return true;
+        }
+
+        return App.videoRepository.videoBelongsToGroup(this.id);
+    }
     public int getFormatVersion() {
         return formatVersion;
     }
@@ -249,6 +273,7 @@ public class OptimizedVideo {
         id = video.getId();
         title = video.getTitle();
         tag = video.getTag();
+        isPublic = video.getIsPublic();
         rotation = video.getRotation();
 
         // Store Date objects as long (They internally are just wrapped long)
@@ -388,6 +413,7 @@ public class OptimizedVideo {
         video.setId(id);
         video.setTitle(title);
         video.setTag(tag);
+        video.setIsPublic(isPublic);
         video.setRotation(rotation);
 
         // Create the Date objects from the longs

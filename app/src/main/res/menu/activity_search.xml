@@ -2,12 +2,17 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="fi.aalto.legroup.achso.browsing.SearchActivity">
-
     <item
         android:id="@+id/action_search"
         android:icon="@drawable/ic_search_white_24dp"
         android:title="@string/title_activity_search"
         app:actionViewClass="android.support.v7.widget.SearchView"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom|collapseActionView" />
+    <item
+        android:id="@+id/read_qr_search"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_qrcode_white_24dp"
+        android:title="@string/read_qr_code">
+    </item>
 
 </menu>

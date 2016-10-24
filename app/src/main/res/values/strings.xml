@@ -174,5 +174,16 @@
         <item name="2000">2000</item>
         <item name="4000">4000</item>
     </string-array>
+    <string name="available_offline">Available offline?</string>
+    <string name="upload_video">Upload video</string>
+    <string name="share_with_groups">Share with groups ▼</string>
+    <string name="list_of_annotations">List of annotations ▼</string>
+    <string name="semanticvideo_latitude"></string>
+    <string name="upload_succeeded">Uploading video succeeded</string>
+    <string name="currently_uploading">Uploading...</string>
+    <string name="is_video_public">Is searchable?</string>
+    <string name="qr_tag_success">Video tagged with QR code</string>
+    <string name="qr_tag_fail">Tagging video with QR failed!</string>
+    <string name="add_qr">Add QR</string>
 
 </resources>

@@ -24,6 +24,12 @@ public class DownloadService extends IntentService {
         this.bus = App.bus;
     }
 
+    public static void download(Context context, UUID video) {
+            Intent intent = new Intent(context, DownloadService.class);
+            intent.putExtra(ARG_VIDEO_ID, video);
+            context.startService(intent);
+    }
+
     public static void download(Context context, List<UUID> videos) {
         for (UUID id : videos) {
             Intent intent = new Intent(context, DownloadService.class);

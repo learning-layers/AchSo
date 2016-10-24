@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.UUID;
 
 import fi.aalto.legroup.achso.entities.Video;
-import fi.aalto.legroup.achso.playback.PlayerActivity;
 
 /**
  * Provides full read/write access to video root entities.
@@ -61,6 +60,11 @@ public interface VideoRepository extends VideoInfoRepository {
     public void deleteCachedFiles(List<UUID> ids) throws IOException;
 
     /**
+     * Delete a single cached file
+     */
+    public void deleteCachedFile(UUID id) throws IOException;
+
+    /**
      * Deletes an entity with the given ID.
      */
     public void delete(UUID id) throws IOException;
@@ -79,6 +83,19 @@ public interface VideoRepository extends VideoInfoRepository {
 
     public File getVideoCacheFile(UUID id);
 
+    public void removeVideoFromGroup(UUID videoId, int groupId);
+
+    public void addVideoToGroup(UUID videoId, int groupId);
+
+    public void makeVideoPublic(UUID videoId);
+
+    public void makeVideoPrivate(UUID videoId);
+    /**
+     *
+     * @return A boolean to indicate if a given video has been shared
+     */
+    public boolean videoBelongsToGroup(UUID id);
+
     /**
      *
      * @return A valid Video or null if not found.
@@ -96,4 +113,9 @@ public interface VideoRepository extends VideoInfoRepository {
      * Migrate all videos to the current format version.
      */
     public void migrateVideos(Context context);
+
+    /**
+     * Checks to see if currentyly logged in user is authorized to change sharing/publicity settings
+     */
+    public boolean isAuthorizedToShareVideo(UUID id);
 }

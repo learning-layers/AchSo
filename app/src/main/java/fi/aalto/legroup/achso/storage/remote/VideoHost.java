@@ -2,6 +2,8 @@ package fi.aalto.legroup.achso.storage.remote;
 
 import android.net.Uri;
 
+import org.json.JSONException;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -20,6 +22,14 @@ public interface VideoHost {
     public List<VideoReference> getIndex() throws IOException;
 
     public List<Group> getGroups() throws IOException;
+
+    public void makeVideoPublic(UUID videoId) throws IOException, JSONException;
+
+    public void makeVideoPrivate(UUID videoId) throws IOException, JSONException;
+
+    public void unshareVideo(UUID videoId, int groupId) throws IOException;
+
+    public void shareVideo(UUID videoId, int groupId) throws IOException, JSONException;
 
     public ArrayList<Video> findVideosByQuery(String query) throws  IOException;
 

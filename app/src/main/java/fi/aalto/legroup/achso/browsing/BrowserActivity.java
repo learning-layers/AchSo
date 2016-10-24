@@ -276,10 +276,6 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
                 chooseVideo();
                 return true;
 
-            case R.id.action_read_qrcode:
-                QRHelper.readQRCodeForSearching(this, this.searchItem);
-                return true;
-
             case R.id.action_manage_groups:
                 SharingActivity.openManageGroupsActivity(this);
                 return true;
@@ -320,11 +316,6 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
             case REQUEST_RECORD_VIDEO:
             case REQUEST_CHOOSE_VIDEO:
                 createVideo(resultCode, data);
-                break;
-
-            // FIXME: Default is not good here
-            default:
-                QRHelper.readQRCodeResult(this, requestCode, resultCode, data);
                 break;
         }
     }
@@ -532,6 +523,12 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
                 if (fragment != null) {
                     manager.beginTransaction().remove(fragment).commit();
                 }
+
+                UUID id = event.getId();
+                Intent infoIntent = new Intent(this, DetailActivity.class);
+                infoIntent.putExtra(DetailActivity.ARG_VIDEO_ID, id);
+                startActivity(infoIntent);
+
                 break;
 
             case ERROR:

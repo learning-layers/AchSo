@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+import fi.aalto.legroup.achso.app.App;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
 import fi.aalto.legroup.achso.storage.VideoRepository;
 
@@ -43,6 +44,7 @@ public class Video implements JsonSerializable {
     protected Date date;
     protected int revision;
     protected int formatVersion;
+    protected boolean isPublic;
     protected transient boolean isTemporary;
 
     protected int startTime;
@@ -62,7 +64,7 @@ public class Video implements JsonSerializable {
 
     public Video(VideoRepository repository, Uri manifestUri, Uri videoUri, Uri thumbUri,
                  Uri videoCacheUri, Uri thumbCacheUri,  UUID id, String title,
-                 String tag, int rotation, Date date, User author,
+                 String tag, boolean isPublic, int rotation, Date date, User author,
                  Location location, int formatVersion, List<Annotation> annotations) {
 
         this.manifestUri = manifestUri;
@@ -73,9 +75,9 @@ public class Video implements JsonSerializable {
         this.id = id;
         this.title = title;
         this.tag = tag;
+        this.isPublic = isPublic;
         this.rotation = rotation;
         this.date = date;
-
         this.repository = repository;
         this.author = author;
         this.location = location;
@@ -208,6 +210,8 @@ public class Video implements JsonSerializable {
         return this.tag;
     }
 
+    public boolean getIsPublic() { return this.isPublic; }
+
     public int getStartTime() { return this.startTime; }
 
     public void setStartTime(int startTime) {
@@ -289,6 +293,10 @@ public class Video implements JsonSerializable {
 
     public void setTag(String tag) {
         this.tag = tag;
+    }
+
+    public void setIsPublic(boolean isPublic) {
+        this.isPublic = isPublic;
     }
 
     public void setRotation(int rotation) {

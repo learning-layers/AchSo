@@ -163,7 +163,7 @@ public final class VideoCreatorService extends IntentService {
         int formatVersion = Video.VIDEO_FORMAT_VERSION;
 
         Video video = new Video(App.videoRepository, manifestUri, videoUri, thumbUri, null, null,
-                id, title, tag, rotation, date, author, location, formatVersion, annotations);
+                id, title, tag, false, rotation, date, author, location, formatVersion, annotations);
 
         video.save(null);
 

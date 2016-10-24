@@ -6,11 +6,13 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.ParcelUuid;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,6 +26,7 @@ import javax.annotation.Nonnull;
 
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.app.App;
+import fi.aalto.legroup.achso.authoring.QRHelper;
 import fi.aalto.legroup.achso.entities.OptimizedVideo;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.storage.VideoRepository;
@@ -37,6 +40,7 @@ public final class SearchActivity extends ActionBarActivity {
     private VideoRefreshLayout videoRefreshLayout;
     private ArrayList<UUID> matches = new ArrayList<>();
     private String lastQuery;
+    private MenuItem searchItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +66,19 @@ public final class SearchActivity extends ActionBarActivity {
     }
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch (item.getItemId()) {
+            case R.id.read_qr_search: {
+                QRHelper.readQRCodeForSearching(SearchActivity.this, searchItem);
+                return true;
+            }
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     protected void onSaveInstanceState(@Nonnull Bundle savedInstanceState) {
         ArrayList<ParcelUuid> parcelableMatches = new ArrayList<>();
 
@@ -74,6 +91,15 @@ public final class SearchActivity extends ActionBarActivity {
         super.onSaveInstanceState(savedInstanceState);
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        String code = QRHelper.getQRCodeForResult(requestCode, resultCode, data);
+        lastQuery = code;
+        SearchView view = (SearchView) searchItem.getActionView();
+        view.setQuery(lastQuery, true);
+    }
+
     private void restoreSavedState(@Nonnull Bundle savedInstanceState) {
         ArrayList<ParcelUuid> parcelableMatches =
                 savedInstanceState.getParcelableArrayList(STATE_MATCHES);
@@ -83,6 +109,7 @@ public final class SearchActivity extends ActionBarActivity {
         }
 
         this.browserFragment.setVideos(this.matches);
+        setBrowserFragmentPlaceholder();
     }
 
     @Override
@@ -93,8 +120,8 @@ public final class SearchActivity extends ActionBarActivity {
         SearchManager manager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         String query = getIntent().getStringExtra(SearchManager.QUERY);
 
-        MenuItem item = menu.findItem(R.id.action_search);
-        SearchView view = (SearchView) item.getActionView();
+        searchItem = menu.findItem(R.id.action_search);
+        SearchView view = (SearchView) searchItem.getActionView();
 
         view.setSearchableInfo(manager.getSearchableInfo(getComponentName()));
         view.setQuery(query, false);
@@ -161,6 +188,14 @@ public final class SearchActivity extends ActionBarActivity {
 
         videoRefreshLayout.setRefreshing(false);
         this.browserFragment.setVideos(this.matches);
+        setBrowserFragmentPlaceholder();
+    }
+
+    private void setBrowserFragmentPlaceholder() {
+        if (this.matches.size() == 0) {
+            TextView noResults = (TextView) findViewById(R.id.place_holder);
+            noResults.setText(getResources().getText(R.string.empty_results) + " : " + lastQuery);
+        }
     }
 
     /**
