@@ -156,7 +156,6 @@ public final class DetailActivity extends AppCompatActivity
         initializeIsLocal();
 
         if (!App.videoRepository.isAuthorizedToShareVideo(video.getId())) {
-            System.out.println("not authorized!");
             isPublicCheckbox.setEnabled(false);
             groupsButton.setEnabled(false);
             SnackbarManager.show(Snackbar.with(DetailActivity.this).text("You do not have the rights to share this video!"));
@@ -302,7 +301,6 @@ public final class DetailActivity extends AppCompatActivity
     }
 
     private void initializeUploadButton() {
-
         if (!App.loginManager.isLoggedIn()) {
             String loginPrompt = getString(R.string.login_before_upload);
 

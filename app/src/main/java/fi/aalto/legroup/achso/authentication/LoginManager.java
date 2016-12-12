@@ -129,6 +129,25 @@ public final class LoginManager {
         return user;
     }
 
+    public boolean isDefaultUser(User user) {
+        String id = user.getId();
+        Uri uri = user.getUri();
+
+        if (user.equals(defaultUser)) {
+            return true;
+        }
+
+        if (id == null || id.isEmpty()) {
+            return true;
+        }
+
+        if (uri == null || uri.toString().isEmpty()) {
+            return true;
+        }
+
+        return false;
+    }
+
     public boolean isLoggedIn() {
         return state == LoginState.LOGGED_IN || isLoggingOut();
     }
