@@ -130,18 +130,14 @@ public final class LoginManager {
     }
 
     public boolean isDefaultUser(User user) {
-        String id = user.getId();
-        Uri uri = user.getUri();
+        String name = user.getName();
+
+        // TODO: Better way of doing this
+        if (name.equals("Unknown") || name.equals("Unbekannt") || name.equals("Tuntematon") || name.equals("Tundmatu")) {
+            return true;
+        }
 
         if (user.equals(defaultUser)) {
-            return true;
-        }
-
-        if (id == null || id.isEmpty()) {
-            return true;
-        }
-
-        if (uri == null || uri.toString().isEmpty()) {
             return true;
         }
 
