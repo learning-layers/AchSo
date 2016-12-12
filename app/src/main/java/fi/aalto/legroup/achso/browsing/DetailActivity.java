@@ -302,6 +302,17 @@ public final class DetailActivity extends AppCompatActivity
     }
 
     private void initializeUploadButton() {
+
+        if (!App.loginManager.isLoggedIn()) {
+            String loginPrompt = getString(R.string.login_before_upload);
+
+            uploadButton.setEnabled(false);
+            uploadButton.setAlpha(.5f);
+            uploadButton.setText(loginPrompt);
+
+            return;
+        }
+
         if (!video.isLocal()) {
             uploadButton.setEnabled(false);
             uploadButton.setVisibility(View.GONE);

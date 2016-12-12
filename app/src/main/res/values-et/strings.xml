@@ -131,5 +131,6 @@
  <string name="qr_tag_fail">Sildi video QR ebaõnnestus!</string>
  <string name="qr_tag_success">Video sildistatud QR koodi</string>
  <string name="add_qr">Lisa QR</string>
+ <string name="login_before_upload">Logi sisse enne üleslaadimist</string>
 
 </resources>

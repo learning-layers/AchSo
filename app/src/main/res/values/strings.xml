@@ -185,5 +185,6 @@
     <string name="qr_tag_success">Video tagged with QR code</string>
     <string name="qr_tag_fail">Tagging video with QR failed!</string>
     <string name="add_qr">Add QR</string>
+    <string name="login_before_upload">Log in before uploading</string>
 
 </resources>
