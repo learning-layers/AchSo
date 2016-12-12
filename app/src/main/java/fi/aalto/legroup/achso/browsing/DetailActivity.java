@@ -325,6 +325,12 @@ public final class DetailActivity extends AppCompatActivity
                     uploadButton.setAlpha(.5f);
                     uploadButton.setText(currentlyUploading);
 
+                    // Set author to currently logged in user
+                    if (App.loginManager.isDefaultUser(video.getAuthor())) {
+                        video.setAuthor(App.loginManager.getUser());
+                        video.save(null);
+                    }
+
                     UUID id = video.getId();
                     UploadService.upload(DetailActivity.this, id);
                 }
