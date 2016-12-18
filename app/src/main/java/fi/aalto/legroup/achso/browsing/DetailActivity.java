@@ -156,7 +156,6 @@ public final class DetailActivity extends AppCompatActivity
         initializeIsLocal();
 
         if (!App.videoRepository.isAuthorizedToShareVideo(video.getId())) {
-            System.out.println("not authorized!");
             isPublicCheckbox.setEnabled(false);
             groupsButton.setEnabled(false);
             SnackbarManager.show(Snackbar.with(DetailActivity.this).text("You do not have the rights to share this video!"));
@@ -302,6 +301,16 @@ public final class DetailActivity extends AppCompatActivity
     }
 
     private void initializeUploadButton() {
+        if (!App.loginManager.isLoggedIn()) {
+            String loginPrompt = getString(R.string.login_before_upload);
+
+            uploadButton.setEnabled(false);
+            uploadButton.setAlpha(.5f);
+            uploadButton.setText(loginPrompt);
+
+            return;
+        }
+
         if (!video.isLocal()) {
             uploadButton.setEnabled(false);
             uploadButton.setVisibility(View.GONE);
@@ -315,6 +324,12 @@ public final class DetailActivity extends AppCompatActivity
                     uploadButton.setEnabled(false);
                     uploadButton.setAlpha(.5f);
                     uploadButton.setText(currentlyUploading);
+
+                    // Set author to currently logged in user
+                    if (App.loginManager.isDefaultUser(video.getAuthor())) {
+                        video.setAuthor(App.loginManager.getUser());
+                        video.save(null);
+                    }
 
                     UUID id = video.getId();
                     UploadService.upload(DetailActivity.this, id);

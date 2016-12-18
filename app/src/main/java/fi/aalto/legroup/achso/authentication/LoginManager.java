@@ -129,6 +129,21 @@ public final class LoginManager {
         return user;
     }
 
+    public boolean isDefaultUser(User user) {
+        String name = user.getName();
+
+        // TODO: Better way of doing this
+        if (name.equals("Unknown") || name.equals("Unbekannt") || name.equals("Tuntematon") || name.equals("Tundmatu")) {
+            return true;
+        }
+
+        if (user.equals(defaultUser)) {
+            return true;
+        }
+
+        return false;
+    }
+
     public boolean isLoggedIn() {
         return state == LoginState.LOGGED_IN || isLoggingOut();
     }

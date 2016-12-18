@@ -753,6 +753,11 @@ public class CombinedVideoRepository implements VideoRepository {
         currentUser = App.loginManager.getUser();
         author = UserPool.getInternedUser(video.getAuthorUserIndex());
 
+        // Allow anybody to manipulate videos made by the default user
+        if (App.loginManager.isDefaultUser(author)) {
+            return true;
+        }
+
         if (currentUser.equals(author)) {
             return true;
         }

@@ -523,12 +523,6 @@ public final class BrowserActivity extends BaseActivity implements View.OnClickL
                 if (fragment != null) {
                     manager.beginTransaction().remove(fragment).commit();
                 }
-
-                UUID id = event.getId();
-                Intent infoIntent = new Intent(this, DetailActivity.class);
-                infoIntent.putExtra(DetailActivity.ARG_VIDEO_ID, id);
-                startActivity(infoIntent);
-
                 break;
 
             case ERROR:
