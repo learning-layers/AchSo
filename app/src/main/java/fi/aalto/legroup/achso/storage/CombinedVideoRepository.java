@@ -758,7 +758,8 @@ public class CombinedVideoRepository implements VideoRepository {
             return true;
         }
 
-        if (currentUser.equals(author)) {
+        // TODO: Fix check only by name
+        if (currentUser.getName().equals(author.getName())) {
             return true;
         }
 
