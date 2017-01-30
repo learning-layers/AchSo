@@ -39,7 +39,6 @@ import fi.aalto.legroup.achso.entities.OptimizedVideo;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.playback.PlayerActivity;
 import fi.aalto.legroup.achso.sharing.SharingActivity;
-import fi.aalto.legroup.achso.storage.local.ExportService;
 import fi.aalto.legroup.achso.storage.remote.TransferErrorEvent;
 import fi.aalto.legroup.achso.storage.remote.TransferStateEvent;
 import fi.aalto.legroup.achso.storage.remote.download.DownloadErrorEvent;
@@ -158,11 +157,6 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
     @Override
     public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_share_video:
-                ExportService.export(getActivity(), getSelection());
-                mode.finish();
-                return true;
-
             case R.id.action_delete:
                 VideoDeletionFragment.newInstance(getSelection())
                         .show(getFragmentManager(), "DeletionFragment");
