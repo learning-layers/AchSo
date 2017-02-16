@@ -120,6 +120,8 @@ of Arts, Design and Architecture of Aalto University, Finland.
 - Tarmo Toikkanen (@tarmot)
 - Jana Pejoska
 - Kiarii Ngua
+- Marjo Virnes
+- Sanna Reponen
 
 #### Contributions from the RWTH Aachen University by:
 
@@ -130,7 +132,7 @@ Licence
 -------
 
 ```
-Copyright 2013–2015 Aalto University
+Copyright 2013–2017 Aalto University
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
