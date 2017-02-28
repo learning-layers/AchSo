@@ -166,7 +166,14 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
 
             case R.id.action_view_video_info:
                 Intent informationIntent = new Intent(getActivity(), DetailActivity.class);
-                informationIntent.putExtra(DetailActivity.ARG_VIDEO_ID, getSelection().get(0));
+
+                ArrayList<String> stringIds = new ArrayList<>();
+
+                for (UUID id : getSelection()) {
+                    stringIds.add(id.toString());
+                }
+
+                informationIntent.putExtra(DetailActivity.ARG_VIDEO_IDS, stringIds);
                 startActivity(informationIntent);
                 mode.finish();
                 return true;

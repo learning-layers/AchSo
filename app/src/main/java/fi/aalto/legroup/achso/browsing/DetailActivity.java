@@ -61,6 +61,7 @@ public final class DetailActivity extends AppCompatActivity
         implements MenuItem.OnMenuItemClickListener {
 
     public static final String ARG_VIDEO_ID = "ARG_VIDEO_ID";
+    public static final String ARG_VIDEO_IDS = "ARG_VIDEO_IDS";
 
     private Video video;
 
@@ -93,6 +94,12 @@ public final class DetailActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         this.bus = App.bus;
         final UUID videoId = (UUID) getIntent().getSerializableExtra(ARG_VIDEO_ID);
+
+        ArrayList<UUID> ids = new ArrayList<>();
+
+        for (String stringId : getIntent().getStringArrayExtra(ARG_VIDEO_IDS)) {
+            ids.add(UUID.fromString(stringId));
+        }
 
         try {
             video = App.videoRepository.getVideo(videoId).inflate();
