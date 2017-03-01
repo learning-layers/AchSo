@@ -167,7 +167,7 @@ public final class DetailActivity extends AppCompatActivity
         initializeAnnotationsButton();
         initializeIsLocal();
 
-        if (!App.videoRepository.isAuthorizedToShareVideo(video.getId())) {
+        if (!App.videoRepository.isAuthorizedToShareVideo(video.getId()) && !isMultipleVideos) {
             isPublicCheckbox.setEnabled(false);
             groupsButton.setEnabled(false);
             SnackbarManager.show(Snackbar.with(DetailActivity.this).text("You do not have the rights to share this video!"));
@@ -493,7 +493,13 @@ public final class DetailActivity extends AppCompatActivity
     public void loadGroups() {
         try {
             ArrayList<Group> groups = new ArrayList<Group>(App.videoRepository.getGroups());
-            GroupsListAdapter adapter = new GroupsListAdapter(this, R.layout.partial_group_list_item, groups, video.getId());
+            ArrayList<UUID> videoIds = new ArrayList<>();
+
+            for (Video v: videos) {
+                videoIds.add(v.getId());
+            }
+
+            GroupsListAdapter adapter = new GroupsListAdapter(this, R.layout.partial_group_list_item, groups, videoIds);
             adapter.setListener(new OnGroupShareChanged());
 
             groupsList.setAdapter(adapter);
