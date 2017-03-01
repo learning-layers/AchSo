@@ -470,12 +470,22 @@ public final class DetailActivity extends AppCompatActivity
         @Override
         public void onClick(Group group, boolean isShared) {
             int groupId = group.getId();
-            UUID videoId = video.getId();
+            ArrayList<UUID> videoIds = new ArrayList<>();
+
+            for (Video v: videos) {
+                if (!v.isLocal() && App.videoRepository.isAuthorizedToShareVideo(v.getId())) {
+                    videoIds.add(v.getId());
+                }
+            }
+
+            if (videoIds.size() == 0) {
+                return;
+            }
 
             if (isShared) {
-                App.videoRepository.addVideoToGroup(videoId, groupId);
+                App.videoRepository.addVideoToGroup(videoIds, groupId);
             } else {
-                App.videoRepository.removeVideoFromGroup(videoId, groupId);
+                App.videoRepository.removeVideoFromGroup(videoIds, groupId);
             }
         }
     }

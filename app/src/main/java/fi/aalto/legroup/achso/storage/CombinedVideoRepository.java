@@ -877,14 +877,14 @@ public class CombinedVideoRepository implements VideoRepository {
     private class ShareVideoTask extends AsyncTask<Boolean, Void, Void> {
 
         private int groupId;
-        private UUID videoId;
+        private ArrayList<UUID> videos;
 
         public void setGroupId(int id) {
             this.groupId = id;
         }
 
-        public void setVideoId(UUID id) {
-            this.videoId = id;
+        public void setVideos(ArrayList<UUID> videos ) {
+            this.videos = videos;
         }
 
         @Override
@@ -893,9 +893,13 @@ public class CombinedVideoRepository implements VideoRepository {
             for (VideoHost host : cloudHosts) {
                 try {
                     if (isShared) {
-                        host.shareVideo(this.videoId, this.groupId);
+                        for (UUID id: this.videos) {
+                            host.shareVideo(id, this.groupId);
+                        }
                     } else {
-                        host.unshareVideo(this.videoId, this.groupId);
+                        for (UUID id: this.videos) {
+                            host.unshareVideo(id, this.groupId);
+                        }
                     }
                 } catch(Exception ex) {
                     System.out.println(ex);
@@ -912,18 +916,18 @@ public class CombinedVideoRepository implements VideoRepository {
     }
 
     @Override
-    public void removeVideoFromGroup(UUID videoID, int groupID) {
+    public void removeVideoFromGroup(ArrayList<UUID> videoIDs, int groupID) {
         ShareVideoTask task = new ShareVideoTask();
         task.setGroupId(groupID);
-        task.setVideoId(videoID);
+        task.setVideos(videoIDs);
         task.execute(false);
     }
 
     @Override
-    public void addVideoToGroup(UUID videoID, int groupID) {
+    public void addVideoToGroup(ArrayList<UUID> videoIDs , int groupID) {
         ShareVideoTask task = new ShareVideoTask();
         task.setGroupId(groupID);
-        task.setVideoId(videoID);
+        task.setVideos(videoIDs);
         task.execute(true);
     }
 
