@@ -173,7 +173,8 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
                     stringIds.add(id.toString());
                 }
 
-                informationIntent.putExtra(DetailActivity.ARG_VIDEO_IDS, stringIds);
+                informationIntent.putStringArrayListExtra(DetailActivity.ARG_VIDEO_IDS, stringIds);
+                informationIntent.putExtra(DetailActivity.ARG_VIDEO_ID, stringIds.get(0));
                 startActivity(informationIntent);
                 mode.finish();
                 return true;

@@ -63,7 +63,10 @@ public final class DetailActivity extends AppCompatActivity
     public static final String ARG_VIDEO_ID = "ARG_VIDEO_ID";
     public static final String ARG_VIDEO_IDS = "ARG_VIDEO_IDS";
 
+    private ArrayList<Video> videos;
     private Video video;
+
+    private boolean isMultipleVideos;
 
     private Bus bus;
     private ListView groupsList;
@@ -93,22 +96,24 @@ public final class DetailActivity extends AppCompatActivity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.bus = App.bus;
-        final UUID videoId = (UUID) getIntent().getSerializableExtra(ARG_VIDEO_ID);
+        videos = new ArrayList<>();
 
-        ArrayList<UUID> ids = new ArrayList<>();
+        for (String stringId : getIntent().getStringArrayListExtra(ARG_VIDEO_IDS)) {
+            UUID videoId = UUID.fromString(stringId);
 
-        for (String stringId : getIntent().getStringArrayExtra(ARG_VIDEO_IDS)) {
-            ids.add(UUID.fromString(stringId));
+            try {
+                videos.add(App.videoRepository.getVideo((videoId)).inflate());
+            } catch (IOException e) {
+                e.printStackTrace();
+                SnackbarManager.show(Snackbar.with(this).text(R.string.storage_error));
+                finish();
+                return;
+            }
+
         }
 
-        try {
-            video = App.videoRepository.getVideo(videoId).inflate();
-        } catch (IOException e) {
-            e.printStackTrace();
-            SnackbarManager.show(Snackbar.with(this).text(R.string.storage_error));
-            finish();
-            return;
-        }
+        this.isMultipleVideos = (videos.size() > 1);
+        this.video = videos.get(0);
 
         setContentView(R.layout.activity_information);
 
@@ -205,20 +210,28 @@ public final class DetailActivity extends AppCompatActivity
 
     private void initializeAddQRButton() {
 
-        addQRButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                UUID id = video.getId();
-                List ids = new ArrayList<>();
-                ids.add(id);
-                QRHelper.readQRCodeForVideos(DetailActivity.this, ids, null);
-            }
-        });
+        if (this.isMultipleVideos) {
+            addQRButton.setVisibility(View.GONE);
+        } else {
+            addQRButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    UUID id = video.getId();
+                    List ids = new ArrayList<>();
+                    ids.add(id);
+                    QRHelper.readQRCodeForVideos(DetailActivity.this, ids, null);
+                }
+            });
+        }
     }
 
     private void initializeGroupsButton() {
         if (video.isLocal()) {
             groupsButton.setEnabled(false);
+        }
+
+        if (this.isMultipleVideos) {
+            groupsList.setVisibility(View.VISIBLE);
         }
 
         groupsButton.setOnClickListener(new View.OnClickListener() {
@@ -234,26 +247,36 @@ public final class DetailActivity extends AppCompatActivity
     }
 
     private void initializeAnnotationsButton() {
-        if (video.getAnnotations().size() == 0) {
-            toggleAnnotations.setEnabled(false);
+        if (this.isMultipleVideos) {
+            toggleAnnotations.setVisibility(View.GONE);
+            annotationsList.setVisibility(View.GONE);
         } else {
-            toggleAnnotations.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (annotationsList.getVisibility() == View.VISIBLE) {
-                        annotationsList.setVisibility(View.GONE);
-                    } else {
-                        annotationsList.setVisibility(View.VISIBLE);
+            if (video.getAnnotations().size() == 0) {
+                toggleAnnotations.setEnabled(false);
+            } else {
+                toggleAnnotations.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if (annotationsList.getVisibility() == View.VISIBLE) {
+                            annotationsList.setVisibility(View.GONE);
+                        } else {
+                            annotationsList.setVisibility(View.VISIBLE);
+                        }
                     }
-                }
-            });
+                });
 
-            loadAnnotations();
-            setListViewHeightBasedOnChildren(annotationsList);
+                loadAnnotations();
+                setListViewHeightBasedOnChildren(annotationsList);
+            }
         }
     }
 
     private void initializeIsPublic() {
+        if (this.isMultipleVideos) {
+            isPublicCheckbox.setVisibility(View.GONE);
+            return;
+        }
+
         if (video.isLocal()) {
             isPublicCheckbox.setEnabled(false);
         }
@@ -278,6 +301,11 @@ public final class DetailActivity extends AppCompatActivity
     }
 
     private void initializeIsLocal() {
+        if (this.isMultipleVideos) {
+            isAvailableOfflineCheckbox.setVisibility(View.GONE);
+            return;
+        }
+
         if (video.isLocal()) {
             isAvailableOfflineCheckbox.setEnabled(false);
         }
@@ -316,6 +344,11 @@ public final class DetailActivity extends AppCompatActivity
             uploadButton.setText(loginPrompt);
 
             return;
+        }
+
+        // TODO: Allow multiple videos uploading
+        if (this.isMultipleVideos) {
+            uploadButton.setVisibility(View.GONE);
         }
 
         if (!video.isLocal()) {
@@ -502,8 +535,11 @@ public final class DetailActivity extends AppCompatActivity
         return true;
     }
 
+    public ArrayList<Video> getVideos() {
+        return videos;
+    }
+
     public Video getVideo() {
         return video;
     }
-
 }

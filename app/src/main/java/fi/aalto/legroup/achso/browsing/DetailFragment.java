@@ -15,6 +15,10 @@ import com.google.api.client.util.Strings;
 import com.nispok.snackbar.Snackbar;
 import com.nispok.snackbar.SnackbarManager;
 
+import java.util.ArrayList;
+import java.util.Set;
+import java.util.TreeSet;
+
 import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.entities.Video;
 import fi.aalto.legroup.achso.storage.VideoRepository;
@@ -24,10 +28,11 @@ public final class DetailFragment extends Fragment {
     private TextView titleField;
     private TextView creatorField;
     private TextView uploadedField;
+    private TextView uploadedFieldLabel;
 
     private ImageButton titleEditButton;
 
-    private Video video;
+    private ArrayList<Video> videos;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -48,6 +53,7 @@ public final class DetailFragment extends Fragment {
         titleField = (TextView) view.findViewById(R.id.titleField);
         creatorField = (TextView) view.findViewById(R.id.creatorField);
         uploadedField = (TextView) view.findViewById(R.id.uploadedField);
+        uploadedFieldLabel = (TextView) view.findViewById(R.id.uploadedFieldLabel);
 
         titleEditButton = (ImageButton) view.findViewById(R.id.titleEditButton);
     }
@@ -56,27 +62,48 @@ public final class DetailFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        video = ((DetailActivity) getActivity()).getVideo();
+        videos = ((DetailActivity) getActivity()).getVideos();
 
         populateInformation();
 
-        titleEditButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showTitleEditDialog();
-            }
-        });
-
+        if (videos.size() == 1) {
+            titleEditButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    showTitleEditDialog();
+                }
+            });
+        } else {
+            titleEditButton.setVisibility(View.GONE);
+        }
     }
 
     private void populateInformation() {
-        String authorName = video.getAuthor().getName();
-        String uploaded;
+        Video video = videos.get(0);
 
-        if (Strings.isNullOrEmpty(authorName)) {
-            authorName = getString(R.string.semanticvideo_unknown_creator);
+        Set authors = new TreeSet<String>();
+
+        String uploaded;
+        String authorName = "";
+
+        for (int i = 0; i < videos.size(); i++) {
+            String name = videos.get(i).getAuthor().getName();
+
+            if (Strings.isNullOrEmpty(name)) {
+                name = getString(R.string.semanticvideo_unknown_creator);
+            }
+
+            if (!authors.contains(name)) {
+                authors.add(name);
+            }
         }
 
+        for (Object obj: authors) {
+            String name = (String) obj;
+            authorName += name + ", ";
+        }
+
+        authorName = authorName.substring(0, authorName.length() - 2);
 
         if (video.isRemote()) {
             uploaded = getString(R.string.yes);
@@ -84,9 +111,16 @@ public final class DetailFragment extends Fragment {
             uploaded = getString(R.string.no);
         }
 
-        titleField.setText(video.getTitle());
         creatorField.setText(authorName);
-        uploadedField.setText(uploaded);
+
+        if (videos.size() == 1) {
+            titleField.setText(video.getTitle());
+            uploadedField.setText(uploaded);
+        } else {
+            titleField.setText(videos.size() + " videos");
+            uploadedField.setVisibility(View.GONE);
+            uploadedFieldLabel.setVisibility(View.GONE);
+        }
     }
 
     public class SaveTitleCallback implements VideoRepository.VideoCallback {
@@ -101,6 +135,7 @@ public final class DetailFragment extends Fragment {
 
     private void showTitleEditDialog() {
         final EditText text = new EditText(getActivity());
+        final Video video = videos.get(0);
 
         text.setSingleLine();
         text.setText(video.getTitle());
