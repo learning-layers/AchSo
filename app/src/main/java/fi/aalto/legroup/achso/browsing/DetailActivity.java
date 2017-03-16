@@ -354,16 +354,14 @@ public final class DetailActivity extends AppCompatActivity
         if (!video.isLocal()) {
             uploadButton.setEnabled(false);
             uploadButton.setVisibility(View.GONE);
+        } else if (UploadService.isUploadingVideo(video.getId())) {
+            markUploadButtonAsUploading();
         } else {
             uploadButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
 
-                    String currentlyUploading = getString(R.string.currently_uploading);
-
-                    uploadButton.setEnabled(false);
-                    uploadButton.setAlpha(.5f);
-                    uploadButton.setText(currentlyUploading);
+                    markUploadButtonAsUploading();
 
                     // Set author to currently logged in user
                     if (App.loginManager.isDefaultUser(video.getAuthor())) {
@@ -376,6 +374,14 @@ public final class DetailActivity extends AppCompatActivity
                 }
             });
         }
+    }
+
+    private void markUploadButtonAsUploading () {
+        String currentlyUploading = getString(R.string.currently_uploading);
+
+        uploadButton.setEnabled(false);
+        uploadButton.setAlpha(.5f);
+        uploadButton.setText(currentlyUploading);
     }
 
     @Subscribe

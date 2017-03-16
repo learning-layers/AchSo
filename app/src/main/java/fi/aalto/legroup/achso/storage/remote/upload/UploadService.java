@@ -9,6 +9,7 @@ import com.squareup.otto.Bus;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,6 +28,8 @@ public final class UploadService extends IntentService {
     private static List<VideoUploader> videoUploaders = new ArrayList<>();
     private static List<ThumbnailUploader> thumbUploaders = new ArrayList<>();
     private static List<MetadataUploader> metadataUploaders = new ArrayList<>();
+
+    private static HashSet<UUID> currentlyUploadingVideos = new HashSet<>();
 
     /**
      * Remove all set uploaders
@@ -228,6 +231,8 @@ public final class UploadService extends IntentService {
             return;
         }
 
+        addIdFromCurrentlyUploading(video.getId());
+
         bus.post(new UploadStateEvent(video.getId(), UploadStateEvent.Type.STARTED));
 
         boolean success = tryUpload(video);
@@ -244,11 +249,27 @@ public final class UploadService extends IntentService {
             ? UploadStateEvent.Type.SUCCEEDED
             : UploadStateEvent.Type.FAILED;
 
+
+        removeIdFromCurrentlyUploading(video.getId());
+
         bus.post(new UploadStateEvent(video.getId(), type));
+    }
+
+    private synchronized void addIdFromCurrentlyUploading(UUID id) {
+        if (!currentlyUploadingVideos.contains(id)) {
+            currentlyUploadingVideos.add(id);
+        }
+    }
+
+    private synchronized void removeIdFromCurrentlyUploading(UUID id) {
+        currentlyUploadingVideos.remove(id);
+    }
+
+    public static synchronized boolean isUploadingVideo(UUID id) {
+        return currentlyUploadingVideos.contains(id);
     }
 
     private void postError(UUID id, String errorMessage) {
         this.bus.post(new UploadErrorEvent(id, errorMessage));
     }
-
 }
