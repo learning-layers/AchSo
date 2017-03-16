@@ -111,6 +111,12 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
         this.adapter.registerAdapterDataObserver(new PlaceholderDataObserver());
         this.adapter.setItems(videos);
 
+        for (UUID videoId : videos) {
+            if (UploadService.isUploadingVideo(videoId)) {
+                this.adapter.showProgress(videoId);
+            }
+        }
+
         grid.setHasFixedSize(true);
         grid.setAdapter(this.adapter);
         grid.setLayoutManager(layoutManager);
