@@ -136,5 +136,7 @@
     <string name="qr_tag_success">Video markiert mit QR-Code</string>
     <string name="add_qr">In QR</string>
     <string name="login_before_upload">Melden Sie sich vor dem Hochladen an</string>
+    <string name="currently_uploading_many" >Mehrfach hochladen</string>
+    <string name="upload_video_many" >Videos hochladen</string>
 
 </resources>

@@ -209,7 +209,6 @@ public final class DetailActivity extends AppCompatActivity
     }
 
     private void initializeAddQRButton() {
-
         if (this.isMultipleVideos) {
             addQRButton.setVisibility(View.GONE);
         } else {
@@ -230,7 +229,7 @@ public final class DetailActivity extends AppCompatActivity
             groupsButton.setEnabled(false);
         }
 
-        if (this.isMultipleVideos) {
+        if (this.isMultipleVideos && !isAnyVideoLocal()) {
             groupsList.setVisibility(View.VISIBLE);
         }
 
@@ -346,20 +345,17 @@ public final class DetailActivity extends AppCompatActivity
             return;
         }
 
-        // TODO: Allow multiple videos uploading
-        if (this.isMultipleVideos) {
-            uploadButton.setVisibility(View.GONE);
-        }
-
-        if (!video.isLocal()) {
+        if (!isAnyVideoLocal()) {
             uploadButton.setEnabled(false);
             uploadButton.setVisibility(View.GONE);
-        } else if (UploadService.isUploadingVideo(video.getId())) {
+        } else if (isUploadingAnyVideo()) {
             markUploadButtonAsUploading();
         } else {
             uploadButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+
+                    ArrayList<UUID> uploadIds = new ArrayList<UUID>();
 
                     markUploadButtonAsUploading();
 
@@ -369,15 +365,49 @@ public final class DetailActivity extends AppCompatActivity
                         video.save(null);
                     }
 
-                    UUID id = video.getId();
-                    UploadService.upload(DetailActivity.this, id);
+                    for (Video video: videos) {
+                        if (video.isLocal()) {
+                            uploadIds.add(video.getId());
+                        }
+                    }
+
+                    UploadService.upload(DetailActivity.this, uploadIds);
                 }
             });
+
+            if (isMultipleVideos) {
+                uploadButton.setText(getString(R.string.upload_video_many));
+            }
         }
     }
 
+    private boolean isAnyVideoLocal() {
+        for (Video video: videos) {
+            if (video.isLocal()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+    private boolean isUploadingAnyVideo() {
+        for (Video video: videos) {
+            if (UploadService.isUploadingVideo(video.getId())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private void markUploadButtonAsUploading () {
-        String currentlyUploading = getString(R.string.currently_uploading);
+        String currentlyUploading = "";
+
+        if (this.isMultipleVideos) {
+            currentlyUploading = getString(R.string.currently_uploading_many);
+        } else {
+            currentlyUploading = getString(R.string.currently_uploading);
+        }
 
         uploadButton.setEnabled(false);
         uploadButton.setAlpha(.5f);

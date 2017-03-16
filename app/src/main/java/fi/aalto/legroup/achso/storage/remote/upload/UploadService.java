@@ -9,6 +9,7 @@ import com.squareup.otto.Bus;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
@@ -71,6 +72,8 @@ public final class UploadService extends IntentService {
      * Convenience method for using this service.
      */
     public static void upload(Context context, List<UUID> videos) {
+        addMultipleToCurrentlyUploading(videos);
+
         for (UUID id : videos) {
             Intent intent = new Intent(context, UploadService.class);
 
@@ -81,9 +84,11 @@ public final class UploadService extends IntentService {
     }
 
     public static void upload(Context context, UUID video) {
-            Intent intent = new Intent(context, UploadService.class);
-            intent.putExtra(ARG_VIDEO_ID, video);
-            context.startService(intent);
+        addToCurrentlyUploading(video);
+
+        Intent intent = new Intent(context, UploadService.class);
+        intent.putExtra(ARG_VIDEO_ID, video);
+        context.startService(intent);
     }
 
     public UploadService() {
@@ -231,8 +236,6 @@ public final class UploadService extends IntentService {
             return;
         }
 
-        addIdFromCurrentlyUploading(video.getId());
-
         bus.post(new UploadStateEvent(video.getId(), UploadStateEvent.Type.STARTED));
 
         boolean success = tryUpload(video);
@@ -255,14 +258,22 @@ public final class UploadService extends IntentService {
         bus.post(new UploadStateEvent(video.getId(), type));
     }
 
-    private synchronized void addIdFromCurrentlyUploading(UUID id) {
-        if (!currentlyUploadingVideos.contains(id)) {
+    private static synchronized void addToCurrentlyUploading(UUID id) {
+        if (!isUploadingVideo(id)) {
             currentlyUploadingVideos.add(id);
         }
     }
 
+    private static synchronized void addMultipleToCurrentlyUploading(List<UUID> ids) {
+        if (Collections.disjoint(currentlyUploadingVideos, ids))  {
+            currentlyUploadingVideos.addAll(ids);
+        }
+    }
+
     private synchronized void removeIdFromCurrentlyUploading(UUID id) {
-        currentlyUploadingVideos.remove(id);
+        if (isUploadingVideo(id)) {
+            currentlyUploadingVideos.remove(id);
+        }
     }
 
     public static synchronized boolean isUploadingVideo(UUID id) {
@@ -270,6 +281,7 @@ public final class UploadService extends IntentService {
     }
 
     private void postError(UUID id, String errorMessage) {
+        removeIdFromCurrentlyUploading(id);
         this.bus.post(new UploadErrorEvent(id, errorMessage));
     }
 }
