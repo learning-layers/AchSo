@@ -27,7 +27,7 @@ public interface VideoHost {
 
     public void makeVideoPrivate(UUID videoId) throws IOException, JSONException;
 
-    public void unshareVideo(UUID videoId, int groupId) throws IOException;
+    public void unshareVideo(UUID videoIds, int groupId) throws IOException;
 
     public void shareVideo(UUID videoId, int groupId) throws IOException, JSONException;
 

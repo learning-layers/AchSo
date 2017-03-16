@@ -83,9 +83,9 @@ public interface VideoRepository extends VideoInfoRepository {
 
     public File getVideoCacheFile(UUID id);
 
-    public void removeVideoFromGroup(UUID videoId, int groupId);
+    public void removeVideoFromGroup(ArrayList<UUID> videoIds, int groupId);
 
-    public void addVideoToGroup(UUID videoId, int groupId);
+    public void addVideoToGroup(ArrayList<UUID> videoIds, int groupId);
 
     public void makeVideoPublic(UUID videoId);
 

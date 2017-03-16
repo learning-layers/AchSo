@@ -17,17 +17,17 @@ import fi.aalto.legroup.achso.entities.Group;
 public class GroupsListAdapter extends ArrayAdapter<Group> {
     private ArrayList<Group> groups;
     private Context context;
-    private UUID videoId;
+    private ArrayList<UUID> videoIds;
     private  OnGroupSharedEventListener listener;
 
     public interface OnGroupSharedEventListener {
         void onClick(Group group, boolean isShared);
     }
 
-    public GroupsListAdapter(Context context, int resource, ArrayList<Group> groups, UUID videoId) {
+    public GroupsListAdapter(Context context, int resource, ArrayList<Group> groups, ArrayList<UUID> videoIds) {
         super(context, resource, groups);
         this.context = context;
-        this.videoId = videoId;
+        this.videoIds = videoIds;
         this.groups = new ArrayList<Group>();
         this.groups.addAll(groups);
     }
@@ -59,7 +59,14 @@ public class GroupsListAdapter extends ArrayAdapter<Group> {
 
         holder.name.setText(group.getName());
         holder.name.setTag(group);
-        holder.name.setChecked(group.hasVideo(videoId));
+
+        for (UUID id: videoIds) {
+            if (group.hasVideo(id)) {
+                holder.name.setChecked(true);
+                break;
+            }
+        }
+
         holder.name.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {

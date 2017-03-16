@@ -127,10 +127,12 @@
  <string name="upload_video">Laadi video</string>
  <string name="upload_succeeded">Videote õnnestus</string>
  <string name="currently_uploading">üleslaadimine...</string>
- <string name="is_video_public">Kas otsida?</string>
+ <string name="is_video_public">on avaliku</string>
  <string name="qr_tag_fail">Sildi video QR ebaõnnestus!</string>
  <string name="qr_tag_success">Video sildistatud QR koodi</string>
  <string name="add_qr">Lisa QR</string>
  <string name="login_before_upload">Logi sisse enne üleslaadimist</string>
+    <string name="currently_uploading_many" >üleslaadimine %1$d videos...</string>
+    <string name="upload_video_many" >Laadige videod</string>
 
 </resources>

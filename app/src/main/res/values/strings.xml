@@ -181,10 +181,12 @@
     <string name="semanticvideo_latitude"></string>
     <string name="upload_succeeded">Uploading video succeeded</string>
     <string name="currently_uploading">Uploading...</string>
-    <string name="is_video_public">Is searchable?</string>
+    <string name="is_video_public">Is public?</string>
     <string name="qr_tag_success">Video tagged with QR code</string>
     <string name="qr_tag_fail">Tagging video with QR failed!</string>
     <string name="add_qr">Add QR</string>
     <string name="login_before_upload">Log in before uploading</string>
+    <string name="currently_uploading_many">Uploading %1$d videos...</string>
+    <string name="upload_video_many" >Upload videos</string>
 
 </resources>

@@ -292,7 +292,7 @@ public final class PlayerActivity extends ActionBarActivity implements Annotatio
             markers.add((int) annotation.getTime());
         }
 
-        seekBar.setMarkers(markers);
+        seekBar.setMarkersAndAnnotations(markers, annotations);
     }
 
     public void togglePlayback() {

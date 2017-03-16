@@ -9,6 +9,8 @@ import com.squareup.otto.Bus;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,6 +29,8 @@ public final class UploadService extends IntentService {
     private static List<VideoUploader> videoUploaders = new ArrayList<>();
     private static List<ThumbnailUploader> thumbUploaders = new ArrayList<>();
     private static List<MetadataUploader> metadataUploaders = new ArrayList<>();
+
+    private static HashSet<UUID> currentlyUploadingVideos = new HashSet<>();
 
     /**
      * Remove all set uploaders
@@ -68,6 +72,8 @@ public final class UploadService extends IntentService {
      * Convenience method for using this service.
      */
     public static void upload(Context context, List<UUID> videos) {
+        addMultipleToCurrentlyUploading(videos);
+
         for (UUID id : videos) {
             Intent intent = new Intent(context, UploadService.class);
 
@@ -78,9 +84,11 @@ public final class UploadService extends IntentService {
     }
 
     public static void upload(Context context, UUID video) {
-            Intent intent = new Intent(context, UploadService.class);
-            intent.putExtra(ARG_VIDEO_ID, video);
-            context.startService(intent);
+        addToCurrentlyUploading(video);
+
+        Intent intent = new Intent(context, UploadService.class);
+        intent.putExtra(ARG_VIDEO_ID, video);
+        context.startService(intent);
     }
 
     public UploadService() {
@@ -244,11 +252,40 @@ public final class UploadService extends IntentService {
             ? UploadStateEvent.Type.SUCCEEDED
             : UploadStateEvent.Type.FAILED;
 
+
+        removeIdFromCurrentlyUploading(video.getId());
+
         bus.post(new UploadStateEvent(video.getId(), type));
     }
 
-    private void postError(UUID id, String errorMessage) {
-        this.bus.post(new UploadErrorEvent(id, errorMessage));
+    private static synchronized void addToCurrentlyUploading(UUID id) {
+        if (!isUploadingVideo(id)) {
+            currentlyUploadingVideos.add(id);
+        }
     }
 
+    private static synchronized void addMultipleToCurrentlyUploading(List<UUID> ids) {
+        if (Collections.disjoint(currentlyUploadingVideos, ids))  {
+            currentlyUploadingVideos.addAll(ids);
+        }
+    }
+
+    private synchronized void removeIdFromCurrentlyUploading(UUID id) {
+        if (isUploadingVideo(id)) {
+            currentlyUploadingVideos.remove(id);
+        }
+    }
+
+    public static synchronized boolean isUploadingVideo(UUID id) {
+        return currentlyUploadingVideos.contains(id);
+    }
+
+    public static HashSet<UUID> getCurrentlyUploadingVideos() {
+        return currentlyUploadingVideos;
+    }
+
+    private void postError(UUID id, String errorMessage) {
+        removeIdFromCurrentlyUploading(id);
+        this.bus.post(new UploadErrorEvent(id, errorMessage));
+    }
 }
