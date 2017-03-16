@@ -26,6 +26,7 @@ import com.squareup.otto.Subscribe;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
@@ -111,12 +112,6 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
         this.adapter.registerAdapterDataObserver(new PlaceholderDataObserver());
         this.adapter.setItems(videos);
 
-        for (UUID videoId : videos) {
-            if (UploadService.isUploadingVideo(videoId)) {
-                this.adapter.showProgress(videoId);
-            }
-        }
-
         grid.setHasFixedSize(true);
         grid.setAdapter(this.adapter);
         grid.setLayoutManager(layoutManager);
@@ -125,6 +120,12 @@ public final class BrowserFragment extends Fragment implements ActionMode.Callba
 
         // This listener sets the span count on layout and then stops listening.
         new GridOnLayoutChangeListener(grid);
+
+        HashSet<UUID> currentlyUploadingVideos = UploadService.getCurrentlyUploadingVideos();
+
+        for (UUID videoId : currentlyUploadingVideos) {
+            this.adapter.showProgress(videoId);
+        }
     }
 
     @Override

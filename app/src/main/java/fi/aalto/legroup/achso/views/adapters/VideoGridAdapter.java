@@ -152,17 +152,19 @@ public final class VideoGridAdapter extends RecyclerView.Adapter<VideoGridAdapte
     public void showProgress(UUID videoId) {
         Integer position = this.videoIds.indexOf(videoId);
 
-        this.itemsInProgress.add(position);
-
-        notifyItemChanged(position);
+        if (position != -1) {
+            this.itemsInProgress.add(position);
+            notifyItemChanged(position);
+        }
     }
 
     public void hideProgress(UUID videoId) {
         Integer position = this.videoIds.indexOf(videoId);
 
-        this.itemsInProgress.remove(position);
-
-        notifyItemChanged(position);
+        if (position != -1) {
+            this.itemsInProgress.remove(position);
+            notifyItemChanged(position);
+        }
     }
 
     protected static final class ViewHolder extends RecyclerView.ViewHolder {

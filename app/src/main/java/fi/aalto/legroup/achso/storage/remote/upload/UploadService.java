@@ -280,6 +280,10 @@ public final class UploadService extends IntentService {
         return currentlyUploadingVideos.contains(id);
     }
 
+    public static HashSet<UUID> getCurrentlyUploadingVideos() {
+        return currentlyUploadingVideos;
+    }
+
     private void postError(UUID id, String errorMessage) {
         removeIdFromCurrentlyUploading(id);
         this.bus.post(new UploadErrorEvent(id, errorMessage));
