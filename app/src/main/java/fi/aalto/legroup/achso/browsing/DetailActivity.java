@@ -37,6 +37,7 @@ import com.squareup.otto.Subscribe;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
@@ -65,6 +66,8 @@ public final class DetailActivity extends AppCompatActivity
 
     private ArrayList<Video> videos;
     private Video video;
+
+    private HashSet<UUID> videosUploading;
 
     private boolean isMultipleVideos;
 
@@ -97,6 +100,7 @@ public final class DetailActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         this.bus = App.bus;
         videos = new ArrayList<>();
+        videosUploading = UploadService.getCurrentlyUploadingVideos();
 
         for (String stringId : getIntent().getStringArrayListExtra(ARG_VIDEO_IDS)) {
             UUID videoId = UUID.fromString(stringId);
@@ -357,7 +361,6 @@ public final class DetailActivity extends AppCompatActivity
 
                     ArrayList<UUID> uploadIds = new ArrayList<UUID>();
 
-                    markUploadButtonAsUploading();
 
                     // Set author to currently logged in user
                     if (App.loginManager.isDefaultUser(video.getAuthor())) {
@@ -367,9 +370,14 @@ public final class DetailActivity extends AppCompatActivity
 
                     for (Video video: videos) {
                         if (video.isLocal()) {
-                            uploadIds.add(video.getId());
+                            UUID id = video.getId();
+
+                            uploadIds.add(id);
+                            videosUploading.add(id);
                         }
                     }
+
+                    markUploadButtonAsUploading();
 
                     UploadService.upload(DetailActivity.this, uploadIds);
                 }
@@ -404,7 +412,7 @@ public final class DetailActivity extends AppCompatActivity
         String currentlyUploading = "";
 
         if (this.isMultipleVideos) {
-            currentlyUploading = getString(R.string.currently_uploading_many);
+            currentlyUploading = getString(R.string.currently_uploading_many, videosUploading.size());
         } else {
             currentlyUploading = getString(R.string.currently_uploading);
         }
@@ -412,6 +420,13 @@ public final class DetailActivity extends AppCompatActivity
         uploadButton.setEnabled(false);
         uploadButton.setAlpha(.5f);
         uploadButton.setText(currentlyUploading);
+    }
+
+    private void removeIdFromUploading(UUID id) {
+        videosUploading.remove(id);
+        if (isMultipleVideos) {
+            uploadButton.setText(getString(R.string.currently_uploading_many, videosUploading.size()));
+        }
     }
 
     @Subscribe
@@ -435,7 +450,9 @@ public final class DetailActivity extends AppCompatActivity
     public void onUploadState(UploadStateEvent event) {
         switch (event.getType()) {
             case SUCCEEDED:
-                if (event.getVideoId() == video.getId()) {
+                removeIdFromUploading(event.getVideoId());
+
+                if (videosUploading.size() == 0) {
                     uploadButton.setVisibility(View.GONE);
                     isPublicCheckbox.setEnabled(true);
                     groupsButton.setEnabled(true);
@@ -447,8 +464,12 @@ public final class DetailActivity extends AppCompatActivity
     public void onUploadError(UploadErrorEvent event) {
         String message = event.getErrorMessage();
         SnackbarManager.show(Snackbar.with(DetailActivity.this).text(message));
-        uploadButton.setEnabled(true);
-        uploadButton.setAlpha(1f);
+        removeIdFromUploading(event.getVideoId());
+
+        if (videosUploading.size() == 0) {
+            uploadButton.setEnabled(true);
+            uploadButton.setAlpha(1f);
+        }
     }
 
     // Hack from https://stackoverflow.com/questions/18367522/android-list-view-inside-a-scroll-view
