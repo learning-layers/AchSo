@@ -8,10 +8,12 @@ import android.util.AttributeSet;
 import android.widget.SeekBar;
 
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 
 import javax.annotation.Nonnull;
 
+import fi.aalto.legroup.achso.entities.Annotation;
 import fi.aalto.legroup.achso.views.utilities.DimensionUnits;
 import fi.aalto.legroup.achso.views.utilities.ThemeColors;
 
@@ -25,9 +27,14 @@ public class MarkedSeekBar extends SeekBar {
     protected Paint markerPaint;
     protected Paint markerSecondaryPaint;
     protected Paint markerDisabledPaint;
+
     protected float markerRadiusPx;
+    protected float markerStrokeWidthPx;
+
+    private Hashtable<Integer, Paint> markerCache;
 
     protected List<Integer> markers = new ArrayList<>();
+    protected List<Annotation> annotations = new ArrayList<>();
 
     protected int trimEndTime = 0;
     protected int trimStartTime = Integer.MAX_VALUE;
@@ -48,9 +55,11 @@ public class MarkedSeekBar extends SeekBar {
     }
 
     private void init() {
+        this.markerCache = new Hashtable<Integer, Paint>();
+
         int accentColor = ThemeColors.getAccentColor(getContext());
 
-        float markerStrokeWidthPx = DimensionUnits.dpToPx(getContext(), MARKER_STROKE_WIDTH_DP);
+        markerStrokeWidthPx = DimensionUnits.dpToPx(getContext(), MARKER_STROKE_WIDTH_DP);
 
         markerRadiusPx = DimensionUnits.dpToPx(getContext(), MARKER_RADIUS_DP);
 
@@ -86,8 +95,9 @@ public class MarkedSeekBar extends SeekBar {
      *
      * @param markers List of marker positions.
      */
-    public void setMarkers(List<Integer> markers) {
+    public void setMarkersAndAnnotations(List<Integer> markers, List<Annotation> annotations) {
         this.markers = markers;
+        this.annotations = annotations;
 
         listener.setPositions(markers);
 
@@ -127,8 +137,11 @@ public class MarkedSeekBar extends SeekBar {
             canvas.drawCircle((int) endX, posY, markerRadiusPx, trimIndicatorPaint);
         }
 
-        for (int marker : markers) {
-            Paint paint = getMarkerPaint(marker);
+        for (int i = 0; i < markers.size(); i++){
+            int marker = markers.get(i);
+            Annotation annotation = annotations.get(i);
+
+            Paint paint = getMarkerPaint(marker, annotation);
 
             float posX = (float) marker / max * markerAreaWidth;
 
@@ -141,16 +154,30 @@ public class MarkedSeekBar extends SeekBar {
     /**
      * Returns an appropriate paint for the specified marker.
      */
-    private Paint getMarkerPaint(int marker) {
+    private Paint getMarkerPaint(int marker, Annotation annotation) {
         if (!isEnabled()) {
             return markerDisabledPaint;
         }
 
-        if (marker < getProgress()) {
-            return markerSecondaryPaint;
+        int color = annotation.calculateColor();
+
+        Paint paint;
+
+        if (this.markerCache.contains(color)) {
+            paint = this.markerCache.get(color);
+        } else {
+            paint = new Paint();
+            paint.setColor(color);
+            markerCache.put(color, paint);
         }
 
-        return markerPaint;
+        if (marker > getProgress()) {
+            paint.setAntiAlias(true);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(markerStrokeWidthPx);
+        }
+
+        return paint;
     }
 
     /**
