@@ -7,6 +7,10 @@ android {
 
     useLibrary 'org.apache.http.legacy'
 
+    configurations {
+        compile.exclude group: "org.apache.httpcomponents", module: "httpclient"
+    }
+
     defaultConfig {
         applicationId 'fi.aalto.legroup.achso'
         minSdkVersion 16
@@ -132,3 +136,5 @@ dependencies {
     // Decrypting the Layers Box URL
     compile 'fi.aalto.legroup:cryptohelper:0.1.0'
 }
+
+// apply plugin: 'com.google.gms.google-services'
