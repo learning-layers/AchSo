@@ -5,6 +5,7 @@ import android.accounts.AccountManager;
 import android.content.Context;
 import android.util.Log;
 
+import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
@@ -65,6 +66,16 @@ public class AuthenticatedHttpClient {
         }
 
         return response;
+    }
+
+    public void enqueue(Request request, Account account, Callback cb) {
+        AccountManager accountManager = AccountManager.get(context);
+
+        String token = getBearerToken(account);
+
+        request = request.newBuilder().header("Authorization", "Bearer " + token).build();
+
+        httpClient.newCall(request).enqueue(cb);
     }
 
     public boolean accessDenied(Response response) {

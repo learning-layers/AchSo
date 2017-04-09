@@ -137,4 +137,4 @@ dependencies {
     compile 'fi.aalto.legroup:cryptohelper:0.1.0'
 }
 
-// apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.gms.google-services'

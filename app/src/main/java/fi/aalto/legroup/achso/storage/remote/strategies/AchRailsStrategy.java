@@ -3,6 +3,7 @@ package fi.aalto.legroup.achso.storage.remote.strategies;
 import android.accounts.Account;
 import android.net.Uri;
 
+import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.FormEncodingBuilder;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.Request;
@@ -27,6 +28,7 @@ import fi.aalto.legroup.achso.entities.VideoReference;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
 import fi.aalto.legroup.achso.storage.remote.VideoHost;
+import fi.aalto.legroup.achso.utilities.EmptyCallback;
 import okio.BufferedSink;
 import okio.Okio;
 
@@ -100,6 +102,11 @@ public class AchRailsStrategy implements VideoHost {
             throw new IOException(errorMessage);
         }
         return response;
+    }
+
+    private void executeRequestAsync(Request request, Callback cb) throws IOException {
+        Account account = App.loginManager.getAccount();
+        App.authenticatedHttpClient.enqueue(request, account, cb);
     }
 
     private Response executeRequest(Request request) throws IOException {
@@ -177,7 +184,7 @@ public class AchRailsStrategy implements VideoHost {
                         .toString())
                 .put(body).build();
 
-        executeRequest(request);
+        executeRequestAsync(request, new EmptyCallback());
     }
 
     @Override
@@ -190,11 +197,11 @@ public class AchRailsStrategy implements VideoHost {
         Request request = new Request.Builder()
                 .url(endpointUrl.buildUpon()
                         .appendPath("notifications")
-                        .appendPath("undelete")
+                        .appendPath("unregister")
                         .toString())
                 .put(body).build();
 
-        executeRequest(request);
+        executeRequestAsync(request, new EmptyCallback());
     }
 
     @Override

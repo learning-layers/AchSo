@@ -192,6 +192,8 @@ public final class App extends MultiDexApplication
     public static void onLoginStateEvent(LoginStateEvent event) {
         String token = FirebaseInstanceId.getInstance().getToken();
 
+        if (token == null) return;
+
         if (event.getState() == LoginManager.LoginState.LOGGED_IN) {
             App.registerToken(token);
         } else if (event.getState() == LoginManager.LoginState.LOGGING_OUT) {
