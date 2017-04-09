@@ -12,11 +12,18 @@ import android.support.multidex.MultiDexApplication;
 import android.widget.Toast;
 
 import com.google.android.gms.analytics.GoogleAnalytics;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.FirebaseInstanceIdService;
 import com.rollbar.android.Rollbar;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.otto.Bus;
+import com.squareup.otto.Subscribe;
+
+import org.json.JSONException;
 
 import java.io.File;
+import java.io.IOException;
 import java.security.GeneralSecurityException;
 
 import fi.aalto.legroup.achso.BuildConfig;
@@ -24,6 +31,7 @@ import fi.aalto.legroup.achso.R;
 import fi.aalto.legroup.achso.authentication.AuthenticatedHttpClient;
 import fi.aalto.legroup.achso.authentication.LoginManager;
 import fi.aalto.legroup.achso.authentication.LoginRequestEvent;
+import fi.aalto.legroup.achso.authentication.LoginStateEvent;
 import fi.aalto.legroup.achso.authentication.OIDCConfig;
 import fi.aalto.legroup.achso.authoring.ExportHelper;
 import fi.aalto.legroup.achso.authoring.LocationManager;
@@ -79,6 +87,7 @@ public final class App extends MultiDexApplication
         setupPreferences();
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+
         layersBoxUrl = readLayersBoxUrl();
         usePublicLayersBox = preferences.getBoolean(AppPreferences.USE_PUBLIC_LAYERS_BOX, false);
         publicLayersBoxUrl = Uri.parse(getString(R.string.publicLayersBoxUrl));
@@ -139,6 +148,7 @@ public final class App extends MultiDexApplication
 
         updateOIDCTokens(this);
 
+        bus.register(this);
         bus.post(new LoginRequestEvent(LoginRequestEvent.Type.LOGIN));
 
         // Trim the caches asynchronously
@@ -169,6 +179,43 @@ public final class App extends MultiDexApplication
                     SyncService.syncWithCloudStorage(context);
                 }
             });
+        }
+    }
+
+    public static void tokenUpdated(String notificationToken) {
+        if (loginManager.isLoggedIn()) {
+            App.registerToken(notificationToken);
+        }
+    }
+
+    @Subscribe
+    public static void onLoginStateEvent(LoginStateEvent event) {
+        String token = FirebaseInstanceId.getInstance().getToken();
+
+        if (event.getState() == LoginManager.LoginState.LOGGED_IN) {
+            App.registerToken(token);
+        } else if (event.getState() == LoginManager.LoginState.LOGGING_OUT) {
+            App.unregisterToken(token);
+        }
+    }
+
+    private static void registerToken(String notificationToken) {
+        try {
+            achRails.registerToken(notificationToken);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void unregisterToken(String notificationToken) {
+        try {
+            achRails.unregisterToken(notificationToken);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

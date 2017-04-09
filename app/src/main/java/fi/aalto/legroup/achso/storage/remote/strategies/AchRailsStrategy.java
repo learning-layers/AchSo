@@ -60,6 +60,7 @@ public class AchRailsStrategy implements VideoHost {
         return new Request.Builder()
             .url(endpointUrl.buildUpon().appendPath("videos.json").toString());
     }
+
     Request.Builder buildVideosRequest(UUID id) {
         return new Request.Builder()
             .url(endpointUrl.buildUpon()
@@ -159,6 +160,41 @@ public class AchRailsStrategy implements VideoHost {
 
         Request request = buildVideoPublicRequest(videoId).put(body).build();
         Response response = executeRequest(request);
+    }
+
+
+    @Override
+    public void registerToken(String notificationToken) throws JSONException, IOException {
+        JSONObject obj = new JSONObject();
+        obj.put("token", notificationToken);
+
+        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), obj.toString());
+
+        Request request = new Request.Builder()
+                .url(endpointUrl.buildUpon()
+                        .appendPath("notifications")
+                        .appendPath("register")
+                        .toString())
+                .put(body).build();
+
+        executeRequest(request);
+    }
+
+    @Override
+    public void unregisterToken(String notificationToken) throws JSONException, IOException {
+        JSONObject obj = new JSONObject();
+        obj.put("token", notificationToken);
+
+        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), obj.toString());
+
+        Request request = new Request.Builder()
+                .url(endpointUrl.buildUpon()
+                        .appendPath("notifications")
+                        .appendPath("undelete")
+                        .toString())
+                .put(body).build();
+
+        executeRequest(request);
     }
 
     @Override

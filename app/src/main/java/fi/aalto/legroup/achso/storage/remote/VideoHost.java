@@ -57,4 +57,8 @@ public interface VideoHost {
      * Finds a video by the video source uri.
      */
     public Video findVideoByVideoUri(Uri videoUri) throws IOException;
+
+    public void registerToken(String notificationToken) throws JSONException, IOException;
+
+    public void unregisterToken(String notificationToken) throws JSONException, IOException;
 }
