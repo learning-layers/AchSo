@@ -11,5 +11,7 @@ public class AchsoFirebaseInstanceIdService extends FirebaseInstanceIdService {
         String refreshedToken = FirebaseInstanceId.getInstance().getToken();
 
         App.tokenUpdated(refreshedToken);
+
+        super.onTokenRefresh();
     }
 }
