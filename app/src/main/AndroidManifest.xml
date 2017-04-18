@@ -139,6 +139,13 @@
             android:parentActivityName=".browsing.BrowserActivity" />
 
         <service
+            android:name=".utilities.AchsoFirebaseMessagingService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
+
+        <service
             android:name=".utilities.AchsoFirebaseInstanceIdService">
             <intent-filter>
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
