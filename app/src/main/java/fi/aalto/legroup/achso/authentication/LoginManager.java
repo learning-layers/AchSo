@@ -92,6 +92,8 @@ public final class LoginManager {
      * Logs out from the account and disables auto-login. Use this if the user manually logs out.
      */
     public void logoutExplicitly() {
+        setState(LoginState.LOGGING_OUT, false);
+
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
 
         prefs.edit()
@@ -106,6 +108,10 @@ public final class LoginManager {
      * automatic (e.g. connectivity lost) and not initiated by the user.
      */
     public void logout() {
+        if (getState() != LoginState.LOGGING_OUT) {
+            setState(LoginState.LOGGING_OUT, false);
+        }
+
         setState(LoginState.LOGGED_OUT, true);
         account = null;
         user = null;
