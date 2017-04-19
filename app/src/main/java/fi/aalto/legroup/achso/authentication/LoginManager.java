@@ -88,6 +88,10 @@ public final class LoginManager {
         new LoginTask().execute(account);
     }
 
+    private void notifyAcccountLoggedOut(Account account) {
+        this.bus.post(new AccountLoggedOutEvent(account));
+    }
+
     /**
      * Logs out from the account and disables auto-login. Use this if the user manually logs out.
      */
@@ -113,6 +117,7 @@ public final class LoginManager {
         }
 
         setState(LoginState.LOGGED_OUT, true);
+        notifyAcccountLoggedOut(account);
         account = null;
         user = null;
     }
@@ -265,7 +270,5 @@ public final class LoginManager {
 
             setState(LoginState.LOGGED_IN, true);
         }
-
     }
-
 }

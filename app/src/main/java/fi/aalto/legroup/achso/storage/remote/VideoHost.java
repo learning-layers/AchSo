@@ -1,5 +1,6 @@
 package fi.aalto.legroup.achso.storage.remote;
 
+import android.accounts.Account;
 import android.net.Uri;
 
 import org.json.JSONException;
@@ -60,5 +61,5 @@ public interface VideoHost {
 
     public void registerToken(String notificationToken) throws JSONException, IOException;
 
-    public void unregisterToken(String notificationToken) throws JSONException, IOException;
+    public void unregisterToken(Account account, String notificationToken) throws JSONException, IOException;
 }

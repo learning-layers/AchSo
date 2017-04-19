@@ -13,11 +13,11 @@ import java.io.IOException;
 public class EmptyCallback implements Callback {
     @Override
     public void onFailure(Request request, IOException e) {
-
+        System.out.println(request);
     }
 
     @Override
     public void onResponse(Response response) throws IOException {
-        // System.out.println(response);
+        System.out.println(response);
     }
 }

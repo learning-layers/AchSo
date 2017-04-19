@@ -1,5 +1,6 @@
 package fi.aalto.legroup.achso.app;
 
+import android.accounts.Account;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -7,14 +8,14 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.multidex.MultiDexApplication;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.analytics.GoogleAnalytics;
-import com.google.firebase.FirebaseApp;
 import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.FirebaseInstanceIdService;
 import com.rollbar.android.Rollbar;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.otto.Bus;
@@ -25,9 +26,12 @@ import org.json.JSONException;
 import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import fi.aalto.legroup.achso.BuildConfig;
 import fi.aalto.legroup.achso.R;
+import fi.aalto.legroup.achso.authentication.AccountLoggedOutEvent;
 import fi.aalto.legroup.achso.authentication.AuthenticatedHttpClient;
 import fi.aalto.legroup.achso.authentication.LoginManager;
 import fi.aalto.legroup.achso.authentication.LoginRequestEvent;
@@ -189,19 +193,38 @@ public final class App extends MultiDexApplication
     }
 
     @Subscribe
-    public static void onLoginStateEvent(LoginStateEvent event) {
-        String token = FirebaseInstanceId.getInstance().getToken();
+    public static void onLoginStateEvent(final LoginStateEvent event) {
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                // this code will be executed after 2 seconds
+                String token = FirebaseInstanceId.getInstance().getToken();
 
-        if (token == null) return;
+                if (token == null) return;
 
-        if (event.getState() == LoginManager.LoginState.LOGGED_IN) {
-            App.registerToken(token);
-        } else if (event.getState() == LoginManager.LoginState.LOGGING_OUT) {
-            App.unregisterToken(token);
-        }
+                if (event.getState() == LoginManager.LoginState.LOGGED_IN) {
+                    App.registerToken(token);
+                }
+            }
+        }, 2000);
     }
 
-    private static void registerToken(String notificationToken) {
+    @Subscribe
+    public  static  void onAccountLoggedOutEvent(final AccountLoggedOutEvent event) {
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                // this code will be executed after 2 seconds
+                String token = FirebaseInstanceId.getInstance().getToken();
+
+                if (token == null) return;
+
+                App.removeTokenFromAccount(event.getAccount(), token);
+            }
+        }, 2000);
+    }
+
+    private static void registerToken(final String notificationToken) {
         try {
             achRails.registerToken(notificationToken);
         } catch (JSONException e) {
@@ -211,9 +234,9 @@ public final class App extends MultiDexApplication
         }
     }
 
-    private static void unregisterToken(String notificationToken) {
+    private static void removeTokenFromAccount(Account account, String notificationToken) {
         try {
-            achRails.unregisterToken(notificationToken);
+            achRails.unregisterToken(account, notificationToken);
         } catch (JSONException e) {
             e.printStackTrace();
         } catch (IOException e) {

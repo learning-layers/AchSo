@@ -69,6 +69,8 @@ public class AuthenticatedHttpClient {
     }
 
     public void enqueue(Request request, Account account, Callback cb) {
+        AccountManager accountManager = AccountManager.get(context);
+
         String token = getBearerToken(account);
 
         request = request.newBuilder().header("Authorization", "Bearer " + token).build();

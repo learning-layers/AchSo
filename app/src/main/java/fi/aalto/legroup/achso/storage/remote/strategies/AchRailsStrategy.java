@@ -104,9 +104,14 @@ public class AchRailsStrategy implements VideoHost {
         return response;
     }
 
-    private void executeRequestAsync(Request request, Callback cb) throws IOException {
-        Account account = App.loginManager.getAccount();
-        App.authenticatedHttpClient.enqueue(request, account, cb);
+    private Response executeRequestWithAccount(Account account, Request request) {
+        try {
+            return App.authenticatedHttpClient.execute(request, account);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     private Response executeRequest(Request request) throws IOException {
@@ -173,35 +178,35 @@ public class AchRailsStrategy implements VideoHost {
     @Override
     public void registerToken(String notificationToken) throws JSONException, IOException {
         JSONObject obj = new JSONObject();
-        obj.put("token", notificationToken);
+        obj.put("registration_token", notificationToken);
 
         RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), obj.toString());
 
         Request request = new Request.Builder()
                 .url(endpointUrl.buildUpon()
                         .appendPath("notifications")
-                        .appendPath("register")
+                        .appendPath("register_token")
                         .toString())
                 .put(body).build();
 
-        executeRequestAsync(request, new EmptyCallback());
+        executeRequest(request);
     }
 
     @Override
-    public void unregisterToken(String notificationToken) throws JSONException, IOException {
+    public void unregisterToken(Account account, String notificationToken) throws JSONException, IOException {
         JSONObject obj = new JSONObject();
-        obj.put("token", notificationToken);
+        obj.put("registration_token", notificationToken);
 
         RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), obj.toString());
 
         Request request = new Request.Builder()
                 .url(endpointUrl.buildUpon()
                         .appendPath("notifications")
-                        .appendPath("unregister")
+                        .appendPath("unregister_token")
                         .toString())
                 .put(body).build();
 
-        executeRequestAsync(request, new EmptyCallback());
+        executeRequestWithAccount(account, request);
     }
 
     @Override
