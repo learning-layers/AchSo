@@ -123,3 +123,4 @@ manifest-merger-release-report.txt
 
 # Android Studio heap captures
 captures/
+app/google-services.json

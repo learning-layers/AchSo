@@ -25,6 +25,7 @@ import android.widget.ListView;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CircleOptions;
@@ -143,27 +144,30 @@ public final class DetailActivity extends AppCompatActivity
         SupportMapFragment mapFragment = (SupportMapFragment)
                 getSupportFragmentManager().findFragmentById(R.id.mapFragment);
 
-        Location location = video.getLocation();
+        final Location location = video.getLocation();
 
         if (location != null) {
-            LatLng position = new LatLng(location.getLatitude(), location.getLongitude());
+            mapFragment.getMapAsync(new OnMapReadyCallback() {
+                @Override
+                public void onMapReady(GoogleMap googleMap) {
+                    LatLng position = new LatLng(location.getLatitude(), location.getLongitude());
 
-            GoogleMap map = mapFragment.getMap();
+                    googleMap.addCircle(new CircleOptions()
+                            .center(position)
+                            .radius(location.getAccuracy())
+                            .strokeWidth(3.0f)
+                            .strokeColor(Color.WHITE)
+                            .fillColor(Color.parseColor("#80ffffff")));
 
-            map.addCircle(new CircleOptions()
-                    .center(position)
-                    .radius(location.getAccuracy())
-                    .strokeWidth(3.0f)
-                    .strokeColor(Color.WHITE)
-                    .fillColor(Color.parseColor("#80ffffff")));
+                    googleMap.addMarker(new MarkerOptions()
+                            .position(position)
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
 
-            map.addMarker(new MarkerOptions()
-                    .position(position)
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 14.5f));
 
-            map.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 14.5f));
-
-            findViewById(R.id.unknownLocationText).setVisibility(View.GONE);
+                    findViewById(R.id.unknownLocationText).setVisibility(View.GONE);
+                }
+            });
         }
 
         initializeAddQRButton();

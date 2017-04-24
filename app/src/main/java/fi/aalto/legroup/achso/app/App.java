@@ -1,5 +1,6 @@
 package fi.aalto.legroup.achso.app;
 
+import android.accounts.Account;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -7,23 +8,34 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.multidex.MultiDexApplication;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.analytics.GoogleAnalytics;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.rollbar.android.Rollbar;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.otto.Bus;
+import com.squareup.otto.Subscribe;
+
+import org.json.JSONException;
 
 import java.io.File;
+import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import fi.aalto.legroup.achso.BuildConfig;
 import fi.aalto.legroup.achso.R;
+import fi.aalto.legroup.achso.authentication.AccountLoggedOutEvent;
 import fi.aalto.legroup.achso.authentication.AuthenticatedHttpClient;
 import fi.aalto.legroup.achso.authentication.LoginManager;
 import fi.aalto.legroup.achso.authentication.LoginRequestEvent;
+import fi.aalto.legroup.achso.authentication.LoginStateEvent;
 import fi.aalto.legroup.achso.authentication.OIDCConfig;
 import fi.aalto.legroup.achso.authoring.ExportHelper;
 import fi.aalto.legroup.achso.authoring.LocationManager;
@@ -79,6 +91,7 @@ public final class App extends MultiDexApplication
         setupPreferences();
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+
         layersBoxUrl = readLayersBoxUrl();
         usePublicLayersBox = preferences.getBoolean(AppPreferences.USE_PUBLIC_LAYERS_BOX, false);
         publicLayersBoxUrl = Uri.parse(getString(R.string.publicLayersBoxUrl));
@@ -139,6 +152,7 @@ public final class App extends MultiDexApplication
 
         updateOIDCTokens(this);
 
+        bus.register(this);
         bus.post(new LoginRequestEvent(LoginRequestEvent.Type.LOGIN));
 
         // Trim the caches asynchronously
@@ -169,6 +183,64 @@ public final class App extends MultiDexApplication
                     SyncService.syncWithCloudStorage(context);
                 }
             });
+        }
+    }
+
+    public static void tokenUpdated(String notificationToken) {
+        if (loginManager.isLoggedIn()) {
+            App.registerToken(notificationToken);
+        }
+    }
+
+    @Subscribe
+    public static void onLoginStateEvent(final LoginStateEvent event) {
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                // this code will be executed after 2 seconds
+                String token = FirebaseInstanceId.getInstance().getToken();
+
+                if (token == null) return;
+
+                if (event.getState() == LoginManager.LoginState.LOGGED_IN) {
+                    App.registerToken(token);
+                }
+            }
+        }, 4000);
+    }
+
+    @Subscribe
+    public static void onAccountLoggedOutEvent(final AccountLoggedOutEvent event) {
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                // this code will be executed after 2 seconds
+                String token = FirebaseInstanceId.getInstance().getToken();
+
+                if (token == null) return;
+
+                App.removeTokenFromAccount(event.getAccount(), token);
+            }
+        }, 10);
+    }
+
+    private static void registerToken(final String notificationToken) {
+        try {
+            achRails.registerToken(notificationToken);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void removeTokenFromAccount(Account account, String notificationToken) {
+        try {
+            achRails.unregisterToken(account, notificationToken);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

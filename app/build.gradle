@@ -7,6 +7,10 @@ android {
 
     useLibrary 'org.apache.http.legacy'
 
+    configurations {
+        compile.exclude group: "org.apache.httpcomponents", module: "httpclient"
+    }
+
     defaultConfig {
         applicationId 'fi.aalto.legroup.achso'
         minSdkVersion 16
@@ -84,10 +88,13 @@ dependencies {
     compile 'org.florescu.android.rangeseekbar:rangeseekbar-library:0.3.0'
 
     // Google Play Services APIs
-    compile 'com.google.android.gms:play-services-base:8.1.0'
-    compile 'com.google.android.gms:play-services-maps:8.1.0'
-    compile 'com.google.android.gms:play-services-location:8.1.0'
-    compile 'com.google.android.gms:play-services-analytics:8.1.0'
+    compile 'com.google.android.gms:play-services-base:10.2.1'
+    compile 'com.google.android.gms:play-services-maps:10.2.1'
+    compile 'com.google.android.gms:play-services-location:10.2.1'
+    compile 'com.google.android.gms:play-services-analytics:10.2.1'
+
+    // Push notifications
+    compile 'com.google.firebase:firebase-messaging:10.2.1'
 
     // OAuth2 library for OpenID Connect
     compile('com.google.oauth-client:google-oauth-client:1.19.0') {
@@ -129,3 +136,5 @@ dependencies {
     // Decrypting the Layers Box URL
     compile 'fi.aalto.legroup:cryptohelper:0.1.0'
 }
+
+apply plugin: 'com.google.gms.google-services'

@@ -3,6 +3,7 @@ package fi.aalto.legroup.achso.storage.remote.strategies;
 import android.accounts.Account;
 import android.net.Uri;
 
+import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.FormEncodingBuilder;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.Request;
@@ -27,6 +28,7 @@ import fi.aalto.legroup.achso.entities.VideoReference;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializable;
 import fi.aalto.legroup.achso.entities.serialization.json.JsonSerializer;
 import fi.aalto.legroup.achso.storage.remote.VideoHost;
+import fi.aalto.legroup.achso.utilities.EmptyCallback;
 import okio.BufferedSink;
 import okio.Okio;
 
@@ -60,6 +62,7 @@ public class AchRailsStrategy implements VideoHost {
         return new Request.Builder()
             .url(endpointUrl.buildUpon().appendPath("videos.json").toString());
     }
+
     Request.Builder buildVideosRequest(UUID id) {
         return new Request.Builder()
             .url(endpointUrl.buildUpon()
@@ -99,6 +102,16 @@ public class AchRailsStrategy implements VideoHost {
             throw new IOException(errorMessage);
         }
         return response;
+    }
+
+    private Response executeRequestWithAccount(Account account, Request request) {
+        try {
+            return App.authenticatedHttpClient.execute(request, account);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     private Response executeRequest(Request request) throws IOException {
@@ -159,6 +172,41 @@ public class AchRailsStrategy implements VideoHost {
 
         Request request = buildVideoPublicRequest(videoId).put(body).build();
         Response response = executeRequest(request);
+    }
+
+
+    @Override
+    public void registerToken(String notificationToken) throws JSONException, IOException {
+        JSONObject obj = new JSONObject();
+        obj.put("registration_token", notificationToken);
+
+        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), obj.toString());
+
+        Request request = new Request.Builder()
+                .url(endpointUrl.buildUpon()
+                        .appendPath("notifications")
+                        .appendPath("register_token")
+                        .toString())
+                .put(body).build();
+
+        executeRequest(request);
+    }
+
+    @Override
+    public void unregisterToken(Account account, String notificationToken) throws JSONException, IOException {
+        JSONObject obj = new JSONObject();
+        obj.put("registration_token", notificationToken);
+
+        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), obj.toString());
+
+        Request request = new Request.Builder()
+                .url(endpointUrl.buildUpon()
+                        .appendPath("notifications")
+                        .appendPath("unregister_token")
+                        .toString())
+                .put(body).build();
+
+        executeRequestWithAccount(account, request);
     }
 
     @Override

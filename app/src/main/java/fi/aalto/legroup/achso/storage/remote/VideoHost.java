@@ -1,5 +1,6 @@
 package fi.aalto.legroup.achso.storage.remote;
 
+import android.accounts.Account;
 import android.net.Uri;
 
 import org.json.JSONException;
@@ -57,4 +58,8 @@ public interface VideoHost {
      * Finds a video by the video source uri.
      */
     public Video findVideoByVideoUri(Uri videoUri) throws IOException;
+
+    public void registerToken(String notificationToken) throws JSONException, IOException;
+
+    public void unregisterToken(Account account, String notificationToken) throws JSONException, IOException;
 }

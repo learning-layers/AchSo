@@ -138,7 +138,24 @@
             android:label="@string/choose_account"
             android:parentActivityName=".browsing.BrowserActivity" />
 
-        <service android:name=".storage.local.ExportService" />
+        <service
+            android:enabled="true"
+            android:exported="true"
+            android:name=".utilities.AchsoFirebaseMessagingService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
+
+        <service
+            android:enabled="true"
+            android:exported="true"
+            android:name=".utilities.AchsoFirebaseInstanceIdService">
+            <intent-filter>
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
+            </intent-filter>
+        </service>
+
         <service android:name=".storage.remote.upload.UploadService" />
         <service android:name=".storage.remote.download.DownloadService" />
         <service android:name=".storage.remote.SyncService" />
