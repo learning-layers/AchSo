@@ -206,11 +206,11 @@ public final class App extends MultiDexApplication
                     App.registerToken(token);
                 }
             }
-        }, 2000);
+        }, 4000);
     }
 
     @Subscribe
-    public  static  void onAccountLoggedOutEvent(final AccountLoggedOutEvent event) {
+    public static void onAccountLoggedOutEvent(final AccountLoggedOutEvent event) {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
@@ -221,7 +221,7 @@ public final class App extends MultiDexApplication
 
                 App.removeTokenFromAccount(event.getAccount(), token);
             }
-        }, 2000);
+        }, 10);
     }
 
     private static void registerToken(final String notificationToken) {
